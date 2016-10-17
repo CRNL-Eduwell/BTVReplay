@@ -6,19 +6,22 @@ using UnityEngine;
 using UnityEngine.UI;
 using hyperVLC;
 
-using System.Globalization;
-using System.Text.RegularExpressions;
+using System.Threading;
 
 public class VLCSharp : MonoBehaviour
 {
     void Start ()
     {
+        texPause = Resources.Load("Pictures/playIcone", typeof(Texture2D)) as Texture2D;
+        texPlay = Resources.Load("Pictures/pauseIcone", typeof(Texture2D)) as Texture2D;
+        texLogo = Resources.Load("Pictures/BTVLogo", typeof(Texture2D)) as Texture2D;
+
+        TextureToDraw.texture = Instantiate(texLogo);
         //SetDllDirectory(@"D:\Users\Florian\Desktop\BTVReplay\BTVReplay_Data\Plugins");
         string[] args = new string[] { "" };
 
         instance = new VlcInstance(args);
         player = null;
-
     }
 
     void Update ()
@@ -53,6 +56,9 @@ public class VLCSharp : MonoBehaviour
     public Text actualTime, totalTime;
     public Scrollbar scrollBar;
     public Scrollbar volumeBar;
+    public RawImage playButton = null;
+
+    Texture2D texPlay = null, texPause = null, texLogo = null;
     Bitmap picCopy = null;
     VlcInstance instance = null;
     VlcMediaPlayer player = null;
@@ -60,7 +66,7 @@ public class VLCSharp : MonoBehaviour
     int totalTimeSeconde = 0;
     public long totalTimeMSec = 0;
     public long totalTimeSec = 0;
-    float memorySc = 0;
+    float mem = 0;
     #endregion
 
     #region vlcFunctions
@@ -71,11 +77,13 @@ public class VLCSharp : MonoBehaviour
         {
             player.Play();
             videoPaused = false;
+            playButton.texture = texPlay;
         }
         else 
         {
             player.Pause();
             videoPaused = true;
+            playButton.texture = texPause;
         }
     }
 
@@ -84,10 +92,20 @@ public class VLCSharp : MonoBehaviour
         if (player.IsStopped == false)
         {
             player.Stop();
+            playButton.texture = texPause;
             //prepare for reinstancement if ever
+
+            TextureToDraw.texture = Instantiate(texLogo); ;
+
             player = null;
             instance = new VlcInstance(new string[] { "" });
         }
+    }
+
+    public void moveTime(int timeSec)
+    {
+        totalTimeSec += timeSec;
+        scrollBar.value = totalTimeSec * (float)1 / totalTimeSeconde;
     }
 
     public void getTime(bool totalTime, Text toDisplay)
@@ -97,17 +115,20 @@ public class VLCSharp : MonoBehaviour
             totalTimeMSec = player.getTime();
             totalTimeSec  = totalTimeMSec / 1000;
 
+            mem = totalTimeSec * (float)1 / totalTimeSeconde;
+            scrollBar.value = totalTimeSec * (float)1 / totalTimeSeconde;
+
             long h = totalTimeSec / 3600;
             long m = ((totalTimeSec / 60) % 60);
             long s = (totalTimeSec % 60);
 
             if (h > 0)
             {
-                toDisplay.text = h + ":" + m + ":" + s;
+                toDisplay.text = returnTimeString(h) + ":" + returnTimeString(m) + ":" + returnTimeString(s);
             }
             else
             {
-                toDisplay.text = m + ":" + s;
+                toDisplay.text = returnTimeString(m) + ":" + returnTimeString(s);
             }
         }
         else
@@ -116,7 +137,6 @@ public class VLCSharp : MonoBehaviour
             if (totalTimeSec != 0)
             {
                 totalTimeSeconde = (int)totalTimeSec;
-                //scrollBar.size = (float)1 / totalTimeSeconde;
             }
 
             long h = totalTimeSec / 3600;
@@ -125,24 +145,23 @@ public class VLCSharp : MonoBehaviour
             
             if (h > 0)
             {
-                toDisplay.text = h + ":" + m + ":" + s;
+                toDisplay.text = returnTimeString(h) + ":" + returnTimeString(m) + ":" + returnTimeString(s);
             }
             else
             {
-                toDisplay.text = m + ":" + s;
+                toDisplay.text = returnTimeString(m) + ":" + returnTimeString(s);
             }
         }
     }
 
     public void setTime()
     {
-        if (memorySc != scrollBar.value)
+        if (mem != scrollBar.value)
         {
             long timeMS = (long)(scrollBar.value * totalTimeSeconde * 1000);
             player.setTime(timeMS);
+            mem = scrollBar.value;
         }
-        scrollBar.value = totalTimeSec * (float)1 / totalTimeSeconde;
-        memorySc = scrollBar.value;
     }
 
     public void setVolume()
@@ -151,12 +170,18 @@ public class VLCSharp : MonoBehaviour
     }
 
     public void loadVideoInit()
-    {
-        using (VlcMedia media = new VlcMedia(instance, "file:///" + btvMedia.video.transform.GetChild(1).GetComponent<InputField>().text))  // @"D:\\Users\\Florian\\Desktop\\MM_15SEP09G\\MM_15SEP09G_BTV_V15.AVI")) 
+    {        
+        using (VlcMedia media = new VlcMedia(instance, "file:///" + btvMedia.video.transform.GetChild(1).GetComponent<InputField>().text))  // @"D:\\Users\\Florian\\Desktop\\MM_15SEP09G\\MM_15SEP09G_BTV_V15.AVI"))  
         {
             if (player == null)
             {
                 player = new VlcMediaPlayer(media);
+
+                //string a = "sout=#std{access=file,dst=D:\\vid.mp4}";
+                //string a = ":sout=#stream_out_duplicate{dst=display,dst=std{access=file,mux=mp4,dst=D:\\vid.mp4}}";
+                //string a = "sout=#stream_out_duplicate{dst=nodisplay,dst=std{access=file,mux=mp4,dst=D:\\vid.mp4}}";
+                //string a = "sout=#std{access=screen,mux=mp4,dst=D:\\vid.mp4}";
+                //LibVlc.libvlc_media_add_option(media.Handle, a);
 
                 IMemoryRenderer memRender = player.CustomRenderer;
                 memRender.SetCallback(delegate (Bitmap frame)
@@ -176,31 +201,34 @@ public class VLCSharp : MonoBehaviour
                 player.Media = media;
             }
         }
-
-
         //player.Play();
+
     }
 
+    string returnTimeString(long time)
+    {
+        if (time < 10)
+        {
+            return "0" + time;
+        }
+        else
+        {
+            return time.ToString();
+        }
+    }
     #endregion
 
     #region Functions
 
     void UpdateTexture()
     {
-        Texture2D videoTexture = Image2Texture(picCopy);
+        Image2Texture(picCopy, (Texture2D)TextureToDraw.texture);
         newPicLoaded = false;
         picRendered = true;
-        TextureToDraw.texture = videoTexture;
     }
 
-    static Texture2D Image2Texture(System.Drawing.Image im)
+    static void Image2Texture(System.Drawing.Image im, Texture2D myTex)
     {
-        if (im == null)
-        {
-            return new Texture2D(4, 4);
-        }
-
-
         //Memory stream to store the bitmap data.
         MemoryStream ms = new MemoryStream();
 
@@ -211,16 +239,12 @@ public class VLCSharp : MonoBehaviour
         //Go to the beginning of the memory stream.
         ms.Seek(0, SeekOrigin.Begin);
         //make a new Texture2D
-        Texture2D tex = new Texture2D(im.Width, im.Height);
 
-        tex.LoadImage(ms.ToArray());
+        myTex.LoadImage(ms.ToArray());
 
         //Close the stream.
         ms.Close();
         ms = null;
-
-        //
-        return tex;
     }
 
     #endregion

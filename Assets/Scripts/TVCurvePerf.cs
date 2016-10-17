@@ -51,17 +51,20 @@ public class TVCurvePerf : MonoBehaviour
 
 	void Update ()
     {
-        if (linePerfRectTransObj != null)
+        if (btvMedia.perfOk == true)
         {
-            if (linePerfRectTransObj.rect.width != widthOfGameObject)
+            if (linePerfRectTransObj != null)
             {
-                updateLineRendererHorizontalScale();
+                if (linePerfRectTransObj.rect.width != widthOfGameObject)
+                {
+                    updateLineRendererHorizontalScale();
+                }
             }
-        }
 
-        if (vlcScript.videoPaused == false)
-        {
-            UpdateSpawn();
+            if (vlcScript.videoPaused == false)
+            {
+                UpdateSpawn();
+            }
         }
     }
 

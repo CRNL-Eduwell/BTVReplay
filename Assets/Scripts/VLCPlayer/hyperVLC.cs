@@ -1487,6 +1487,10 @@ namespace hyperVLC
 
         [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_media_release(IntPtr p_meta_desc);
+
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void libvlc_media_add_option(IntPtr media,
+            [MarshalAs(UnmanagedType.LPStr)] string psz_options);
         #endregion
 
         #region video

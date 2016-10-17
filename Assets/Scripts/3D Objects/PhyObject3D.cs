@@ -16,13 +16,16 @@ public class PhyObject3D : MonoBehaviour
     // Use this for initialization
     void Start ()
     {
-        Object3DHandle = GameObject.Find("GameObject");
+        //Object3DHandle = GameObject.Find("GameObject");
 
-        CameraScript = GameObject.Find("CameraBrain").GetComponent<PhyObjCamera>();
+        //CameraScript = GameObject.Find("CameraBrain").GetComponent<PhyObjCamera>();
     }
 
     public void loadBrainAndElectrodes(string LHtri, string RHtri, string PTS)
     {
+        Object3DHandle = GameObject.Find("GameObject");
+        CameraScript = GameObject.Find("CameraBrain").GetComponent<PhyObjCamera>();
+
         LHBrain = new GameObject("LeftHemi", new System.Type[] { typeof(BrainHemi) });
         LHBrain.transform.parent = Object3DHandle.transform;
         LHBrain.layer = Object3DHandle.layer;
@@ -44,6 +47,9 @@ public class PhyObject3D : MonoBehaviour
 
     public void loadElectrodes(string PTS)
     {
+        Object3DHandle = GameObject.Find("GameObject");
+        CameraScript = GameObject.Find("CameraBrain").GetComponent<PhyObjCamera>();
+
         Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
         Electrodes.transform.parent = Object3DHandle.transform;
         ElectrodesScript = Electrodes.GetComponent<Electrodes>();

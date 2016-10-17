@@ -28,6 +28,10 @@ public class elanFile
             {
                 string r;
                 nameElectrode = new List<string>();
+                physicalMinimum = new List<int>();
+                physicalMaximum = new List<int>();
+                logicMinimum = new List<int>();
+                logicMaximum = new List<int>();
 
                 for (int i = 0; i < 8; i++)
                 {
@@ -46,6 +50,36 @@ public class elanFile
                     nameElectrode.Add(result[0]);
                 }
 
+                //2 * numberbip
+                for (int i = 0; i < 2 * numberBipoles; i++)
+                {
+                    r = sr.ReadLine();
+                }
+
+                //Physic Min
+                for(int i = 0; i< numberBipoles;i++)
+                {
+                    r = sr.ReadLine();
+                    physicalMinimum.Add(Convert.ToInt32(r));
+                }
+
+                for (int i = 0; i < numberBipoles; i++)
+                {
+                    r = sr.ReadLine();
+                    physicalMaximum.Add(Convert.ToInt32(r));
+                }
+
+                for (int i = 0; i < numberBipoles; i++)
+                {
+                    r = sr.ReadLine();
+                    logicMinimum.Add(Convert.ToInt32(r));
+                }
+
+                for (int i = 0; i < numberBipoles; i++)
+                {
+                    r = sr.ReadLine();
+                    logicMaximum.Add(Convert.ToInt32(r));
+                }
                 sr.Close();
             }
         }
@@ -76,39 +110,27 @@ public class elanFile
                 Array.Reverse(a); //little endian
 
                 eegData[i][j] = BitConverter.ToInt16(a, 0);
+                //eegData[i][j] = (eegData[i][j] / (logicMaximum[i] - logicMinimum[i] + 1)) * (physicalMaximum[i] - physicalMinimum[i]);
             }
 
             centerSignalZero(eegData[i], (int)numberSample);
         }
 
-        //writeCSVOutput(eegData[0], (int)numberSample, @"D:\Users\Florian\Desktop\test.csv");
+        //writeCSVOutput(eegData[0], (int)numberSample, @"D:\Users\Florian\Desktop\test"+count+".csv");
+        //count++;
         //Debug.Log("Data Extracted");
     }
 
     void centerSignalZero(double[] data, int numberElement)
     {
-        //double average = data.Average();
-
-        //for (int i = 0; i < numberElement; i++)
-        //{
-        //    data[i] = (data[i] - average) / 1000;
-        //}
-
-        double average = data.Average();
-
-        for (int i = 0; i < numberElement; i++)
-        {
-            data[i] = data[i] - average;
-        }
-
         double min = data.Min();
         double max = data.Max();
-
-        max = Math.Max(Math.Abs(min), max);
+        double mean = data.Average();
+        double MAX = Mathf.Max((float)max, (float)Math.Abs(min));
 
         for (int i = 0; i < numberElement; i++)
         {
-            data[i] = data[i] / max;
+            data[i] = (data[i] - mean) / MAX;
         }
     }
 
@@ -122,6 +144,21 @@ public class elanFile
         sw.Close();
     }
 
+    void writeCSVOutput(double[][] data, int numberElement1, int numberElement2, string outputFilePath)
+    {
+        StreamWriter sw = new StreamWriter(File.Create(outputFilePath));
+        for (int i = 0; i < numberElement2; i++)
+        {
+            for (int j = 0; j< numberElement1; j++)
+            {
+                sw.Write(data[j][i] + ";");
+            }
+            sw.Write("\n");
+        }
+        sw.Close();
+    }
+
+
     public string eegFilePath;
     public string eegEntFilePath;
     public int samplingFrequency;
@@ -130,7 +167,8 @@ public class elanFile
     public long numberSec;
     public long numberSample;
     public List<string> nameElectrode;
-
+    public List<int> physicalMinimum, physicalMaximum, logicMinimum, logicMaximum;
+    int count = 0;
     public double[][] eegData;
 
 }

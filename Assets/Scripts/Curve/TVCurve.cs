@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.IO;
 
 public class TVCurve : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class TVCurve : MonoBehaviour
     public float Gain = 1;
     public float PreviousGain = 1;
     int numberPoint = 64 * 10;
-
+    int count = 0;
     public void init()
     {
         lineRendererRectTransObj = lineRendererObject.GetComponent<RectTransform>();
@@ -85,24 +86,35 @@ public class TVCurve : MonoBehaviour
             }
         }
         lineRendererObj.SetPositions(arrayDa);
+        //outputCSV(@"D:\Users\Florian\Desktop\replayout\test" + lineRendererObject+ " " + count + ".csv");
+        //count++;
     }
 
+    public void outputCSV(string outputFilePath)
+    {
+        StreamWriter sw = new StreamWriter(File.Create(outputFilePath));
+        for (int i = 0; i < 64; i++)
+        {
+            sw.Write(arrayDa[i].y + ";\n");
+        }
+        sw.Close();
+    }
     /**************************************************************/
     /*      Change The Gain of Signal to adapt to the view        */
     /**************************************************************/
     public void GainPlus()
     {
         PreviousGain = Gain;
-        Gain += 5;
+        Gain += 1;
         UpdateCurveGain();
     }
 
     public void GainMinus()
     {
-        if (Gain - 5 > 0)
+        if (Gain - 1 > 0)
         {
             PreviousGain = Gain;
-            Gain -= 5;
+            Gain -= 1;
             UpdateCurveGain();
         }
     }

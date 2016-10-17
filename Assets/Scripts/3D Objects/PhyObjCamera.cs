@@ -18,12 +18,15 @@ public class PhyObjCamera : MonoBehaviour
 
     void Start ()
     {
-        Object3DHandle = GameObject.Find("GameObject");
-        BaseMaterialTransparency = Resources.Load("Materials/MaterialTransparencyStencil", typeof(Material)) as Material;
+        //Object3DHandle = GameObject.Find("GameObject");
+        //BaseMaterialTransparency = Resources.Load("Materials/MaterialTransparencyStencil", typeof(Material)) as Material;
     }
 
     public void initCameraPosition()
     {
+        Object3DHandle = GameObject.Find("GameObject");
+        BaseMaterialTransparency = Resources.Load("Materials/MaterialTransparencyStencil", typeof(Material)) as Material;
+
         brainRenderer = Object3DHandle.transform.GetComponentsInChildren<MeshRenderer>();
         brainRenderer[0].GetComponent<Renderer>().material = Instantiate(BaseMaterialTransparency);
         brainRenderer[1].GetComponent<Renderer>().material = Instantiate(BaseMaterialTransparency);

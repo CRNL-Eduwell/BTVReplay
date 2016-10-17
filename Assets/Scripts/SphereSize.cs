@@ -37,7 +37,7 @@ public class SphereSize : MonoBehaviour
         indexToLook = ((int)(mainSc.vlcScript.totalTimeMSec * 0.064));
 
         v = (float)mainSc.eHandle.eegData[elecBipoleID][indexToLook];
-        scaleSize = 2 + (2 * ((float)mainSc.eHandle.eegData[elecBipoleID][indexToLook]));
+        scaleSize = 2 + (2 * ((float)mainSc.eHandle.eegData[elecBipoleID][indexToLook] * 5));
         electrode.transform.localScale = new Vector3(scaleSize, scaleSize, scaleSize);
     }
 }

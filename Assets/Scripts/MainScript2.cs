@@ -41,7 +41,10 @@ public class MainScript2 : MonoBehaviour
                 eHandle = btvMedia.e0;
                 curveScript.init();
                 curveScript2.init();
-                curvePerfScript.init();
+                if (btvMedia.perfOk == true)
+                {
+                    curvePerfScript.init();
+                }
                 loadDropDownUI();
                 load3DObject();
                 init = true;
@@ -97,6 +100,78 @@ public class MainScript2 : MonoBehaviour
         else if (button.name == "Buttonsm5000" && btvMedia.e5000 != null)
         {
             eHandle = btvMedia.e5000;
+        }
+    }
+
+    public void ttp(Dropdown dd)
+    {
+        elanFile e = null;
+        int val = dd.value + 1;
+
+        switch (val)
+        {
+            case 0:
+                e = btvMedia.e0;
+                break;
+            case 1:
+                e = btvMedia.e250;
+                break;
+            case 2:
+                e = btvMedia.e500;
+                break;
+            case 3:
+                e = btvMedia.e1000;
+                break;
+            case 4:
+                e = btvMedia.e2500;
+                break;
+            case 5:
+                e = btvMedia.e5000;
+                break;
+            default:
+                e = btvMedia.e0;
+                break;
+        }
+        if (e != null)
+        {
+            eHandle = e;
+            dd.value += 1;
+        }
+    }
+
+    public void ttm(Dropdown dd)
+    {
+        elanFile e = null;
+        int val = dd.value - 1;
+
+        switch (val)
+        {
+            case 0:
+                e = btvMedia.e0;
+                break;
+            case 1:
+                e = btvMedia.e250;
+                break;
+            case 2:
+                e = btvMedia.e500;
+                break;
+            case 3:
+                e = btvMedia.e1000;
+                break;
+            case 4:
+                e = btvMedia.e2500;
+                break;
+            case 5:
+                e = btvMedia.e5000;
+                break;
+            default:
+                e = btvMedia.e0;
+                break;
+        }
+        if (e != null)
+        {
+            eHandle = e;
+            dd.value -= 1;
         }
     }
 }

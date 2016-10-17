@@ -10,7 +10,7 @@ public class browseButtonQT : MonoBehaviour
     string compareStr = "";
     bool detailedCheck = false;
 
-    void Start()
+    void Awake()
     {
         handleFileBrowser = gameObject;
         textfield = handleFileBrowser.transform.GetChild(0).GetComponent<Text>();
