@@ -15,7 +15,7 @@ public class TVCurve : MonoBehaviour
     public float Gain = 1;
     public float PreviousGain = 1;
     int numberPoint = 64 * 10;
-    int count = 0;
+
     public void init()
     {
         lineRendererRectTransObj = lineRendererObject.GetComponent<RectTransform>();
@@ -25,7 +25,7 @@ public class TVCurve : MonoBehaviour
         //lineRendererObj = GameObject.Find("LRObject1").GetComponent<LineRenderer>();
 
         lineRendererObj.SetVertexCount(numberPoint);
-        lineRendererObj.SetWidth(0.05f, 0.05f);
+        lineRendererObj.SetWidth(0.04f, 0.04f);
 
         arrayDa = new Vector3[numberPoint];
         widthOfGameObject = lineRendererRectTransObj.rect.width;

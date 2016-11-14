@@ -11,6 +11,8 @@ public class curveClick : MonoBehaviour
     public GameObject ringGameObject = null;
     public GameObject panelBrain = null;
     public Camera camBrain = null;
+    public MainScript2 main;
+    public Text elecLabel;
 
     public bool imselected = false;
 
@@ -26,6 +28,10 @@ public class curveClick : MonoBehaviour
     float headerWidth, headerHeight;
     Vector3[] worldCornerOfRectTransform = new Vector3[4];
     Vector3[] worldCornerOfBrainPanel = new Vector3[4];
+
+    //===
+    Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
+    Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
 
     // Use this for initialization
     void Start ()
@@ -61,6 +67,13 @@ public class curveClick : MonoBehaviour
         p_box.size = new Vector3(headerWidth, headerHeight, 0);
     }
 
+    public void changeNameElectrode()
+    {
+        string elec = dropDownScript.options[dropDownScript.value].text;
+        int elecID = main.eHandle.nameElectrode.FindIndex(x => x.ToLower().Contains(elec.ToLower()));
+        elecLabel.text = main.eHandle.nameElectrode[elecID];
+    }
+
     void processClick()
     {
         GameObject plot = null;
@@ -71,6 +84,7 @@ public class curveClick : MonoBehaviour
             if (imselected)
             {
                 unselectOtherTV();
+                panelcourbe.GetComponent<Image>().color = orange;
                 panelTelecommande.SetActive(true);
                 string elecTosShow = dropDownScript.options[dropDownScript.value].text;
                 plot = GameObject.Find(elecTosShow.ToLower().Replace('\'', 'p'));
@@ -79,6 +93,7 @@ public class curveClick : MonoBehaviour
             else
             {
                 panelTelecommande.SetActive(false);
+                panelcourbe.GetComponent<Image>().color = blue;
                 plot = null;
                 ringScript.setSelectedPlot(plot);
             }
@@ -106,6 +121,7 @@ public class curveClick : MonoBehaviour
         if (panelOtherTelecommande.activeSelf == true)
         {
             panelOtherTelecommande.SetActive(false);
+            panelOtherCourbe.GetComponent<Image>().color = blue;
         }
         ringScript.setSelectedPlot(null);
     }

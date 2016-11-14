@@ -166,7 +166,7 @@ public class VLCSharp : MonoBehaviour
 
     public void setVolume()
     {
-        player.SetVolume((int)(volumeBar.value * 100));
+        player.SetVolume((int)(volumeBar.value * 200)); //until 200% volume 
     }
 
     public void loadVideoInit()

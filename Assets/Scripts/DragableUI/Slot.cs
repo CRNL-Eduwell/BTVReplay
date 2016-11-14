@@ -118,4 +118,33 @@ public class Slot : MonoBehaviour, IDropHandler
             brainPanel.transform.GetComponent<RectTransform>().sizeDelta = startSize;
         }
     }
+
+    public void putBigBrain()
+    {
+        brainPanel.transform.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0);
+        brainPanel.transform.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
+        brainPanel.transform.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
+
+        // [ left - bottom ]
+        brainPanel.transform.GetComponent<RectTransform>().offsetMin = new Vector2(0f, 0f);
+        // [ right - top ]
+        brainPanel.transform.GetComponent<RectTransform>().offsetMax = new Vector2(0f, 0f);
+
+        brainPanel.transform.GetComponent<RectTransform>().sizeDelta = bigSize;
+    }
+
+    public void putSmallBrain()
+    {
+        brainPanel.transform.GetComponent<RectTransform>().anchorMin = new Vector2(0f, 0.5f);
+        brainPanel.transform.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 1.0f);
+        brainPanel.transform.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
+
+        // [ left - bottom ]
+        brainPanel.transform.GetComponent<RectTransform>().offsetMin = new Vector2(0f, 0f);
+        // [ right - top ]
+        brainPanel.transform.GetComponent<RectTransform>().offsetMax = new Vector2(0f, 0f);
+
+        brainPanel.transform.GetComponent<RectTransform>().position = startPosition;
+        brainPanel.transform.GetComponent<RectTransform>().sizeDelta = startSize;
+    }
 }

@@ -38,7 +38,7 @@ public class MainScript2 : MonoBehaviour
         {
             if (btvMedia.loaded == true)
             {
-                eHandle = btvMedia.e0;
+                eHandle = returnFirstHandle();
                 curveScript.init();
                 curveScript2.init();
                 if (btvMedia.perfOk == true)
@@ -172,6 +172,38 @@ public class MainScript2 : MonoBehaviour
         {
             eHandle = e;
             dd.value -= 1;
+        }
+    }
+
+    elanFile returnFirstHandle()
+    {
+        if (btvMedia.e0 != null)
+        {
+            return btvMedia.e0;
+        }
+        else if (btvMedia.e250 != null)
+        {
+            return btvMedia.e250;
+        }
+        else if (btvMedia.e500 != null)
+        {
+            return btvMedia.e500;
+        }
+        else if (btvMedia.e1000 != null)
+        {
+            return btvMedia.e1000;
+        }
+        else if (btvMedia.e2500 != null)
+        {
+            return btvMedia.e2500;
+        }
+        else if (btvMedia.e5000 != null)
+        {
+            return btvMedia.e5000;
+        }
+        else
+        {
+            return null;
         }
     }
 }

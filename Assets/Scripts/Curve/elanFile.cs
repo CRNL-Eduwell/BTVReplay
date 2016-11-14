@@ -168,7 +168,6 @@ public class elanFile
     public long numberSample;
     public List<string> nameElectrode;
     public List<int> physicalMinimum, physicalMaximum, logicMinimum, logicMaximum;
-    int count = 0;
     public double[][] eegData;
 
 }
