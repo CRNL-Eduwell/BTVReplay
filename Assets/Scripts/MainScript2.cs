@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+
+using UnityEngine;
 using UnityEngine.UI;
 
 public class MainScript2 : MonoBehaviour
@@ -7,22 +11,21 @@ public class MainScript2 : MonoBehaviour
     public GameObject colorPicker2 = null;
     public GameObject telecommandeCurve = null;
     public GameObject telecommandeCurve2 = null;
-    public GameObject brain3D = null;
 
     public PhyObject3D brain3DScript = null;
-    public VLCSharp vlcScript = null;
+    public VLCSharp.VLCSharp vlcScript = null;
     public TVCurve curveScript = null;
     public TVCurve curveScript2 = null;
-    public TVCurvePerf curvePerfScript = null;
-    public Dropdown dropDownScript = null;
-    public Dropdown dropDownScript2 = null;
-    public TVDropDown tvDropDownScript = null;
-    public TVDropDown tvDropDownScript2 = null;
-    public BTVMedia btvMedia = null;
+    public courbeClick curveClick1 = null;
+    public courbeClick curveClick2 = null;
+    public clickableObject brainClick = null;
 
-    public elanFile eHandle = null;
+    public TVCurvePerf curvePerfScript = null;
+    public eventDisplay eventDisp = null;
+    public BTVMedia_New btvMedia = null;
 
     public bool init = false;
+    public List<string> elecList = null;
 
     void Start ()
     {
@@ -38,172 +41,40 @@ public class MainScript2 : MonoBehaviour
         {
             if (btvMedia.loaded == true)
             {
-                eHandle = returnFirstHandle();
                 curveScript.init();
                 curveScript2.init();
+                curveClick1.init();
+                curveClick2.init();
+                brainClick.init();
+                elecList = new List<string>(curveScript.eHandle.electList); //Create Clone, not ref
+
                 if (btvMedia.perfOk == true)
                 {
-                    curvePerfScript.init();
+                    curvePerfScript.init(); //Implement destroy to kill spawned object and prevent leak /!\
+                    eventDisp.init();
                 }
-                loadDropDownUI();
                 load3DObject();
+                vlcScript.loadVideoInit(btvMedia.pm.currentPatients[btvMedia.pm.idCurrentPatientLoaded].video);
                 init = true;
             }
         }
         else
         {
-            if (vlcScript.videoPaused == false)
+            if (vlcScript.player.IsPlaying)
             {
-                curveScript.updateDraw(eHandle.eegData[dropDownScript.value], (int)(vlcScript.totalTimeMSec * 0.064) - 640);
-                curveScript2.updateDraw(eHandle.eegData[dropDownScript2.value], (int)(vlcScript.totalTimeMSec * 0.064) - 640);
+                int sampleToLook = ((int)(vlcScript.time) - 640);
+                curveScript.updateDraw(sampleToLook);
+                curveScript2.updateDraw(sampleToLook);
             }
         }
-	}
-
-    void loadDropDownUI()
-    {
-        tvDropDownScript.loadElectrodeListInDropDown(eHandle.nameElectrode.ToArray(), eHandle.nameElectrode.Count);
-        tvDropDownScript2.loadElectrodeListInDropDown(eHandle.nameElectrode.ToArray(), eHandle.nameElectrode.Count);
     }
 
     void load3DObject()
     {
-        string LHemi = btvMedia.Lhemi.transform.GetChild(1).GetComponent<InputField>().text;
-        string RHemi = btvMedia.Rhemi.transform.GetChild(1).GetComponent<InputField>().text;
-        string PTS = btvMedia.PTS.transform.GetChild(1).GetComponent<InputField>().text;
+        string LHemi = btvMedia.pm.currentPatients[btvMedia.pm.idCurrentPatientLoaded].lhemi_MNI;
+        string RHemi = btvMedia.pm.currentPatients[btvMedia.pm.idCurrentPatientLoaded].rhemi_MNI;
+        string PTS = btvMedia.pm.currentPatients[btvMedia.pm.idCurrentPatientLoaded].pts_MNI;
 
         brain3DScript.loadBrainAndElectrodes(LHemi, RHemi, PTS);
-    }
-
-    public void OnClicked(Button button)
-    {
-        if (button.name == "Buttonsm0" && btvMedia.e0 != null)
-        {
-            eHandle = btvMedia.e0;
-        }
-        else if (button.name == "Buttonsm250" && btvMedia.e250 != null)
-        {
-            eHandle = btvMedia.e250;
-        }
-        else if (button.name == "Buttonsm500" && btvMedia.e500 != null)
-        {
-            eHandle = btvMedia.e500;
-        }
-        else if (button.name == "Buttonsm1000" && btvMedia.e1000 != null)
-        {
-            eHandle = btvMedia.e1000;
-        }
-        else if (button.name == "Buttonsm2500" && btvMedia.e2500 != null)
-        {
-            eHandle = btvMedia.e2500;
-        }
-        else if (button.name == "Buttonsm5000" && btvMedia.e5000 != null)
-        {
-            eHandle = btvMedia.e5000;
-        }
-    }
-
-    public void ttp(Dropdown dd)
-    {
-        elanFile e = null;
-        int val = dd.value + 1;
-
-        switch (val)
-        {
-            case 0:
-                e = btvMedia.e0;
-                break;
-            case 1:
-                e = btvMedia.e250;
-                break;
-            case 2:
-                e = btvMedia.e500;
-                break;
-            case 3:
-                e = btvMedia.e1000;
-                break;
-            case 4:
-                e = btvMedia.e2500;
-                break;
-            case 5:
-                e = btvMedia.e5000;
-                break;
-            default:
-                e = btvMedia.e0;
-                break;
-        }
-        if (e != null)
-        {
-            eHandle = e;
-            dd.value += 1;
-        }
-    }
-
-    public void ttm(Dropdown dd)
-    {
-        elanFile e = null;
-        int val = dd.value - 1;
-
-        switch (val)
-        {
-            case 0:
-                e = btvMedia.e0;
-                break;
-            case 1:
-                e = btvMedia.e250;
-                break;
-            case 2:
-                e = btvMedia.e500;
-                break;
-            case 3:
-                e = btvMedia.e1000;
-                break;
-            case 4:
-                e = btvMedia.e2500;
-                break;
-            case 5:
-                e = btvMedia.e5000;
-                break;
-            default:
-                e = btvMedia.e0;
-                break;
-        }
-        if (e != null)
-        {
-            eHandle = e;
-            dd.value -= 1;
-        }
-    }
-
-    elanFile returnFirstHandle()
-    {
-        if (btvMedia.e0 != null)
-        {
-            return btvMedia.e0;
-        }
-        else if (btvMedia.e250 != null)
-        {
-            return btvMedia.e250;
-        }
-        else if (btvMedia.e500 != null)
-        {
-            return btvMedia.e500;
-        }
-        else if (btvMedia.e1000 != null)
-        {
-            return btvMedia.e1000;
-        }
-        else if (btvMedia.e2500 != null)
-        {
-            return btvMedia.e2500;
-        }
-        else if (btvMedia.e5000 != null)
-        {
-            return btvMedia.e5000;
-        }
-        else
-        {
-            return null;
-        }
     }
 }

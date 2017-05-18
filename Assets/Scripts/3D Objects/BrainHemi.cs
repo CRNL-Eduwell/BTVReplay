@@ -32,5 +32,4 @@ public class BrainHemi : MonoBehaviour
 
         Mesh.RecalculateNormals();
     }
-
 }

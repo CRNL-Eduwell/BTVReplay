@@ -12,15 +12,6 @@ public class PhyObject3D : MonoBehaviour
     PhyObjCamera CameraScript = null;
     GameObject Object3DHandle = null;
 
-
-    // Use this for initialization
-    void Start ()
-    {
-        //Object3DHandle = GameObject.Find("GameObject");
-
-        //CameraScript = GameObject.Find("CameraBrain").GetComponent<PhyObjCamera>();
-    }
-
     public void loadBrainAndElectrodes(string LHtri, string RHtri, string PTS)
     {
         Object3DHandle = GameObject.Find("GameObject");

@@ -1,0 +1,4 @@
+ROW;COL;Name;Path;Window;BaseLine;Main Event;Maint Event Label;Secondary Events;Secondary Events Label;Sort
+1;1;POP;/home/POP.jpg;-600:3000;-250:-50;10;POP;100:200;OSEF;C0_L1
+2;1;SEARCH;/home/SEARCH.jpg;-600:3000;-250:-50;60;SEARCH;100:200;OSEF;C0_L1
+C:\System98\ExternalProgram\Localizer\Config\Prov\MCSE.chg

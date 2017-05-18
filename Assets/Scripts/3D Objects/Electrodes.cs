@@ -2,6 +2,8 @@
 using UnityEngine;
 using System.Collections.Generic;   //List<T>
 using System.Text.RegularExpressions;
+using System.Linq;
+using System.Text;
 
 public class ElectrodePlot
 {
@@ -50,7 +52,7 @@ public class Electrodes : MonoBehaviour
             line = sr.ReadLine();
             if (!line.StartsWith("ptsfile"))
             {
-                //Debug.LogError("Error ElectrodeList.LoadPtsFile -> format file incorrect : " + p_pathPtsFile);
+                Debug.LogError("Error ElectrodeList.LoadPtsFile -> format file incorrect : " + p_pathPtsFile);
                 return -1;
             }
 
@@ -60,7 +62,7 @@ public class Electrodes : MonoBehaviour
 
             if (numberPlot <= 0)
             {
-                //Debug.LogError("Error ElectrodeList.LoadPtsFile -> format file incorrect : " + p_pathPtsFile);
+                Debug.LogError("Error ElectrodeList.LoadPtsFile -> format file incorrect : " + p_pathPtsFile);
                 return -1;
             }
 
@@ -72,11 +74,57 @@ public class Electrodes : MonoBehaviour
 
                 if (split.Length == 9)
                 {
-                    string plot = split.GetValue(0).ToString().ToLower();
-                    Regex re = new Regex(@"([a-zA-Z]+)(\d+)");
-                    Match result = re.Match(plot);
-                    string plotName = result.Groups[1].Value;
-                    int plotID = int.Parse(result.Groups[2].Value.ToString());
+                    string plot = split.GetValue(0).ToString();
+
+                    //== Correct if elec is named Pp1 (P'1)
+                    List<int> nbP = plot.ToLower().Select((v, ii) => new { v, ii })
+                                                  .Where(c => c.v.Equals('p'))
+                                                  .Select(c => c.ii).ToList();
+
+                    if (nbP.Count > 1)
+                    {
+                        var stringBuilder = new StringBuilder(plot);
+                        stringBuilder[nbP.Count - 1] = '\'';
+                        plot = stringBuilder.ToString();
+                    }
+                    //=========
+                    if (plot[0] != 'p') //if electrode is p then just to lower case else change p for ' and to lower
+                    {
+                        plot = plot.ToLower().Replace('p', '\'');
+                    }
+                    else
+                    {
+                        plot = plot.ToLower();
+                    }
+
+                    //else
+                    //{
+                    //    plot = plot.ToLower().Replace('p', '\'');
+                    //}
+
+                    string[] tempPlot = plot.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    plot = string.Join(" ", tempPlot);
+
+
+                    Regex ReLeft = new Regex(@"([a-zA-Z]+)(\d+)");
+                    Regex ReRight = new Regex(@"([a-zA-Z]+)(\')(\d+)");
+
+                    Match resultLeft = ReLeft.Match(plot);
+                    Match resultRight = ReRight.Match(plot);
+
+                    string plotName = "";
+                    int plotID = -1;
+
+                    if (resultLeft.Groups[1].Length == 1)
+                    {
+                        plotName = resultLeft.Groups[1].Value;
+                        plotID = int.Parse(resultLeft.Groups[2].Value.ToString());
+                    }
+                    else if (resultRight.Groups[1].Length == 1)
+                    {
+                        plotName = resultRight.Groups[1].Value + resultRight.Groups[2].Value;
+                        plotID = int.Parse(resultRight.Groups[3].Value.ToString());
+                    }
 
                     float x = float.Parse(split.GetValue(1).ToString());
                     float y = float.Parse(split.GetValue(2).ToString());
@@ -117,7 +165,7 @@ public class Electrodes : MonoBehaviour
             currentElec.name = electrodes[i].name;
             currentElec.transform.parent = gameObject.transform;
 
-            for (int j = 0; j < electrodes[i].plots.Count; j++)
+            for (int j = /*0*/1; j < electrodes[i].plots.Count; j++)
             {
                 /********************** /!\Axe x de unity inversé /!\ **********************/
                 electrodes[i].plots[j].position3D.x = -electrodes[i].plots[j].position3D.x;
@@ -127,11 +175,11 @@ public class Electrodes : MonoBehaviour
                 currentElecPlot.name = electrodes[i].name + electrodes[i].plots[j].id;
                 currentElecPlot.transform.parent = currentElec.transform;
 
-                if (j > 0)
-                {
+                //if (j > 0)
+                //{
                     SphereSize sphereSizeScript = currentElecPlot.AddComponent<SphereSize>();
                     sphereSizeScript.InitializeData(currentElecPlot.name);
-                }
+                //}
             }
         }
     }
