@@ -1,4 +1,0 @@
-ROW;COL;Name;Path;Window;BaseLine;Main Event;Maint Event Label;Secondary Events;Secondary Events Label;Sort
-1;1;OK;/Config/Pictures/MARM/OK.png;-200:3000;-150:-50;10;OK;100;ok;C0_L1
-2;1;NOK;/Config/Pictures/MARM/NOK.png;-200:3000;-150:-50;20;NOK;200;nok;C0_L1
-/Config/Prov/MARM.chg

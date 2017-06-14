@@ -1,5 +1,0 @@
-ROW;COL;Name;Path;Window;BaseLine;Main Event;Maint Event Label;Secondary Events;Secondary Events Label;Sort
-1;1;Attention;/home/Attention.jpg;-300:2400;-250:-50;10;Attention;0;OSEF;C0
-2;1;Ignore;/home/Ignore.jpg;-300:2400;-250:-50;20;Ignore;0;OSEF;C0
-NO_CHANGE_CODE
-
