@@ -117,7 +117,8 @@ public class LoadingCircle : MonoBehaviour
     #region Private Methods
     void LateUpdate()
     {
-        if (!loading && transform.GetChild(0).GetChild(0).GetChild(0).gameObject.activeSelf) StartCoroutine(c_Load());
+        if (!loading && transform.GetChild(0).GetChild(0).GetChild(0).gameObject.activeSelf)
+            StartCoroutine(c_Load());
     }
     #endregion
 }

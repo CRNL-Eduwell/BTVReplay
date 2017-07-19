@@ -4,6 +4,8 @@ using System.Text;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Collections; //IEnumerator
+using UnityEngine;
 
 public class ELAN : CppDLLImportBase
 {
@@ -46,19 +48,31 @@ public class ELAN : CppDLLImportBase
         return null;
     }
 
-    public static ELAN loadIfExist(string filePath)
+    public static int returnFirstValidHandleId(ELAN[] elanFiles)
     {
+        for (int i = 0; i < elanFiles.Count(); i++)
+        {
+            if (elanFiles[i] != null)
+                return i;
+        }
+
+        return -1;
+    }
+
+    public static IEnumerator c_loadIfExist(string filePath, Action<ELAN> resultCB)
+    { 
         if (filePath != "") //remplacer par check file exist
         {
             ELAN elan = new ELAN(filePath);
             elan.readElanFile();
             elan.getMaxValueChanels();
             elan.releaseCppHandle();
-            return elan;
+            resultCB(elan);
+            yield return null;
         }
         else
         {
-            return null;
+            resultCB(null);
         }
     }
 
@@ -71,6 +85,11 @@ public class ELAN : CppDLLImportBase
         }
 
         return -1;
+    }
+
+    public static long getTotalFileDuration(ELAN valid)
+    {
+        return (long)(valid.nbSam / valid.sampFreq);
     }
 
     public void getMaxValueChanels(int idMeas = 1)

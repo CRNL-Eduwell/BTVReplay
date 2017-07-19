@@ -25,12 +25,14 @@ public class eventsOptions : MonoBehaviour
     GameObject eventAddUI = null;
     GameObject eventDispUI = null;
 
+    VideoPlayer v = null;
     TraceCurve win1 = null;
     TraceCurve win2 = null;
     EventInfoEdit infoEdit = null;
     EventInfoDisplay infoDisp = null;
     int traceIDCalled = 0;
     eventEeg eventCalled = null;
+    eventEeg eventMemory = null;
 
     Button activateEventsButton = null;
     Text activateEventText = null;
@@ -38,7 +40,7 @@ public class eventsOptions : MonoBehaviour
     Button saveEvents = null;
     Button loadEvents = null;
 
-    bool addEvent = false;
+    public bool addEvent = false;
     SortedList<int, eventEeg> events = new SortedList<int, eventEeg>();
 
     public void init(GameObject eventsOptionPanel)
@@ -47,6 +49,7 @@ public class eventsOptions : MonoBehaviour
         eventAddUI = Resources.Load("Prefabs/EventInfoEdit", typeof(GameObject)) as GameObject;
         eventDispUI = Resources.Load("Prefabs/EventInfoDisplay", typeof(GameObject)) as GameObject;
         //==
+        v = GameObject.Find("PanelR").GetComponent<VideoPlayer>();
         win1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
         win2 = GameObject.Find("Trace2Window").GetComponent<TraceCurve>();
         activateEventsButton = eventsOptionPanel.transform.GetChild(0).GetComponent<Button>();
@@ -106,14 +109,22 @@ public class eventsOptions : MonoBehaviour
                 GameObject addUI = Instantiate(eventAddUI);
 
                 if (traceID == 0)
+                {
                     addUI.transform.SetParent(win1.gameObject.transform);
+                    if (win2.gameObject.activeSelf)
+                        currentEvent.secondElecOfInterest = win2.labelElectrode.text;
+                }
                 else
+                {
                     addUI.transform.SetParent(win2.gameObject.transform);
+                    if (win1.gameObject.activeSelf)
+                        currentEvent.secondElecOfInterest = win1.labelElectrode.text;
+                }
                 addUI.transform.localScale = new Vector3(1, 1, 1);
                 addUI.transform.localPosition = new Vector3(0, 0, -402);
 
                 infoEdit = addUI.GetComponent<EventInfoEdit>();
-                infoEdit.init(currentEvent, false);
+                infoEdit.init(currentEvent, eventMemory, false);
                 infoEdit.eventValid += new eventValidated(eventValidatedForUI);
                 infoEdit.aaaagh += new imDying(removeConnectionAddUi);
             }
@@ -137,11 +148,12 @@ public class eventsOptions : MonoBehaviour
             addUI.transform.localPosition = new Vector3(0, 0, -402);
 
             infoEdit = addUI.GetComponent<EventInfoEdit>();
-            infoEdit.init(currentEvent, true);
+            infoEdit.init(currentEvent, eventMemory, true);
             infoEdit.eventModifed += new eventModifValidated((modifyedEvent) =>
             {
                 applyChangeToEvent(modifyedEvent, eventCalled);
             });
+            infoEdit.eventsToDelete += new eventsToDelete((eventToDel, id) => { deleteEvents(eventToDel, id); });
             infoEdit.aaaagh += new imDying(removeConnectionEditUI);
         }
     }
@@ -172,9 +184,9 @@ public class eventsOptions : MonoBehaviour
 
     void deleteEvents(eventEeg eventToDelete, int traceID)
     {
-        Debug.Log("del ev " + eventToDelete.sample);
+        //Debug.Log("del ev " + eventToDelete.sample);
         //==List behind the scene
-        int id = events.IndexOfKey(eventToDelete.sample);
+        //int id = events.IndexOfKey(eventToDelete.sample);
         events.Remove(eventToDelete.sample);
 
         //Remove : 
@@ -193,19 +205,26 @@ public class eventsOptions : MonoBehaviour
         var hubObj = GameObject.Find("HubEvent - " + eventToDelete.sample);
         if (hubObj != null)
         {
+            hubObj.GetComponent<Button>().onClick.RemoveAllListeners();
             Destroy(hubObj);
         }
     }
 
     void eventValidatedForUI(eventEeg currentEvent)
     {
+        eventMemory = new eventEeg(currentEvent);
+
         events.Add(currentEvent.sample, currentEvent);
         int id = events.IndexOfKey(currentEvent.sample);
 
         GameObject currentEventGO = Instantiate(eventHubClick);
         currentEventGO.name = "HubEvent - " + currentEvent.sample;
+        currentEventGO.GetComponent<Button>().onClick.AddListener(() =>
+        {
+            v.setTime((currentEvent.sample / win1.samplingFrequency) * 1000);
+        });
 
-        int timeInSec = currentEvent.sample / 64;
+        int timeInSec = currentEvent.sample / win1.samplingFrequency;
         int h = timeInSec / 3600;
         int m = (timeInSec / 60) % 60;
         int s = timeInSec % 60;
@@ -213,9 +232,10 @@ public class eventsOptions : MonoBehaviour
         if(h > 0)
             currentEventGO.transform.GetChild(0).GetComponent<Text>().text = h + ":" + m + ":" + s;
         else
-            currentEventGO.transform.GetChild(0).GetComponent<Text>().text = m + ":" + s;
+            currentEventGO.transform.GetChild(0).GetComponent<Text>().text = "00:" + m + ":" + s;
 
         currentEventGO.transform.GetChild(1).GetComponent<Text>().text = currentEvent.elecOfInterest;
+        currentEventGO.transform.GetChild(2).GetComponent<Text>().text = currentEvent.comment;
         currentEventGO.transform.SetParent(panelContent);
         currentEventGO.transform.localScale = new Vector3(1, 1, 1);
         currentEventGO.transform.position = currentEventGO.transform.parent.position;
@@ -229,10 +249,20 @@ public class eventsOptions : MonoBehaviour
         var eventToChangeObjects = Resources.FindObjectsOfTypeAll<GameObject>().Where(
                                    obj => obj.name == "Event - " + previousEvent.sample);
 
-        if(eventToChangeObjects.Count() > 0)
+        if (eventToChangeObjects.Count() > 0)
         {
-            events[previousEvent.sample].code = modifyiedEvent.code;
-            events[previousEvent.sample].comment = modifyiedEvent.comment;
+            int id = events.IndexOfKey(previousEvent.sample);
+            events.Values[id].code = modifyiedEvent.code;
+            events.Values[id].comment = modifyiedEvent.comment;
+            events.Values[id].duration = modifyiedEvent.duration;
+
+            //if event goes from no duration to with duration or the other way around we switch it
+            if ((modifyiedEvent.duration - events[previousEvent.sample].duration == modifyiedEvent.duration) ||
+                (modifyiedEvent.duration - events[previousEvent.sample].duration == -events[previousEvent.sample].duration))
+            {
+                eventToChangeObjects.ElementAt(0).GetComponent<EventTrace>().deleteMe();
+                eventValidatedForUI(modifyiedEvent);
+            }
 
             foreach (var eventToChange in eventToChangeObjects)
             {
@@ -273,23 +303,24 @@ public class eventsOptions : MonoBehaviour
             {
                 foreach (KeyValuePair<int, eventEeg> kvp in events)
                 {
-                    int timeInSec = kvp.Value.sample / 64;
+                    int timeInSec = kvp.Value.sample / win1.samplingFrequency;
                     int h = timeInSec / 3600;
                     int m = (timeInSec / 60) % 60;
                     int s = timeInSec % 60;
 
-                    string dd = "";
+                    string timeString = "";
                     if (h > 0)
-                        dd = h + ":" + m + ":" + s;
+                        timeString = returnTimeString(h) + ":" + returnTimeString(m) + ":" + returnTimeString(s);
                     else
-                        dd = m + ":" + s;
+                        timeString = "00:" + returnTimeString(m) + ":" + returnTimeString(s);
 
-                    sw.Write(dd.PadRight(10));
+                    sw.Write(timeString.PadRight(10));
                     sw.Write(kvp.Value.comment.PadRight(40));
                     sw.Write(kvp.Value.code.ToString().PadRight(10));
                     sw.Write(kvp.Value.sample.ToString().PadRight(10));
                     sw.Write(kvp.Value.duration.ToString().PadRight(10));
-                    sw.WriteLine(kvp.Value.elecOfInterest);
+                    sw.Write(kvp.Value.elecOfInterest.PadRight(10));
+                    sw.WriteLine(kvp.Value.secondElecOfInterest);
                 }
 
                 sw.Close();
@@ -302,39 +333,94 @@ public class eventsOptions : MonoBehaviour
         }
     }
 
+    string returnTimeString(int time)
+    {
+        if (time < 10)
+        {
+            return "0" + time;
+        }
+        else
+        {
+            return time.ToString();
+        }
+    }
+
     void loadEventList()
     {
-        List<eventEeg> eventLoaded = new List<eventEeg>();
-        string pathFile = QtGUI_dll.Instance.getOpenFileName(new string[] { "btv" });
+        List<eventEeg> eventLoaded = null;
+        string pathFile = QtGUI_dll.Instance.getOpenFileName(new string[] { "btv", "pos" });
+        string[] pathSplit = pathFile.Split(new char[] { '.' });
 
+        switch (pathSplit[pathSplit.Length - 1])
+        {
+            case "btv":
+                eventLoaded = loadBTVFile(pathFile);
+                break;
+            case "pos":
+                eventLoaded = loadPOSFile(pathFile);
+                break;
+        }
+
+        for (int i = 0; i < eventLoaded.Count; i++)
+            eventValidatedForUI(eventLoaded[i]);
+    }
+
+    List<eventEeg> loadBTVFile(string pathFile)
+    {
         try
         {
             using (StreamReader sr = new StreamReader(pathFile))
             {
+                List<eventEeg> eventLoaded = new List<eventEeg>();
                 string r;
 
                 while ((r = sr.ReadLine()) != null)
                 {
                     string[] resultSplit = r.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (resultSplit.Count() == 6)
+                    if (resultSplit.Count() == 7)
                     {
-                        eventLoaded.Add(new eventEeg(int.Parse(resultSplit[2]), int.Parse(resultSplit[3]), int.Parse(resultSplit[4]), resultSplit[5], resultSplit[1]));
+                        eventLoaded.Add(new eventEeg(int.Parse(resultSplit[2]), int.Parse(resultSplit[3]), -1, int.Parse(resultSplit[4]), resultSplit[5], resultSplit[6], resultSplit[1]));
                     }
                 }
                 sr.Close();
+                return eventLoaded;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("The btv file could not be read:");
+            Console.WriteLine(e.Message);
+            return new List<eventEeg>();
+        }
+    }
+
+    List<eventEeg> loadPOSFile(string pathFile)
+    {
+        try
+        {
+            using (StreamReader sr = new StreamReader(pathFile))
+            {
+                List<eventEeg> eventLoaded = new List<eventEeg>();
+                string r;
+
+                while ((r = sr.ReadLine()) != null)
+                {
+                    string[] resultSplit = r.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (resultSplit.Count() == 3)
+                    {
+                        eventLoaded.Add(new eventEeg(int.Parse(resultSplit[1]),int.Parse(resultSplit[0])));
+                    }
+                }
+                sr.Close();
+                return eventLoaded;
             }
         }
         catch (Exception e)
         {
             Console.WriteLine("The pos file could not be read:");
             Console.WriteLine(e.Message);
+            return new List<eventEeg>();
         }
-
-        for (int i = 0; i < eventLoaded.Count; i++) 
-        {
-            eventValidatedForUI(eventLoaded[i]);
-        }
-
     }
 
     void removeConnectionAddUi()
@@ -350,6 +436,7 @@ public class eventsOptions : MonoBehaviour
         {
             applyChangeToEvent(modifyedEvent, eventCalled);
         });
+        infoEdit.eventsToDelete -= new eventsToDelete((eventToDel, id) => { deleteEvents(eventToDel, id); });
         infoEdit.aaaagh -= new imDying(removeConnectionAddUi);
         infoEdit = null;
     }
@@ -518,13 +605,9 @@ public class traceXOptions
 
     GameObject elecPlot = null;
     GameObject electrodeContentPanel = null;
+    BTVMedia media = null;
 
-    Button sm0Button = null;
-    Button sm250Button = null;
-    Button sm500Button = null;
-    Button sm1000Button = null;
-    Button sm2500Button = null;
-    Button sm5000Button = null;
+    Button[] smButton = null;
 
     Text gainLabel = null;
     Button gainAddButton = null;
@@ -552,89 +635,84 @@ public class traceXOptions
     int offset = 0;
     bool isSonifOn = false;
 
-    public traceXOptions(GameObject traceOptionsPanel, BTVMedia media)
+    Color hardBlue = new Color(0.6117f, 0.7058f, 0.7960f, 1f);
+    Color softBlue = new Color(0.6117f, 0.7058f, 0.7960f, 0.392156f);
+    Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
+
+
+    public traceXOptions(GameObject traceOptionsPanel, BTVMedia p_media)
     {
+        media = p_media;
+
         elecPlot = Resources.Load("Prefabs/Hub-Elec", typeof(GameObject)) as GameObject;
         sonifON = Resources.Load("Pictures/soundOK", typeof(Texture2D)) as Texture2D;
         sonifOFF = Resources.Load("Pictures/soundNOK", typeof(Texture2D)) as Texture2D;
 
         electrodeContentPanel = traceOptionsPanel.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
 
-        sm0Button = traceOptionsPanel.transform.GetChild(1).GetChild(0).GetComponent<Button>();
-        sm250Button = traceOptionsPanel.transform.GetChild(1).GetChild(1).GetComponent<Button>();
-        sm500Button = traceOptionsPanel.transform.GetChild(1).GetChild(2).GetComponent<Button>();
-        sm1000Button = traceOptionsPanel.transform.GetChild(1).GetChild(3).GetComponent<Button>();
-        sm2500Button = traceOptionsPanel.transform.GetChild(1).GetChild(4).GetComponent<Button>();
-        sm5000Button = traceOptionsPanel.transform.GetChild(1).GetChild(5).GetComponent<Button>();
+        smButton = new Button[6];
+        for (int i = 0; i < 6; i++)
+        {
+            smButton[i] = traceOptionsPanel.transform.GetChild(1).GetChild(i).GetComponent<Button>();
+        }
 
-        sm0Button.onClick.AddListener(() =>
+        smButton[0].onClick.AddListener(() =>
         {
             if (ELAN.checkHandle(media.elanFiles, 0))
             {
                 idFileHasChanged(0);
+                changeButtonSMColor(0);
             }
         });
-
-        sm250Button.onClick.AddListener(() =>
+        smButton[1].onClick.AddListener(() =>
         {
             if (ELAN.checkHandle(media.elanFiles, 1))
             {
                 idFileHasChanged(1);
+                changeButtonSMColor(1);
             }
         });
-
-        sm500Button.onClick.AddListener(() =>
+        smButton[2].onClick.AddListener(() =>
         {
             if (ELAN.checkHandle(media.elanFiles, 2))
             {
                 idFileHasChanged(2);
+                changeButtonSMColor(2);
             }
         });
-
-        sm1000Button.onClick.AddListener(() =>
+        smButton[3].onClick.AddListener(() =>
         {
             if (ELAN.checkHandle(media.elanFiles, 3))
             {
                 idFileHasChanged(3);
+                changeButtonSMColor(3);
             }
         });
-
-        sm2500Button.onClick.AddListener(() =>
+        smButton[4].onClick.AddListener(() =>
         {
             if (ELAN.checkHandle(media.elanFiles, 4))
             {
                 idFileHasChanged(4);
+                changeButtonSMColor(4);
             }
         });
-
-        sm5000Button.onClick.AddListener(() =>
+        smButton[5].onClick.AddListener(() =>
         {
             if (ELAN.checkHandle(media.elanFiles, 5))
             {
                 idFileHasChanged(5);
+                changeButtonSMColor(5);
             }
         });
 
         gainLabel = traceOptionsPanel.transform.GetChild(2).GetChild(0).GetComponent<Text>();
         gainLabel.text = "Gain : " + gain;
-        gainAddButton = traceOptionsPanel.transform.GetChild(2).GetChild(1).GetComponent<Button>();
-        gainRemoveButton = traceOptionsPanel.transform.GetChild(2).GetChild(2).GetComponent<Button>();
 
-        gainAddButton.onClick.AddListener(() =>
-        {
-            gain += 1;
-            gainLabel.text = "Gain : " + gain;
-            gainHasChanged(gain);
-        });
-        gainRemoveButton.onClick.AddListener(() =>
-        {
-            if (gain - 1 > 0)
-            {
-                gain -= 1;
-                gainLabel.text = "Gain : " + gain;
-                gainHasChanged(gain);
-            }
-        });
+        gainAddButton = traceOptionsPanel.transform.GetChild(2).GetChild(1).GetComponent<Button>();
+        gainAddButton.onClick.AddListener(addGain);
+
+        gainRemoveButton = traceOptionsPanel.transform.GetChild(2).GetChild(2).GetComponent<Button>();
+        gainRemoveButton.onClick.AddListener(removeGain);
 
         offsetLabel = traceOptionsPanel.transform.GetChild(3).GetChild(0).GetComponent<Text>();
         offsetLabel.text = "Offset : " + offset + "%";
@@ -663,8 +741,12 @@ public class traceXOptions
         timePeriodInputField = traceOptionsPanel.transform.GetChild(4).GetChild(1).GetComponent<InputField>();
         timePeriodInputField.onEndEdit.AddListener(delegate { changeTimePeriod(timePeriodInputField); });
 
-        sonifButton = traceOptionsPanel.transform.GetChild(5).GetChild(0).GetComponent<Button>();
-        sonifSoundDropDown = traceOptionsPanel.transform.GetChild(5).GetChild(1).GetComponent<Dropdown>();
+        //child 5 color
+        //========
+
+        sonifButton = traceOptionsPanel.transform.GetChild(6).GetChild(0).GetComponent<Button>();
+        sonifSoundDropDown = traceOptionsPanel.transform.GetChild(6).GetChild(1).GetComponent<Dropdown>();
+        sonifSoundDropDown.interactable = false;
         sonifDDownText = sonifSoundDropDown.transform.GetChild(0).GetComponent<Text>();
 
         sonifButton.onClick.AddListener(toggleSonification);
@@ -692,12 +774,10 @@ public class traceXOptions
 
     ~traceXOptions()
     {
-        sm0Button.onClick.RemoveAllListeners();
-        sm250Button.onClick.RemoveAllListeners();
-        sm500Button.onClick.RemoveAllListeners();
-        sm1000Button.onClick.RemoveAllListeners();
-        sm2500Button.onClick.RemoveAllListeners();
-        sm5000Button.onClick.RemoveAllListeners();
+        for (int i = 0; i < 6; i++)
+        {
+            smButton[i].onClick.RemoveAllListeners();
+        }
 
         gainAddButton.onClick.RemoveAllListeners();
         gainRemoveButton.onClick.RemoveAllListeners();
@@ -754,6 +834,20 @@ public class traceXOptions
         }
     }
 
+    public void changeButtonSMColor(int id = -1)
+    {
+        if (id == -1)
+            id = ELAN.returnFirstValidHandleId(media.elanFiles);
+
+        for (int i = 0; i < 6; i++)
+        {
+            if (i == id)
+                smButton[i].gameObject.GetComponent<Image>().color = hardBlue;
+            else
+                smButton[i].gameObject.GetComponent<Image>().color = softBlue;
+        }
+    }
+
     void changeTimePeriod(InputField timeField)
     {
         int myVal = 0;
@@ -761,13 +855,41 @@ public class traceXOptions
         timeHasChanged(myVal);
     }
 
+    void addGain()
+    {
+        if (gain + 1 == 0)
+            gain += 2;
+        else
+            gain += 1;
+
+        gainLabel.text = "Gain : " + gain;
+        gainHasChanged(gain);
+    }
+
+    void removeGain()
+    {
+       if (gain - 1 == 0)
+            gain -= 2;
+        else
+            gain -= 1;
+
+        gainLabel.text = "Gain : " + gain;
+        gainHasChanged(gain);
+    }
+
     void toggleSonification()
     {
         isSonifOn = !isSonifOn;
         if (isSonifOn)
+        {
             sonifButton.GetComponent<RawImage>().texture = sonifON;
+            sonifSoundDropDown.interactable = true;
+        }
         else
+        {
             sonifButton.GetComponent<RawImage>().texture = sonifOFF;
+            sonifSoundDropDown.interactable = false;
+        }
 
         sonifToggled(isSonifOn);
     }
@@ -851,6 +973,7 @@ public class UIOption
     Text nameText = null;
     GameObject contentPanel = null;
     GameObject options = null;
+    eventsOptions eventMenu = null;
     #endregion
 
     Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
@@ -865,34 +988,55 @@ public class UIOption
         nameText = buttonsPanel.transform.GetChild(idOpt).GetChild(0).GetComponent<Text>();
         options = contentPanel.transform.GetChild(idOpt).gameObject;
 
+
         showButton.onClick.AddListener(() =>
         {
-            isVisible = !isVisible;
-
-            if (isVisible)
-                nameText.color = orange;
-            else
-                nameText.color = blue;
-
             if (optionsPanel.activeSelf == false)
             {
+                changeColorOptions();
                 optionsPanel.SetActive(true);
                 options.SetActive(!options.activeSelf);
             }
             else
             {
-                options.SetActive(!options.activeSelf);
-
-                bool hide = false;
-                for (int i = 0; i < contentPanel.transform.childCount; i++)
+                if (options.name == "OptionsEvents")
                 {
-                    hide = hide || contentPanel.transform.GetChild(i).gameObject.activeSelf;
+                    Component[] objects = GameObject.Find("Canvas").GetComponentsInChildren(typeof(eventsOptions), true);
+                    eventMenu = (eventsOptions)objects[0];
+                    if (eventMenu && eventMenu.addEvent == false)
+                    {
+                        changeColorOptions();
+                        options.SetActive(!options.activeSelf);
+
+                        bool hide = false;
+                        for (int i = 0; i < contentPanel.transform.childCount; i++)
+                        {
+                            hide = hide || contentPanel.transform.GetChild(i).gameObject.activeSelf;
+                        }
+
+                        if (!hide)
+                        {
+                            optionsPanel.SetActive(false);
+                        }
+                    }
+                }
+                else
+                {
+                    changeColorOptions();
+                    options.SetActive(!options.activeSelf);
+
+                    bool hide = false;
+                    for (int i = 0; i < contentPanel.transform.childCount; i++)
+                    {
+                        hide = hide || contentPanel.transform.GetChild(i).gameObject.activeSelf;
+                    }
+
+                    if (!hide)
+                    {
+                        optionsPanel.SetActive(false);
+                    }
                 }
 
-                if (!hide)
-                {
-                    optionsPanel.SetActive(false);
-                }
 
             }
         });
@@ -901,6 +1045,92 @@ public class UIOption
     ~UIOption()
     {
         showButton.onClick.RemoveAllListeners();
+    }
+
+    void changeColorOptions()
+    {
+        isVisible = !isVisible;
+
+        if (isVisible)
+            nameText.color = orange;
+        else
+            nameText.color = blue;
+    }
+}
+
+public class UIXOption : MonoBehaviour, IPointerClickHandler
+{
+    int positionCounter = 1;
+    Text nameText = null;
+    GameObject contentPanel = null;
+    public GameObject options = null;
+    GameObject optionsPanel = null;
+    Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
+    Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
+    Color blueHide = new Color(0.6117f, 0.7058f, 0.7960f, 0.3921f);
+    int idCurve = 0;
+    GameObject curve = null;
+
+    public void init(GameObject buttonsPanel, GameObject optionsPanel, int idOpt)
+    {
+        this.optionsPanel = optionsPanel;
+        contentPanel = optionsPanel.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
+        nameText = buttonsPanel.transform.GetChild(idOpt).GetChild(0).GetComponent<Text>();
+        options = contentPanel.transform.GetChild(idOpt).gameObject;
+
+        if (nameText.transform.parent.name == "ButtonTrace1")
+            curve = GameObject.Find("Trace1Window");
+        else if (nameText.transform.parent.name == "ButtonTrace2")
+            curve = GameObject.Find("Trace2Window");
+
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Right:
+                if (positionCounter - 1 >= 0)
+                    positionCounter -= 1;
+                break;
+            case PointerEventData.InputButton.Left:
+                if (positionCounter + 1 <= 3)
+                    positionCounter += 1;
+                break;
+        }
+
+        switch (positionCounter)
+        {
+            case 0:
+                curve.SetActive(false);
+                nameText.color = blueHide;
+                break;
+            case 1:
+                curve.SetActive(true);
+                options.SetActive(false);
+                nameText.color = blue;
+
+                bool hide = false;
+                for (int i = 0; i < contentPanel.transform.childCount; i++)
+                    hide = hide || contentPanel.transform.GetChild(i).gameObject.activeSelf;
+
+                if (!hide)
+                    optionsPanel.SetActive(false);
+
+                break;
+            case 2:
+                optionsPanel.SetActive(true);
+                options.SetActive(true);
+                nameText.color = orange;
+
+                if(curve.GetComponent<TraceCurve>().hasFocus)
+                    curve.GetComponent<TraceCurve>().manageFocusClick();
+                break;
+            case 3:
+                if (!curve.GetComponent<TraceCurve>().hasFocus)
+                    curve.GetComponent<TraceCurve>().manageFocusClick();
+                break;
+        }
     }
 }
 
@@ -947,8 +1177,10 @@ public class optionsHub : MonoBehaviour
 
     #region UIMembers
     UIOption brainOpt = null;
-    UIOption trace1Opt = null;
-    UIOption trace2Opt = null;
+    //UIOption trace1Opt = null;
+    UIXOption trace1Opt = null;
+    //UIOption trace2Opt = null;
+    UIXOption trace2Opt = null;
     UIOption perfOpt = null;
     UIOption videoOpt = null;
     UIOption eventsOpt = null;
@@ -975,10 +1207,14 @@ public class optionsHub : MonoBehaviour
     {
         brainOpt = new UIOption(gameObject, detaileOptionsPanel, 0);
         brainOpts = new brainOptions(brainOpt.optionsPanel);
-        trace1Opt = new UIOption(gameObject, detaileOptionsPanel, 1);
-        traceXOpts[0] = new traceXOptions(trace1Opt.optionsPanel, media);
-        trace2Opt = new UIOption(gameObject, detaileOptionsPanel, 2);
-        traceXOpts[1] = new traceXOptions(trace2Opt.optionsPanel, media);
+        //trace1Opt = new UIOption(gameObject, detaileOptionsPanel, 1);
+        trace1Opt = gameObject.transform.GetChild(1).gameObject.AddComponent<UIXOption>();
+        trace1Opt.init(gameObject, detaileOptionsPanel, 1);
+        traceXOpts[0] = new traceXOptions(trace1Opt.options, media);
+        //trace2Opt = new UIOption(gameObject, detaileOptionsPanel, 2);
+        trace2Opt = gameObject.transform.GetChild(2).gameObject.AddComponent<UIXOption>();
+        trace2Opt.init(gameObject, detaileOptionsPanel, 2);
+        traceXOpts[1] = new traceXOptions(trace2Opt.options, media);
         perfOpt = new UIOption(gameObject, detaileOptionsPanel, 3);
         perfOpts = new perfDataOptions(perfOpt.optionsPanel);
         videoOpt = new UIOption(gameObject, detaileOptionsPanel, 4);

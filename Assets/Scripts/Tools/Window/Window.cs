@@ -132,6 +132,8 @@ public class Window : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         m_initialSizeDelta = m_rectTransform.sizeDelta;
         m_initialRectSize = m_rectTransform.rect.size;
         m_initialMousePosition = Input.mousePosition;
+
+        itemBeingDragged = gameObject;
     }
 
     public void OnHorizontalDrag(bool isLeft)

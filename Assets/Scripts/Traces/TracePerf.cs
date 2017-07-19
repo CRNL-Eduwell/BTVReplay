@@ -10,7 +10,7 @@ public class TracePerf : MonoBehaviour
 {
     [SerializeField] optionsHub hub = null;
     [SerializeField] BTVMedia media = null;
-    [SerializeField] VLCSharp.VLCSharp video = null;
+    [SerializeField] VideoPlayer video = null;
 
     List<int> mainCodes = new List<int>();
     Texture2D defaultEventPic = null;
@@ -27,7 +27,8 @@ public class TracePerf : MonoBehaviour
     int numberPoint = 64 * 10;
     bool initDone = false;
     bool isUsed = false;
-
+    TraceCurve curveTrace1 = null;
+     
     void Awake()
     {
         media.loadPerf += new initPerf(init);
@@ -41,8 +42,8 @@ public class TracePerf : MonoBehaviour
         {
             if (isUsed)
             {
-                video.sendTime -= new timeVideo(UpdateSpawn);
-                video.sendTime -= new timeVideo(UpdatePicEvent);
+                video.sendTime -= new timeVideo2(UpdateSpawn);
+                video.sendTime -= new timeVideo2(UpdatePicEvent);
                 hub.perfRemote.iAmHiden -= new hideMe((isHidden) =>
                 {
                     gameObject.SetActive(isHidden);
@@ -70,6 +71,8 @@ public class TracePerf : MonoBehaviour
         isUsed = initMe;
         perfLRPrefab = Resources.Load("Prefabs/PerfTrace", typeof(GameObject)) as GameObject;
         defaultEventPic = Resources.Load("Pictures/EventDefault", typeof(Texture2D)) as Texture2D;
+        curveTrace1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
+        numberPoint = curveTrace1.samplingFrequency * periodSec;
 
         m_rectTransform = gameObject.GetComponent<RectTransform>();
         m_perfHolder = m_rectTransform.GetChild(10).GetComponent<RectTransform>();
@@ -84,8 +87,8 @@ public class TracePerf : MonoBehaviour
         if(isUsed)
         {
             hub.perfRemote.timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
-            video.sendTime += new timeVideo(UpdateSpawn);
-            video.sendTime += new timeVideo(UpdatePicEvent);
+            video.sendTime += new timeVideo2(UpdateSpawn);
+            video.sendTime += new timeVideo2(UpdatePicEvent);
 
             updateScales();
 
@@ -143,7 +146,7 @@ public class TracePerf : MonoBehaviour
     void updateTimeResolution(int newPeriod)
     {
         periodSec = newPeriod;
-        numberPoint = 64 * periodSec;
+        numberPoint = curveTrace1.samplingFrequency * periodSec;
         updateScales();
     }
 

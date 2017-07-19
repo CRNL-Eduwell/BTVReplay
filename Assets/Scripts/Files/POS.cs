@@ -5,12 +5,14 @@ using System.Collections.Generic;
 
 public class eventEeg
 {
-    public eventEeg(int code, int sample = -1, int duration = 0, string elecOfInterest = "", string comment = "")
+    public eventEeg(int code, int sample = -1, int samplingFreq = -1,  int duration = 0, string elecOfInterest = "", string secondElecOfInterest = "", string comment = "")
     {
         this.code = code;
         this.sample = sample;
+        this.samplingFreq = samplingFreq;
         this.duration = duration;
         this.elecOfInterest = elecOfInterest;
+        this.secondElecOfInterest = secondElecOfInterest;
         this.comment = comment;
     }
 
@@ -18,17 +20,31 @@ public class eventEeg
     {
         this.code = currentEvent.code;
         this.sample = currentEvent.sample;
+        this.samplingFreq = currentEvent.samplingFreq;
         this.timeMs = currentEvent.timeMs;
         this.duration = currentEvent.duration;
         this.elecOfInterest = currentEvent.elecOfInterest;
+        this.secondElecOfInterest = currentEvent.secondElecOfInterest;
         this.comment = currentEvent.comment;
+    }
+
+    public float getTimeSec()
+    {
+        return (float)sample / samplingFreq;
+    }
+
+    public float getTimeMSec()
+    {
+        return getTimeSec() / 1000;
     }
 
     public int code = -1;
     public int sample = -1;
+    public int samplingFreq = -1;
     public int timeMs = -1;
     public int duration = 0;
     public string elecOfInterest = "";
+    public string secondElecOfInterest = "";
     public string comment = "";
 }
 
@@ -77,9 +93,10 @@ public class trigg
 
 public class POS
 {
-    public POS(string posFilePath)
+    public POS(string posFilePath, int samplingFreq)
     {
         this.posFilePath = posFilePath;
+        this.samplingFreq = samplingFreq;
     }
 
     ~POS()
@@ -87,12 +104,14 @@ public class POS
 
     }
 
+    public List<trigg> FileTriggers
+    {
+        get { return triggers; }
+    }
+
     public List<trigg> Triggers
     {
-        get
-        {
-            return triggersTrimmed;
-        }
+        get { return triggersTrimmed; }
     }
 
     public int rtMsMax
@@ -181,7 +200,7 @@ public class POS
         removeDuplicateEventCode();
     }
 
-    public void calculateReactionTime(PROV p_prov, float samplingFreq)
+    public void calculateReactionTime(PROV p_prov)
     {
         pairStimWithResp(p_prov);
         removeNonStimEvents(p_prov);
@@ -237,8 +256,8 @@ public class POS
 
         if (indexVisuBloc != -1)
         {
-            winSam[0] = (int)Math.Round((64 * Convert.ToDouble(p_prov.blocs[indexVisuBloc].dispBloc.epochWindow[0])) / 1000);
-            winSam[1] = (int)Math.Round((64 * Convert.ToDouble(p_prov.blocs[indexVisuBloc].dispBloc.epochWindow[1])) / 1000);
+            winSam[0] = (int)Math.Round((samplingFreq * Convert.ToDouble(p_prov.blocs[indexVisuBloc].dispBloc.epochWindow[0])) / 1000);
+            winSam[1] = (int)Math.Round((samplingFreq * Convert.ToDouble(p_prov.blocs[indexVisuBloc].dispBloc.epochWindow[1])) / 1000);
         }
         return winSam;
     }
@@ -319,6 +338,7 @@ public class POS
             triggersTrimmed.RemoveAt(idToDelete[i]);
     }
 
+    int samplingFreq = 0;
     string posFilePath;
     List<trigg> triggers;
     List<trigg> triggersTrimmed;

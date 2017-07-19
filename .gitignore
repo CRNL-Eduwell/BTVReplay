@@ -1,6 +1,8 @@
+.vs/
 Library/
 plugins/
 ProjectSettings/
+Temp/
 *.dll
 *.csproj
 *.sln

@@ -21,6 +21,13 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         get;
         set;
     }
+    public Text labelElectrode
+    {
+        get
+        {
+            return elecLabel;
+        }
+    }
     public int idElectrode
     {
         get
@@ -39,14 +46,43 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             return traceID;
         }
     }
+    public int samplingFrequency
+    {
+        get
+        {
+            return (int)eHandle.sampFreq;
+        }
+    }
+    public int Gain
+    {
+        get
+        {
+            return (int)gain;
+        }
+    }
+    public bool hasFocus
+    {
+        get
+        {
+            return m_window.hasFocus;
+        }
+    }
+    public int numberOfPoint
+    {
+        get
+        {
+            return numberPoint;
+        }
+    }
 
     [SerializeField] optionsHub hub = null;
     [SerializeField] BTVMedia media = null;
-    [SerializeField] VLCSharp.VLCSharp video = null;
+    [SerializeField] VideoPlayer video = null;
     [SerializeField] int traceID = 0;
     [SerializeField] int idCurrentElec = 0;
 
     GameObject traceEventClick = null;
+    GameObject traceEventClick2 = null;
     RectTransform m_rectTransform = null;
     Vector3[] m_worldCorners = new Vector3[4];
     Transform m_eventHolder = null;
@@ -60,12 +96,15 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     Window m_window = null;
     Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
     Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
+    Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
     Window handleOtherTrace = null;
     selectRing ring = null;
+    ColorPicker colorpicker = null;
 
     Vector3[] dataArray;
     int mostRecentSample = 0;
     int periodSec = 10;
+    int samplingFreq = 64;
     int numberPoint = 64 * 10;
     float widthOfGameObject = 0;
     float horizontalScale = 0;
@@ -78,15 +117,15 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     void Awake()
     {
         media.loadTrace += new initTrace(init);
-        video.sendTime += new timeVideo(updateDraw);
-        video.sendTime += new timeVideo(updateEventsDraw);
+        video.sendTime += new timeVideo2(updateDraw);
+        video.sendTime += new timeVideo2(updateEventsDraw);
     }
 
     void OnDestroy()
     {
         media.loadTrace -= new initTrace(init);
-        video.sendTime -= new timeVideo(updateDraw);
-        video.sendTime -= new timeVideo(updateEventsDraw);
+        video.sendTime -= new timeVideo2(updateDraw);
+        video.sendTime -= new timeVideo2(updateEventsDraw);
 
         if (initDone)
         {
@@ -94,6 +133,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                 delegate (int newID)
                 {
                     eHandle = ELAN.changeHandle(eHandle, media.elanFiles, newID);
+                    samplingFreq = (int)eHandle.sampFreq;
                 });
             hub.traceRemotes[traceID].gainHasChanged -= new gainChangedEventHandler(updateTraceGain);
             hub.traceRemotes[traceID].offsetHasChanged -= new offsetChangedEventHandler(updateTraceOffset);
@@ -102,6 +142,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             hub.eventRemote.newEventToShow -= new newEventToShowHandler(addEventToTrace);
 
             warden.plotWasClicked -= new newPlotClicked(plotClicked);
+
+            colorpicker.changeColor -= new colorChanged(setColorLineRenderer);
 
             hub.traceRemotes[traceID].deleteElectrodeInPanel();
         }
@@ -116,38 +158,49 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     void init()
     {
         traceEventClick = Resources.Load("Prefabs/Trace-Event", typeof(GameObject)) as GameObject;
+        traceEventClick2 = Resources.Load("Prefabs/Trace-Event2", typeof(GameObject)) as GameObject;
         ring = GameObject.Find("ringSelect").GetComponent<selectRing>();
         warden = GameObject.Find("BrainWindow").GetComponent<BrainWarden>();
 
         if (traceID == 0)
+        {
             handleOtherTrace = GameObject.Find("Trace" + (traceID + 2) + "Window").GetComponent<Window>();
+            colorpicker = GameObject.Find("Canvas").transform.GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(0).GetChild(1).GetChild(5).GetComponent<ColorPicker>();
+        }
         else
+        {
             handleOtherTrace = GameObject.Find("Trace" + (traceID) + "Window").GetComponent<Window>();
+            colorpicker = GameObject.Find("Canvas").transform.GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(0).GetChild(1 + traceID).GetChild(5).GetComponent<ColorPicker>();
+        }
 
         m_rectTransform = gameObject.GetComponent<RectTransform>();
         m_window = gameObject.GetComponent<Window>();
         m_eventHolder = gameObject.transform.GetChild(11);
         lineRenderer = gameObject.transform.GetChild(0).GetComponent<LineRenderer>();
         elecLabel = gameObject.transform.GetChild(9).GetComponent<Text>();
+        
+        eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
+        samplingFreq = (int)eHandle.sampFreq;
+        numberPoint = samplingFreq * periodSec;
+        if (eHandle.electList.Count > 0)
+        {
+            elecLabel.text = eHandle.electList[idCurrentElec];
+            maxValChanel = eHandle.maxValues[idCurrentElec];
+            hub.traceRemotes[traceID].changeButtonSMColor();
+        }
 
         dataArray = new Vector3[numberPoint];
         lineRenderer.numPositions = numberPoint;
         lineRenderer.startWidth = 0.04f;
         lineRenderer.endWidth = 0.04f;
         updateHorizontalScale();
-        
-        eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
-        if (eHandle.electList.Count > 0)
-        {
-            elecLabel.text = eHandle.electList[idCurrentElec];
-            maxValChanel = eHandle.maxValues[idCurrentElec];
-        }
 
         #region plugEvents
         hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(
             delegate (int newID)
             {
                 eHandle = ELAN.changeHandle(eHandle, media.elanFiles, newID);
+                samplingFreq = (int)eHandle.sampFreq;
             });
         hub.traceRemotes[traceID].gainHasChanged += new gainChangedEventHandler(updateTraceGain);
         hub.traceRemotes[traceID].offsetHasChanged += new offsetChangedEventHandler(updateTraceOffset);
@@ -158,6 +211,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
         warden.plotWasClicked += new newPlotClicked(plotClicked);
 
+        colorpicker.changeColor += new colorChanged(setColorLineRenderer);
+
         initDone = true;
         #endregion
     }
@@ -165,7 +220,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     void updateTimeResolution(int newPeriod)
     {
         periodSec = newPeriod;
-        numberPoint = 64 * periodSec;
+        numberPoint = samplingFreq * periodSec;
         dataArray = new Vector3[numberPoint];
         lineRenderer.numPositions = numberPoint;
         lineRenderer.sortingOrder = -1;
@@ -179,6 +234,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         for (int i = 0; i < numberPoint; i++)
         {
             dataArray[i].x = ((-widthOfGameObject / 2) + 1) + i * horizontalScale;
+            dataArray[i].y = 0;
         }
         lineRenderer.SetPositions(dataArray);
     }
@@ -193,6 +249,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     {
         previousGain = gain;
         gain = newGain;
+
+        if(newGain / previousGain < 0)
+            updateElectrodeLabel();
 
         for (int i = 0; i < numberPoint; i++)
         {
@@ -226,10 +285,18 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         if (newID != -1)
         {
             idCurrentElec = newID;
-            elecLabel.text = eHandle.electList[idCurrentElec];
+            updateElectrodeLabel();
             maxValChanel = eHandle.maxValues[idCurrentElec];
             updateTraceOffset(offsetPerTen);
         }
+    }
+
+    void updateElectrodeLabel()
+    {
+        if(gain > 0)
+            elecLabel.text = eHandle.electList[idCurrentElec];
+        else
+            elecLabel.text = " - " + eHandle.electList[idCurrentElec];
     }
 
     //===
@@ -239,28 +306,35 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         if (eventData.clickCount == 2)
             manageFocusClick();
 
+        focusClickElecLabel();
+
         m_rectTransform.GetWorldCorners(m_worldCorners);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         float perCentX = (worldClick.x - m_worldCorners[1].x) / (m_worldCorners[2].x - m_worldCorners[1].x);
         float sampleClicked = (mostRecentSample - numberPoint) + (perCentX * numberPoint);
         if (sampleClicked >= 0)
         {
-            eventEeg currentEvent = new eventEeg(eventCode, (int)sampleClicked, elecOfInterest:elecLabel.text);
+            eventEeg currentEvent = new eventEeg(eventCode, (int)sampleClicked, samplingFreq:samplingFreq, elecOfInterest:elecLabel.text);
             eventWasClicked(currentEvent, traceID);
         }
     }
 
     void addEventToTrace(eventEeg currentEvent, int id)
     {
-        GameObject currentEventToAdd = Instantiate(traceEventClick);
+        GameObject currentEventToAdd = null;
+        if (currentEvent.duration == 0)
+            currentEventToAdd = Instantiate(traceEventClick);
+        else
+            currentEventToAdd = Instantiate(traceEventClick2);
+
         currentEventToAdd.name = "Event - " + currentEvent.sample;
         currentEventToAdd.transform.SetParent(m_eventHolder);
         currentEventToAdd.transform.localScale = new Vector3(1, 1, 1);
         currentEventToAdd.transform.SetSiblingIndex(id);
-        eventsAdded.Insert(id,currentEventToAdd);
+        eventsAdded.Insert(id, currentEventToAdd);
 
         currentEventToAdd.GetComponent<EventTrace>().init(currentEvent, traceID);
-        currentEventToAdd.GetComponent<EventTrace>().eventsToDisplay += new eventsToDisplay((eventToDisp, winID) => 
+        currentEventToAdd.GetComponent<EventTrace>().eventsToDisplay += new eventsToDisplay((eventToDisp, winID) =>
         {
             eventsToDisplay(eventToDisp, winID);
         });
@@ -278,46 +352,79 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             int right = sampleToLook;
 
             var keys = new List<int>(hub.eventRemote.userEvents.Keys);
-            List <int> currentIndex = keys.Select((item, index) => new { Item = item, Index = index })
-                                                         .Where(x => x.Item > left && x.Item < right)
-                                                         .Select(x => x.Index)
-                                                         .ToList();
+            var values = new List<eventEeg>(hub.eventRemote.userEvents.Values);
 
-            if (currentIndex.Count > 0)
+            List<int> idMove = values.Select((item, index) => new { Item = item, Index = index })
+                                                             .Where(x => x.Item.sample > left && x.Item.sample < right)
+                                                             .Select(x => x.Index)
+                                                             .ToList();
+
+            List<int> idLeft = values.Select((item, index) => new { Item = item, Index = index })
+                                                             .Where(x => x.Item.sample < left && (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000))) < right && 
+                                                                                                 (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000))) > left)
+                                                             .Select(x => x.Index)
+                                                             .ToList();
+
+            List<int> idRight = values.Select((item, index) => new { Item = item, Index = index })
+                                                             .Where(x => x.Item.sample > left && x.Item.sample < right && (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000))) > right)
+                                                             .Select(x => x.Index)
+                                                             .ToList();
+
+            hideActiveEvents();
+            float sizeV = m_rectTransform.rect.height - 10;
+
+            for (int i = 0; i < idMove.Count; i++)
             {
-                for (int i = currentIndex[0] - 1; i >= 0; i--)
-                {
-                    if (eventsAdded[i].activeSelf == true)
-                        eventsAdded[i].SetActive(false);
-                }
+                float positionInsideRect = (left - keys[idMove[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                float size = ((values[idMove[i]].duration * ((float)samplingFreq / 1000)) / (right - left)) * widthOfGameObject;
 
-                for (int i = currentIndex[currentIndex.Count - 1] + 1; i < eventsAdded.Count; i++)
+                if (values[idMove[i]].duration > 0)
                 {
-                    if (eventsAdded[i].activeSelf == true)
-                        eventsAdded[i].SetActive(false);
-                }
-
-                for (int i = 0; i < currentIndex.Count; i++)
-                {
-                    float positionInsideRect = (left - keys[currentIndex[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-
-                    if (keys[currentIndex[i]] <= right)
+                    if (keys[idMove[i]] <= right)
                     {
-                        eventsAdded[currentIndex[i]].SetActive(true);
-                        eventsAdded[currentIndex[i]].transform.localPosition = new Vector3(positionInsideRect, dataArray[keys[currentIndex[i]] - left].y, -201);
+                        eventsAdded[idMove[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                        eventsAdded[idMove[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                        eventsAdded[idMove[i]].SetActive(true);
+                        eventsAdded[idMove[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
                     }
+                }
+                else
+                {
+                    eventsAdded[idMove[i]].SetActive(true);
+                    eventsAdded[idMove[i]].transform.localPosition = new Vector3(positionInsideRect, dataArray[keys[idMove[i]] - left].y, -201);
                 }
             }
-            else //No New obj, we clean if there is some left
+
+            for (int i = 0; i < idLeft.Count; i++)
             {
-                List<GameObject> activeObj = eventsAdded.FindAll(x => x.activeSelf == true);
-                if (activeObj.Count > 0)
-                {
-                    for (int i = 0; i < activeObj.Count; i++)
-                    {
-                        activeObj[i].SetActive(false);
-                    }
-                }
+                float leftevent = (values[idLeft[i]].sample + (values[idLeft[i]].duration * ((float)samplingFreq / 1000)) - left);
+                float size = (leftevent / (right - left)) * widthOfGameObject;
+
+                eventsAdded[idLeft[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                eventsAdded[idLeft[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                eventsAdded[idLeft[i]].SetActive(true);
+            }
+
+            for (int i = 0; i < idRight.Count; i++)
+            {
+                float leftevent = right - values[idRight[i]].sample;
+                float size = (leftevent / (right - left)) * widthOfGameObject;
+
+                eventsAdded[idRight[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                eventsAdded[idRight[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                eventsAdded[idRight[i]].SetActive(true);
+            }
+        }
+    }
+
+    public void hideActiveEvents()
+    {
+        List<GameObject> activeObj = eventsAdded.FindAll(x => x.activeSelf == true);
+        if (activeObj.Count > 0)
+        {
+            for (int i = 0; i < activeObj.Count; i++)
+            {
+                activeObj[i].SetActive(false);
             }
         }
     }
@@ -334,7 +441,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         });
     }
 
-    void manageFocusClick()
+    public void manageFocusClick()
     {
         if (!m_window.hasFocus)
         {
@@ -357,6 +464,34 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    void focusClickElecLabel()
+    {
+        Ray r = new Ray(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector3.forward);
+        RaycastHit hit;
+        if (Physics.Raycast(r, out hit))
+        {
+            if (hit.collider.name == "ElecLabel" + (traceID + 1))
+            {
+                manageFocusClick();
+                if (m_window.transform.position == handleOtherTrace.transform.position)
+                {
+                    gameObject.transform.SetSiblingIndex(1);
+                    handleOtherTrace.gameObject.transform.SetSiblingIndex(0);
+                }
+
+            }
+            else
+            {
+                handleOtherTrace.gameObject.GetComponent<TraceCurve>().manageFocusClick();
+                if (m_window.transform.position == handleOtherTrace.transform.position)
+                {
+                    gameObject.transform.SetSiblingIndex(0);
+                    handleOtherTrace.gameObject.transform.SetSiblingIndex(1);
+                }
+            }
+        }
+    }
+
     void plotClicked(GameObject plot)
     {
         if (m_window.hasFocus)
@@ -368,5 +503,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             }
             ring.setSelectedPlot(plot);
         }
+    }
+
+    void setColorLineRenderer(Color color)
+    {
+        lineRenderer.startColor = color;
+        lineRenderer.endColor = color;
     }
 }

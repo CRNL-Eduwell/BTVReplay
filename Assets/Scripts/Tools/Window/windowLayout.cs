@@ -7,31 +7,31 @@ public class windowLayout : MonoBehaviour, IDropHandler
     BTVMedia media = null;
 
     private RectTransform m_rectTransform = null;
-    private Rect[] cells2by3 = null;
-    private Rect[] cells1by3 = null;
-    private Rect[] cells2by2 = null;
+    private Rect[] cells2by3 = new Rect[6];
+    private Rect[] cells1by3 = new Rect[3];
+    private Rect[] cells2by2 = new Rect[4];
 
-    private Rect[] cells2by3Previous = null;
-    private Rect[] cells1by3Previous = null;
-    private Rect[] cells2by2Previous = null;
+    private Rect[] cells2by3Previous = new Rect[6];
+    private Rect[] cells1by3Previous = new Rect[3];
+    private Rect[] cells2by2Previous = new Rect[4];
 
     private bool NothingDone = true;
+    private bool loaded = false;
     private RectTransform currentRectTransform = null;
     private Window currentWindowManager = null;
-    private bool loaded = false;
 
     void Awake()
     {
         media.mediaLoaded += new mediaLoadedEventHandler(() =>
         {
             loaded = true;
-            m_rectTransform = gameObject.GetComponent<RectTransform>();
-            cells2by3 = new Rect[6];
-            cells1by3 = new Rect[3];
-            cells2by2 = new Rect[4];
-            cells2by3Previous = new Rect[6];
-            cells1by3Previous = new Rect[3];
-            cells2by2Previous = new Rect[4];
+            //m_rectTransform = gameObject.GetComponent<RectTransform>();
+            //cells2by3 = new Rect[6];
+            //cells1by3 = new Rect[3];
+            //cells2by2 = new Rect[4];
+            //cells2by3Previous = new Rect[6];
+            //cells1by3Previous = new Rect[3];
+            //cells2by2Previous = new Rect[4];
             defineSizeGrid();
         });
     }
@@ -41,37 +41,42 @@ public class windowLayout : MonoBehaviour, IDropHandler
         media.mediaLoaded -= new mediaLoadedEventHandler(() =>
         {
             loaded = true;
-            m_rectTransform = gameObject.GetComponent<RectTransform>();
-            cells2by3 = new Rect[6];
-            cells1by3 = new Rect[3];
-            cells2by2 = new Rect[4];
-            cells2by3Previous = new Rect[6];
-            cells1by3Previous = new Rect[3];
-            cells2by2Previous = new Rect[4];
+            //m_rectTransform = gameObject.GetComponent<RectTransform>();
+            //cells2by3 = new Rect[6];
+            //cells1by3 = new Rect[3];
+            //cells2by2 = new Rect[4];
+            //cells2by3Previous = new Rect[6];
+            //cells1by3Previous = new Rect[3];
+            //cells2by2Previous = new Rect[4];
             defineSizeGrid();
         });
     }
 
     void OnRectTransformDimensionsChange()
     {
-        if(loaded)
+        if (loaded)
             forceResize();
+        else
+            initResize();
     }
 
     public void OnDrop(PointerEventData eventData)
     {
         if (Window.itemBeingDragged != null)
         {
+            //Debug.Log("on drop");
             Window.itemBeingDragged.transform.SetParent(transform);
             currentRectTransform = Window.itemBeingDragged.GetComponent<RectTransform>();
             currentWindowManager = Window.itemBeingDragged.GetComponent<Window>();
 
             if (currentRectTransform.rect.width > cells2by3[0].width && currentRectTransform.rect.height <= cells2by3[0].height)
             {
-                //Debug.Log("Look at 1 by 3");
+                // Debug.Log("Look at 1 by 3");
                 for (int i = 0; i < cells1by3.Length; i++)
                 {
-                    if (cells1by3[i].Contains(currentRectTransform.localPosition))
+                    Vector3 dd = new Vector3(currentRectTransform.localPosition.x + 0.5f * cells2by3[i].width, currentRectTransform.localPosition.y + 0.5f * cells2by3[i].height);
+                    //if (cells1by3[i].Contains(currentRectTransform.localPosition))
+                    if (cells1by3[i].Contains(dd))
                     {
                         //Debug.Log("Droped at" + i);
                         currentRectTransform.localPosition = new Vector3(cells1by3[i].x, cells1by3[i].y, currentRectTransform.localPosition.z);
@@ -89,7 +94,8 @@ public class windowLayout : MonoBehaviour, IDropHandler
                 //Debug.Log("Look at 2 by 3");
                 for (int i = 0; i < cells2by3.Length; i++)
                 {
-                    if (cells2by3[i].Contains(currentRectTransform.localPosition))
+                    Vector3 dd = new Vector3(currentRectTransform.localPosition.x + 0.5f * cells2by3[i].width, currentRectTransform.localPosition.y + 0.5f * cells2by3[i].height);
+                    if (cells2by3[i].Contains(dd))
                     {
                         //Debug.Log("Droped at" + i);
                         currentRectTransform.localPosition = new Vector3(cells2by3[i].x, cells2by3[i].y, currentRectTransform.localPosition.z);
@@ -106,7 +112,9 @@ public class windowLayout : MonoBehaviour, IDropHandler
                 //Debug.Log("Look at 2 by 2");
                 for (int i = 0; i < cells2by2.Length; i++)
                 {
-                    if (cells2by2[i].Contains(currentRectTransform.localPosition))
+                    Vector3 dd = new Vector3(currentRectTransform.localPosition.x + 0.5f * cells2by3[i].width, currentRectTransform.localPosition.y + 0.5f * cells2by3[i].height);
+                    //if (cells2by2[i].Contains(currentRectTransform.localPosition))
+                    if (cells2by2[i].Contains(dd))
                     {
                         //Debug.Log("Droped at" + i);
                         currentRectTransform.localPosition = new Vector3(cells2by2[i].x, cells2by2[i].y, currentRectTransform.localPosition.z);
@@ -176,7 +184,7 @@ public class windowLayout : MonoBehaviour, IDropHandler
 
     public void forceResize()
     {
-        if(m_rectTransform != null)
+        if (m_rectTransform == null)
             m_rectTransform = gameObject.GetComponent<RectTransform>();
 
         defineSizeGrid();
@@ -188,30 +196,52 @@ public class windowLayout : MonoBehaviour, IDropHandler
             RectTransform r = currentChildObject.GetComponent<RectTransform>();
             Window w = currentChildObject.GetComponent<Window>();
 
-            // Debug.Log("[" + r.name + "]");
 
             if (r != null && w != null)
             {
+                Debug.Log("[" + r.name + "]");
+
                 if (r.sizeDelta.x > cells2by3Previous[0].width && r.sizeDelta.y <= cells2by3Previous[0].height)
                 {
-                    //Debug.Log("Look at 1 by 3");
+                    Debug.Log("Look at 1 by 3");
                     r.sizeDelta = new Vector2(cells1by3[w.windowId].width, cells1by3[w.windowId].height);
                     r.localPosition = new Vector3(cells1by3[w.windowId].x, cells1by3[w.windowId].y, r.localPosition.z);
                 }
                 else if (r.sizeDelta.x <= cells2by3Previous[0].width && r.sizeDelta.y <= cells2by3Previous[0].height)
                 {
-                    //Debug.Log("Look at 2 by 3");
+                    Debug.Log("Look at 2 by 3");
                     r.sizeDelta = new Vector2(cells2by3[w.windowId].width, cells2by3[w.windowId].height);
                     r.localPosition = new Vector3(cells2by3[w.windowId].x, cells2by3[w.windowId].y, r.localPosition.z);
                 }
                 else
                 {
-                    //Debug.Log("Look at 2 by 2");
+                    Debug.Log("Look at 2 by 2");
                     r.sizeDelta = new Vector2(cells2by2[w.windowId].width, cells2by2[w.windowId].height);
                     r.localPosition = new Vector3(cells2by2[w.windowId].x, cells2by2[w.windowId].y, r.localPosition.z);
                 }
             }
         }
+    }
 
+    public void initResize()
+    {
+        if (m_rectTransform == null)
+            m_rectTransform = gameObject.GetComponent<RectTransform>();
+
+        defineSizeGrid();
+
+        for (int i = 0; i < gameObject.transform.childCount; i++)
+        {
+            GameObject currentChildObject = gameObject.transform.GetChild(i).gameObject;
+
+            RectTransform r = currentChildObject.GetComponent<RectTransform>();
+            Window w = currentChildObject.GetComponent<Window>();
+
+            if (r != null && w != null)
+            {
+                r.sizeDelta = new Vector2(cells2by2[w.windowId].width, cells2by2[w.windowId].height);
+                r.localPosition = new Vector3(cells2by2[w.windowId].x, cells2by2[w.windowId].y, r.localPosition.z);
+            }
+        }
     }
 }

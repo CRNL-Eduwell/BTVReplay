@@ -211,7 +211,8 @@ public class PatientManager
 public delegate void mediaLoadedEventHandler();
 public delegate void mniBrainLoadEventHandler(string lhemi, string rhemi, string pts);
 public delegate void initTrace();
-public delegate void initVideo(string videoPath);
+public delegate void initVideo(string videoPath, ELAN handle);
+public delegate void initNoVideo(ELAN handle);
 public delegate void initPerf(bool init);
 
 public class BTVMedia : MonoBehaviour
@@ -220,11 +221,11 @@ public class BTVMedia : MonoBehaviour
     public event mniBrainLoadEventHandler loadMniBrain;
     public event initTrace loadTrace;
     public event initVideo loadVideo;
+    public event initNoVideo loadNoVideo;
     public event initPerf loadPerf;
-
+    
     #region UILoadingCircle
-    [SerializeField]
-    GameObject loadingCirclePrefab = null;
+    [SerializeField] GameObject loadingCirclePrefab = null;
     LoadingCircle loadingCircle = null;
     #endregion
 
@@ -243,9 +244,7 @@ public class BTVMedia : MonoBehaviour
     public POS posFile = null;
     public ELAN[] elanFiles = new ELAN[6];
     public PROV provFile = null;
-
     public bool loaded = false;
-    //public bool perfOk = false;
     #endregion
 
     void Awake()
@@ -466,141 +465,127 @@ public class BTVMedia : MonoBehaviour
     public void loadMedia(Patient myPat)
     {
         if (loaded == true)
-        {
             resetValue(myPat);
-        }
         else
-        {
             StartCoroutine(c_load(myPat));
-            //loadStuff(myPat);
-        }
-    }
-
-    void loadStuff(Patient myPat)
-    {
-        //Open progress window.
-        //this.StartCoroutineAsync(c_load(myPat));
-
-        //mediaLoaded();
-        //loadMniBrain(myPat.lhemi_MNI, myPat.rhemi_MNI, myPat.pts_MNI);
-        //loadTrace();
-        //loadVideo(myPat.video);
-
-        //if (myPat.prov != "")
-        //{
-        //    if (myPat.pos != "")
-        //    {
-        //        posFile = new POS(myPat.pos);
-        //        posFile.readPosData();
-        //    }
-
-        //    provFile = new PROV(myPat.prov);
-        //    if (provFile.changeCodeFilePath != "")
-        //    {
-        //        try
-        //        {
-        //            posFile.renameTrigger(provFile);
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            Debug.Log(e);
-        //            perfOk = false;
-        //        }
-        //    }
-        //    posFile.calculateReactionTime(provFile, ELAN.getSamplingFreq(elanFiles));
-        //}
-
-        //gameObject.SetActive(false);
-        //loaded = true;
-
-        //if (posFile != null)
-        //{
-        //    perfOk = true;
-        //}
     }
 
     IEnumerator c_load(Patient myPat)
     {
+        //When you start a coroutine there is an implicit jumpback
+        //So we jump back to unity just in case
         yield return Ninja.JumpToUnity;
-        loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, GameObject.Find("CircleWindow").transform) as GameObject).GetComponent<LoadingCircle>();
-        loadingCircle.transform.localPosition = new Vector3(0, 0, 0);
-        loadingCircle.Set(0, "Finding files");
-        yield return Ninja.JumpBack;
-
-        yield return Ninja.JumpToUnity;
-        loadingCircle.Set(0, "Loading" + myPat.sm0);
-        yield return Ninja.JumpBack;
-        elanFiles[0] = ELAN.loadIfExist(myPat.sm0);
-
-        yield return Ninja.JumpToUnity;
-        loadingCircle.Set(0.2f, "Loading" + myPat.sm250);
-        yield return Ninja.JumpBack;
-        elanFiles[1] = ELAN.loadIfExist(myPat.sm250);
-
-        yield return Ninja.JumpToUnity;
-        loadingCircle.Set(0.4f, "Loading" + myPat.sm500);
-        yield return Ninja.JumpBack;
-        elanFiles[2] = ELAN.loadIfExist(myPat.sm500);
-
-        yield return Ninja.JumpToUnity;
-        loadingCircle.Set(0.6f, "Loading" + myPat.sm1000);
-        yield return Ninja.JumpBack;
-        elanFiles[3] = ELAN.loadIfExist(myPat.sm1000);
-
-        yield return Ninja.JumpToUnity;
-        loadingCircle.Set(0.8f, "Loading" + myPat.sm2500);
-        yield return Ninja.JumpBack;
-        elanFiles[4] = ELAN.loadIfExist(myPat.sm2500);
-
-        yield return Ninja.JumpToUnity;
-        loadingCircle.Set(1, "Loading" + myPat.sm5000);
-        yield return Ninja.JumpBack;
-        elanFiles[5] = ELAN.loadIfExist(myPat.sm5000);
-
-        //yield return Ninja.JumpToUnity;
-        //loadingCircle.Close();
-        //gameObject.SetActive(false);
-
+        yield return StartCoroutine(c_loadEEGFile(myPat));
 
         mediaLoaded();
-        loadVideo(myPat.video);
+
+        yield return Ninja.JumpToUnity;
+        yield return StartCoroutine(c_loadVideo(myPat.video));
+
         loadMniBrain(myPat.lhemi_MNI, myPat.rhemi_MNI, myPat.pts_MNI);
         loadTrace();
 
-        if (myPat.prov != "")
-        {
-            if (myPat.pos != "")
-            {
-                posFile = new POS(myPat.pos);
-                posFile.readPosData();
-            }
-
-            provFile = new PROV(myPat.prov);
-            if (provFile.changeCodeFilePath != "")
-            {
-                try
-                {
-                    posFile.renameTrigger(provFile);
-                }
-                catch (Exception e)
-                {
-                    UnityEngine.Debug.Log(e);
-                    //perfOk = false;
-                }
-            }
-            posFile.calculateReactionTime(provFile, ELAN.getSamplingFreq(elanFiles));
-        }
-
-        if (posFile != null)
-            loadPerf(true);
-        else
-            loadPerf(false);
+        yield return Ninja.JumpToUnity;
+        yield return StartCoroutine(c_loadPOSandPROV(myPat));
 
         yield return Ninja.JumpToUnity;
         loadingCircle.Close();
         gameObject.SetActive(false);
         loaded = true;
-        yield return new WaitForSeconds(0.1f); 
+        yield return new WaitForSeconds(0.1f);
+    }
+
+    IEnumerator c_loadEEGFile(Patient myPat)
+    {
+        loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, GameObject.Find("CircleWindow").transform) as GameObject).GetComponent<LoadingCircle>();
+        loadingCircle.transform.localPosition = new Vector3(0, 0, 0);
+
+        yield return Ninja.JumpToUnity;
+        loadingCircle.Set(0, "Finding files");
+        loadingCircle.Set(0.1f, "Loading File 1");
+        yield return Ninja.JumpBack;
+        yield return Process(myPat.sm0, r => elanFiles[0] = r);
+        yield return Ninja.JumpToUnity;
+
+        loadingCircle.Set(0.2f, "Loading File 2");
+        yield return Ninja.JumpBack;
+        yield return Process(myPat.sm250, r => elanFiles[1] = r);
+        yield return Ninja.JumpToUnity;
+
+        loadingCircle.Set(0.4f, "Loading File 3");
+        yield return Ninja.JumpBack;
+        yield return Process(myPat.sm500, r => elanFiles[2] = r);
+        yield return Ninja.JumpToUnity;
+
+        loadingCircle.Set(0.6f, "Loading File 4");
+        yield return Ninja.JumpBack;
+        yield return Process(myPat.sm1000, r => elanFiles[3] = r);
+        yield return Ninja.JumpToUnity;
+
+        loadingCircle.Set(0.8f, "Loading File 5");
+        yield return Ninja.JumpBack;
+        yield return Process(myPat.sm2500, r => elanFiles[4] = r);
+        yield return Ninja.JumpToUnity;
+
+        loadingCircle.Set(1.0f, "Loading File 6");
+        yield return Ninja.JumpBack;
+        yield return Process(myPat.sm5000, r => elanFiles[5] = r);
+        yield return Ninja.JumpToUnity;
+    }
+
+    YieldInstruction Process(string filePath, Action<ELAN> resultCB)
+    {
+        // I give my callback to the process
+        // Async needed for another thread and not freezing/laging UI
+        return this.StartCoroutineAsync(ELAN.c_loadIfExist(filePath, resultCB));
+    }
+
+    IEnumerator c_loadVideo(string videoPath)
+    {
+        int id = ELAN.returnFirstValidHandleId(elanFiles);
+        if (videoPath != "")
+            loadVideo(videoPath, elanFiles[id]);
+        else
+            loadNoVideo(elanFiles[id]);
+
+        yield return null;
+    }
+
+    IEnumerator c_loadPOSandPROV(Patient myPat)
+    {
+        if (myPat.prov != "")
+        {
+            if (myPat.pos != "")
+            {
+                posFile = new POS(myPat.pos, (int)ELAN.getSamplingFreq(elanFiles));
+                posFile.readPosData();
+            }
+
+            if (posFile.FileTriggers.Count > 0)
+            {
+                provFile = new PROV(myPat.prov);
+                if (provFile.changeCodeFilePath != "")
+                {
+                    try
+                    {
+                        posFile.renameTrigger(provFile);
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+                }
+                posFile.calculateReactionTime(provFile);
+            }
+        }
+
+        if (posFile != null && posFile.FileTriggers.Count > 0)
+            loadPerf(true);
+        else
+            loadPerf(false);
+
+        yield return new WaitForSeconds(1.0f);
+        yield return null;
     }
 
     void resetValue(Patient myPat)
@@ -629,19 +614,6 @@ public class BTVMedia : MonoBehaviour
         r.prov = myPat.prov;
         r.video = myPat.video;
         r.id = pm.idCurrentPatientLoaded;
-
-        //if (e0 != null)
-        //    e0.Dispose();
-        //if (e250 != null)
-        //    e250.Dispose();
-        //if (e500 != null)
-        //    e500.Dispose();
-        //if (e1000 != null)
-        //    e1000.Dispose();
-        //if (e2500 != null)
-        //    e2500.Dispose();
-        //if (e5000 != null)
-        //    e5000.Dispose();
 
         SceneManager.LoadScene("_main");
     }

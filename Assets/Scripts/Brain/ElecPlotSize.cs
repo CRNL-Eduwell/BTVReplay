@@ -10,32 +10,44 @@ public class ElecPlotSize : MonoBehaviour
             return bipID;
         }
     }
+    public bool isFrozen
+    {
+        get;
+        set;
+    }
 
     GameObject plotObject = null;
     BTVMedia media = null;
     optionsHub hub = null;
-    VLCSharp.VLCSharp video = null;
+    VideoPlayer video = null;
+    BrainWarden warden = null;
+
     ELAN eHandle = null;
     int bipID = 0;
     int mostRecentSample = 0;
     float gain = 1;
 
+    MeshRenderer mySphereRenderer = null;
+
     public void init(string goName)
     {
         media = GameObject.Find("Canvas").transform.GetChild(2).GetComponent<BTVMedia>();
-        video = GameObject.Find("Canvas").transform.GetChild(0).GetChild(1).GetComponent<VLCSharp.VLCSharp>();
+        video = GameObject.Find("Canvas").transform.GetChild(0).GetChild(1).GetComponent<VideoPlayer>();
         hub = GameObject.Find("Canvas").transform.GetChild(0).GetChild(3).GetComponent<optionsHub>();
+        warden = GameObject.Find("Canvas").transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<BrainWarden>();
 
-        video.sendTime += new timeVideo(updateSize);
+        video.sendTime += new timeVideo2(updateSize);
         hub.brainRemote.gainHasChanged += new gainChangedEventHandler((newGain) => 
         {
             gain = newGain;
         });
+        warden.changeColorEvent += new changeColorPlotEvent(updateColorForEvent);
 
         if (media != null)
             eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
 
         plotObject = GameObject.Find(goName.ToLower());
+        mySphereRenderer = plotObject.GetComponent<MeshRenderer>();
 
         int plotID = eHandle.electList.FindIndex(x => x.ToLower().Equals(plotObject.name));
 
@@ -43,12 +55,14 @@ public class ElecPlotSize : MonoBehaviour
             bipID = plotID;
         else
             plotObject.SetActive(false);
+
+        isFrozen = false;
     }
 
     void OnDestroy()
     {
         if(video != null)
-            video.sendTime -= new timeVideo(updateSize);
+            video.sendTime -= new timeVideo2(updateSize);
 
         if (hub != null)
         {
@@ -57,18 +71,37 @@ public class ElecPlotSize : MonoBehaviour
                 gain = newGain;
             });
         }
+
+        if(warden != null)
+            warden.changeColorEvent -= new changeColorPlotEvent(updateColorForEvent);
     }
 
     void updateSize(int sampleToLook)
     {
-        mostRecentSample = sampleToLook;
-        int posInArray = (bipID * eHandle.nbSam) + mostRecentSample;
-        float currentValue = eHandle.eegData[posInArray] / 100;
-        float scale = 2 + (gain * currentValue);
+        if (!isFrozen)
+        {
+            mostRecentSample = sampleToLook;
+            int posInArray = (bipID * eHandle.nbSam) + mostRecentSample;
+            float currentValue = eHandle.eegData[posInArray] / 100;
+            float scale = 2 + (gain * currentValue);
 
-        if (scale >= 10)
-            scale = 10;
+            if (scale >= 10)
+                scale = 10;
 
-        plotObject.transform.localScale = new Vector3(scale, scale, scale);
+            plotObject.transform.localScale = new Vector3(scale, scale, scale);
+        }
+    }
+
+    void updateColorForEvent(string namePlot, Color color)
+    {
+        if (namePlot.ToLower() == plotObject.name || namePlot == "")
+        {
+            mySphereRenderer.materials[0].color = color;
+        }
+    }
+
+    public void fixSize()
+    {
+        plotObject.transform.localScale = new Vector3(1, 1, 1);
     }
 }

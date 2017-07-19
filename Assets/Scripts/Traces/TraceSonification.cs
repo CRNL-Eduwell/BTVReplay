@@ -7,8 +7,9 @@ public class TraceSonification : MonoBehaviour
 {
     [SerializeField] optionsHub hub = null;
     [SerializeField] BTVMedia media = null;
-    [SerializeField] VLCSharp.VLCSharp video = null;
+    [SerializeField] VideoPlayer video = null;
 
+    TraceCurve curve = null;
     AudioSource audioSourceScript = null;
     ELAN eHandle = null;
     int traceID = 0;
@@ -21,8 +22,9 @@ public class TraceSonification : MonoBehaviour
         audioSourceScript = gameObject.GetComponent<AudioSource>();
         audioSourceScript.Play();
         audioSourceScript.Pause();
-        traceID = gameObject.transform.parent.GetComponent<TraceCurve>().idTrace;
-        elecID = gameObject.transform.parent.GetComponent<TraceCurve>().idElectrode;
+        curve = gameObject.transform.parent.GetComponent<TraceCurve>();
+        traceID = curve.idTrace;
+        elecID = curve.idElectrode;
 
         media.mediaLoaded += new mediaLoadedEventHandler(init);
     }
@@ -42,7 +44,7 @@ public class TraceSonification : MonoBehaviour
             hub.traceRemotes[traceID].sonifToggled -= new toggleSonification(toggleSonification);
             hub.traceRemotes[traceID].soundChanged -= new newSoundSonif(changeAudioSonification);
 
-            video.sendTime -= new timeVideo(updateSonif);
+            video.sendTime -= new timeVideo2(updateSonif);
         }
     }
 
@@ -59,7 +61,7 @@ public class TraceSonification : MonoBehaviour
         });
         hub.traceRemotes[traceID].sonifToggled += new toggleSonification(toggleSonification);
         hub.traceRemotes[traceID].soundChanged += new newSoundSonif(changeAudioSonification);
-        video.sendTime += new timeVideo(updateSonif);
+        video.sendTime += new timeVideo2(updateSonif);
 
         StartCoroutine(StartAudio());
         initDone = true;
@@ -76,24 +78,33 @@ public class TraceSonification : MonoBehaviour
     void updateSonif(int sampleToLook)
     {
         int posInArray = (elecID * eHandle.nbSam) + sampleToLook;
-        float currentValue = eHandle.eegData[posInArray] / 100;
-
-        if (currentValue <= 1 && currentValue >= 0)
+        float currentValue = (eHandle.eegData[posInArray] / eHandle.maxValues[elecID]) * (curve.Gain * 5);
+        if (currentValue > 1)
+        {
+            audioSourceScript.volume = 1;
+        }
+        else if (currentValue <= 1 && currentValue >= 0)
+        {
             audioSourceScript.volume = currentValue;
+        }
+        else if (currentValue < 0)
+        {
+            audioSourceScript.volume = 0;
+        }
     }
 
     void changeAudioSonification(int newIDClip)
     {
-        audioSourceScript.clip = clips[newIDClip];
-
         if (!audioSourceScript.isPlaying)
         {
+            audioSourceScript.clip = clips[newIDClip];
             audioSourceScript.Play();
         }
         else
         {
-            audioSourceScript.Play();
             audioSourceScript.Pause();
+            audioSourceScript.clip = clips[newIDClip];
+            audioSourceScript.Play();
         }
     }
 

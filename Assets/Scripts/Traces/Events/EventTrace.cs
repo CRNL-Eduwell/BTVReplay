@@ -16,6 +16,7 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
     GameObject choiceWin = null;
     Button editButton = null;
     Button deleteButton = null;
+    Button closeButton = null;
 
     public void init(eventEeg currentEvent, int winID)
     {
@@ -52,9 +53,11 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
 
         editButton = choiceWin.transform.GetChild(0).GetChild(0).GetComponent<Button>();
         deleteButton = choiceWin.transform.GetChild(0).GetChild(1).GetComponent<Button>();
+        closeButton = choiceWin.transform.GetChild(0).GetChild(2).GetComponent<Button>();
 
         editButton.onClick.AddListener(choiceEdit);
         deleteButton.onClick.AddListener(choiceDelete);
+        closeButton.onClick.AddListener(choiceClose);
     }
 
     void choiceEdit()
@@ -62,6 +65,7 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
         eventsToDisplay(myEvent, parentWinID);
         editButton.onClick.RemoveAllListeners();
         deleteButton.onClick.RemoveAllListeners();
+        closeButton.onClick.RemoveAllListeners();
         Destroy(choiceWin);
     }
 
@@ -70,6 +74,20 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
         eventsToDelete(myEvent, parentWinID);
         editButton.onClick.RemoveAllListeners();
         deleteButton.onClick.RemoveAllListeners();
+        closeButton.onClick.RemoveAllListeners();
         Destroy(choiceWin);
+    }
+
+    void choiceClose()
+    {
+        editButton.onClick.RemoveAllListeners();
+        deleteButton.onClick.RemoveAllListeners();
+        closeButton.onClick.RemoveAllListeners();
+        Destroy(choiceWin);
+    }
+
+    public void deleteMe()
+    {
+        eventsToDelete(myEvent, parentWinID);
     }
 }
