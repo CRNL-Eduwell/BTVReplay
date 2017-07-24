@@ -145,7 +145,7 @@ public class Electrodes : MonoBehaviour
                 }
                 else
                 {
-                    //Debug.LogError("Error Reading Pts : Each Line Must have 9 elements");
+                    Debug.LogError("Error Reading Pts : Each Line Must have 9 elements");
                     return -1;
                 }
             }

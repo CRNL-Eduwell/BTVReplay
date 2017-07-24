@@ -42,8 +42,8 @@ public class TracePerf : MonoBehaviour
         {
             if (isUsed)
             {
-                video.sendTime -= new timeVideo2(UpdateSpawn);
-                video.sendTime -= new timeVideo2(UpdatePicEvent);
+                video.sendTime -= new timeVideo(UpdateSpawn);
+                video.sendTime -= new timeVideo(UpdatePicEvent);
                 hub.perfRemote.iAmHiden -= new hideMe((isHidden) =>
                 {
                     gameObject.SetActive(isHidden);
@@ -87,8 +87,8 @@ public class TracePerf : MonoBehaviour
         if(isUsed)
         {
             hub.perfRemote.timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
-            video.sendTime += new timeVideo2(UpdateSpawn);
-            video.sendTime += new timeVideo2(UpdatePicEvent);
+            video.sendTime += new timeVideo(UpdateSpawn);
+            video.sendTime += new timeVideo(UpdatePicEvent);
 
             updateScales();
 

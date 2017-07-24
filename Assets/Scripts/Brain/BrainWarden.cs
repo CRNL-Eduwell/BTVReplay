@@ -38,7 +38,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         elecOptionPanel = Resources.Load("Prefabs/Brain-ElecOptions", typeof(GameObject)) as GameObject;
 
         media.mediaLoaded += new mediaLoadedEventHandler(() => initDone = true);
-        video.sendTime += new timeVideo2(updateEventsOnBrain);
+        video.sendTime += new timeVideo(updateEventsOnBrain);
 
         m_rectTransform = gameObject.GetComponent<RectTransform>();
         m_startSize = m_rectTransform.sizeDelta;
@@ -56,7 +56,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     private void OnDestroy()
     {
         media.mediaLoaded -= new mediaLoadedEventHandler(() => initDone = true);
-        video.sendTime -= new timeVideo2(updateEventsOnBrain);
+        video.sendTime -= new timeVideo(updateEventsOnBrain);
     }
 
     void Update()

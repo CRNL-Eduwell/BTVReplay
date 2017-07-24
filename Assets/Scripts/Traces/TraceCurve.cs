@@ -117,15 +117,15 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     void Awake()
     {
         media.loadTrace += new initTrace(init);
-        video.sendTime += new timeVideo2(updateDraw);
-        video.sendTime += new timeVideo2(updateEventsDraw);
+        video.sendTime += new timeVideo(updateDraw);
+        video.sendTime += new timeVideo(updateEventsDraw);
     }
 
     void OnDestroy()
     {
         media.loadTrace -= new initTrace(init);
-        video.sendTime -= new timeVideo2(updateDraw);
-        video.sendTime -= new timeVideo2(updateEventsDraw);
+        video.sendTime -= new timeVideo(updateDraw);
+        video.sendTime -= new timeVideo(updateEventsDraw);
 
         if (initDone)
         {

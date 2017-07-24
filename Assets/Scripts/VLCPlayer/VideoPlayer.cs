@@ -5,6 +5,9 @@ using System.Diagnostics; //Requiered for Stopwatch
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
+using System.Collections; //IEnumerator
+using CielaSpike;
+
 using VLCSharp.Tools;
 using VLCSharp.Interface;
 using VLCSharp.VLCMemory;
@@ -13,7 +16,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;//Requiered for Event data.
 
-public delegate void timeVideo2(int currentTime);
+public delegate void timeVideo(int currentTime);
 
 static class LibVlc
 {
@@ -113,6 +116,7 @@ static class LibVlc
 
     [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
     public static extern long libvlc_media_player_get_length(IntPtr p_mi);
+
 
     #region exception
     [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
@@ -335,7 +339,7 @@ public class VlcMediaPlayer : IDisposable
 
 public class VideoPlayer : MonoBehaviour
 {
-    public event timeVideo2 sendTime;
+    public event timeVideo sendTime;
 
     #region scene members
     [SerializeField] optionsHub hub = null;
@@ -382,6 +386,9 @@ public class VideoPlayer : MonoBehaviour
     bool videoInit = false;
     bool noVideoInit = false;
 
+    uint[] width = new uint[1] { 0 };
+    uint[] height = new uint[1] { 0 };
+
     private void Awake()
     {
         media.loadVideo += new initVideo(initVideo);
@@ -408,6 +415,7 @@ public class VideoPlayer : MonoBehaviour
     {
         media.loadVideo -= new initVideo(initVideo);
         media.loadNoVideo -= new initNoVideo(initNoVideo);
+
         backTime10.onClick.RemoveAllListeners();
         backTime1.onClick.RemoveAllListeners();
         frontTime10.onClick.RemoveAllListeners();
@@ -444,6 +452,12 @@ public class VideoPlayer : MonoBehaviour
 
     private void Update()
     {
+        //if (videoInit && width[0] == 0)
+        //    player.getSize(width, height);
+
+        //if (width[0] != 0)
+        //    UnityEngine.Debug.Log(width[0]);
+        
         if (videoInit && newPic && player.IsPlaying)
         {
             ((Texture2D)TextureToDraw.texture).LoadImage(textureByteArray);
@@ -622,10 +636,10 @@ public class VideoPlayer : MonoBehaviour
                     picCopy.Dispose();
                     newPic = true;
                 });
-
+                
                 //the size of the bitmap format need to be the same as 
                 //the texture on unity Otherwise performance issue
-                memRender.SetFormat(new BitmapFormat(256, 256, ChromaType.RV32));
+                memRender.SetFormat(new BitmapFormat(512, 512, ChromaType.RV32));
             }
             else
             {
@@ -640,7 +654,11 @@ public class VideoPlayer : MonoBehaviour
             });
 
         setVolume();
-
+        //StartCoroutine(searchSize());
+        //player.Play();
+        //player.getSize(width, height);
+        //player.Pause();
+        //UnityEngine.Debug.Log(width[0]);
         videoInit = true;
     }
 
@@ -774,4 +792,30 @@ public class VideoPlayer : MonoBehaviour
         }
     }
     #endregion
+
+
+
+    //IEnumerator searchSize()
+    //{
+    //    yield return Ninja.JumpToUnity;
+    //    player.Play();
+    //    yield return StartCoroutine(waitforsize());
+    //    //yield return Ninja.JumpToUnity;
+    //    //player.setTime(0);
+    //    //player.Pause();
+    //    //yield return null;
+
+    //}
+
+    //IEnumerator waitforsize()
+    //{
+    //    //UnityEngine.Debug.Log("a");
+    //    //player.getSize(width, height);
+    //    while (width[0] == 0 && height[0] == 0)
+    //    {
+    //        player.getSize(width, height);
+    //        UnityEngine.Debug.Log("a");
+    //        yield return null;
+    //    }
+    //}
 }

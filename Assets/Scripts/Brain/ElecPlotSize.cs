@@ -36,7 +36,7 @@ public class ElecPlotSize : MonoBehaviour
         hub = GameObject.Find("Canvas").transform.GetChild(0).GetChild(3).GetComponent<optionsHub>();
         warden = GameObject.Find("Canvas").transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<BrainWarden>();
 
-        video.sendTime += new timeVideo2(updateSize);
+        video.sendTime += new timeVideo(updateSize);
         hub.brainRemote.gainHasChanged += new gainChangedEventHandler((newGain) => 
         {
             gain = newGain;
@@ -62,7 +62,7 @@ public class ElecPlotSize : MonoBehaviour
     void OnDestroy()
     {
         if(video != null)
-            video.sendTime -= new timeVideo2(updateSize);
+            video.sendTime -= new timeVideo(updateSize);
 
         if (hub != null)
         {
