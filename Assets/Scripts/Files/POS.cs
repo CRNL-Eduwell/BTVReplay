@@ -35,7 +35,7 @@ public class eventEeg
 
     public float getTimeMSec()
     {
-        return getTimeSec() / 1000;
+        return getTimeSec() * 1000;
     }
 
     public int code = -1;
@@ -164,35 +164,65 @@ public class POS
     {
         extractChangeCodeData(p_prov.changeCodeFilePath);
 
-        for (int i = 0; i < oldTrigg.Count; i++)
+        for (int k = 0; k < triggers.Count; k++)
         {
-            int[] winSam = getCurrentWindow(p_prov, newTrigg[i].trigger.code);
-            if (winSam[0] != -1 && winSam[1] != -1)
-            {
-                int idRespEvent = 0;
-                for (int j = 0; j < triggers.Count - 1; j++)
-                {
-                    if (triggers[j].trigger.code == oldTrigg[i].trigger.code)
-                    {
-                        triggers[j].trigger.code = newTrigg[i].trigger.code;
-                        if (j + 1 < triggers.Count - 1)
-                        {
-                            idRespEvent = j + 1;
-                            //==
-                            int winMin = triggers[j].trigger.sample - Math.Abs(winSam[0]);
-                            int winMax = triggers[j].trigger.sample + winSam[1];
+            int idVisuBloc = -1;
+            int idMain = -1;
+            int idSec = -1;
+            int dd = -1;
+            int idcode = -1;
 
-                            while (triggers[idRespEvent].trigger.sample < winMax &&
-                                   triggers[idRespEvent].trigger.sample > winMin &&
-                                   idRespEvent + 1 < triggers.Count - 1)
-                            {
-                                if (triggers[idRespEvent].trigger.code == oldTrigg[i].response.code)
-                                {
-                                    triggers[idRespEvent].trigger.code = newTrigg[i].response.code;
-                                }
-                                idRespEvent++;
-                            }
+            for (int l = 0; l < oldTrigg.Count; l++)
+            {
+                if (triggers[k].trigger.code == oldTrigg[l].trigger.code)
+                {
+                    idMain = k;
+                    for (int m = 0; m < p_prov.blocs.Count; m++)
+                    {
+                        if (newTrigg[l].trigger.code == p_prov.blocs[m].mainEvent.code)
+                            idVisuBloc = m;
+                    }
+                }
+            }
+
+
+            if (idMain != -1)
+            {
+                int winSamMin = (int)Math.Round((double)(64 * p_prov.blocs[idVisuBloc].dispBloc.epochWindow[0]) / 1000);
+                int winSamMax = (int)Math.Round((double)(64 * p_prov.blocs[idVisuBloc].dispBloc.epochWindow[1]) / 1000);
+
+                dd = k + 1;
+
+                while (idSec == -1 && dd < triggers.Count - 1)
+                {
+                    for (int l = 0; l < oldTrigg.Count; l++)
+                    {
+                        if (triggers[dd].trigger.code == oldTrigg[l].response.code &&
+                            triggers[idMain].trigger.code == oldTrigg[l].trigger.code)
+                        {
+                            idSec = dd;
+                            idcode = l;
                         }
+                        else if (triggers[dd].trigger.code == oldTrigg[l].trigger.code && idSec == -1)
+                        {
+                            idMain = dd;
+                            idcode = l;
+                        }
+                    }
+                    dd++;
+                }
+
+
+                if (idMain != -1 && idSec != -1)
+                {
+                    int winMax = triggers[idMain].trigger.sample + winSamMax;
+                    int winMin = triggers[idMain].trigger.sample - Math.Abs(winSamMin);
+
+                    if ((triggers[idSec].trigger.sample < winMax) &&
+                        (triggers[idSec].trigger.sample > winMin))
+                    {
+                        triggers[idMain].trigger.code = newTrigg[idcode].trigger.code;
+                        triggers[idSec].trigger.code = newTrigg[idcode].response.code;
                     }
                 }
             }
@@ -207,8 +237,8 @@ public class POS
 
         for (int i = 0; i < triggersTrimmed.Count; i++)
         {
-            triggersTrimmed[i].trigger.timeMs = (int)(1000 * (triggersTrimmed[i].trigger.sample / samplingFreq));
-            triggersTrimmed[i].response.timeMs = (int)(1000 * (triggersTrimmed[i].response.sample / samplingFreq));
+            triggersTrimmed[i].trigger.timeMs = (int)(1000 * ((double)triggersTrimmed[i].trigger.sample / samplingFreq));
+            triggersTrimmed[i].response.timeMs = (int)(1000 * ((double)triggersTrimmed[i].response.sample / samplingFreq));
             triggersTrimmed[i].rtMs = triggersTrimmed[i].response.timeMs - triggersTrimmed[i].trigger.timeMs;
             triggersTrimmed[i].rtSample = triggersTrimmed[i].response.sample - triggersTrimmed[i].trigger.sample;
         }
@@ -281,33 +311,63 @@ public class POS
 
     void pairStimWithResp(PROV p_prov)
     {
-        for (int i = 0; i < oldTrigg.Count; i++)
+        for (int k = 0; k < triggers.Count; k++)
         {
-            int[] winSam = getCurrentWindow(p_prov, newTrigg[i].trigger.code);
-            if (winSam[0] != -1 && winSam[1] != -1)
-            {
-                int idRespEvent = 0;
-                for (int j = 0; j < triggers.Count - 1; j++)
-                {
-                    if (j + 1 < triggers.Count - 1)
-                    {
-                        idRespEvent = j + 1;
-                        //==
-                        int winMin = triggers[j].trigger.sample - Math.Abs(winSam[0]);
-                        int winMax = triggers[j].trigger.sample + winSam[1];
+            int idVisuBloc = -1;
+            int idMain = -1;
+            int idSec = -1;
+            int dd = -1;
+            int idcode = -1;
 
-                        while (triggers[idRespEvent].trigger.sample < winMax &&
-                               triggers[idRespEvent].trigger.sample > winMin &&
-                               idRespEvent + 1 < triggers.Count - 1)
+            for (int l = 0; l < newTrigg.Count; l++)
+            {
+                if (triggers[k].trigger.code == newTrigg[l].trigger.code)
+                {
+                    idMain = k;
+                    for (int m = 0; m < p_prov.blocs.Count; m++)
+                    {
+                        if (newTrigg[l].trigger.code == p_prov.blocs[m].mainEvent.code)
+                            idVisuBloc = m;
+                    }
+                }
+            }
+
+            if (idMain != -1)
+            {
+                int winSamMin = (int)Math.Round((double)(64 * p_prov.blocs[idVisuBloc].dispBloc.epochWindow[0]) / 1000);
+                int winSamMax = (int)Math.Round((double)(64 * p_prov.blocs[idVisuBloc].dispBloc.epochWindow[1]) / 1000);
+
+                dd = k + 1;
+
+                while (idSec == -1 && dd < triggers.Count - 1)
+                {
+                    for (int l = 0; l < newTrigg.Count; l++)
+                    {
+                        if (triggers[dd].trigger.code == newTrigg[l].response.code &&
+                            triggers[idMain].trigger.code == newTrigg[l].trigger.code)
                         {
-                            if ((triggers[idRespEvent].trigger.code == oldTrigg[i].response.code) ||
-                                (triggers[idRespEvent].trigger.code == newTrigg[i].response.code))
-                            {
-                                triggers[j].response = new eventEeg(triggers[idRespEvent].trigger);
-                                triggers[j].response.code = newTrigg[i].response.code;
-                            }
-                            idRespEvent++;
+                            idSec = dd;
+                            idcode = l;
                         }
+                        else if (triggers[dd].trigger.code == newTrigg[l].trigger.code && idSec == -1)
+                        {
+                            idMain = dd;
+                            idcode = l;
+                        }
+                    }
+                    dd++;
+                }
+
+
+                if (idMain != -1 && idSec != -1)
+                {
+                    int winMax = triggers[idMain].trigger.sample + winSamMax;
+                    int winMin = triggers[idMain].trigger.sample - Math.Abs(winSamMin);
+
+                    if ((triggers[idSec].trigger.sample < winMax) &&
+                        (triggers[idSec].trigger.sample > winMin))
+                    {
+                        triggers[idMain].response = new eventEeg(triggers[idSec].trigger);
                     }
                 }
             }
