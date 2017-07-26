@@ -117,18 +117,17 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     void Awake()
     {
         media.loadTrace += new initTrace(init);
-        video.sendTime += new timeVideo(updateDraw);
-        video.sendTime += new timeVideo(updateEventsDraw);
     }
 
     void OnDestroy()
     {
         media.loadTrace -= new initTrace(init);
-        video.sendTime -= new timeVideo(updateDraw);
-        video.sendTime -= new timeVideo(updateEventsDraw);
 
         if (initDone)
         {
+            video.sendTime -= new timeVideo(updateDraw);
+            video.sendTime -= new timeVideo(updateEventsDraw);
+
             hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(
                 delegate (int newID)
                 {
@@ -196,6 +195,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         updateHorizontalScale();
 
         #region plugEvents
+        video.sendTime += new timeVideo(updateDraw);
+        video.sendTime += new timeVideo(updateEventsDraw);
+
         hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(
             delegate (int newID)
             {

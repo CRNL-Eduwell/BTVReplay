@@ -526,6 +526,7 @@ public class videoOptions
         float offsetBar = offsetScrollBar.value - 0.5f;
         offsetSec = (int)(offsetBar * 120);
         setOffsetText(offsetSec);
+        offsetVideoHasChanged(offsetSec);
     }
 
     void setOffsetText(int sec)
