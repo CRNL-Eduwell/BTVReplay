@@ -12,7 +12,7 @@ SM2500 :
 SM5000 : 
 POS : 
 PROV : 
-VID : 
+VID : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/EG_BTV_forPC/EG_16AVR12G_BTV_Vp3.AVI
 [----------]
 LH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Lhemi.tri
 RH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Rhemi.tri
@@ -77,4 +77,20 @@ SM5000 :
 POS : D:/Users/Florian/Desktop/MARs MARM/LYONNEURO_2015_MARs_MARM_ds8.pos
 PROV : D:/Users/Florian/Desktop/MARs MARM/MARM.prov
 VID : D:/Users/Florian/Desktop/MARs MARM/LYONNEURO_2015_MARs_MARM.AVI-_x264.mp4
+[----------]
+LH_MNI : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Desktop/bug mvis replay/CE_28SEP10G_MVIS/CE_28SEP10G_recupbyJP_MNI.pts
+LH_PAT : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Lhemi.tri
+RH_PAT : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Rhemi.tri
+PTS_PAT : D:/Users/Florian/Desktop/bug mvis replay/CE_28SEP10G_MVIS/CE_28SEP10G_recupbyJP_MNI.pts
+SM0 : D:/Users/Florian/Desktop/bug mvis replay/CE_28SEP10G_MVIS/CE_28SEP10G_MVIS_f50f150/CE_28SEP10G_MVIS_f50f150_ds8_sm0.eeg
+SM250 : D:/Users/Florian/Desktop/bug mvis replay/CE_28SEP10G_MVIS/CE_28SEP10G_MVIS_f50f150/CE_28SEP10G_MVIS_f50f150_ds8_sm250.eeg
+SM500 : 
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : D:/Users/Florian/Desktop/bug mvis replay/CE_28SEP10G_MVIS/CE_28SEP10G_MVIS_ds8.pos
+PROV : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Prov/MVIS.prov
+VID : 
 [----------]
