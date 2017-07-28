@@ -311,6 +311,21 @@ public class POS
 
     void pairStimWithResp(PROV p_prov)
     {
+        if (newTrigg == null)
+        {
+            newTrigg = new List<trigg>();
+            for (int i = 0; i < p_prov.blocs.Count; i++)
+            {
+                for (int j = 0; j < p_prov.blocs[i].secondaryEvents.code.Count(); j++)
+                {
+                    for (int k = 0; k < p_prov.blocs[i].secondaryEvents.code[j].Count(); k++)
+                    {
+                        newTrigg.Add(new trigg(new eventEeg(p_prov.blocs[i].mainEvent.code), new eventEeg(p_prov.blocs[i].secondaryEvents.code[j][k])));
+                    }
+                }
+            }
+        }
+
         for (int k = 0; k < triggers.Count; k++)
         {
             int idVisuBloc = -1;

@@ -26,12 +26,12 @@ public class TraceSonification : MonoBehaviour
         traceID = curve.idTrace;
         elecID = curve.idElectrode;
 
-        media.mediaLoaded += new mediaLoadedEventHandler(init);
+        media.loadTrace += new initTrace(init);
     }
 
     void OnDestroy()
     {
-        media.mediaLoaded -= new mediaLoadedEventHandler(init);
+        media.loadTrace -= new initTrace(init);
         if (initDone)
         {
             hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(delegate (int newID)

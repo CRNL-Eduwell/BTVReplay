@@ -211,8 +211,7 @@ public class PatientManager
 public delegate void mediaLoadedEventHandler();
 public delegate void mniBrainLoadEventHandler(string lhemi, string rhemi, string pts);
 public delegate void initTrace();
-public delegate void initVideo(string videoPath, ELAN handle);
-public delegate void initNoVideo(ELAN handle);
+public delegate void initVideo(string videoPath, int sampFreq, int totalFileDuration);
 public delegate void initPerf(bool init);
 
 public class BTVMedia : MonoBehaviour
@@ -221,7 +220,6 @@ public class BTVMedia : MonoBehaviour
     public event mniBrainLoadEventHandler loadMniBrain;
     public event initTrace loadTrace;
     public event initVideo loadVideo;
-    public event initNoVideo loadNoVideo;
     public event initPerf loadPerf;
     
     #region UILoadingCircle
@@ -542,11 +540,10 @@ public class BTVMedia : MonoBehaviour
 
     IEnumerator c_loadVideo(string videoPath)
     {
+        float sampFreq = ELAN.getSamplingFreq(elanFiles);
         int id = ELAN.returnFirstValidHandleId(elanFiles);
-        if (videoPath != "")
-            loadVideo(videoPath, elanFiles[id]);
-        else
-            loadNoVideo(elanFiles[id]);
+        long totalDuration = ELAN.getTotalFileDuration(elanFiles[id]);
+        loadVideo(videoPath, (int)sampFreq, (int)totalDuration);
 
         yield return null;
     }
@@ -565,16 +562,8 @@ public class BTVMedia : MonoBehaviour
             {
                 provFile = new PROV(myPat.prov);
                 if (provFile.changeCodeFilePath != "")
-                {
-                    try
-                    {
-                        posFile.renameTrigger(provFile);
-                    }
-                    catch (Exception e)
-                    {
+                    posFile.renameTrigger(provFile);
 
-                    }
-                }
                 posFile.calculateReactionTime(provFile);
             }
         }
