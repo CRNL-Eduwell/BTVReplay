@@ -376,11 +376,10 @@ public class eventsOptions : MonoBehaviour
 
                 while ((r = sr.ReadLine()) != null)
                 {
-                    string[] resultSplit = r.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    //the regex mean you split by everything but a single white space
+                    string[] resultSplit = System.Text.RegularExpressions.Regex.Split(r, @"\s{2,}");  
                     if (resultSplit.Count() == 7)
-                    {
                         eventLoaded.Add(new eventEeg(int.Parse(resultSplit[2]), int.Parse(resultSplit[3]), -1, int.Parse(resultSplit[4]), resultSplit[5], resultSplit[6], resultSplit[1]));
-                    }
                 }
                 sr.Close();
                 return eventLoaded;

@@ -94,3 +94,19 @@ POS : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/CE_28SEP10G/CE_28SEP
 PROV : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Prov/MVIS.prov
 VID : 
 [----------]
+LH_MNI : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MNI.pts
+LH_PAT : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Lhemi.tri
+RH_PAT : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Rhemi.tri
+PTS_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MNI.pts
+SM0 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MARD_f50f150_ds8_sm0.eeg
+SM250 : 
+SM500 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MARD_f50f150_ds8_sm500.eeg
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MARD_ds8.pos
+PROV : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Prov/MARD.prov
+VID : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MARD.AVI
+[----------]
