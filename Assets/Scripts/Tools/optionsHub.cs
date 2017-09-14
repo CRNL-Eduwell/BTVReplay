@@ -24,7 +24,6 @@ public class eventsOptions : MonoBehaviour
     GameObject eventHubClick = null;
     GameObject eventAddUI = null;
     GameObject eventDispUI = null;
-
     VideoPlayer v = null;
     TraceCurve win1 = null;
     TraceCurve win2 = null;

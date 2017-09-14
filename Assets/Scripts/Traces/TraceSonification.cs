@@ -78,7 +78,8 @@ public class TraceSonification : MonoBehaviour
     void updateSonif(int sampleToLook)
     {
         int posInArray = (elecID * eHandle.nbSam) + sampleToLook;
-        float currentValue = (eHandle.eegData[posInArray] / eHandle.maxValues[elecID]) * (curve.Gain * 5);
+        //float currentValue = (eHandle.eegData[posInArray] / eHandle.maxValues[elecID]) * (curve.Gain * 5);
+        float currentValue = 0.5f + ((eHandle.eegData[posInArray] / eHandle.maxValues[elecID]) * curve.Gain);
         if (currentValue > 1)
         {
             audioSourceScript.volume = 1;

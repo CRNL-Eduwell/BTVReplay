@@ -378,14 +378,14 @@ namespace VLCSharp
         {
             get
             {
-                return player.IsPlaying && player.IsPaused;
+                return player.IsPaused;
             }
         }
         public bool isStopped
         {
             get
             {
-                return !player.IsPlaying;
+                return player.IsStopped;
             }
         }
         public byte[] textureBytes
