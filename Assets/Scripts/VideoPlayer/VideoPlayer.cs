@@ -92,6 +92,7 @@ public class VideoPlayer : MonoBehaviour
                 _Iplayer.update();
                 if (_Iplayer.currentTime > _Iplayer.totalVideoTime)
                     Stop();
+
                 if (slaved && !forceMove)
                 {
                     if (_Iplayer.currentTime > timeClick + 2000)
@@ -109,6 +110,12 @@ public class VideoPlayer : MonoBehaviour
                 updateTimeText();
                 sendTime((int)Time);
             }
+
+
+
+
+
+
         }
     }
 
@@ -363,5 +370,12 @@ public class VideoPlayer : MonoBehaviour
             loopScroll.gameObject.SetActive(false);
             scrollBar.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = texHandle;
         }
+    }
+
+    public void changeTimeClick(long timeMS)
+    {
+        timeClick = timeMS;
+        minTC = timeClick - (2 * 1000);
+        maxTC = timeClick + (2 * 1000);
     }
 }

@@ -139,17 +139,17 @@ public class BrainCamera : MonoBehaviour
 
     protected void keyboardAction()
     {
-        if (Input.GetKey(KeyCode.LeftArrow))
+        if (Input.GetKey(KeyCode.Q))
             moveLeft(speed);
-        if (Input.GetKey(KeyCode.RightArrow))
+        if (Input.GetKey(KeyCode.D))
             moveRight(speed);
-        if (Input.GetKey(KeyCode.UpArrow))
-            moveUp(speed);
-        if (Input.GetKey(KeyCode.DownArrow))
-            moveDown(speed);
         if (Input.GetKey(KeyCode.Z))
-            moveForward(zoomSpeed);
+            moveUp(speed);
         if (Input.GetKey(KeyCode.S))
+            moveDown(speed);
+        if (Input.GetKey(KeyCode.KeypadPlus))
+            moveForward(zoomSpeed);
+        if (Input.GetKey(KeyCode.KeypadMinus))
             moveBackward(zoomSpeed);
     }
 

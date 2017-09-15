@@ -508,6 +508,7 @@ public class eventsOptions : MonoBehaviour
             if (Math.Abs(index) > 1)
             {
                 currentPos = Math.Abs(index) - 1;
+                v.changeTimeClick((events[keys[currentPos - 1]].sample / win1.samplingFrequency) * 1000);
                 v.setTime((events[keys[currentPos - 1]].sample / win1.samplingFrequency) * 1000);
             }
         }
@@ -526,11 +527,13 @@ public class eventsOptions : MonoBehaviour
                 if (currentPos != -1)
                 {
                     currentPos = Math.Abs(index);
+                    v.changeTimeClick((events[keys[currentPos + 1]].sample / win1.samplingFrequency) * 1000);
                     v.setTime((events[keys[currentPos + 1]].sample / win1.samplingFrequency) * 1000);
                 }
                 else
                 {
                     currentPos = Math.Abs(index) - 1;
+                    v.changeTimeClick((events[keys[currentPos]].sample / win1.samplingFrequency) * 1000);
                     v.setTime((events[keys[currentPos]].sample / win1.samplingFrequency) * 1000);
                 }
             }
@@ -1152,6 +1155,7 @@ public class UIXOption : MonoBehaviour, IPointerClickHandler
     GameObject contentPanel = null;
     public GameObject options = null;
     GameObject optionsPanel = null;
+    Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
     Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
     Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
     Color blueHide = new Color(0.6117f, 0.7058f, 0.7960f, 0.3921f);
@@ -1208,12 +1212,13 @@ public class UIXOption : MonoBehaviour, IPointerClickHandler
             case 2:
                 optionsPanel.SetActive(true);
                 options.SetActive(true);
-                nameText.color = orange;
+                nameText.color = yellow;
 
                 if(curve.GetComponent<TraceCurve>().hasFocus)
                     curve.GetComponent<TraceCurve>().manageFocusClick();
                 break;
             case 3:
+                nameText.color = orange;
                 if (!curve.GetComponent<TraceCurve>().hasFocus)
                     curve.GetComponent<TraceCurve>().manageFocusClick();
                 break;

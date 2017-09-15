@@ -13,7 +13,6 @@ public class TraceSonification : MonoBehaviour
     AudioSource audioSourceScript = null;
     ELAN eHandle = null;
     int traceID = 0;
-    int elecID = 0;
     bool initDone = false;
     List<AudioClip> clips = new List<AudioClip>();
 
@@ -24,8 +23,6 @@ public class TraceSonification : MonoBehaviour
         audioSourceScript.Pause();
         curve = gameObject.transform.parent.GetComponent<TraceCurve>();
         traceID = curve.idTrace;
-        elecID = curve.idElectrode;
-
         media.loadTrace += new initTrace(init);
     }
 
@@ -37,9 +34,6 @@ public class TraceSonification : MonoBehaviour
             hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(delegate (int newID)
             {
                 eHandle = ELAN.changeHandle(eHandle, media.elanFiles, newID);
-            });
-            hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler((newID) => {
-                elecID = newID;
             });
             hub.traceRemotes[traceID].sonifToggled -= new toggleSonification(toggleSonification);
             hub.traceRemotes[traceID].soundChanged -= new newSoundSonif(changeAudioSonification);
@@ -55,9 +49,6 @@ public class TraceSonification : MonoBehaviour
         hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(delegate (int newID)
         {
             eHandle = ELAN.changeHandle(eHandle, media.elanFiles, newID);
-        });
-        hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler((newID) => {
-            elecID = newID;
         });
         hub.traceRemotes[traceID].sonifToggled += new toggleSonification(toggleSonification);
         hub.traceRemotes[traceID].soundChanged += new newSoundSonif(changeAudioSonification);
@@ -77,18 +68,18 @@ public class TraceSonification : MonoBehaviour
 
     void updateSonif(int sampleToLook)
     {
-        int posInArray = (elecID * eHandle.nbSam) + sampleToLook;
-        //float currentValue = (eHandle.eegData[posInArray] / eHandle.maxValues[elecID]) * (curve.Gain * 5);
-        float currentValue = 0.5f + ((eHandle.eegData[posInArray] / eHandle.maxValues[elecID]) * curve.Gain);
-        if (currentValue > 1)
+        int posInArray = (curve.idElectrode * eHandle.nbSam) + sampleToLook;
+        if (video.videoInterface.isPlaying)
         {
-            audioSourceScript.volume = 1;
+            float currentValue = 0.5f + ((eHandle.eegData[posInArray] / 100) * curve.Gain);
+            if (currentValue > 1)
+                audioSourceScript.volume = 1;
+            else if (currentValue <= 1 && currentValue >= 0)
+                audioSourceScript.volume = currentValue;
+            else if (currentValue < 0)
+                audioSourceScript.volume = 0;
         }
-        else if (currentValue <= 1 && currentValue >= 0)
-        {
-            audioSourceScript.volume = currentValue;
-        }
-        else if (currentValue < 0)
+        else
         {
             audioSourceScript.volume = 0;
         }
