@@ -42,20 +42,31 @@ public class eventsOptions : MonoBehaviour
     public bool addEvent = false;
     SortedList<int, eventEeg> events = new SortedList<int, eventEeg>();
 
+    GameObject scrollObj = null;
+    Texture2D scrollOrig = null, scrollTex = null;
+    Color[] dataTexScroll;
+    Color hardBlue = new Color(0.6117f, 0.7058f, 0.7960f, 1f);
+    int currentPos = -1;
+
     public void init(GameObject eventsOptionPanel)
     {
         eventHubClick = Resources.Load("Prefabs/Hub-Event", typeof(GameObject)) as GameObject;
         eventAddUI = Resources.Load("Prefabs/EventInfoEdit", typeof(GameObject)) as GameObject;
         eventDispUI = Resources.Load("Prefabs/EventInfoDisplay", typeof(GameObject)) as GameObject;
+        scrollOrig = Resources.Load("Pictures/eventScroll", typeof(Texture2D)) as Texture2D;
         //==
         v = GameObject.Find("PanelR").GetComponent<VideoPlayer>();
         win1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
         win2 = GameObject.Find("Trace2Window").GetComponent<TraceCurve>();
+        scrollObj = GameObject.Find("TimeScrollBar");
+        scrollTex = Instantiate(scrollOrig);
+        //==
         activateEventsButton = eventsOptionPanel.transform.GetChild(0).GetComponent<Button>();
         activateEventText = activateEventsButton.transform.GetChild(0).GetComponent<Text>();
         panelContent = eventsOptionPanel.transform.GetChild(1).GetChild(0).GetChild(0);
         saveEvents = eventsOptionPanel.transform.GetChild(2).GetComponent<Button>();
         loadEvents = eventsOptionPanel.transform.GetChild(3).GetComponent<Button>();
+        scrollObj.GetComponent<RawImage>().texture = scrollTex;
         //==
         activateEventsButton.onClick.AddListener(activateEventsMode);
         saveEvents.onClick.AddListener(saveEventsList);
@@ -69,6 +80,17 @@ public class eventsOptions : MonoBehaviour
         //==
         win1.eventCode = 0;
         win2.eventCode = 0;
+
+        dataTexScroll = scrollTex.GetPixels();
+    }
+
+    void Update()
+    {
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.L))
+            goToEventLeft(); 
+
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.M))
+            goToEventRight(); 
     }
 
     void OnDestroy()
@@ -87,6 +109,8 @@ public class eventsOptions : MonoBehaviour
         {
             Destroy(panelContent.GetChild(i));
         }
+
+        scrollTex = Instantiate(scrollOrig);
     }
 
     void activateEventsMode()
@@ -183,6 +207,7 @@ public class eventsOptions : MonoBehaviour
 
     void deleteEvents(eventEeg eventToDelete, int traceID)
     {
+        removeEventToTexture(eventToDelete);
         //Debug.Log("del ev " + eventToDelete.sample);
         //==List behind the scene
         //int id = events.IndexOfKey(eventToDelete.sample);
@@ -240,6 +265,7 @@ public class eventsOptions : MonoBehaviour
         currentEventGO.transform.position = currentEventGO.transform.parent.position;
         currentEventGO.transform.SetSiblingIndex(id);
 
+        addEventToTexture(currentEvent);
         newEventToShow(currentEvent, id);
     }
 
@@ -447,6 +473,68 @@ public class eventsOptions : MonoBehaviour
         });
         infoDisp.aaaagh -= new imDying(removeConnectionDispUI);
         infoDisp = null;
+    }
+
+    void addEventToTexture(eventEeg currentEvent)
+    {
+        float perC = ((((float)currentEvent.sample / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
+        int pixelID = (int)(perC * scrollTex.width);
+        for (int i = 0; i < scrollTex.height; i++)
+            dataTexScroll[pixelID + ( i * scrollTex.width)] = Color.red;
+
+        scrollTex.SetPixels(dataTexScroll);
+        scrollTex.Apply();
+    }
+
+    void removeEventToTexture(eventEeg currentEvent)
+    {
+        float perC = ((((float)currentEvent.sample / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
+        int pixelID = (int)(perC * scrollTex.width);
+        for (int i = 0; i < scrollTex.height; i++)
+            dataTexScroll[pixelID + (i * scrollTex.width)] = hardBlue;
+
+        scrollTex.SetPixels(dataTexScroll);
+        scrollTex.Apply();
+    }
+
+    void goToEventLeft()
+    {
+        if (events.Count > 0)
+        {
+            long timeSec = v.videoInterface.currentTime / 1000;
+            long timeSample = timeSec * win1.samplingFrequency;
+            var keys = new List<int>(events.Keys);
+            var index = keys.BinarySearch((int)timeSample);
+            if (Math.Abs(index) > 1)
+            {
+                currentPos = Math.Abs(index) - 1;
+                v.setTime((events[keys[currentPos - 1]].sample / win1.samplingFrequency) * 1000);
+            }
+        }
+    }
+
+    void goToEventRight()
+    {
+        if (events.Count > 0)
+        {
+            long timeSec = v.videoInterface.currentTime / 1000;
+            long timeSample = timeSec * win1.samplingFrequency;
+            var keys = new List<int>(events.Keys);
+            var index = keys.BinarySearch((int)timeSample);
+            if (Math.Abs(index) < keys.Count)
+            {
+                if (currentPos != -1)
+                {
+                    currentPos = Math.Abs(index);
+                    v.setTime((events[keys[currentPos + 1]].sample / win1.samplingFrequency) * 1000);
+                }
+                else
+                {
+                    currentPos = Math.Abs(index) - 1;
+                    v.setTime((events[keys[currentPos]].sample / win1.samplingFrequency) * 1000);
+                }
+            }
+        }
     }
 }
 
