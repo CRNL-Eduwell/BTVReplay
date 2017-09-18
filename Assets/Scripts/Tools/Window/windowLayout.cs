@@ -25,13 +25,6 @@ public class windowLayout : MonoBehaviour, IDropHandler
         media.mediaLoaded += new mediaLoadedEventHandler(() =>
         {
             loaded = true;
-            //m_rectTransform = gameObject.GetComponent<RectTransform>();
-            //cells2by3 = new Rect[6];
-            //cells1by3 = new Rect[3];
-            //cells2by2 = new Rect[4];
-            //cells2by3Previous = new Rect[6];
-            //cells1by3Previous = new Rect[3];
-            //cells2by2Previous = new Rect[4];
             defineSizeGrid();
         });
     }
@@ -41,13 +34,6 @@ public class windowLayout : MonoBehaviour, IDropHandler
         media.mediaLoaded -= new mediaLoadedEventHandler(() =>
         {
             loaded = true;
-            //m_rectTransform = gameObject.GetComponent<RectTransform>();
-            //cells2by3 = new Rect[6];
-            //cells1by3 = new Rect[3];
-            //cells2by2 = new Rect[4];
-            //cells2by3Previous = new Rect[6];
-            //cells1by3Previous = new Rect[3];
-            //cells2by2Previous = new Rect[4];
             defineSizeGrid();
         });
     }
@@ -64,18 +50,19 @@ public class windowLayout : MonoBehaviour, IDropHandler
     {
         if (Window.itemBeingDragged != null)
         {
-            //Debug.Log("on drop");
             Window.itemBeingDragged.transform.SetParent(transform);
             currentRectTransform = Window.itemBeingDragged.GetComponent<RectTransform>();
             currentWindowManager = Window.itemBeingDragged.GetComponent<Window>();
 
-            if (currentRectTransform.rect.width > cells2by3[0].width && currentRectTransform.rect.height <= cells2by3[0].height)
+            if ((currentRectTransform.rect.width > cells2by3[0].width) || 
+                (currentRectTransform.rect.width > cells2by3[0].width && 
+                currentRectTransform.rect.height <= cells2by3[0].height))
             {
                 // Debug.Log("Look at 1 by 3");
                 for (int i = 0; i < cells1by3.Length; i++)
                 {
-                    Vector3 dd = new Vector3(currentRectTransform.localPosition.x + 0.5f * cells2by3[i].width, currentRectTransform.localPosition.y + 0.5f * cells2by3[i].height);
-                    //if (cells1by3[i].Contains(currentRectTransform.localPosition))
+                    Vector3 dd = new Vector3(currentRectTransform.localPosition.x + 0.5f * cells2by3[i].width, 
+                                             currentRectTransform.localPosition.y + 0.5f * cells2by3[i].height);
                     if (cells1by3[i].Contains(dd))
                     {
                         //Debug.Log("Droped at" + i);
@@ -113,7 +100,6 @@ public class windowLayout : MonoBehaviour, IDropHandler
                 for (int i = 0; i < cells2by2.Length; i++)
                 {
                     Vector3 dd = new Vector3(currentRectTransform.localPosition.x + 0.5f * cells2by3[i].width, currentRectTransform.localPosition.y + 0.5f * cells2by3[i].height);
-                    //if (cells2by2[i].Contains(currentRectTransform.localPosition))
                     if (cells2by2[i].Contains(dd))
                     {
                         //Debug.Log("Droped at" + i);
