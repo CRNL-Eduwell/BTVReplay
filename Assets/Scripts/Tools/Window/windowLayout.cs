@@ -185,23 +185,23 @@ public class windowLayout : MonoBehaviour, IDropHandler
 
             if (r != null && w != null)
             {
-                Debug.Log("[" + r.name + "]");
+                //Debug.Log("[" + r.name + "]");
 
                 if (r.sizeDelta.x > cells2by3Previous[0].width && r.sizeDelta.y <= cells2by3Previous[0].height)
                 {
-                    Debug.Log("Look at 1 by 3");
+                    //Debug.Log("Look at 1 by 3");
                     r.sizeDelta = new Vector2(cells1by3[w.windowId].width, cells1by3[w.windowId].height);
                     r.localPosition = new Vector3(cells1by3[w.windowId].x, cells1by3[w.windowId].y, r.localPosition.z);
                 }
                 else if (r.sizeDelta.x <= cells2by3Previous[0].width && r.sizeDelta.y <= cells2by3Previous[0].height)
                 {
-                    Debug.Log("Look at 2 by 3");
+                    //Debug.Log("Look at 2 by 3");
                     r.sizeDelta = new Vector2(cells2by3[w.windowId].width, cells2by3[w.windowId].height);
                     r.localPosition = new Vector3(cells2by3[w.windowId].x, cells2by3[w.windowId].y, r.localPosition.z);
                 }
                 else
                 {
-                    Debug.Log("Look at 2 by 2");
+                    //Debug.Log("Look at 2 by 2");
                     r.sizeDelta = new Vector2(cells2by2[w.windowId].width, cells2by2[w.windowId].height);
                     r.localPosition = new Vector3(cells2by2[w.windowId].x, cells2by2[w.windowId].y, r.localPosition.z);
                 }

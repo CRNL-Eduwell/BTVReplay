@@ -680,6 +680,7 @@ public delegate void offsetChangedEventHandler(float newVal);
 public delegate void idFileChangedEventHandler(int newIdHandle);
 public delegate void idElecChangedEventHandler(int newIDElec);
 public delegate void timePeriodChangedEventHandler(int newPeriod);
+public delegate void toggleGridDisplay(bool isGridOn);
 public delegate void toggleSonification(bool isSonifOn);
 public delegate void newSoundSonif(int newIDSound);
 
@@ -690,6 +691,7 @@ public class traceXOptions
     public event idFileChangedEventHandler idFileHasChanged;
     public event idElecChangedEventHandler idElecHasChanged;
     public event timePeriodChangedEventHandler timeHasChanged;
+    public event toggleGridDisplay gridToggled;
     public event toggleSonification sonifToggled;
     public event newSoundSonif soundChanged;
 
@@ -707,6 +709,7 @@ public class traceXOptions
     Button offsetAddButton = null;
     Button offsetRemoveButton = null;
 
+    Toggle timeGridToggle = null;
     InputField timePeriodInputField = null;
 
     Button sonifButton = null;
@@ -729,7 +732,6 @@ public class traceXOptions
     Color softBlue = new Color(0.6117f, 0.7058f, 0.7960f, 0.392156f);
     Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
 
-
     public traceXOptions(GameObject traceOptionsPanel, BTVMedia p_media)
     {
         media = p_media;
@@ -742,58 +744,14 @@ public class traceXOptions
 
         smButton = new Button[6];
         for (int i = 0; i < 6; i++)
-        {
             smButton[i] = traceOptionsPanel.transform.GetChild(1).GetChild(i).GetComponent<Button>();
-        }
 
-        smButton[0].onClick.AddListener(() =>
-        {
-            if (ELAN.checkHandle(media.elanFiles, 0))
-            {
-                idFileHasChanged(0);
-                changeButtonSMColor(0);
-            }
-        });
-        smButton[1].onClick.AddListener(() =>
-        {
-            if (ELAN.checkHandle(media.elanFiles, 1))
-            {
-                idFileHasChanged(1);
-                changeButtonSMColor(1);
-            }
-        });
-        smButton[2].onClick.AddListener(() =>
-        {
-            if (ELAN.checkHandle(media.elanFiles, 2))
-            {
-                idFileHasChanged(2);
-                changeButtonSMColor(2);
-            }
-        });
-        smButton[3].onClick.AddListener(() =>
-        {
-            if (ELAN.checkHandle(media.elanFiles, 3))
-            {
-                idFileHasChanged(3);
-                changeButtonSMColor(3);
-            }
-        });
-        smButton[4].onClick.AddListener(() =>
-        {
-            if (ELAN.checkHandle(media.elanFiles, 4))
-            {
-                idFileHasChanged(4);
-                changeButtonSMColor(4);
-            }
-        });
-        smButton[5].onClick.AddListener(() =>
-        {
-            if (ELAN.checkHandle(media.elanFiles, 5))
-            {
-                idFileHasChanged(5);
-                changeButtonSMColor(5);
-            }
-        });
+        connectButtonSM(0);
+        connectButtonSM(1);
+        connectButtonSM(2);
+        connectButtonSM(3);
+        connectButtonSM(4);
+        connectButtonSM(5);
 
         gainLabel = traceOptionsPanel.transform.GetChild(2).GetChild(0).GetComponent<Text>();
         gainLabel.text = "Gain : " + gain;
@@ -828,7 +786,9 @@ public class traceXOptions
             }
         });
 
-        timePeriodInputField = traceOptionsPanel.transform.GetChild(4).GetChild(1).GetComponent<InputField>();
+        timeGridToggle = traceOptionsPanel.transform.GetChild(4).GetChild(0).GetComponent<Toggle>();
+        timeGridToggle.onValueChanged.AddListener(delegate { gridToggled(timeGridToggle.isOn); });
+        timePeriodInputField = traceOptionsPanel.transform.GetChild(4).GetChild(2).GetComponent<InputField>();
         timePeriodInputField.onEndEdit.AddListener(delegate { changeTimePeriod(timePeriodInputField); });
 
         //child 5 color
@@ -875,6 +835,7 @@ public class traceXOptions
         offsetAddButton.onClick.RemoveAllListeners();
         offsetRemoveButton.onClick.RemoveAllListeners();
 
+        timeGridToggle.onValueChanged.RemoveAllListeners();
         timePeriodInputField.onEndEdit.RemoveAllListeners();
 
         sonifButton.onClick.RemoveAllListeners();
@@ -935,6 +896,22 @@ public class traceXOptions
                 smButton[i].gameObject.GetComponent<Image>().color = hardBlue;
             else
                 smButton[i].gameObject.GetComponent<Image>().color = softBlue;
+        }
+    }
+
+    void connectButtonSM(int id)
+    {
+        if (ELAN.checkHandle(media.elanFiles, id))
+        {
+            smButton[id].onClick.AddListener(() =>
+            {
+                idFileHasChanged(id);
+                changeButtonSMColor(id);
+            });
+        }
+        else
+        {
+            smButton[id].interactable = false;
         }
     }
 
@@ -1299,18 +1276,21 @@ public class optionsHub : MonoBehaviour
     {
         brainOpt = new UIOption(gameObject, detaileOptionsPanel, 0);
         brainOpts = new brainOptions(brainOpt.optionsPanel);
-        //trace1Opt = new UIOption(gameObject, detaileOptionsPanel, 1);
+        //==
         trace1Opt = gameObject.transform.GetChild(1).gameObject.AddComponent<UIXOption>();
         trace1Opt.init(gameObject, detaileOptionsPanel, 1);
         traceXOpts[0] = new traceXOptions(trace1Opt.options, media);
-        //trace2Opt = new UIOption(gameObject, detaileOptionsPanel, 2);
+        //==
         trace2Opt = gameObject.transform.GetChild(2).gameObject.AddComponent<UIXOption>();
         trace2Opt.init(gameObject, detaileOptionsPanel, 2);
         traceXOpts[1] = new traceXOptions(trace2Opt.options, media);
+        //==
         perfOpt = new UIOption(gameObject, detaileOptionsPanel, 3);
         perfOpts = new perfDataOptions(perfOpt.optionsPanel);
+        //==
         videoOpt = new UIOption(gameObject, detaileOptionsPanel, 4);
         vidOpts = new videoOptions(videoOpt.optionsPanel);
+        //==
         eventsOpt = new UIOption(gameObject, detaileOptionsPanel, 5);
         eventsOpts = gameObject.AddComponent<eventsOptions>();
         eventsOpts.init(eventsOpt.optionsPanel);

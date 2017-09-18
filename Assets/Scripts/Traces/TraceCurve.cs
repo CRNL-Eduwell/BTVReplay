@@ -92,6 +92,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     bool initDone = false;
     public List<GameObject> eventsAdded = new List<GameObject>();
 
+    GameObject gridLine = null;
+    GameObject gridCont = null;
     BrainWarden warden = null;
     Window m_window = null;
     Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
@@ -138,6 +140,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             hub.traceRemotes[traceID].offsetHasChanged -= new offsetChangedEventHandler(updateTraceOffset);
             hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeID);
             hub.traceRemotes[traceID].timeHasChanged -= new timePeriodChangedEventHandler(updateTimeResolution);
+            hub.traceRemotes[traceID].gridToggled -= new toggleGridDisplay(displayTimeGrid);
             hub.eventRemote.newEventToShow -= new newEventToShowHandler(addEventToTrace);
 
             warden.plotWasClicked -= new newPlotClicked(plotClicked);
@@ -158,8 +161,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     {
         traceEventClick = Resources.Load("Prefabs/Trace-Event", typeof(GameObject)) as GameObject;
         traceEventClick2 = Resources.Load("Prefabs/Trace-Event2", typeof(GameObject)) as GameObject;
+        gridLine = Resources.Load("Prefabs/ImageGrid", typeof(GameObject)) as GameObject;
+
         ring = GameObject.Find("ringSelect").GetComponent<selectRing>();
         warden = GameObject.Find("BrainWindow").GetComponent<BrainWarden>();
+        gridCont = gameObject.transform.GetChild(13).gameObject;
 
         if (traceID == 0)
         {
@@ -193,6 +199,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         lineRenderer.startWidth = 0.04f;
         lineRenderer.endWidth = 0.04f;
         updateHorizontalScale();
+        updateGridScale(periodSec);
+        displayTimeGrid(false);
 
         #region plugEvents
         video.sendTime += new timeVideo(updateDraw);
@@ -209,6 +217,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         hub.traceRemotes[traceID].loadElectrodeInPanel(eHandle.electList);
         hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeID);
         hub.traceRemotes[traceID].timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
+        hub.traceRemotes[traceID].gridToggled += new toggleGridDisplay(displayTimeGrid);
         hub.eventRemote.newEventToShow += new newEventToShowHandler(addEventToTrace);
 
         warden.plotWasClicked += new newPlotClicked(plotClicked);
@@ -227,6 +236,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         lineRenderer.numPositions = numberPoint;
         lineRenderer.sortingOrder = -1;
         updateHorizontalScale();
+        updateGridScale(periodSec);
     }
 
     void updateHorizontalScale()
@@ -239,6 +249,20 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             dataArray[i].y = 0;
         }
         lineRenderer.SetPositions(dataArray);
+    }
+
+    void updateGridScale(int newPeriod)
+    {
+        for (int i = gridCont.transform.childCount - 1; i >= 0; i--)
+            Destroy(gridCont.transform.GetChild(i).gameObject);
+
+        for (int i = 0; i < newPeriod; i++)
+        {
+            GameObject newLine = Instantiate(gridLine);
+            newLine.name = "line " + i;
+            newLine.transform.SetParent(gridCont.transform);
+            newLine.transform.localScale = new Vector3(1, 1, 1);
+        }
     }
 
     void updateTraceOffset(float newOffset)
@@ -511,5 +535,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     {
         lineRenderer.startColor = color;
         lineRenderer.endColor = color;
+    }
+
+    void displayTimeGrid(bool isGridOn)
+    {
+        for (int i = 0; i < gridCont.transform.childCount; i++)
+            gridCont.transform.GetChild(i).gameObject.SetActive(isGridOn);
     }
 }
