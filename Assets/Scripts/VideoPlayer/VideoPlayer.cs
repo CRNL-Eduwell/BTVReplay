@@ -38,7 +38,7 @@ public class VideoPlayer : MonoBehaviour
     private Sprite texHandle = null, texHandleSlave = null;
     private float sampFreq = 0;
 
-    private bool slaved = false;
+    private bool slaved = false, keyForceMove = false;
     private EventTrigger triggerSlaved = null;
     private long timeClick = -1;
     private float minTC = 0.0f, maxTC = 0.0f;
@@ -83,7 +83,7 @@ public class VideoPlayer : MonoBehaviour
         texHandleSlave = Resources.Load("Pictures/handleSlave", typeof(Sprite)) as Sprite;
     }
 
-    void Update()
+    private void Update()
     {
         if (initDone)
         {
@@ -111,10 +111,14 @@ public class VideoPlayer : MonoBehaviour
                 sendTime((int)Time);
             }
 
+            if (slaved)
+            {
+                if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.J))
+                    forceMoveLoopScroll(-0.05f);
 
-
-
-
+                if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.K))
+                    forceMoveLoopScroll(0.05f);
+            }
 
         }
     }
@@ -153,14 +157,7 @@ public class VideoPlayer : MonoBehaviour
         entry.callback.AddListener((eventData) =>
         {
             if (!slaved)
-            {
-                scrollbarnotclicked = false;
-                if (_Iplayer.isPaused)
-                {
-                    forceMove = true;
-                    Play();
-                }
-            }
+                initForceMoveLoopScroll();
         });
         trigger.triggers.Add(entry);
 
@@ -182,16 +179,10 @@ public class VideoPlayer : MonoBehaviour
         triggerSlaved = loopScroll.gameObject.AddComponent<EventTrigger>();
 
         EventTrigger.Entry entry3 = new EventTrigger.Entry();
-        entry3.eventID = EventTriggerType.BeginDrag;
-        entry3.callback.AddListener((eventData) =>
+        entry3.eventID = EventTriggerType.BeginDrag; 
+        entry3.callback.AddListener((eventData) => 
         {
-            scrollbarnotclicked = false;
-            if (_Iplayer.isPaused)
-            {
-                forceMove = true;
-                Play();
-                _Iplayer.setVolume(0);
-            }
+            initForceMoveLoopScroll();
         });
         triggerSlaved.triggers.Add(entry3);
 
@@ -199,17 +190,7 @@ public class VideoPlayer : MonoBehaviour
         entry4.eventID = EventTriggerType.EndDrag;
         entry4.callback.AddListener((eventData) =>
         {
-            if (!scrollbarnotclicked)
-            {
-                if (forceMove)
-                {
-                    forceMove = false;
-                    _Iplayer.setVolume(volumeScrollBar.value);
-                }
-                if (_Iplayer.isPlaying)
-                    Play();
-                scrollbarnotclicked = true;
-            }
+            finishForceMoveLoopScroll();
         });
         triggerSlaved.triggers.Add(entry4);
 
@@ -301,9 +282,13 @@ public class VideoPlayer : MonoBehaviour
         {
             if (forceMove)
                 setTimeIfValueChanged();
+
             scrollVal = (loopScroll.value * 4000) - 2000;
             scrollBar.value = (float)(timeClick + scrollVal) / _Iplayer.totalVideoTime;
             currentTimeScrollBar = (long)(_Iplayer.currentTime * 0.001f);
+
+            if (keyForceMove)
+                finishForceMoveLoopScroll();
         }
         else
         {
@@ -346,6 +331,7 @@ public class VideoPlayer : MonoBehaviour
     }
     #endregion
 
+    #region loopMode
     public void slaveMode()
     {
         if (!loopScroll.gameObject.activeSelf)
@@ -378,4 +364,35 @@ public class VideoPlayer : MonoBehaviour
         minTC = timeClick - (2 * 1000);
         maxTC = timeClick + (2 * 1000);
     }
+
+    void initForceMoveLoopScroll()
+    {
+        scrollbarnotclicked = false;
+        if (_Iplayer.isPaused)
+        {
+            forceMove = true;
+            Play();
+        }
+    }
+
+    void finishForceMoveLoopScroll()
+    {
+        if (!scrollbarnotclicked)
+        {          
+            if (_Iplayer.isPlaying)
+                Play();
+
+            forceMove = false;
+            scrollbarnotclicked = true;
+            keyForceMove = false;
+        }
+    }
+
+    void forceMoveLoopScroll(float value)
+    {
+        keyForceMove = true;
+        initForceMoveLoopScroll();
+        loopScroll.value += value;
+    }
+    #endregion
 }
