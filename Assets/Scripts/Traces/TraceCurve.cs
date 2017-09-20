@@ -291,12 +291,24 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         mostRecentSample = sampleToLook;
         int elecPosOffset = idCurrentElec * eHandle.nbSam;
         int posInArray = sampleToLook - numberPoint + elecPosOffset;
+        float limitVal = (m_rectTransform.rect.height - 6.5f) / 2;
 
         for (int i = 0; i < numberPoint; i++)
         {
             if (i + posInArray >= elecPosOffset)
             {
-                dataArray[i].y = gain * (eHandle.eegData[i + posInArray] + offsetCoefficient);
+                float value = gain * (eHandle.eegData[i + posInArray] + offsetCoefficient);
+                if (value >= -limitVal && value <= limitVal)
+                {
+                    dataArray[i].y = value;
+                }
+                else
+                {
+                    if (value >= 0)
+                        dataArray[i].y = limitVal;
+                    else
+                        dataArray[i].y = -limitVal;
+                }
             }
             else
             {
