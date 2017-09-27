@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using VLCSharp;
 using System.Linq;
 
 public delegate void eventsClickedHandler(eventEeg newVal, int idWin);
@@ -86,7 +84,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     RectTransform m_rectTransform = null;
     Vector3[] m_worldCorners = new Vector3[4];
     Transform m_eventHolder = null;
-    LineRenderer lineRenderer = null;
+    LineRenderer lineRenderer = null, lineRendererRMS = null;
     Text elecLabel = null;
     ELAN eHandle = null;
     bool initDone = false;
@@ -103,7 +101,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     selectRing ring = null;
     ColorPicker colorpicker = null;
 
-    Vector3[] dataArray;
+    Vector3[] dataArray, dataArrayRMS;
     int mostRecentSample = 0;
     int periodSec = 10;
     int samplingFreq = 64;
@@ -128,6 +126,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         if (initDone)
         {
             video.sendTime -= new timeVideo(updateDraw);
+            video.sendTime -= new timeVideo(updateDrawRMS);
             video.sendTime -= new timeVideo(updateEventsDraw);
 
             hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(
@@ -153,8 +152,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
     void OnRectTransformDimensionsChange()
     {
-        if(m_rectTransform != null)
-            updateHorizontalScale();
+        if (m_rectTransform != null)
+        {
+            updateHorizontalScale(lineRenderer, dataArray);
+            updateHorizontalScale(lineRendererRMS, dataArrayRMS);
+        }
     }
 
     void init()
@@ -165,7 +167,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
         ring = GameObject.Find("ringSelect").GetComponent<selectRing>();
         warden = GameObject.Find("BrainWindow").GetComponent<BrainWarden>();
-        gridCont = gameObject.transform.GetChild(13).gameObject;
+        gridCont = gameObject.transform.GetChild(14).gameObject;
 
         if (traceID == 0)
         {
@@ -180,8 +182,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
         m_rectTransform = gameObject.GetComponent<RectTransform>();
         m_window = gameObject.GetComponent<Window>();
-        m_eventHolder = gameObject.transform.GetChild(11);
+        m_eventHolder = gameObject.transform.GetChild(12);
         lineRenderer = gameObject.transform.GetChild(0).GetComponent<LineRenderer>();
+        lineRendererRMS = gameObject.transform.GetChild(1).GetComponent<LineRenderer>();
         elecLabel = gameObject.transform.GetChild(9).GetComponent<Text>();
         
         eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
@@ -195,15 +198,24 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         }
 
         dataArray = new Vector3[numberPoint];
+        dataArrayRMS = new Vector3[numberPoint];
+
         lineRenderer.numPositions = numberPoint;
         lineRenderer.startWidth = 0.04f;
         lineRenderer.endWidth = 0.04f;
-        updateHorizontalScale();
+
+        lineRendererRMS.numPositions = numberPoint;
+        lineRendererRMS.startWidth = 0.04f;
+        lineRendererRMS.endWidth = 0.04f;
+
+        updateHorizontalScale(lineRenderer, dataArray);
+        updateHorizontalScale(lineRendererRMS, dataArrayRMS);
         updateGridScale(periodSec);
         displayTimeGrid(false);
 
         #region plugEvents
         video.sendTime += new timeVideo(updateDraw);
+        video.sendTime += new timeVideo(updateDrawRMS);
         video.sendTime += new timeVideo(updateEventsDraw);
 
         hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(
@@ -233,22 +245,26 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         periodSec = newPeriod;
         numberPoint = samplingFreq * periodSec;
         dataArray = new Vector3[numberPoint];
+        dataArrayRMS = new Vector3[numberPoint];
         lineRenderer.numPositions = numberPoint;
+        lineRendererRMS.numPositions = numberPoint;
         lineRenderer.sortingOrder = -1;
-        updateHorizontalScale();
+        lineRendererRMS.sortingOrder = -1;
+        updateHorizontalScale(lineRenderer, dataArray);
+        updateHorizontalScale(lineRendererRMS, dataArrayRMS);
         updateGridScale(periodSec);
     }
 
-    void updateHorizontalScale()
+    void updateHorizontalScale(LineRenderer p_lineRenderer, Vector3[] p_dataArray)
     {
         widthOfGameObject = m_rectTransform.rect.width - 10;
         horizontalScale = widthOfGameObject / numberPoint;
         for (int i = 0; i < numberPoint; i++)
         {
-            dataArray[i].x = ((-widthOfGameObject / 2) + 1) + i * horizontalScale;
-            dataArray[i].y = 0;
+            p_dataArray[i].x = ((-widthOfGameObject / 2) + 1) + i * horizontalScale;
+            p_dataArray[i].y = 0;
         }
-        lineRenderer.SetPositions(dataArray);
+        p_lineRenderer.SetPositions(p_dataArray);
     }
 
     void updateGridScale(int newPeriod)
@@ -316,6 +332,36 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             }
         }
         lineRenderer.SetPositions(dataArray);
+    }
+
+    void updateDrawRMS(int sampleToLook)
+    {
+        int posInArray = sampleToLook - numberPoint;
+        float limitVal = (m_rectTransform.rect.height - 6.5f) / 2;
+
+        for (int i = 0; i < numberPoint; i++)
+        {
+            if (i + posInArray >= 0)
+            {
+                float value = gain * ((float)media.audioReader.rms[i + posInArray]);
+                if (value >= -limitVal && value <= limitVal)
+                {
+                    dataArrayRMS[i].y = value;
+                }
+                else
+                {
+                    if (value >= 0)
+                        dataArrayRMS[i].y = limitVal;
+                    else
+                        dataArrayRMS[i].y = -limitVal;
+                }
+            }
+            else
+            {
+                dataArrayRMS[i].y = 0;
+            }
+        }
+        lineRendererRMS.SetPositions(dataArrayRMS);
     }
 
     void updateElectrodeID(int newID)

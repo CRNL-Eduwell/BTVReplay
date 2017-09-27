@@ -27,6 +27,8 @@ public class ElecPlotSize : MonoBehaviour
     int mostRecentSample = 0;
     float gain = 1;
 
+    public float scale = 0;
+
     MeshRenderer mySphereRenderer = null;
 
     public void init(string goName)
@@ -83,10 +85,12 @@ public class ElecPlotSize : MonoBehaviour
             mostRecentSample = sampleToLook;
             int posInArray = (bipID * eHandle.nbSam) + mostRecentSample;
             float currentValue = eHandle.eegData[posInArray] / 100;
-            float scale = 2 + (gain * currentValue);
+            scale = 2 + (gain * currentValue);
 
-            if (scale >= 10)
-                scale = 10;
+            if (scale >= 7)
+                scale = 7;
+            else if (scale <= 0)
+                scale = 0.1f;
 
             plotObject.transform.localScale = new Vector3(scale, scale, scale);
         }

@@ -242,7 +242,9 @@ public class BTVMedia : MonoBehaviour
     public POS posFile = null;
     public ELAN[] elanFiles = new ELAN[6];
     public PROV provFile = null;
+    public WawReader audioReader = null;
     public bool loaded = false;
+
     #endregion
 
     void Awake()
@@ -540,12 +542,40 @@ public class BTVMedia : MonoBehaviour
 
     IEnumerator c_loadVideo(string videoPath)
     {
+        //load video
         float sampFreq = ELAN.getSamplingFreq(elanFiles);
         int id = ELAN.returnFirstValidHandleId(elanFiles);
         long totalDuration = ELAN.getTotalFileDuration(elanFiles[id]);
         loadVideo(videoPath, (int)sampFreq, (int)totalDuration);
 
+        //load audio
+        string[] videoPathSplit = videoPath.Split('.');
+        string audioPath = videoPath.Replace("." + videoPathSplit[videoPathSplit.Length - 1], ".wav");
+
+        if (new FileInfo(audioPath).Exists == false)
+        {
+            yield return Ninja.JumpBack;
+            yield return PrepareAudio(audioPath, videoPath);
+            yield return Ninja.JumpToUnity;
+        }
+        yield return Ninja.JumpBack;
+        yield return ProcessAudio(audioPath, sampFreq, rr => audioReader = rr);
+        yield return Ninja.JumpToUnity; //recomm si jamais
         yield return null;
+    }
+
+    YieldInstruction PrepareAudio(string audioPath, string videoPath)
+    {
+        // I give my callback to the process
+        // Async needed for another thread and not freezing/laging UI
+        return this.StartCoroutineAsync(WawReader.c_extractAudio(audioPath, videoPath));
+    }
+
+    YieldInstruction ProcessAudio(string filePath, float sampFreq, Action<WawReader> resultCB)
+    {
+        // I give my callback to the process
+        // Async needed for another thread and not freezing/laging UI
+        return this.StartCoroutineAsync(WawReader.c_loadAudioFile(filePath, sampFreq, resultCB));
     }
 
     IEnumerator c_loadPOSandPROV(Patient myPat)

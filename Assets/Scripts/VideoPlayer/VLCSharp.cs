@@ -468,7 +468,6 @@ namespace VLCSharp
                 });
 
             setVolume(0.5f);
-
         }
 
         public void getVideoReference(RawImage tex, optionsHub hubOpt)
