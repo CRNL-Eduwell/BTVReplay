@@ -182,7 +182,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
         m_rectTransform = gameObject.GetComponent<RectTransform>();
         m_window = gameObject.GetComponent<Window>();
-        m_eventHolder = gameObject.transform.GetChild(12);
+        m_eventHolder = gameObject.transform.GetChild(13);
         lineRenderer = gameObject.transform.GetChild(0).GetComponent<LineRenderer>();
         lineRendererRMS = gameObject.transform.GetChild(1).GetComponent<LineRenderer>();
         elecLabel = gameObject.transform.GetChild(9).GetComponent<Text>();
@@ -438,65 +438,81 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             var keys = new List<int>(hub.eventRemote.userEvents.Keys);
             var values = new List<eventEeg>(hub.eventRemote.userEvents.Values);
 
-            List<int> idMove = values.Select((item, index) => new { Item = item, Index = index })
-                                                             .Where(x => x.Item.sample > left && x.Item.sample < right)
-                                                             .Select(x => x.Index)
-                                                             .ToList();
+            List<int> idOverFlow = values.Select((item, index) => new { Item = item, Index = index })
+                                         .Where(x => (x.Item.sample <= left && (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= right)))
+                                         .Select(x => x.Index)
+                                         .ToList();
 
-            List<int> idLeft = values.Select((item, index) => new { Item = item, Index = index })
-                                                             .Where(x => x.Item.sample < left && (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000))) < right && 
-                                                                                                 (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000))) > left)
-                                                             .Select(x => x.Index)
-                                                             .ToList();
+            List<int> idRightEnter = values.Select((item, index) => new { Item = item, Index = index })
+                                           .Where(x => (x.Item.sample < right && x.Item.sample > left && (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= right)))
+                                           .Select(x => x.Index)
+                                           .ToList();
 
-            List<int> idRight = values.Select((item, index) => new { Item = item, Index = index })
-                                                             .Where(x => x.Item.sample > left && x.Item.sample < right && (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000))) > right)
-                                                             .Select(x => x.Index)
-                                                             .ToList();
+            List<int> idInside = values.Select((item, index) => new { Item = item, Index = index })
+                                       .Where(x => ((x.Item.sample < right) && 
+                                                    (x.Item.sample > left) && 
+                                                    (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= left) && 
+                                                    (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) <= right)))
+                                       .Select(x => x.Index)
+                                       .ToList();
+
+            List<int> idLeftEnter = values.Select((item, index) => new { Item = item, Index = index })
+                                          .Where(x => ((x.Item.sample < left) &&
+                                                       (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= left) &&
+                                                       (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) <= right)))
+                                          .Select(x => x.Index)
+                                          .ToList();
 
             hideActiveEvents();
             float sizeV = m_rectTransform.rect.height - 10;
 
-            for (int i = 0; i < idMove.Count; i++)
+            for (int i = 0; i < idRightEnter.Count; i++)
             {
-                float positionInsideRect = (left - keys[idMove[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                float size = ((values[idMove[i]].duration * ((float)samplingFreq / 1000)) / (right - left)) * widthOfGameObject;
+                float positionInsideRect = (left - keys[idRightEnter[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                float rightevent = right - values[idRightEnter[i]].sample;
+                float size = (rightevent / (right - left)) * widthOfGameObject;
 
-                if (values[idMove[i]].duration > 0)
+                eventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                eventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                eventsAdded[idRightEnter[i]].SetActive(true);
+                eventsAdded[idRightEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
+            }
+
+            for (int i = 0; i < idInside.Count; i++)
+            {
+                float positionInsideRect = (left - keys[idInside[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                float size = ((values[idInside[i]].duration * ((float)samplingFreq / 1000)) / (right - left)) * widthOfGameObject;
+
+                if (values[idInside[i]].duration > 0)
                 {
-                    if (keys[idMove[i]] <= right)
-                    {
-                        eventsAdded[idMove[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                        eventsAdded[idMove[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                        eventsAdded[idMove[i]].SetActive(true);
-                        eventsAdded[idMove[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
-                    }
+                    eventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                    eventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                    eventsAdded[idInside[i]].SetActive(true);
+                    eventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
                 }
                 else
                 {
-                    eventsAdded[idMove[i]].SetActive(true);
-                    eventsAdded[idMove[i]].transform.localPosition = new Vector3(positionInsideRect, dataArray[keys[idMove[i]] - left].y, -201);
+                    eventsAdded[idInside[i]].SetActive(true);
+                    eventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, dataArray[keys[idInside[i]] - left].y, -201);
                 }
             }
 
-            for (int i = 0; i < idLeft.Count; i++)
+            for (int i = 0; i < idLeftEnter.Count; i++)
             {
-                float leftevent = (values[idLeft[i]].sample + (values[idLeft[i]].duration * ((float)samplingFreq / 1000)) - left);
+                float leftevent = (values[idLeftEnter[i]].sample + (values[idLeftEnter[i]].duration * ((float)samplingFreq / 1000)) - left);
                 float size = (leftevent / (right - left)) * widthOfGameObject;
 
-                eventsAdded[idLeft[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                eventsAdded[idLeft[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                eventsAdded[idLeft[i]].SetActive(true);
+                eventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                eventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                eventsAdded[idLeftEnter[i]].SetActive(true);
             }
 
-            for (int i = 0; i < idRight.Count; i++)
+            for (int i = 0; i < idOverFlow.Count; i++)
             {
-                float leftevent = right - values[idRight[i]].sample;
-                float size = (leftevent / (right - left)) * widthOfGameObject;
-
-                eventsAdded[idRight[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                eventsAdded[idRight[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                eventsAdded[idRight[i]].SetActive(true);
+                float size = widthOfGameObject;
+                eventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                eventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                eventsAdded[idOverFlow[i]].SetActive(true);
             }
         }
     }
