@@ -113,6 +113,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     float maxValChanel = 0;
     float offsetCoefficient = 0;
     float offsetPerTen = 0;
+    bool gridDisplay = false;
 
     void Awake()
     {
@@ -211,7 +212,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         updateHorizontalScale(lineRenderer, dataArray);
         updateHorizontalScale(lineRendererRMS, dataArrayRMS);
         updateGridScale(periodSec);
-        displayTimeGrid(false);
+        displayTimeGrid(gridDisplay);
 
         #region plugEvents
         video.sendTime += new timeVideo(updateDraw);
@@ -278,6 +279,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             newLine.name = "line " + i;
             newLine.transform.SetParent(gridCont.transform);
             newLine.transform.localScale = new Vector3(1, 1, 1);
+            newLine.SetActive(gridDisplay);
         }
     }
 
@@ -613,6 +615,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
     void displayTimeGrid(bool isGridOn)
     {
+        gridDisplay = isGridOn;
         for (int i = 0; i < gridCont.transform.childCount; i++)
             gridCont.transform.GetChild(i).gameObject.SetActive(isGridOn);
     }
