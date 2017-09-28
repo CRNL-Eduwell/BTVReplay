@@ -1,0 +1,13 @@
+.vs/
+Library/
+plugins/
+ProjectSettings/
+Temp/
+*.dll
+*.csproj
+*.sln
+*.meta
+Assets/Config/Sounds/Drum2.wav
+Assets/Config/Sounds/son220.wav
+Assets/Config/Sounds/Pipiou2.wav
+Assets/Config/Sounds/son150.wav

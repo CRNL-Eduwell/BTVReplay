@@ -1,0 +1,112 @@
+LH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/EG_BTV_forPC/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/EG_BTV_forPC/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/EG_BTV_forPC/Gre_2012_GIRe_MNI.pts
+LH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/EG_BTV_forPC/MNI_single_hight_Lhemi.tri
+RH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/EG_BTV_forPC/MNI_single_hight_Rhemi.tri
+PTS_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/EG_BTV_forPC/Gre_2012_GIRe_MNI.pts
+SM0 : 
+SM250 : 
+SM500 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/EG_BTV_forPC/EG_16AVR12G_BTV_Vp3_f50f150_ds8_sm500.eeg
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : 
+PROV : 
+VID : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/EG_BTV_forPC/EG_16AVR12G_BTV_Vp3.AVI
+[----------]
+LH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/GRE_2014_BARf/Gre_2014_BARf_MNI.pts
+LH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Lhemi.tri
+RH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Rhemi.tri
+PTS_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/GRE_2014_BARf/Gre_2014_BARf_MNI.pts
+SM0 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/GRE_2014_BARf/GRE_2014_BARf_MARM_f50f150_ds16_sm0.eeg
+SM250 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/GRE_2014_BARf/GRE_2014_BARf_MARM_f50f150_ds16_sm250.eeg
+SM500 : 
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/GRE_2014_BARf/GRE_2014_BARf_MARM_ds16.pos
+PROV : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Prov/MARM.prov
+VID : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/GRE_2014_BARf/GRE_2014_BARf_MARM_R9.mp4
+[----------]
+LH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_LAVp/LYONNEURO_2016_LAVp_MNI.pts
+LH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Lhemi.tri
+RH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Rhemi.tri
+PTS_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_LAVp/LYONNEURO_2016_LAVp_MNI.pts
+SM0 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_LAVp/LYONNEURO_2016_LAVp_f50f150/LYONNEURO_2016_LAVp_f50f150_ds8_sm0.eeg
+SM250 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_LAVp/LYONNEURO_2016_LAVp_f50f150/LYONNEURO_2016_LAVp_f50f150_ds8_sm250.eeg
+SM500 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_LAVp/LYONNEURO_2016_LAVp_f50f150/LYONNEURO_2016_LAVp_f50f150_ds8_sm500.eeg
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : 
+PROV : 
+VID : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_LAVp/VID_22957.AVI
+[----------]
+LH_MNI : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/CE_28SEP10G/CE_28SEP10G_MVIS/CE_28SEP10G_recupbyJP_MNI.pts
+LH_PAT : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Lhemi.tri
+RH_PAT : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Rhemi.tri
+PTS_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/CE_28SEP10G/CE_28SEP10G_MVIS/CE_28SEP10G_recupbyJP_MNI.pts
+SM0 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/CE_28SEP10G/CE_28SEP10G_MVIS/CE_28SEP10G_MVIS_f50f150/CE_28SEP10G_MVIS_f50f150_ds8_sm0.eeg
+SM250 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/CE_28SEP10G/CE_28SEP10G_MVIS/CE_28SEP10G_MVIS_f50f150/CE_28SEP10G_MVIS_f50f150_ds8_sm250.eeg
+SM500 : 
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/CE_28SEP10G/CE_28SEP10G_MVIS/CE_28SEP10G_MVIS_ds8.pos
+PROV : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Prov/MVIS.prov
+VID : 
+[----------]
+LH_MNI : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MNI.pts
+LH_PAT : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Lhemi.tri
+RH_PAT : D:/Users/Florian/Documents/Arbeit/INSERM/Temp Files/Visu Cerveau/Fichier .tri/MNI_single_hight_Rhemi.tri
+PTS_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MNI.pts
+SM0 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MARD_f50f150_ds8_sm0.eeg
+SM250 : 
+SM500 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MARD_f50f150_ds8_sm500.eeg
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MARD_ds8.pos
+PROV : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Prov/MARD.prov
+VID : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MARD.AVI
+[----------]
+LH_MNI : D:/Users/Florian/Desktop/BARf MARD/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Desktop/BARf MARD/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Desktop/BARf MARD/Gre_2014_BARf_MNI.pts
+LH_PAT : D:/Users/Florian/Desktop/BARf MARD/MNI_single_hight_Lhemi.tri
+RH_PAT : D:/Users/Florian/Desktop/BARf MARD/MNI_single_hight_Rhemi.tri
+PTS_PAT : D:/Users/Florian/Desktop/BARf MARD/Gre_2014_BARf_MNI.pts
+SM0 : D:/Users/Florian/Desktop/BARf MARD/GRE_2014_BARf_MARD_f50f150_ds16_sm0.eeg
+SM250 : D:/Users/Florian/Desktop/BARf MARD/GRE_2014_BARf_MARD_f50f150_ds16_sm250.eeg
+SM500 : D:/Users/Florian/Desktop/BARf MARD/GRE_2014_BARf_MARD_f50f150_ds16_sm500.eeg
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : D:/Users/Florian/Desktop/BARf MARD/GRE_2014_BARf_MARD_ds16.pos
+PROV : 
+VID : D:/Users/Florian/Desktop/BARf MARD/GRE_2014_BARf_MARD.mp4
+[----------]
+LH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv.pts
+LH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Lhemi.tri
+RH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Rhemi.tri
+PTS_PAT : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv.pts
+SM0 : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv_f50f150/LYONNEURO_2017_PECv_f50f150_ds8_sm0.eeg
+SM250 : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv_f50f150/LYONNEURO_2017_PECv_f50f150_ds8_sm250.eeg
+SM500 : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv_f50f150/LYONNEURO_2017_PECv_f50f150_ds8_sm500.eeg
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : 
+PROV : 
+VID : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv.AVI
+[----------]
