@@ -15,6 +15,7 @@ public class TraceSonification : MonoBehaviour
     int traceID = 0;
     bool initDone = false;
     List<AudioClip> clips = new List<AudioClip>();
+    bool currentState = false;
 
     void Awake()
     {
@@ -24,6 +25,14 @@ public class TraceSonification : MonoBehaviour
         curve = gameObject.transform.parent.GetComponent<TraceCurve>();
         traceID = curve.idTrace;
         media.loadTrace += new initTrace(init);
+    }
+
+    private void OnEnable()
+    {
+        //If element is disabled, like by hiding curve
+        //we want to keep sonification playing if it was on
+        if (currentState)
+            audioSourceScript.Play();
     }
 
     void OnDestroy()
@@ -60,6 +69,7 @@ public class TraceSonification : MonoBehaviour
 
     void toggleSonification(bool isOn)
     {
+        currentState = isOn;
         if (isOn)
             audioSourceScript.UnPause();
         else

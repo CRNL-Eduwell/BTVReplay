@@ -336,6 +336,7 @@ public class VideoPlayer : MonoBehaviour
     {
         if (!loopScroll.gameObject.activeSelf)
         {
+            _Iplayer.setVolume(0.0f);
             if (_Iplayer.isPlaying)
                 Play();
             slaved = true;
@@ -347,6 +348,7 @@ public class VideoPlayer : MonoBehaviour
         }
         else
         {
+            _Iplayer.setVolume(volumeScrollBar.value);
             if (_Iplayer.isPaused)
                 Play();
             slaved = false;

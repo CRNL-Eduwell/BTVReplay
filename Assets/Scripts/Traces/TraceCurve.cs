@@ -279,6 +279,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             newLine.name = "line " + i;
             newLine.transform.SetParent(gridCont.transform);
             newLine.transform.localScale = new Vector3(1, 1, 1);
+            newLine.transform.localPosition = new Vector3(newLine.transform.localPosition.x, newLine.transform.localPosition.y, 0);
             newLine.SetActive(gridDisplay);
         }
     }
@@ -501,20 +502,24 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
             for (int i = 0; i < idLeftEnter.Count; i++)
             {
+                float positionInsideRect = ((-widthOfGameObject / 2) + 1);
                 float leftevent = (values[idLeftEnter[i]].sample + (values[idLeftEnter[i]].duration * ((float)samplingFreq / 1000)) - left);
                 float size = (leftevent / (right - left)) * widthOfGameObject;
 
                 eventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
                 eventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
                 eventsAdded[idLeftEnter[i]].SetActive(true);
+                eventsAdded[idLeftEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
             }
 
             for (int i = 0; i < idOverFlow.Count; i++)
             {
+                float positionInsideRect =((-widthOfGameObject / 2) + 1);
                 float size = widthOfGameObject;
                 eventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
                 eventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
                 eventsAdded[idOverFlow[i]].SetActive(true);
+                eventsAdded[idOverFlow[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
             }
         }
     }
