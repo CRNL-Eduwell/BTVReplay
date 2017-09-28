@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;//Requiered for Event data.
-using System.Collections; //IEnumerator
 
 public delegate void newEventToShowHandler(eventEeg newEvent, int id);
 
@@ -46,6 +45,7 @@ public class eventsOptions : MonoBehaviour
     Texture2D scrollOrig = null, scrollTex = null;
     Color[] dataTexScroll;
     Color hardBlue = new Color(0.6117f, 0.7058f, 0.7960f, 1f);
+    Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
     int currentPos = -1;
 
     public void init(GameObject eventsOptionPanel)
@@ -277,13 +277,16 @@ public class eventsOptions : MonoBehaviour
         if (eventToChangeObjects.Count() > 0)
         {
             int id = events.IndexOfKey(previousEvent.sample);
+            removeEventToTexture(events.Values[id]);
+            int memDuration = events.Values[id].duration;
             events.Values[id].code = modifyiedEvent.code;
             events.Values[id].comment = modifyiedEvent.comment;
             events.Values[id].duration = modifyiedEvent.duration;
+            addEventToTexture(events.Values[id]);
 
             //if event goes from no duration to with duration or the other way around we switch it
-            if ((modifyiedEvent.duration - events[previousEvent.sample].duration == modifyiedEvent.duration) ||
-                (modifyiedEvent.duration - events[previousEvent.sample].duration == -events[previousEvent.sample].duration))
+            if ((modifyiedEvent.duration - memDuration == modifyiedEvent.duration) ||
+                (modifyiedEvent.duration - memDuration == -memDuration))
             {
                 eventToChangeObjects.ElementAt(0).GetComponent<EventTrace>().deleteMe();
                 eventValidatedForUI(modifyiedEvent);
@@ -291,7 +294,7 @@ public class eventsOptions : MonoBehaviour
 
             foreach (var eventToChange in eventToChangeObjects)
             {
-                eventToChange.GetComponent<EventTrace>().UpdateEvent(modifyiedEvent); // events[previousEvent.sample]);
+                eventToChange.GetComponent<EventTrace>().UpdateEvent(modifyiedEvent);
             }
         }
     }
@@ -479,9 +482,31 @@ public class eventsOptions : MonoBehaviour
     {
         float perC = ((((float)currentEvent.sample / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
         int pixelID = (int)(perC * scrollTex.width);
-        for (int i = 0; i < scrollTex.height; i++)
-            dataTexScroll[pixelID + ( i * scrollTex.width)] = Color.red;
 
+        if (currentEvent.duration > 0)
+        {
+            if (currentEvent.duration > 1000)
+            {
+                float durationInSample = (currentEvent.duration * ((float)win1.samplingFrequency / 1000));
+                float perCDuration = (((((float)currentEvent.sample + durationInSample) / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
+                int pixelIDDuration = (int)(perCDuration * scrollTex.width);
+                for (int i = 0; i < scrollTex.height / 2; i++)
+                {
+                    for (int j = 0; j < pixelIDDuration - pixelID; j++)
+                        dataTexScroll[(pixelID + j) + (i * scrollTex.width)] = orange;
+                }
+            }
+            else //if duration < 1000ms, too thin to see the red streak on the scrollbar
+            {
+                for (int i = 0; i < scrollTex.height; i++)
+                    dataTexScroll[pixelID + (i * scrollTex.width)] = orange;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < scrollTex.height; i++)
+                dataTexScroll[pixelID + (i * scrollTex.width)] = Color.red;
+        }
         scrollTex.SetPixels(dataTexScroll);
         scrollTex.Apply();
     }
@@ -490,9 +515,31 @@ public class eventsOptions : MonoBehaviour
     {
         float perC = ((((float)currentEvent.sample / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
         int pixelID = (int)(perC * scrollTex.width);
-        for (int i = 0; i < scrollTex.height; i++)
-            dataTexScroll[pixelID + (i * scrollTex.width)] = hardBlue;
 
+        if (currentEvent.duration > 0)
+        {
+            if (currentEvent.duration > 1000)
+            {
+                float durationInSample = (currentEvent.duration * ((float)win1.samplingFrequency / 1000));
+                float perCDuration = (((((float)currentEvent.sample + durationInSample) / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
+                int pixelIDDuration = (int)(perCDuration * scrollTex.width);
+                for (int i = 0; i < scrollTex.height / 2; i++)
+                {
+                    for (int j = 0; j < pixelIDDuration - pixelID; j++)
+                        dataTexScroll[(pixelID + j) + (i * scrollTex.width)] = hardBlue;
+                }
+            }
+            else //if duration < 1000ms, too thin to see the red streak on the scrollbar
+            {
+                for (int i = 0; i < scrollTex.height; i++)
+                    dataTexScroll[pixelID + (i * scrollTex.width)] = hardBlue;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < scrollTex.height; i++)
+                dataTexScroll[pixelID + (i * scrollTex.width)] = hardBlue;
+        }
         scrollTex.SetPixels(dataTexScroll);
         scrollTex.Apply();
     }
@@ -505,7 +552,14 @@ public class eventsOptions : MonoBehaviour
             long timeSample = timeSec * win1.samplingFrequency;
             var keys = new List<int>(events.Keys);
             var index = keys.BinarySearch((int)timeSample);
-            if (Math.Abs(index) > 1)
+
+            if (Math.Abs(index) - 1 == 0)
+            {
+                currentPos = 0;
+                v.changeTimeClick((events[keys[currentPos]].sample / win1.samplingFrequency) * 1000);
+                v.setTime((events[keys[currentPos]].sample / win1.samplingFrequency) * 1000);
+            }
+            else
             {
                 currentPos = Math.Abs(index) - 1;
                 v.changeTimeClick((events[keys[currentPos - 1]].sample / win1.samplingFrequency) * 1000);
@@ -522,20 +576,12 @@ public class eventsOptions : MonoBehaviour
             long timeSample = timeSec * win1.samplingFrequency;
             var keys = new List<int>(events.Keys);
             var index = keys.BinarySearch((int)timeSample);
+
             if (Math.Abs(index) < keys.Count)
             {
-                if (currentPos != -1)
-                {
-                    currentPos = Math.Abs(index);
-                    v.changeTimeClick((events[keys[currentPos + 1]].sample / win1.samplingFrequency) * 1000);
-                    v.setTime((events[keys[currentPos + 1]].sample / win1.samplingFrequency) * 1000);
-                }
-                else
-                {
-                    currentPos = Math.Abs(index) - 1;
-                    v.changeTimeClick((events[keys[currentPos]].sample / win1.samplingFrequency) * 1000);
-                    v.setTime((events[keys[currentPos]].sample / win1.samplingFrequency) * 1000);
-                }
+                currentPos = Math.Abs(index) - 1;
+                v.changeTimeClick((events[keys[currentPos + 1]].sample / win1.samplingFrequency) * 1000);
+                v.setTime((events[keys[currentPos + 1]].sample / win1.samplingFrequency) * 1000);
             }
         }
     }
