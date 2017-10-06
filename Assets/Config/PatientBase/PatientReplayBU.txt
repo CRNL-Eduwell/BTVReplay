@@ -94,3 +94,19 @@ POS : D:/Users/Florian/Desktop/BARf MARD/GRE_2014_BARf_MARD_ds16.pos
 PROV : 
 VID : D:/Users/Florian/Desktop/BARf MARD/GRE_2014_BARf_MARD.mp4
 [----------]
+LH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv.pts
+LH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Lhemi.tri
+RH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Rhemi.tri
+PTS_PAT : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv.pts
+SM0 : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv_f50f150/LYONNEURO_2017_PECv_f50f150_ds8_sm0.eeg
+SM250 : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv_f50f150/LYONNEURO_2017_PECv_f50f150_ds8_sm250.eeg
+SM500 : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv_f50f150/LYONNEURO_2017_PECv_f50f150_ds8_sm500.eeg
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : 
+PROV : 
+VID : D:/Users/Florian/Desktop/LYONNEURO_2017_PECv/LYONNEURO_2017_PECv.AVI
+[----------]

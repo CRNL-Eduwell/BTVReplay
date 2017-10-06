@@ -7,6 +7,7 @@ Temp/
 *.csproj
 *.sln
 *.meta
+*.VC.db
 Assets/Config/Sounds/Drum2.wav
 Assets/Config/Sounds/son220.wav
 Assets/Config/Sounds/Pipiou2.wav

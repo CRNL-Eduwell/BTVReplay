@@ -242,7 +242,7 @@ public class BTVMedia : MonoBehaviour
     public POS posFile = null;
     public ELAN[] elanFiles = new ELAN[6];
     public PROV provFile = null;
-    public WawReader audioReader = null;
+    public WavReader audioReader = null;
     public bool loaded = false;
 
     #endregion
@@ -284,6 +284,9 @@ public class BTVMedia : MonoBehaviour
             if (elanFiles[i] != null)
                 elanFiles[i].Dispose();
         }
+
+        if (audioReader != null) 
+            audioReader.Dispose();
 
         for (int i = 0; i < patientContent.childCount; i += 2)
         {
@@ -476,11 +479,11 @@ public class BTVMedia : MonoBehaviour
         //So we jump back to unity just in case
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadEEGFile(myPat));
-
         mediaLoaded();
 
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadVideo(myPat.video));
+        yield return StartCoroutine(c_loadAudio(myPat.video));
 
         loadMniBrain(myPat.lhemi_MNI, myPat.rhemi_MNI, myPat.pts_MNI);
         loadTrace();
@@ -548,9 +551,15 @@ public class BTVMedia : MonoBehaviour
         long totalDuration = ELAN.getTotalFileDuration(elanFiles[id]);
         loadVideo(videoPath, (int)sampFreq, (int)totalDuration);
 
+        yield return null;
+    }
+
+    IEnumerator c_loadAudio(string videoPath)
+    {
         //load audio
         string[] videoPathSplit = videoPath.Split('.');
         string audioPath = videoPath.Replace("." + videoPathSplit[videoPathSplit.Length - 1], ".wav");
+        float sampFreq = ELAN.getSamplingFreq(elanFiles);
 
         if (new FileInfo(audioPath).Exists == false)
         {
@@ -559,7 +568,7 @@ public class BTVMedia : MonoBehaviour
             yield return Ninja.JumpToUnity;
         }
         yield return Ninja.JumpBack;
-        yield return ProcessAudio(audioPath, sampFreq, rr => audioReader = rr);
+        yield return loadAudio(audioPath, r => audioReader = r);
         yield return Ninja.JumpToUnity; //recomm si jamais
         yield return null;
     }
@@ -568,14 +577,14 @@ public class BTVMedia : MonoBehaviour
     {
         // I give my callback to the process
         // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(WawReader.c_extractAudio(audioPath, videoPath));
+        return this.StartCoroutineAsync(WavReader.c_extractAudio(audioPath, videoPath));
     }
 
-    YieldInstruction ProcessAudio(string filePath, float sampFreq, Action<WawReader> resultCB)
+    YieldInstruction loadAudio(string audioPath, Action<WavReader> resWav)
     {
         // I give my callback to the process
         // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(WawReader.c_loadAudioFile(filePath, sampFreq, resultCB));
+        return this.StartCoroutineAsync(WavReader.c_loadAudioFile(audioPath, resWav));
     }
 
     IEnumerator c_loadPOSandPROV(Patient myPat)

@@ -198,6 +198,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             hub.traceRemotes[traceID].changeButtonSMColor();
         }
 
+        if (traceID == 0 && media.audioReader.filteredData == null)
+            ring.GetComponent<CoroutineManager>().Add(media.audioReader.ToHilbert("300:100:1300", samplingFreq));
+
         dataArray = new Vector3[numberPoint];
         dataArrayRMS = new Vector3[numberPoint];
 
@@ -339,6 +342,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
     void updateDrawRMS(int sampleToLook)
     {
+        if (media.audioReader.filterDone == false)
+            return;
+
         int posInArray = sampleToLook - numberPoint;
         float limitVal = (m_rectTransform.rect.height - 6.5f) / 2;
 
@@ -346,7 +352,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         {
             if (i + posInArray >= 0)
             {
-                float value = gain * ((float)media.audioReader.rms[i + posInArray]);
+                float value = gain * ((float)media.audioReader.filteredData[i + posInArray]);
                 if (value >= -limitVal && value <= limitVal)
                 {
                     dataArrayRMS[i].y = value;
