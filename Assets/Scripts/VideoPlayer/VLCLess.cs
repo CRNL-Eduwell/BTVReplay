@@ -18,6 +18,14 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
             return (long)(currentTime * ((float)eegSampFreq / 1000));
         }
     }
+    public long videoTime
+    {
+        get
+        {
+            return -1;
+        }
+    }
+
     public long totalVideoTime //In MilliSec
     {
         get

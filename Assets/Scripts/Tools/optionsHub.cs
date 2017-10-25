@@ -587,7 +587,7 @@ public class eventsOptions : MonoBehaviour
     }
 }
 
-public delegate void offsetVideoChangedEventHandler(int newVal);
+public delegate void offsetVideoChangedEventHandler(float newVal);
 
 public class videoOptions
 {
@@ -597,11 +597,9 @@ public class videoOptions
     Scrollbar offsetScrollBar = null;
     Button addVideoOffset = null;
     Text videoOffsetLabel = null;
-    Button sampleMode = null;
 
     EventTrigger trigger = null;
-    //bool scrollBarNotClicked = true;
-    int offsetSec = 0;
+    float offsetMilliSec = 0;
 
     public videoOptions(GameObject videoOptionsPanel)
     {
@@ -609,42 +607,36 @@ public class videoOptions
         offsetScrollBar = videoOptionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Scrollbar>();
         addVideoOffset = videoOptionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
         videoOffsetLabel = videoOptionsPanel.transform.GetChild(0).GetChild(3).GetComponent<Text>();
-        sampleMode = videoOptionsPanel.transform.GetChild(1).GetComponent<Button>();
 
         removeVideoOffset.onClick.AddListener(() =>
         {
-            if (offsetSec - 1 >= -60)
+            if (offsetMilliSec - 10 >= -60000)
             {
-                offsetSec -= 1;
-                offsetScrollBar.value = ((float)offsetSec / 120) + 0.5f;
-                setOffsetText(offsetSec);
-                offsetVideoHasChanged(offsetSec);
+                offsetMilliSec -= 10;
+                offsetScrollBar.value = ((offsetMilliSec / 1000) / 120) + 0.5f;
+                setOffsetText(offsetMilliSec);
+                offsetVideoHasChanged(offsetMilliSec);
             }
         });
 
         addVideoOffset.onClick.AddListener(() =>
         {
-            if (offsetSec + 1 <= 60)
+            if (offsetMilliSec + 10 <= 60000)
             {
-                offsetSec += 1;
-                offsetScrollBar.value = ((float)offsetSec / 120) + 0.5f;
-                setOffsetText(offsetSec);
-                offsetVideoHasChanged(offsetSec);
+                offsetMilliSec += 10;
+                offsetScrollBar.value = ((offsetMilliSec / 1000) / 120) + 0.5f;
+                setOffsetText(offsetMilliSec);
+                offsetVideoHasChanged(offsetMilliSec);
             }
         });
 
         trigger = offsetScrollBar.gameObject.AddComponent<EventTrigger>();
-        //EventTrigger.Entry entry = new EventTrigger.Entry();
-        //entry.eventID = EventTriggerType.PointerDown;
-        //entry.callback.AddListener((eventData) => { scrollBarNotClicked = false; });
-        //trigger.triggers.Add(entry);
-
         EventTrigger.Entry entry2 = new EventTrigger.Entry();
         entry2.eventID = EventTriggerType.PointerUp;
         entry2.callback.AddListener((eventData) => { setOffsetScrollBar(); });
         trigger.triggers.Add(entry2);
 
-        videoOffsetLabel.text = "Offset : 00: 00 s";
+        videoOffsetLabel.text = "Offset : 00 m: 00 s: 00ms";
     }
 
     ~videoOptions()
@@ -659,17 +651,17 @@ public class videoOptions
     void setOffsetScrollBar()
     {
         float offsetBar = offsetScrollBar.value - 0.5f;
-        offsetSec = (int)(offsetBar * 120);
-        setOffsetText(offsetSec);
-        offsetVideoHasChanged(offsetSec);
+        offsetMilliSec = (int)(offsetBar * 120) * 1000;
+        setOffsetText(offsetMilliSec);
+        offsetVideoHasChanged(offsetMilliSec);
     }
 
-    void setOffsetText(int sec)
+    void setOffsetText(float milliSec)
     {
-        int m = sec / 60;
-        int s = sec % 60;
-
-        videoOffsetLabel.text = "Offset : " + m + ": " + s + "s";
+        int m = ((int)milliSec / 1000) / 60;
+        int s = ((int)milliSec / 1000) % 60;
+        int ms = (int)milliSec - (((int)milliSec / 1000) * 1000);
+        videoOffsetLabel.text = "Offset : " + m + "m: " + s + "s:" + ms + "ms";
     }
 }
 

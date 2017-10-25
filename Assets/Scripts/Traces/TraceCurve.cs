@@ -127,7 +127,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         if (initDone)
         {
             video.sendTime -= new timeVideo(updateDraw);
-            video.sendTime -= new timeVideo(updateDrawRMS);
+            video.sendTimeVideo -= new timeVideoSync(updateDrawRMS);
             video.sendTime -= new timeVideo(updateEventsDraw);
 
             hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(
@@ -219,7 +219,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
         #region plugEvents
         video.sendTime += new timeVideo(updateDraw);
-        video.sendTime += new timeVideo(updateDrawRMS);
+        video.sendTimeVideo += new timeVideoSync(updateDrawRMS);
         video.sendTime += new timeVideo(updateEventsDraw);
 
         hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(
@@ -343,6 +343,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     void updateDrawRMS(int sampleToLook)
     {
         if (media.audioReader.filterDone == false)
+            return;
+
+        if (sampleToLook == -1)
             return;
 
         int posInArray = sampleToLook - numberPoint;

@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;//Requiered for Event data.
 
 public delegate void timeVideo(int currentTime);
+public delegate void timeVideoSync(int currentTime);
 
 public class VideoPlayer : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class VideoPlayer : MonoBehaviour
         }
     }
     public event timeVideo sendTime;
+    public event timeVideoSync sendTimeVideo;
 
     #region scene members
     [SerializeField] optionsHub hub = null;
@@ -103,12 +105,14 @@ public class VideoPlayer : MonoBehaviour
                 updateScrollBarPosition();
                 updateTimeText();
                 sendTime((int)Time);
+                sendTimeVideo((int)videoTime);
             }
             else if (_Iplayer.isPaused)
             {
                 updateScrollBarPosition();
                 updateTimeText();
                 sendTime((int)Time);
+                sendTimeVideo((int)videoTime);
             }
 
             if (slaved)
@@ -266,6 +270,17 @@ public class VideoPlayer : MonoBehaviour
         {
             if (scrollbarnotclicked)
                 return _Iplayer.time;
+            else
+                return (long)((scrollBar.value * _Iplayer.totalVideoTime) * (sampFreq / 1000));
+        }
+    }
+
+    long videoTime
+    {
+        get
+        {
+            if (scrollbarnotclicked)
+                return _Iplayer.videoTime;
             else
                 return (long)((scrollBar.value * _Iplayer.totalVideoTime) * (sampFreq / 1000));
         }

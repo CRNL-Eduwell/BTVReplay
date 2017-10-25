@@ -4,6 +4,7 @@ public interface IVideoPlayer
 {
     long currentTime { get; }
     long time { get; }
+    long videoTime { get; }
     long totalVideoTime { get; }
     bool isPlaying { get; }
     bool isPaused { get; }

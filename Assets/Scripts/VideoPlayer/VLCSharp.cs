@@ -350,9 +350,10 @@ namespace VLCSharp
                     lastPlayTime = currentTime;
                     lastPlayTimeGlobal = (long)stopwatch.Elapsed.TotalMilliseconds;
                 }
-                return currentTime + (offsetVideoSec * 1000);
+                return currentTime + offsetVideoMilliSec;
             }
         }
+
         public long time
         {
             get
@@ -360,6 +361,15 @@ namespace VLCSharp
                 return (long)(currentTime * ((float)eegSampFreq / 1000));
             }
         }
+
+        public long videoTime
+        {
+            get
+            {
+                return (long)((currentTime - offsetVideoMilliSec) * ((float)eegSampFreq / 1000));
+            }
+        }
+
         public long totalVideoTime
         {
             get
@@ -411,7 +421,7 @@ namespace VLCSharp
         Stopwatch stopwatch;
         long lastPlayTime = 0;
         long lastPlayTimeGlobal = 0;
-        int offsetVideoSec = 0;
+        int offsetVideoMilliSec = 0;
         //===
         private object objectLock = new object();
 
@@ -421,7 +431,7 @@ namespace VLCSharp
             this.eegSampFreq = eegSampFreq;
             this.eegFileDurationInSec = eegFileDurationInSec;
             stopwatch = new Stopwatch();
-            instance = new VlcInstance(new string[] { "" });
+            instance = new VlcInstance(new string[] {""});
             stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -462,9 +472,9 @@ namespace VLCSharp
             }
 
             hub.videoRemote.offsetVideoHasChanged += new offsetVideoChangedEventHandler(
-                delegate (int newVal)
+                delegate (float newVal)
                 {
-                    offsetVideoSec = newVal;
+                    offsetVideoMilliSec = (int)newVal;
                 });
 
             setVolume(0.5f);
@@ -480,9 +490,9 @@ namespace VLCSharp
         {
             //remove offset video event
             hub.videoRemote.offsetVideoHasChanged -= new offsetVideoChangedEventHandler(
-                delegate (int newVal)
+                delegate (float newVal)
                 {
-                    offsetVideoSec = newVal;
+                    offsetVideoMilliSec = (int)newVal;
                 });
 
             //to release resources
@@ -502,7 +512,6 @@ namespace VLCSharp
             {
                ((Texture2D)Tex2Draw.texture).LoadImage(textureByteArray);
                 newPic = false;
-                //sendTimeEvent((int)time + offsetVideoSec);
             }
         }
 

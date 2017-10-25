@@ -60,7 +60,7 @@ public class WavReader : CppDLLImportBase
         startInfo.FileName = "cmd.exe";
 
         string cmd = "c:\\Program^ Files\\VideoLAN\\VLC\\vlc.exe";
-        string cmd2 = " -I dummy-quiet --sout ^\"#transcode{acodec=s16l,channels=2,ab=128,samplerate=4800}:std{access=file,mux=wav,dst=" + audioPath.Replace("/", "\\") + "}\" " + "\"" + videoPath.Replace("/", "\\") + "\" vlc://quit";
+        string cmd2 = " -I dummy-quiet --sout ^\"#transcode{acodec=s16l,channels=2,ab=128,samplerate=11025}:std{access=file,mux=wav,dst=" + audioPath.Replace("/", "\\") + "}\" " + "\"" + videoPath.Replace("/", "\\") + "\" vlc://quit";
 
         startInfo.Arguments = "/c " + "^\"" + cmd + "^\"" + cmd2;
         process.StartInfo = startInfo;
