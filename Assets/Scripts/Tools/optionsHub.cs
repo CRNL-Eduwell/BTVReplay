@@ -1005,12 +1005,14 @@ public class traceXOptions
     }
 }
 
+public delegate void brainChangeEventHandler(int idBrain);
+
 public class brainOptions
 {
     public event gainChangedEventHandler gainHasChanged;
+    public event brainChangeEventHandler needToChangeBrain;
 
-    Button mniButton = null;
-    Button patButton = null;
+    Dropdown brainDD = null;
     Button dispFullBrain = null;
     Button dispLeftBrain = null;
     Button dispRightBrain = null;
@@ -1021,14 +1023,15 @@ public class brainOptions
 
     public brainOptions(GameObject brainOptionsPanel)
     {
-        mniButton = brainOptionsPanel.transform.GetChild(0).GetComponent<Button>();
-        patButton = brainOptionsPanel.transform.GetChild(1).GetComponent<Button>();
-        dispFullBrain = brainOptionsPanel.transform.GetChild(2).GetComponent<Button>();
-        dispLeftBrain = brainOptionsPanel.transform.GetChild(3).GetComponent<Button>();
-        dispRightBrain = brainOptionsPanel.transform.GetChild(4).GetComponent<Button>();
-        gainValue = brainOptionsPanel.transform.GetChild(5).GetChild(0).GetComponent<Text>();
-        gainAdd = brainOptionsPanel.transform.GetChild(5).GetChild(1).GetComponent<Button>();
-        gainRemove = brainOptionsPanel.transform.GetChild(5).GetChild(2).GetComponent<Button>();
+        brainDD = brainOptionsPanel.transform.GetChild(0).GetComponent<Dropdown>();
+        dispFullBrain = brainOptionsPanel.transform.GetChild(1).GetComponent<Button>();
+        dispLeftBrain = brainOptionsPanel.transform.GetChild(2).GetComponent<Button>();
+        dispRightBrain = brainOptionsPanel.transform.GetChild(3).GetComponent<Button>();
+        gainValue = brainOptionsPanel.transform.GetChild(4).GetChild(0).GetComponent<Text>();
+        gainAdd = brainOptionsPanel.transform.GetChild(4).GetChild(1).GetComponent<Button>();
+        gainRemove = brainOptionsPanel.transform.GetChild(4).GetChild(2).GetComponent<Button>();
+
+        brainDD.onValueChanged.AddListener((int value) => needToChangeBrain(value));
 
         dispFullBrain.onClick.AddListener(() => Brain.changeVisuBrain(0));
         dispLeftBrain.onClick.AddListener(() => Brain.changeVisuBrain(-1));
@@ -1054,11 +1057,19 @@ public class brainOptions
 
     ~brainOptions()
     {
+        brainDD.onValueChanged.RemoveAllListeners();
         dispFullBrain.onClick.RemoveAllListeners();
         dispLeftBrain.onClick.RemoveAllListeners();
         dispRightBrain.onClick.RemoveAllListeners();
         gainAdd.onClick.RemoveAllListeners();
         gainRemove.onClick.RemoveAllListeners();
+    }
+
+    public void setBrainInteract(bool isInteractable)
+    {
+        dispFullBrain.interactable = isInteractable;
+        dispLeftBrain.interactable = isInteractable;
+        dispRightBrain.interactable = isInteractable;
     }
 }
 

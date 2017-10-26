@@ -44,6 +44,12 @@ public class Electrodes : MonoBehaviour
 
     public int loadPtsFile(string p_pathPtsFile)
     {
+        if (mask.Count > 0)
+            mask = new List<bool>();
+
+        if (electrodes.Count > 0)
+            electrodes = new List<Electrode>();
+
         string line = "", currentElectrodeName = "";
         int numberPlot = 0;
 
@@ -72,14 +78,17 @@ public class Electrodes : MonoBehaviour
                 line = sr.ReadLine();
                 string[] split = line.Split(new string[] { "\t" }, System.StringSplitOptions.RemoveEmptyEntries);
 
-                if (split.Length == 9)
+                //if (split.Length != 9)
+                //    Debug.LogError("Error Reading Pts : Each Line Must have 9 elements");
+
+                if (split.Length >= 3)
                 {
                     string plot = split.GetValue(0).ToString();
 
                     //== Correct if elec is named Pp1 (P'1)
                     List<int> nbP = plot.ToLower().Select((v, ii) => new { v, ii })
-                                                  .Where(c => c.v.Equals('p'))
-                                                  .Select(c => c.ii).ToList();
+                                                    .Where(c => c.v.Equals('p'))
+                                                    .Select(c => c.ii).ToList();
 
                     if (nbP.Count > 1)
                     {
@@ -89,18 +98,9 @@ public class Electrodes : MonoBehaviour
                     }
                     //=========
                     if (plot[0] != 'p') //if electrode is p then just to lower case else change p for ' and to lower
-                    {
                         plot = plot.ToLower().Replace('p', '\'');
-                    }
                     else
-                    {
                         plot = plot.ToLower();
-                    }
-
-                    //else
-                    //{
-                    //    plot = plot.ToLower().Replace('p', '\'');
-                    //}
 
                     string[] tempPlot = plot.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
                     plot = string.Join(" ", tempPlot);
@@ -145,12 +145,9 @@ public class Electrodes : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogError("Error Reading Pts : Each Line Must have 9 elements");
-                    return -1;
+                    Debug.LogError("Error Reading Pts : Each Line must have at least 4 elements (label + xyz coordinates) ");
                 }
             }
-
-            //displayElecrodesList();
         }
         return 0;
     }
@@ -178,6 +175,45 @@ public class Electrodes : MonoBehaviour
                 sphereSizeScript.init(currentElecPlot.name);
             }
         }
+    }
+
+    public void updateElecPosition()
+    {
+        for (int i = 0; i < electrodes.Count; i++)
+        {
+            Transform childTransform = gameObject.transform.FindChild(electrodes[i].name);
+            for (int j = 1; j < electrodes[i].plots.Count; j++)
+            {
+                Transform currentElec = childTransform.FindChild(electrodes[i].name + electrodes[i].plots[j].id.ToString());
+                if (currentElec != null)
+                {
+                    currentElec.localPosition = new Vector3(-electrodes[i].plots[j].position3D.x,
+                                                            electrodes[i].plots[j].position3D.y,
+                                                            electrodes[i].plots[j].position3D.z);
+                    //Debug.Log("Update : " + currentElec.name);
+                }
+            }
+        }
+    }
+
+    public void updateElecPearl()
+    {
+        int x = 0;
+        for (int i = 0; i < electrodes.Count; i++)
+        {
+            int y = 0, z = 0;
+
+            x += 5;
+            Transform childTransform = gameObject.transform.FindChild(electrodes[i].name);
+            for (int j = 1; j < electrodes[i].plots.Count; j++)
+            {
+                Transform currentElec = childTransform.FindChild(electrodes[i].name + electrodes[i].plots[j].id.ToString());
+                z -= 5;
+                if (currentElec != null)
+                    currentElec.localPosition = new Vector3(x, y, z);
+            }
+        }
+
     }
 
     string getPatientName(string p_pathPtsFile)

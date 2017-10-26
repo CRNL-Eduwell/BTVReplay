@@ -1,63 +1,94 @@
-﻿using System.IO;                    //Stream/BinaryReader
-using UnityEngine;
+﻿using System;
+using System.IO;
+using System.Text;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Collections.Generic;   //List<T>
+using System.Collections; //IEnumerator
 
-public class Surface
+using UnityEngine;
+
+public class Surface : CppDLLImportBase
 {
     public List<Vector3> verticesObj = new List<Vector3>();          //List of X-Y-Z Coordinates : each element is one vetice (point)
     public int[] idTri;                                              //List of Index number : three vertices used to make one triangle
+    private string surfaceFilePath = "";
 
-    public Surface(string triFilePath)
+    #region memory_management
+
+    public Surface(string pathSurfaceFile) : base(pathSurfaceFile)
     {
-        readTriFile(triFilePath);
+        float[] verticesArray = new float[3 * get_number_vertices(_handle)];
+        copy_vertices(_handle, verticesArray);
+        //verticesObj = new List<Vector3>(verticesArray.Length / 3);
+        for (int i = 0; i < verticesArray.Length / 3; i++)
+            verticesObj.Add(new Vector3(verticesArray[3 * i], verticesArray[(3 * i) + 1], verticesArray[(3 * i) + 2]));
+
+        idTri = new int[3 * get_number_triangles(_handle)];
+        copy_triangles(_handle, idTri);
     }
 
-    void readTriFile(string filePath)
+    protected override void createDLLClass()
     {
-        string lineStream = "";
-        int numberVertices = 0;
-        int numberTriangles = 0;
-        Vector3 vertice = new Vector3(0, 0, 0);
 
-        using (StreamReader sr = new StreamReader(filePath))
+    }
+
+    protected override void createDLLClass(string str)
+    {
+        surfaceFilePath = str;
+        //==
+        string[] pathSurfaceFileSplit = surfaceFilePath.Split(new char[] { '.' });
+        string fileExtention = pathSurfaceFileSplit[pathSurfaceFileSplit.Length - 1].ToUpper();
+        //==
+        string workingdir = Path.GetDirectoryName(surfaceFilePath);
+
+        string[] files;
+        if (fileExtention == "TRI")
+            files = System.IO.Directory.GetFiles(workingdir, "transfo_mni.trm");
+        else if (fileExtention == "GII")
+            files = System.IO.Directory.GetFiles(workingdir, "*_Scanner_Based.trm");
+        else
+            files = new string[] { "" };
+
+        if (files.Length > 0)
         {
-            /*=== Vertices Extraction ===*/
-            lineStream = sr.ReadLine().Split(new char[] { '-' }).GetValue(1).ToString();
-            numberVertices = int.Parse(lineStream);
-
-            for (int i = 0; i < numberVertices; i++)
-            {
-                lineStream = sr.ReadLine();
-                vertice.x = float.Parse(lineStream.Split(new char[] { ' ' }).GetValue(0).ToString());
-                vertice.y = float.Parse(lineStream.Split(new char[] { ' ' }).GetValue(1).ToString());
-                vertice.z = float.Parse(lineStream.Split(new char[] { ' ' }).GetValue(2).ToString());
-
-                /********************************************************************************/
-                /* /!\ Transformation à appliquer pour que ca soit vraiment un maillage MNI /!\ */
-                /*       => Remerciement à la conversion de intranat faite avec les pieds       */
-                /********************************************************************************/
-                vertice = new Vector3(-0.999f * vertice.x + 0 * vertice.y + 0 * vertice.z + 74.04f,
-                0 * vertice.x + -0.999f * vertice.y + 0 * vertice.z + 76.599f,
-                0 * vertice.x + 0 * vertice.y + -0.999f * vertice.z + 87.459f);
-                /************************* /!\Axe x de unity inversé /!\ ************************/
-                vertice.x = -vertice.x;
-                /********************************************************************************/
-                verticesObj.Add(vertice);
-            }
-
-            /*=== Triangles Extraction ===*/
-            lineStream = sr.ReadLine().Split(new char[] { '-', ' ' }).GetValue(2).ToString();
-            numberTriangles = int.Parse(lineStream);
-
-            idTri = new int[3 * numberTriangles];
-            for (int i = 0; i < numberTriangles; ++i)
-            {
-                lineStream = sr.ReadLine();
-                idTri[(3 * i)] = int.Parse(lineStream.Split(new char[] { ' ' }).GetValue(0).ToString());
-                idTri[(3 * i) + 1] = int.Parse(lineStream.Split(new char[] { ' ' }).GetValue(1).ToString());
-                idTri[(3 * i) + 2] = int.Parse(lineStream.Split(new char[] { ' ' }).GetValue(2).ToString());
-            }
-            sr.Close();
+            files[0].Replace('\\', '/');
+            _handle = new HandleRef(this, read_file_to_surface(surfaceFilePath, files[0], fileExtention));
         }
+        else
+        {
+            _handle = new HandleRef(this, read_file_to_surface(surfaceFilePath, "", fileExtention));
+        }
+        //==
     }
+
+    protected override void deleteDLLClass()
+    {
+        delete_Surface(_handle);
+        verticesObj.Clear();
+        verticesObj = null;
+        idTri = null;
+    }
+
+    #endregion memory_management
+
+    #region DLLImport
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "read_file_to_surface", CallingConvention = CallingConvention.Cdecl)]
+    static private extern IntPtr read_file_to_surface(string pathSurfaceFile, string pathTransformationFile, string fileExtention);
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "get_number_vertices", CallingConvention = CallingConvention.Cdecl)]
+    static private extern int get_number_vertices(HandleRef handle);
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "get_number_triangles", CallingConvention = CallingConvention.Cdecl)]
+    static private extern int get_number_triangles(HandleRef handle);
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "copy_vertices", CallingConvention = CallingConvention.Cdecl)]
+    static private extern void copy_vertices(HandleRef handle, float[] verticesArray);
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "copy_triangles", CallingConvention = CallingConvention.Cdecl)]
+    static private extern void copy_triangles(HandleRef handle, int[] trianglesArray);
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "delete_Surface", CallingConvention = CallingConvention.Cdecl)]
+    static private extern void delete_Surface(HandleRef handle);
+    #endregion
 }

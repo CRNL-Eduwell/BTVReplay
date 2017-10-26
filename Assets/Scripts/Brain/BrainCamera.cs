@@ -6,8 +6,7 @@ public class BrainCamera : MonoBehaviour
 {
     GameObject Brain3DHandle = null;
     Vector3 target, originalTarget;
-    Material BaseMaterialTransparency = null;
-    MeshRenderer[] brainRenderer = null;
+
     //=====================
     public float distance = 250.0f;
     public float speed = 5.0f;
@@ -20,10 +19,6 @@ public class BrainCamera : MonoBehaviour
     public void initCameraPosition()
     {
         Brain3DHandle = GameObject.Find("BrainGameObject");
-        BaseMaterialTransparency = Resources.Load("Materials/Brain-TransparencyStencil", typeof(Material)) as Material;
-        brainRenderer = Brain3DHandle.transform.GetComponentsInChildren<MeshRenderer>();
-        brainRenderer[0].GetComponent<Renderer>().material = Instantiate(BaseMaterialTransparency);
-        brainRenderer[1].GetComponent<Renderer>().material = Instantiate(BaseMaterialTransparency);
 
         //== Check parameters integrity
         if (distance < minDistance)
@@ -52,7 +47,7 @@ public class BrainCamera : MonoBehaviour
             distance = maxDistance;
 
         Brain3DHandle.transform.position += new Vector3(-1000, 0, 0);        // degage le cerveau du canvas et est uniquement rendu par la cam 
-        //Brain3DHandle.transform.Rotate(new Vector3(270, 0, 0));
+        Brain3DHandle.transform.Rotate(new Vector3(270, 0, 0));
         target = Brain3DHandle.transform.position;
         originalTarget = target;
 

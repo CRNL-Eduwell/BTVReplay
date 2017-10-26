@@ -127,9 +127,9 @@ public class PatientManager
                     sw.WriteLine("LH_MNI : " + currentPatients[i].lhemi_MNI);
                     sw.WriteLine("RH_MNI : " + currentPatients[i].rhemi_MNI);
                     sw.WriteLine("PTS_MNI : " + currentPatients[i].pts_MNI);
-                    sw.WriteLine("LH_PAT : " + currentPatients[i].lhemi_MNI);
-                    sw.WriteLine("RH_PAT : " + currentPatients[i].rhemi_MNI);
-                    sw.WriteLine("PTS_PAT : " + currentPatients[i].pts_MNI);
+                    sw.WriteLine("LH_PAT : " + currentPatients[i].lhemi_PAT);
+                    sw.WriteLine("RH_PAT : " + currentPatients[i].rhemi_PAT);
+                    sw.WriteLine("PTS_PAT : " + currentPatients[i].pts_PAT);
                     sw.WriteLine("SM0 : " + currentPatients[i].sm0);
                     sw.WriteLine("SM250 : " + currentPatients[i].sm250);
                     sw.WriteLine("SM500 : " + currentPatients[i].sm500);
@@ -209,7 +209,7 @@ public class PatientManager
 }
 
 public delegate void mediaLoadedEventHandler();
-public delegate void mniBrainLoadEventHandler(string lhemi, string rhemi, string pts);
+public delegate void BrainLoadEventHandler(string lhemi, string rhemi, string pts);
 public delegate void initTrace();
 public delegate void initVideo(string videoPath, int sampFreq, int totalFileDuration);
 public delegate void initPerf(bool init);
@@ -217,7 +217,7 @@ public delegate void initPerf(bool init);
 public class BTVMedia : MonoBehaviour
 {
     public event mediaLoadedEventHandler mediaLoaded;
-    public event mniBrainLoadEventHandler loadMniBrain;
+    public event BrainLoadEventHandler loadBrain;
     public event initTrace loadTrace;
     public event initVideo loadVideo;
     public event initPerf loadPerf;
@@ -485,7 +485,12 @@ public class BTVMedia : MonoBehaviour
         yield return StartCoroutine(c_loadVideo(myPat.video));
         yield return StartCoroutine(c_loadAudio(myPat.video));
 
-        loadMniBrain(myPat.lhemi_MNI, myPat.rhemi_MNI, myPat.pts_MNI);
+        if(myPat.lhemi_MNI != "" && myPat.rhemi_MNI != "" && myPat.pts_MNI !="")
+            loadBrain(myPat.lhemi_MNI, myPat.rhemi_MNI, myPat.pts_MNI);
+        else if(myPat.lhemi_PAT != "" && myPat.rhemi_PAT != "" && myPat.pts_PAT != "")
+            loadBrain(myPat.lhemi_PAT, myPat.rhemi_PAT, myPat.pts_PAT);
+        //LOAD TAPIS DE PERLE 
+
         loadTrace();
 
         yield return Ninja.JumpToUnity;

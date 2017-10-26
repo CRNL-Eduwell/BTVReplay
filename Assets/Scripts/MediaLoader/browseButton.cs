@@ -24,6 +24,6 @@ public class browseButton : MonoBehaviour
 
     void loadFile()
     {
-        inputfield.text = QtGUI_dll.Instance.getOpenFileName(new string[] { "tri", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni" });
+        inputfield.text = QtGUI_dll.Instance.getOpenFileName(new string[] { "tri", "gii", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni" });
     }
 }

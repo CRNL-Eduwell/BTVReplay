@@ -3,6 +3,7 @@
 public class Hemisphere : MonoBehaviour
 {
     Material BaseMaterialDepth = null;
+    Material BaseMaterialTransparency = null;
     Surface surfaceData = null;
     MeshFilter MeshFilter = null;
     Mesh Mesh = null;
@@ -13,6 +14,7 @@ public class Hemisphere : MonoBehaviour
     public void InitializeData(string triFilePath)
     {
         BaseMaterialDepth = Resources.Load("Materials/Brain-DepthStencil", typeof(Material)) as Material; //Recherche dans Assets\Ressources 
+        BaseMaterialTransparency = Resources.Load("Materials/Brain-TransparencyStencil", typeof(Material)) as Material;
         surfaceData = new Surface(triFilePath);
 
         //== Get Mesh vertices and tri inside Meshfilter
@@ -29,6 +31,7 @@ public class Hemisphere : MonoBehaviour
         //== Put Texture on Renderer
         materials[0] = Instantiate(BaseMaterialDepth);
         Renderer.materials = materials;
+        Renderer.material = Instantiate(BaseMaterialTransparency);
 
         Mesh.RecalculateNormals();
     }
