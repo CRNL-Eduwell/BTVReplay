@@ -7,6 +7,10 @@ using CielaSpike;
 
 public class WavReader : CppDLLImportBase
 {
+    public bool filterFileExist
+    {
+        get; set;
+    }
     public int originalSampFreq
     {
         get
@@ -26,7 +30,6 @@ public class WavReader : CppDLLImportBase
         return filteredNbSample(_handle, downsampFreq);
     }
     public float[] filteredData = null;
-    public bool filterDone = false;
 
     string m_wavFilePath = null;
 
@@ -41,7 +44,7 @@ public class WavReader : CppDLLImportBase
             if (new FileInfo(filteredDataPath).Exists)
             {
                 reader.loadAudioFreq(filteredDataPath);
-                reader.filterDone = true;
+                reader.filterFileExist = true;
             }
             resultReader(reader);
             yield return null;
@@ -74,7 +77,7 @@ public class WavReader : CppDLLImportBase
     {
         yield return Ninja.JumpBack;
         filteredData = new float[filteredNumSample(downFreq)];
-        filterDone = (ToHilbert(_handle, freqBand, downFreq, filteredData) == 0);
+        filterFileExist = (ToHilbert(_handle, freqBand, downFreq, filteredData) == 0);
         saveAudioFreq();
         releaseCppHandle();
         yield return Ninja.JumpToUnity;

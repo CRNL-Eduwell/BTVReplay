@@ -142,6 +142,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             hub.traceRemotes[traceID].timeHasChanged -= new timePeriodChangedEventHandler(updateTimeResolution);
             hub.traceRemotes[traceID].gridToggled -= new toggleGridDisplay(displayTimeGrid);
             hub.eventRemote.newEventToShow -= new newEventToShowHandler(addEventToTrace);
+            hub.videoRemote.audioToggled -= new toggleAudioTraceEventHandler(
+                delegate (bool togg)
+                {
+                    lineRendererRMS.gameObject.SetActive(togg);
+                });
 
             warden.plotWasClicked -= new newPlotClicked(plotClicked);
 
@@ -186,6 +191,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         m_eventHolder = gameObject.transform.GetChild(13);
         lineRenderer = gameObject.transform.GetChild(0).GetComponent<LineRenderer>();
         lineRendererRMS = gameObject.transform.GetChild(1).GetComponent<LineRenderer>();
+        lineRendererRMS.gameObject.SetActive(false);
+
         elecLabel = gameObject.transform.GetChild(9).GetComponent<Text>();
         
         eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
@@ -197,9 +204,6 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             maxValChanel = eHandle.maxValues[idCurrentElec];
             hub.traceRemotes[traceID].changeButtonSMColor();
         }
-
-        if (traceID == 0 && media.audioReader.filteredData == null)
-            ring.GetComponent<CoroutineManager>().Add(media.audioReader.ToHilbert("300:100:1300", samplingFreq));
 
         dataArray = new Vector3[numberPoint];
         dataArrayRMS = new Vector3[numberPoint];
@@ -235,6 +239,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         hub.traceRemotes[traceID].timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
         hub.traceRemotes[traceID].gridToggled += new toggleGridDisplay(displayTimeGrid);
         hub.eventRemote.newEventToShow += new newEventToShowHandler(addEventToTrace);
+        hub.videoRemote.audioToggled += new toggleAudioTraceEventHandler(
+            delegate (bool togg)
+            {
+                lineRendererRMS.gameObject.SetActive(togg);
+            });
 
         warden.plotWasClicked += new newPlotClicked(plotClicked);
 
@@ -342,10 +351,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
     void updateDrawRMS(int sampleToLook)
     {
-        if (media.audioReader.filterDone == false)
-            return;
-
-        if (sampleToLook == -1)
+        if (lineRendererRMS.gameObject.activeSelf == false || video.audioWav == null || 
+            video.audioWav.filterFileExist == false || sampleToLook == -1)
             return;
 
         int posInArray = sampleToLook - numberPoint;
@@ -355,7 +362,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         {
             if (i + posInArray >= 0)
             {
-                float value = gain * ((float)media.audioReader.filteredData[i + posInArray]);
+                float value = gain * ((float)video.audioWav.filteredData[i + posInArray]);
                 if (value >= -limitVal && value <= limitVal)
                 {
                     dataArrayRMS[i].y = value;

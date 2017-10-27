@@ -353,7 +353,6 @@ namespace VLCSharp
                 return currentTime + offsetVideoMilliSec;
             }
         }
-
         public long time
         {
             get
@@ -361,7 +360,6 @@ namespace VLCSharp
                 return (long)(currentTime * ((float)eegSampFreq / 1000));
             }
         }
-
         public long videoTime
         {
             get
@@ -369,7 +367,6 @@ namespace VLCSharp
                 return (long)((currentTime - offsetVideoMilliSec) * ((float)eegSampFreq / 1000));
             }
         }
-
         public long totalVideoTime
         {
             get

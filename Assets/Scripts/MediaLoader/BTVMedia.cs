@@ -285,9 +285,6 @@ public class BTVMedia : MonoBehaviour
                 elanFiles[i].Dispose();
         }
 
-        if (audioReader != null) 
-            audioReader.Dispose();
-
         for (int i = 0; i < patientContent.childCount; i += 2)
         {
             Button currentShowMe = patientContent.GetChild(i).GetChild(0).GetComponent<Button>();
@@ -483,13 +480,11 @@ public class BTVMedia : MonoBehaviour
 
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadVideo(myPat.video));
-        yield return StartCoroutine(c_loadAudio(myPat.video));
 
         if(myPat.lhemi_MNI != "" && myPat.rhemi_MNI != "" && myPat.pts_MNI !="")
             loadBrain(myPat.lhemi_MNI, myPat.rhemi_MNI, myPat.pts_MNI);
         else if(myPat.lhemi_PAT != "" && myPat.rhemi_PAT != "" && myPat.pts_PAT != "")
             loadBrain(myPat.lhemi_PAT, myPat.rhemi_PAT, myPat.pts_PAT);
-        //LOAD TAPIS DE PERLE 
 
         loadTrace();
 
@@ -557,39 +552,6 @@ public class BTVMedia : MonoBehaviour
         loadVideo(videoPath, (int)sampFreq, (int)totalDuration);
 
         yield return null;
-    }
-
-    IEnumerator c_loadAudio(string videoPath)
-    {
-        //load audio
-        string[] videoPathSplit = videoPath.Split('.');
-        string audioPath = videoPath.Replace("." + videoPathSplit[videoPathSplit.Length - 1], ".wav");
-        float sampFreq = ELAN.getSamplingFreq(elanFiles);
-
-        if (new FileInfo(audioPath).Exists == false)
-        {
-            yield return Ninja.JumpBack;
-            yield return PrepareAudio(audioPath, videoPath);
-            yield return Ninja.JumpToUnity;
-        }
-        yield return Ninja.JumpBack;
-        yield return loadAudio(audioPath, r => audioReader = r);
-        yield return Ninja.JumpToUnity; //recomm si jamais
-        yield return null;
-    }
-
-    YieldInstruction PrepareAudio(string audioPath, string videoPath)
-    {
-        // I give my callback to the process
-        // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(WavReader.c_extractAudio(audioPath, videoPath));
-    }
-
-    YieldInstruction loadAudio(string audioPath, Action<WavReader> resWav)
-    {
-        // I give my callback to the process
-        // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(WavReader.c_loadAudioFile(audioPath, resWav));
     }
 
     IEnumerator c_loadPOSandPROV(Patient myPat)

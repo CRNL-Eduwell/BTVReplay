@@ -588,18 +588,26 @@ public class eventsOptions : MonoBehaviour
 }
 
 public delegate void offsetVideoChangedEventHandler(float newVal);
+public delegate void toggleAudioTraceEventHandler(bool isTraceOn);
 
 public class videoOptions
 {
     public event offsetVideoChangedEventHandler offsetVideoHasChanged;
+    public event toggleAudioTraceEventHandler audioToggled;
 
     Button removeVideoOffset = null;
     Scrollbar offsetScrollBar = null;
     Button addVideoOffset = null;
     Text videoOffsetLabel = null;
-
     EventTrigger trigger = null;
     float offsetMilliSec = 0;
+    //====
+    Toggle showAudioTrace = null;
+    Button filterAudio = null;
+    Button loadAudio = null;
+    //====
+    VideoPlayer vid = null;
+    CoroutineManager coMana = null;
 
     public videoOptions(GameObject videoOptionsPanel)
     {
@@ -607,7 +615,15 @@ public class videoOptions
         offsetScrollBar = videoOptionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Scrollbar>();
         addVideoOffset = videoOptionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
         videoOffsetLabel = videoOptionsPanel.transform.GetChild(0).GetChild(3).GetComponent<Text>();
+        //==
+        showAudioTrace = videoOptionsPanel.transform.GetChild(1).GetChild(0).GetComponent<Toggle>();
+        filterAudio = videoOptionsPanel.transform.GetChild(1).GetChild(1).GetComponent<Button>();
+        loadAudio = videoOptionsPanel.transform.GetChild(1).GetChild(2).GetComponent<Button>();
+        //==
+        vid = GameObject.Find("PanelR").transform.GetComponent<VideoPlayer>();
+        coMana = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
 
+        //[===]
         removeVideoOffset.onClick.AddListener(() =>
         {
             if (offsetMilliSec - 10 >= -60000)
@@ -618,7 +634,6 @@ public class videoOptions
                 offsetVideoHasChanged(offsetMilliSec);
             }
         });
-
         addVideoOffset.onClick.AddListener(() =>
         {
             if (offsetMilliSec + 10 <= 60000)
@@ -628,6 +643,25 @@ public class videoOptions
                 setOffsetText(offsetMilliSec);
                 offsetVideoHasChanged(offsetMilliSec);
             }
+        });
+        //==
+        showAudioTrace.onValueChanged.AddListener((bool isChecked) => 
+        {
+            audioToggled(isChecked);
+        });
+        filterAudio.onClick.AddListener(() => 
+        {
+            coMana.StartCoroutine(vid.c_filterAudio());
+            filterAudio.interactable = false;
+            loadAudio.interactable = false;
+            showAudioTrace.isOn = true;
+        });
+        loadAudio.onClick.AddListener(() =>
+        {
+            coMana.StartCoroutine(vid.c_loadAudio());
+            filterAudio.interactable = false;
+            loadAudio.interactable = false;
+            showAudioTrace.isOn = true;
         });
 
         trigger = offsetScrollBar.gameObject.AddComponent<EventTrigger>();
@@ -643,6 +677,9 @@ public class videoOptions
     {
         removeVideoOffset.onClick.RemoveAllListeners();
         addVideoOffset.onClick.RemoveAllListeners();
+        showAudioTrace.onValueChanged.RemoveAllListeners();
+        filterAudio.onClick.RemoveAllListeners();
+        loadAudio.onClick.RemoveAllListeners();
 
         for (int i = 0; i < trigger.triggers.Count; i++)
             trigger.triggers[i].callback.RemoveAllListeners();
@@ -662,6 +699,20 @@ public class videoOptions
         int s = ((int)milliSec / 1000) % 60;
         int ms = (int)milliSec - (((int)milliSec / 1000) * 1000);
         videoOffsetLabel.text = "Offset : " + m + "m: " + s + "s:" + ms + "ms";
+    }
+
+    public void setButtonsInteractable(bool value)
+    {
+        if (value)
+        {
+            filterAudio.interactable = true;
+            loadAudio.interactable = false;
+        }
+        else
+        {
+            filterAudio.interactable = false;
+            loadAudio.interactable = true;
+        }
     }
 }
 

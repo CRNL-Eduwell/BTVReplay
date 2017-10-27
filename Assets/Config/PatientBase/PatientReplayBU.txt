@@ -26,8 +26,8 @@ SM500 :
 SM1000 : 
 SM2500 : 
 SM5000 : 
-POS : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/GRE_2014_BARf/GRE_2014_BARf_MARM_ds16.pos
-PROV : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Prov/MARM.prov
+POS : 
+PROV : 
 VID : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/GRE_2014_BARf/GRE_2014_BARf_MARM_R9.mp4
 [----------]
 LH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/MNI_single_hight_Lhemi.tri

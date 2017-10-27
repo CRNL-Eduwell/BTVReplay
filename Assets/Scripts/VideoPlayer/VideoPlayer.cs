@@ -1,12 +1,27 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;//Requiered for Event data.
+using System;
+using System.IO;
+using System.Collections; //IEnumerator
+using CielaSpike;
 
 public delegate void timeVideo(int currentTime);
 public delegate void timeVideoSync(int currentTime);
 
 public class VideoPlayer : MonoBehaviour
 {
+    public WavReader audioWav
+    {
+        get
+        {
+            return _wavReader;
+        }
+        set
+        {
+            _wavReader = value;
+        }
+    }
     public IVideoPlayer videoInterface
     {
         get
@@ -14,6 +29,57 @@ public class VideoPlayer : MonoBehaviour
             return _Iplayer;
         }
     }
+    public float SamplingFrequency
+    {
+        get
+        {
+            return sampFreq;
+        }
+    }
+    public string VideoPath
+    {
+        get
+        {
+            return m_vidPath;
+        }
+        set
+        {
+            m_vidPath = value;
+        }
+    }
+    public string AudioPath
+    {
+        get
+        {
+            string[] videoPathSplit = VideoPath.Split('.');
+            if (videoPathSplit.Length > 0)
+                return VideoPath.Replace("." + videoPathSplit[videoPathSplit.Length - 1], ".wav");
+            else
+                return "";
+        }
+    }
+    public string AudioFilteredPath
+    {
+        get
+        {
+            string[] audioPathSplit = AudioPath.Split('.');
+            if (audioPathSplit.Length > 0)
+                return AudioPath.Replace("." + audioPathSplit[audioPathSplit.Length - 1], "_audio.csv");
+            else
+                return "";
+        }
+    }
+    public bool needAudioProcess
+    {
+        get
+        {
+            if (File.Exists(AudioPath) && File.Exists(AudioFilteredPath))
+                return false;
+            else
+                return true; 
+        }
+    }
+    //==
     public event timeVideo sendTime;
     public event timeVideoSync sendTimeVideo;
 
@@ -33,6 +99,7 @@ public class VideoPlayer : MonoBehaviour
     [SerializeField] Scrollbar loopScroll = null;
     #endregion
 
+    private WavReader _wavReader = null;
     private IVideoPlayer _Iplayer = null;
     private bool scrollbarnotclicked = true, initDone = false, forceMove = false;
     private EventTrigger trigger = null;
@@ -47,6 +114,8 @@ public class VideoPlayer : MonoBehaviour
     private float scrollVal = 0.0f, memSc = 0.0f;
     private long currentTimeScrollBar = 0;
 
+    private string m_vidPath = "";
+
     private void Awake()
     {
         media.loadVideo += new initVideo(init);
@@ -58,6 +127,10 @@ public class VideoPlayer : MonoBehaviour
         if (initDone)
         {
             _Iplayer.cleanup();
+
+            if (_wavReader != null)
+                _wavReader.Dispose();
+
             playPause.onClick.RemoveAllListeners();
             stopButton.onClick.RemoveAllListeners();
             backTime10.onClick.RemoveAllListeners();
@@ -130,6 +203,12 @@ public class VideoPlayer : MonoBehaviour
     #region implement Interface
     void init(string videoPath, int eegSampFreq, int eegFileDurationInSec)
     {
+        VideoPath = videoPath;
+        if (needAudioProcess)
+            hub.videoRemote.setButtonsInteractable(true);
+        else
+            hub.videoRemote.setButtonsInteractable(false);
+
         sampFreq = eegSampFreq;
 
         if (videoPath == "")
@@ -410,6 +489,55 @@ public class VideoPlayer : MonoBehaviour
         keyForceMove = true;
         initForceMoveLoopScroll();
         loopScroll.value += value;
+    }
+    #endregion
+
+    #region WawReader
+    public IEnumerator c_filterAudio()
+    {
+        yield return Ninja.JumpBack;
+        yield return StartCoroutine(c_loadAudio());
+        float sampFreq = ELAN.getSamplingFreq(media.elanFiles);
+        yield return filterAudio(_wavReader, (int)sampFreq);
+        yield return Ninja.JumpToUnity; 
+        yield return null;
+    }
+
+    public IEnumerator c_loadAudio()
+    {
+        string audioPath = AudioPath;
+
+        if (new FileInfo(audioPath).Exists == false)
+        {
+            yield return Ninja.JumpBack;
+            yield return PrepareAudio(audioPath, VideoPath);
+            yield return Ninja.JumpToUnity;
+        }
+        yield return Ninja.JumpBack;
+        yield return loadAudio(audioPath, r => _wavReader = r);
+        yield return Ninja.JumpToUnity; //recomm si jamais
+        yield return null;
+    }
+
+    YieldInstruction PrepareAudio(string audioPath, string videoPath)
+    {
+        // I give my callback to the process
+        // Async needed for another thread and not freezing/laging UI
+        return this.StartCoroutineAsync(WavReader.c_extractAudio(audioPath, videoPath));
+    }
+
+    YieldInstruction loadAudio(string audioPath, Action<WavReader> resWav)
+    {
+        // I give my callback to the process
+        // Async needed for another thread and not freezing/laging UI
+        return this.StartCoroutineAsync(WavReader.c_loadAudioFile(audioPath, resWav));
+    }
+
+    YieldInstruction filterAudio(WavReader wav, int samplingFreq)
+    {
+        // I give my callback to the process
+        // Async needed for another thread and not freezing/laging UI
+        return this.StartCoroutineAsync(wav.ToHilbert("300:100:1300", samplingFreq));
     }
     #endregion
 }
