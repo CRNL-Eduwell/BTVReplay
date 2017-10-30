@@ -14,6 +14,29 @@ public class Surface : CppDLLImportBase
     public int[] idTri;                                              //List of Index number : three vertices used to make one triangle
     private string surfaceFilePath = "";
 
+    public Surface[] split_to_surfaces(int nbSubSurfaces)
+    {
+        HandleRef pSubSurfaces = new HandleRef(this, split_to_surfaces_Surface(_handle, nbSubSurfaces));
+
+        int nbMultiSurface = nb_multiSurface(pSubSurfaces);
+        Surface[] splits = new Surface[nbMultiSurface];
+        for (int ii = 0; ii < nbMultiSurface; ++ii)
+        {
+            splits[ii] = new Surface(move_MultiSurface(pSubSurfaces, ii));
+            float[] verticesArray = new float[3 * get_number_vertices(splits[ii]._handle)];
+            copy_vertices(splits[ii]._handle, verticesArray);
+            //verticesObj = new List<Vector3>(verticesArray.Length / 3);
+            for (int i = 0; i < verticesArray.Length / 3; i++)
+                splits[ii].verticesObj.Add(new Vector3(verticesArray[3 * i], verticesArray[(3 * i) + 1], verticesArray[(3 * i) + 2]));
+
+            splits[ii].idTri = new int[3 * get_number_triangles(splits[ii]._handle)];
+            copy_triangles(splits[ii]._handle, splits[ii].idTri);
+        }
+        
+        delete_MultiSurface(pSubSurfaces);
+        return splits;
+    }
+
     #region memory_management
 
     public Surface(string pathSurfaceFile) : base(pathSurfaceFile)
@@ -27,6 +50,8 @@ public class Surface : CppDLLImportBase
         idTri = new int[3 * get_number_triangles(_handle)];
         copy_triangles(_handle, idTri);
     }
+
+    public Surface(IntPtr surfaceHandle) : base(surfaceHandle) { }
 
     protected override void createDLLClass()
     {
@@ -90,5 +115,20 @@ public class Surface : CppDLLImportBase
 
     [DllImport("BTVReplayLibraryC++", EntryPoint = "delete_Surface", CallingConvention = CallingConvention.Cdecl)]
     static private extern void delete_Surface(HandleRef handle);
+
+    //====
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "split_to_surfaces_Surface", CallingConvention = CallingConvention.Cdecl)]
+    static private extern IntPtr split_to_surfaces_Surface(HandleRef handleSurface, int nbSubSurfaces);
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "nb_multiSurface", CallingConvention = CallingConvention.Cdecl)]
+    static private extern int nb_multiSurface(HandleRef handleSurface);
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "move_MultiSurface", CallingConvention = CallingConvention.Cdecl)]
+    static private extern IntPtr move_MultiSurface(HandleRef handleSurface, int numSurface);
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "delete_MultiSurface", CallingConvention = CallingConvention.Cdecl)]
+    static private extern void delete_MultiSurface(HandleRef handleSurface);
+
     #endregion
 }

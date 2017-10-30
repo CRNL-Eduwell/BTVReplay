@@ -1,38 +1,66 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class Hemisphere : MonoBehaviour
 {
     Material BaseMaterialDepth = null;
     Material BaseMaterialTransparency = null;
-    Surface surfaceData = null;
-    MeshFilter MeshFilter = null;
-    Mesh Mesh = null;
-    MeshRenderer MeshRenderer = null;
-    Renderer Renderer = null;
-    Material[] materials = new Material[1];
+    public List<Surface> surfaceData = new List<Surface>();
+    List<MeshFilter> MeshFilter = new List<MeshFilter>();
+    List<Mesh> Mesh = new List<Mesh>();
+    List<MeshRenderer> MeshRenderer = new List<MeshRenderer>();
+    List<Renderer> Renderer = new List<Renderer>();
+    List<Material[]> materials = new List<Material[]>();
+    public List<GameObject> brainMeshes = new List<GameObject>();
+
+    private void OnDestroy()
+    {
+        for (int i = 0; i < surfaceData.Count; i++)
+            surfaceData[i].Dispose();
+    }
 
     public void InitializeData(string triFilePath)
     {
         BaseMaterialDepth = Resources.Load("Materials/Brain-DepthStencil", typeof(Material)) as Material; //Recherche dans Assets\Ressources 
         BaseMaterialTransparency = Resources.Load("Materials/Brain-TransparencyStencil", typeof(Material)) as Material;
-        surfaceData = new Surface(triFilePath);
+        Surface baseSurface = new Surface(triFilePath);
 
-        //== Get Mesh vertices and tri inside Meshfilter
-        MeshFilter = gameObject.AddComponent<MeshFilter>();
-        Mesh = MeshFilter.mesh;
-        Mesh.vertices = surfaceData.verticesObj.ToArray();
-        Mesh.triangles = surfaceData.idTri;
 
-        //== Create MeshRenderer : Must Do to see the object
-        MeshRenderer = gameObject.AddComponent<MeshRenderer>();
-        Renderer = MeshRenderer.GetComponent<Renderer>();
-        Renderer.enabled = true;
+        int nbSurface = (baseSurface.verticesObj.Count / 65000) + 1;
 
-        //== Put Texture on Renderer
-        materials[0] = Instantiate(BaseMaterialDepth);
-        Renderer.materials = materials;
-        Renderer.material = Instantiate(BaseMaterialTransparency);
+        if (nbSurface > 1)
+        {
+            Surface[] array = baseSurface.split_to_surfaces(nbSurface);
+            for (int i = 0; i < array.Length; i++)
+                surfaceData.Add(array[i]);
+        }
+        else
+        {
+            surfaceData.Add(baseSurface);
+        }
 
-        Mesh.RecalculateNormals();
+        for (int i = 0; i < nbSurface; i++)
+        {
+            GameObject current = new GameObject();
+            //== Get Mesh vertices and tri inside Meshfilter
+            MeshFilter.Add(current.AddComponent<MeshFilter>());
+            Mesh.Add(MeshFilter[i].mesh);
+            Mesh[i].vertices = surfaceData[i].verticesObj.ToArray();
+            Mesh[i].triangles = surfaceData[i].idTri;
+
+            //== Create MeshRenderer : Must Do to see the object
+            MeshRenderer.Add(current.AddComponent<MeshRenderer>());
+            Renderer.Add(MeshRenderer[i].GetComponent<Renderer>());
+            Renderer[i].enabled = true;
+
+            //== Put Texture on Renderer
+            materials.Add(new Material[] { Instantiate(BaseMaterialDepth) });
+            Renderer[i].materials = materials[i];
+            Renderer[i].material = Instantiate(BaseMaterialTransparency);
+
+            Mesh[i].RecalculateNormals();
+            current.name = "Brain " + i;
+            brainMeshes.Add(current);
+        }
     }
 }

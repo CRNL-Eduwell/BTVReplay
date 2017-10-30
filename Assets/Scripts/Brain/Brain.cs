@@ -106,12 +106,18 @@ public class Brain : MonoBehaviour {
         LHBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
         LHBrain.transform.parent = Brain3DHandle.transform;
         LHBrain.layer = Brain3DHandle.layer;
-        LHBrain.GetComponent<Hemisphere>().InitializeData(LHtri);
+        Hemisphere lhemi = LHBrain.GetComponent<Hemisphere>();
+        lhemi.InitializeData(LHtri);
+        for (int i = 0; i < lhemi.brainMeshes.Count; i++)
+            lhemi.brainMeshes[i].transform.parent = LHBrain.transform;
 
         RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
         RHBrain.transform.parent = Brain3DHandle.transform;
         RHBrain.layer = Brain3DHandle.layer;
-        RHBrain.GetComponent<Hemisphere>().InitializeData(RHtri);
+        Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
+        rhemi.InitializeData(RHtri);
+        for(int i = 0; i<rhemi.brainMeshes.Count;i++)
+            rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
 
         Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
         Electrodes.transform.parent = Brain3DHandle.transform;
@@ -133,19 +139,32 @@ public class Brain : MonoBehaviour {
         LHBrain.transform.parent = Brain3DHandle.transform;
         LHBrain.transform.SetSiblingIndex(0);
         LHBrain.transform.localPosition = new Vector3(0, 0, 0);
-        LHBrain.transform.Rotate(new Vector3(-90, 0, 0));
+        LHBrain.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
         LHBrain.layer = Brain3DHandle.layer;
-        LHBrain.GetComponent<Hemisphere>().InitializeData(LHtri);
+        Hemisphere lhemi = LHBrain.GetComponent<Hemisphere>();
+        lhemi.InitializeData(LHtri);
+        for (int i = 0; i < lhemi.brainMeshes.Count; i++)
+        {
+            lhemi.brainMeshes[i].transform.parent = LHBrain.transform;
+            lhemi.brainMeshes[i].transform.localPosition = new Vector3(0, 0, 0);
+            lhemi.brainMeshes[i].transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+        }
 
         Destroy(GameObject.Find("RightHemi"));
         RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
         RHBrain.transform.parent = Brain3DHandle.transform;
         RHBrain.transform.SetSiblingIndex(1);
         RHBrain.transform.localPosition = new Vector3(0, 0, 0);
-        RHBrain.transform.Rotate(new Vector3(-90, 0, 0));
+        RHBrain.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
         RHBrain.layer = Brain3DHandle.layer;
-        RHBrain.GetComponent<Hemisphere>().InitializeData(RHtri);
-
+        Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
+        rhemi.InitializeData(RHtri);
+        for (int i = 0; i < rhemi.brainMeshes.Count; i++)
+        {
+            rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
+            rhemi.brainMeshes[i].transform.localPosition = new Vector3(0, 0, 0);
+            rhemi.brainMeshes[i].transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+        }
         ElectrodesScript.loadPtsFile(PTS);
         ElectrodesScript.updateElecPosition();
     }
