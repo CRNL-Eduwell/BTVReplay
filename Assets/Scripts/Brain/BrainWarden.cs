@@ -221,27 +221,39 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
             var keys = new List<int>(hub.eventRemote.userEvents.Keys);
             var values = new List<eventEeg>(hub.eventRemote.userEvents.Values);
-            List<int> currentIndex = keys.Select((item, index) => new { Item = item, Index = index })
-                                                         .Where(x => x.Item > left && x.Item < right)
-                                                         .Select(x => x.Index)
-                                                         .ToList();
 
-            if (currentIndex.Count > 0)
+            float factor = ((float)curveTrace1.samplingFrequency / 1000);
+            List<int> idOverFlow = values.Select((item, index) => new { Item = item, Index = index })
+                                         .Where(x => (x.Item.sample <= left && (x.Item.sample + (x.Item.duration * factor) >= right)))
+                                         .Select(x => x.Index)
+                                         .ToList();
+
+            List<int> idRightEnter = values.Select((item, index) => new { Item = item, Index = index })
+                                           .Where(x => (x.Item.sample < right && x.Item.sample > left && (x.Item.sample + (x.Item.duration * factor) >= right)))
+                                           .Select(x => x.Index)
+                                           .ToList();
+
+            List<int> idInside = values.Select((item, index) => new { Item = item, Index = index })
+                                       .Where(x => ((x.Item.sample < right) &&
+                                                    (x.Item.sample > left) &&
+                                                    (x.Item.sample + (x.Item.duration * factor) >= left) &&
+                                                    (x.Item.sample + (x.Item.duration * factor) <= right)))
+                                       .Select(x => x.Index)
+                                       .ToList();
+
+            //Union joins and delete duplicates
+            List<int> indexes = idOverFlow.Union(idRightEnter).Union(idInside).ToList();
+
+            changeColorEvent("", Color.white);
+            for (int i = 0; i < indexes.Count; i++)
             {
-                changeColorEvent("", Color.white);
-                for (int i = 0; i < currentIndex.Count; i++)
-                {
-                    if(keys[currentIndex[i]] < right && right < keys[currentIndex[i]] + values[currentIndex[i]].duration * ((float)curveTrace1.samplingFrequency / 1000))
-                    {
-                        changeColorEvent(values[currentIndex[i]].elecOfInterest, Color.red);
-                        changeColorEvent(values[currentIndex[i]].secondElecOfInterest, Color.blue);
-                    }
-                }
+                changeColorEvent(values[indexes[i]].elecOfInterest, Color.red);
+                changeColorEvent(values[indexes[i]].secondElecOfInterest, Color.blue);
             }
-            else
-            {
-                changeColorEvent("", Color.white);
-            }
+        }
+        else
+        {
+            changeColorEvent("", Color.white);
         }
     }
 }

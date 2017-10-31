@@ -67,7 +67,7 @@ RH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQ
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/MNI/LYONNEURO_2016_SQUt_MNI.pts
 LH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/PAT/LYONNEURO_2016_SQUt_Lhemi.gii
 RH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/PAT/LYONNEURO_2016_SQUt_Rhemi.gii
-PTS_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/PAT/LYONNEURO_2016_SQUt_T1Post_2016-2-5.pts
+PTS_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa.pts
 SM0 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MARD_f50f150_ds8_sm0.eeg
 SM250 : 
 SM500 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2016_SQUt/LYONNEURO_2016_SQUt_MARD/LYONNEURO_2016_SQUt_MARD_f50f150_ds8_sm500.eeg
@@ -99,7 +99,7 @@ RH_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2017_DA
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2017_DAMa_BTV/MNI/LYONNEURO_2017_DAMa_MNI.pts
 LH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa_Lhemi.gii
 RH_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa_Rhemi.gii
-PTS_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa_T1Post_2017-10-11.pts
+PTS_PAT : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa.pts
 SM0 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2017_DAMa_BTV/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm0.eeg
 SM250 : D:/Users/Florian/Documents/Arbeit/2) Loca Patient/BTV/LYONNEURO_2017_DAMa_BTV/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm250.eeg
 SM500 : 
