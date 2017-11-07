@@ -5,71 +5,157 @@ using System.Collections.Generic;
 
 public class eventEeg
 {
-    public eventEeg(int code, int sample = -1, int samplingFreq = -1,  int duration = 0, string elecOfInterest = "", string secondElecOfInterest = "", string comment = "")
+    #region Private Members
+    int m_code = -1;
+    int m_sample = -1;
+    int m_samplingFreq = -1;
+    #endregion
+
+    #region Public Properties
+    public int code
     {
-        this.code = code;
-        this.sample = sample;
-        this.samplingFreq = samplingFreq;
-        this.duration = duration;
-        this.elecOfInterest = elecOfInterest;
-        this.secondElecOfInterest = secondElecOfInterest;
-        this.comment = comment;
+        get
+        {
+            return m_code;
+        }
+        set
+        {
+            m_code = value;
+        }
+    }
+    public int sample
+    {
+        get
+        {
+            return m_sample;
+        }
+        set
+        {
+            m_sample = value;
+        }
+    }
+    public int samplingFrequency
+    {
+        get
+        {
+            return m_samplingFreq;
+        }
+        set
+        {
+            m_samplingFreq = value;
+        }
+    }
+    #endregion
+
+    #region Constructors
+    public eventEeg(int code, int sample = -1, int samplingFreq = -1)
+    {
+        m_code = code;
+        m_sample = sample;
+        m_samplingFreq = samplingFreq;
     }
 
     public eventEeg(eventEeg currentEvent)
     {
-        this.code = currentEvent.code;
-        this.sample = currentEvent.sample;
-        this.samplingFreq = currentEvent.samplingFreq;
-        this.timeMs = currentEvent.timeMs;
-        this.duration = currentEvent.duration;
-        this.elecOfInterest = currentEvent.elecOfInterest;
-        this.secondElecOfInterest = currentEvent.secondElecOfInterest;
-        this.comment = currentEvent.comment;
+        m_code = currentEvent.m_code;
+        m_sample = currentEvent.m_sample;
+        m_samplingFreq = currentEvent.m_samplingFreq;
     }
+    #endregion
 
-    public float getTimeSec()
+    #region Public Methods
+    public float timeSec()
     {
-        return (float)sample / samplingFreq;
+        return (float)m_sample / m_samplingFreq;
     }
 
-    public float getTimeMSec()
+    public float timeMilliSec()
     {
-        return getTimeSec() * 1000;
+        return timeSec() * 1000;
     }
-
-    public int code = -1;
-    public int sample = -1;
-    public int samplingFreq = -1;
-    public int timeMs = -1;
-    public int duration = 0;
-    public string elecOfInterest = "";
-    public string secondElecOfInterest = "";
-    public string comment = "";
+    #endregion
 }
 
 public class trigg
 {
+    #region Private Members
+    eventEeg m_trigger;
+    eventEeg m_response;
+    int m_rtSample = -1;
+    int m_rtMs = -1;
+    #endregion
+
+    #region Public Properties
+    public eventEeg trigger
+    {
+        get
+        {
+            return m_trigger;
+        }
+        set
+        {
+            m_trigger = value;
+        }
+    }
+
+    public eventEeg response
+    {
+        get
+        {
+            return m_response;
+        }
+        set
+        {
+            m_response = value;
+        }
+    }
+
+    public int rtSample
+    {
+        get
+        {
+            return m_rtSample = m_response.sample - m_trigger.sample;
+        }
+        set
+        {
+            m_rtSample = value;
+        }
+    }
+    #endregion
+
+    #region Constructors
     public trigg(trigg trigger)
     {
-        this.trigger = new eventEeg(trigger.trigger);
-        this.response = new eventEeg(trigger.response);
+        m_trigger = new eventEeg(trigger.trigger);
+        m_response = new eventEeg(trigger.response);
     }
 
     public trigg(eventEeg trigger)
     {
-        this.trigger = new eventEeg(trigger);
+        m_trigger = new eventEeg(trigger);
     }
 
     public trigg(eventEeg trigger, eventEeg response)
     {
-        this.trigger = new eventEeg(trigger);
-        this.response = new eventEeg(response);
+        m_trigger = new eventEeg(trigger);
+        m_response = new eventEeg(response);
     }
 
     ~trigg()
     {
 
+    }
+    #endregion
+
+    #region Public Methods
+    public int rtMs(int samplingFreq)
+    {
+        return m_rtMs = ((rtSample / samplingFreq) * 1000);
+    }
+
+    public int rtMs()
+    {
+        return m_rtMs;
     }
 
     public static bool operator !=(trigg c1, trigg c2)
@@ -85,10 +171,20 @@ public class trigg
             return false;
     }
 
-    public eventEeg trigger;
-    public eventEeg response;
-    public int rtSample;
-    public int rtMs;
+    public override bool Equals(object obj)
+    {
+        trigg triggObj = obj as trigg;
+        if (triggObj == null)
+            return false;
+        else
+            return trigger.code.Equals(triggObj.trigger.code);
+    }
+
+    public override int GetHashCode()
+    {
+        return trigger.GetHashCode();
+    }
+    #endregion
 }
 
 public class POS
@@ -121,8 +217,9 @@ public class POS
             int Max = 0;
             for (int i = 0; i < Triggers.Count; i++)
             {
-                if (Triggers[i].rtMs > Max)
-                    Max = Triggers[i].rtMs;
+                int currentRtMs = Triggers[i].rtMs(samplingFreq);
+                if (currentRtMs > Max)
+                    Max = currentRtMs;
             }
             return Max;
         }
@@ -237,10 +334,10 @@ public class POS
 
         for (int i = 0; i < triggersTrimmed.Count; i++)
         {
-            triggersTrimmed[i].trigger.timeMs = (int)(1000 * ((double)triggersTrimmed[i].trigger.sample / samplingFreq));
-            triggersTrimmed[i].response.timeMs = (int)(1000 * ((double)triggersTrimmed[i].response.sample / samplingFreq));
-            triggersTrimmed[i].rtMs = triggersTrimmed[i].response.timeMs - triggersTrimmed[i].trigger.timeMs;
-            triggersTrimmed[i].rtSample = triggersTrimmed[i].response.sample - triggersTrimmed[i].trigger.sample;
+            //triggersTrimmed[i].trigger.timeMilliSec() = (int)(1000 * ((double)triggersTrimmed[i].trigger.sample / samplingFreq));
+            //triggersTrimmed[i].response.timeMs = (int)(1000 * ((double)triggersTrimmed[i].response.sample / samplingFreq));
+            triggersTrimmed[i].rtMs(samplingFreq);
+            //triggersTrimmed[i].rtSample = triggersTrimmed[i].response.sample - triggersTrimmed[i].trigger.sample;
         }
     }
 

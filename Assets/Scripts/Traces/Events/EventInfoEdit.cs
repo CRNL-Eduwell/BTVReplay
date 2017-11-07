@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public delegate void eventValidated(eventEeg validEvent);
-public delegate void eventModifValidated(eventEeg validEvent);
+public delegate void eventValidated(TraceEvent validEvent);
+public delegate void eventModifValidated(TraceEvent validEvent);
 public delegate void imDying();
 
 public class EventInfoEdit : MonoBehaviour
@@ -22,11 +22,11 @@ public class EventInfoEdit : MonoBehaviour
     Button delButton = null;
     Button closeButton = null;
 
-    eventEeg myCurrentEvent = null;
+    TraceEvent myCurrentEvent = null;
 
-	public void init(eventEeg clickedEvent, eventEeg memoryEvent, bool isModif)
+	public void init(TraceEvent clickedEvent, TraceEvent memoryEvent, bool isModif)
     {
-        myCurrentEvent = new eventEeg(clickedEvent);
+        myCurrentEvent = new TraceEvent(clickedEvent);
 
         timeText = transform.GetChild(0).GetChild(1).GetComponent<Text>();
         codeInputField = transform.GetChild(0).GetChild(3).GetComponent<InputField>();
@@ -37,7 +37,7 @@ public class EventInfoEdit : MonoBehaviour
         closeButton = transform.GetChild(0).GetChild(10).GetComponent<Button>();
 
         //int timeInSec = myCurrentEvent.sample / 64;
-        int timeInSec = (int)myCurrentEvent.getTimeSec();
+        int timeInSec = (int)myCurrentEvent.timeSeconds();
         int h = timeInSec / 3600;
         int m = (timeInSec / 60) % 60;
         int s = timeInSec % 60;
@@ -87,7 +87,7 @@ public class EventInfoEdit : MonoBehaviour
         closeButton.onClick.RemoveAllListeners();
     }
 
-    void initValueUI(eventEeg currentEvent)
+    void initValueUI(TraceEvent currentEvent)
     {
         codeInputField.text = currentEvent.code.ToString();
         durationInputField.text = currentEvent.duration.ToString();

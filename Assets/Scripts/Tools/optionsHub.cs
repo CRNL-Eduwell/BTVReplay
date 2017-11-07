@@ -1,16 +1,21 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;//Requiered for Event data.
+
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.EventSystems;//Requiered for Event data.
+using System.Runtime.InteropServices;
 
-public delegate void newEventToShowHandler(eventEeg newEvent, int id);
+using CielaSpike;
+
+public delegate void newEventToShowHandler(TraceEvent newEvent, int id);
 
 public class eventsOptions : MonoBehaviour
 {
-    public SortedList<int, eventEeg> userEvents
+    public SortedList<int, TraceEvent> userEvents
     {
         get
         {
@@ -26,11 +31,12 @@ public class eventsOptions : MonoBehaviour
     VideoPlayer v = null;
     TraceCurve win1 = null;
     TraceCurve win2 = null;
+    CoroutineManager coMana = null;
     EventInfoEdit infoEdit = null;
     EventInfoDisplay infoDisp = null;
     int traceIDCalled = 0;
-    eventEeg eventCalled = null;
-    eventEeg eventMemory = null;
+    TraceEvent eventCalled = null;
+    TraceEvent eventMemory = null;
 
     Button activateEventsButton = null;
     Text activateEventText = null;
@@ -39,7 +45,7 @@ public class eventsOptions : MonoBehaviour
     Button loadEvents = null;
 
     public bool addEvent = false;
-    SortedList<int, eventEeg> events = new SortedList<int, eventEeg>();
+    SortedList<int, TraceEvent> events = new SortedList<int, TraceEvent>();
 
     GameObject scrollObj = null;
     Texture2D scrollOrig = null, scrollTex = null;
@@ -58,6 +64,7 @@ public class eventsOptions : MonoBehaviour
         v = GameObject.Find("PanelR").GetComponent<VideoPlayer>();
         win1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
         win2 = GameObject.Find("Trace2Window").GetComponent<TraceCurve>();
+        coMana = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
         scrollObj = GameObject.Find("TimeScrollBar");
         scrollTex = Instantiate(scrollOrig);
         //==
@@ -123,7 +130,7 @@ public class eventsOptions : MonoBehaviour
             activateEventText.text = "Start Adding Events";
     }
 
-    void openEventAddUI(eventEeg currentEvent, int traceID)
+    void openEventAddUI(TraceEvent currentEvent, int traceID)
     {
         if (addEvent)
         {
@@ -154,7 +161,7 @@ public class eventsOptions : MonoBehaviour
         }
     }
 
-    void openEventModifyUI(eventEeg currentEvent, int traceID)
+    void openEventModifyUI(TraceEvent currentEvent, int traceID)
     {
         traceIDCalled = traceID;
         eventCalled = currentEvent;
@@ -181,7 +188,7 @@ public class eventsOptions : MonoBehaviour
         }
     }
 
-    void openEventDisplayUI(eventEeg currentEvent, int traceID)
+    void openEventDisplayUI(TraceEvent currentEvent, int traceID)
     {
         traceIDCalled = traceID;
         if (infoDisp == null && infoEdit == null)
@@ -201,11 +208,15 @@ public class eventsOptions : MonoBehaviour
             {
                 openEventModifyUI(eventToEdit, traceIDCalled);
             });
+            infoDisp.processCorrelation += new calculateCorrelation((TraceEvent e) => 
+            {
+                StartCoroutine(calcCorr(e));
+            });
             infoDisp.aaaagh += new imDying(removeConnectionDispUI);
         }
     }
 
-    void deleteEvents(eventEeg eventToDelete, int traceID)
+    void deleteEvents(TraceEvent eventToDelete, int traceID)
     {
         removeEventToTexture(eventToDelete);
         //Debug.Log("del ev " + eventToDelete.sample);
@@ -234,9 +245,9 @@ public class eventsOptions : MonoBehaviour
         }
     }
 
-    void eventValidatedForUI(eventEeg currentEvent)
+    void eventValidatedForUI(TraceEvent currentEvent)
     {
-        eventMemory = new eventEeg(currentEvent);
+        eventMemory = new TraceEvent(currentEvent);
 
         events.Add(currentEvent.sample, currentEvent);
         int id = events.IndexOfKey(currentEvent.sample);
@@ -269,7 +280,7 @@ public class eventsOptions : MonoBehaviour
         newEventToShow(currentEvent, id);
     }
 
-    void applyChangeToEvent(eventEeg modifyiedEvent, eventEeg previousEvent)
+    void applyChangeToEvent(TraceEvent modifyiedEvent, TraceEvent previousEvent)
     {
         var eventToChangeObjects = Resources.FindObjectsOfTypeAll<GameObject>().Where(
                                    obj => obj.name == "Event - " + previousEvent.sample);
@@ -281,6 +292,10 @@ public class eventsOptions : MonoBehaviour
             int memDuration = events.Values[id].duration;
             events.Values[id].code = modifyiedEvent.code;
             events.Values[id].comment = modifyiedEvent.comment;
+
+            if (modifyiedEvent.duration != events.Values[id].duration)
+                events.Values[id].correlationArray = null;
+
             events.Values[id].duration = modifyiedEvent.duration;
             addEventToTexture(events.Values[id]);
 
@@ -308,7 +323,7 @@ public class eventsOptions : MonoBehaviour
         {
             using (StreamWriter sw = new StreamWriter(btvPosFile))
             {
-                foreach (KeyValuePair<int, eventEeg> kvp in events)
+                foreach (KeyValuePair<int, TraceEvent> kvp in events)
                 {
                     sw.Write(kvp.Value.sample.ToString().PadRight(10));
                     sw.Write(kvp.Value.code.ToString().PadRight(10));
@@ -329,7 +344,7 @@ public class eventsOptions : MonoBehaviour
         {
             using (StreamWriter sw = new StreamWriter(btvPosFile))
             {
-                foreach (KeyValuePair<int, eventEeg> kvp in events)
+                foreach (KeyValuePair<int, TraceEvent> kvp in events)
                 {
                     int timeInSec = kvp.Value.sample / win1.samplingFrequency;
                     int h = timeInSec / 3600;
@@ -375,7 +390,7 @@ public class eventsOptions : MonoBehaviour
 
     void loadEventList()
     {
-        List<eventEeg> eventLoaded = null;
+        List<TraceEvent> eventLoaded = null;
         string pathFile = QtGUI_dll.Instance.getOpenFileName(new string[] { "btv", "pos" });
         string[] pathSplit = pathFile.Split(new char[] { '.' });
 
@@ -393,21 +408,24 @@ public class eventsOptions : MonoBehaviour
             eventValidatedForUI(eventLoaded[i]);
     }
 
-    List<eventEeg> loadBTVFile(string pathFile)
+    List<TraceEvent> loadBTVFile(string pathFile)
     {
         try
         {
             using (StreamReader sr = new StreamReader(pathFile))
             {
-                List<eventEeg> eventLoaded = new List<eventEeg>();
+                List<TraceEvent> eventLoaded = new List<TraceEvent>();
                 string r;
 
                 while ((r = sr.ReadLine()) != null)
                 {
                     //the regex mean you split by everything but a single white space
-                    string[] resultSplit = System.Text.RegularExpressions.Regex.Split(r, @"\s{2,}");  
+                    string[] resultSplit = System.Text.RegularExpressions.Regex.Split(r, @"\s{2,}");
                     if (resultSplit.Count() == 7)
-                        eventLoaded.Add(new eventEeg(int.Parse(resultSplit[2]), int.Parse(resultSplit[3]), -1, int.Parse(resultSplit[4]), resultSplit[5], resultSplit[6], resultSplit[1]));
+                    {
+                        eventEeg currentEvent = new eventEeg(int.Parse(resultSplit[2]), int.Parse(resultSplit[3]), -1);
+                        eventLoaded.Add(new TraceEvent(currentEvent, int.Parse(resultSplit[4]), resultSplit[5], resultSplit[6], resultSplit[1]));
+                    }
                 }
                 sr.Close();
                 return eventLoaded;
@@ -417,17 +435,17 @@ public class eventsOptions : MonoBehaviour
         {
             Console.WriteLine("The btv file could not be read:");
             Console.WriteLine(e.Message);
-            return new List<eventEeg>();
+            return new List<TraceEvent>();
         }
     }
 
-    List<eventEeg> loadPOSFile(string pathFile)
+    List<TraceEvent> loadPOSFile(string pathFile)
     {
         try
         {
             using (StreamReader sr = new StreamReader(pathFile))
             {
-                List<eventEeg> eventLoaded = new List<eventEeg>();
+                List<TraceEvent> eventLoaded = new List<TraceEvent>();
                 string r;
 
                 while ((r = sr.ReadLine()) != null)
@@ -435,7 +453,7 @@ public class eventsOptions : MonoBehaviour
                     string[] resultSplit = r.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                     if (resultSplit.Count() == 3)
                     {
-                        eventLoaded.Add(new eventEeg(int.Parse(resultSplit[1]),int.Parse(resultSplit[0])));
+                        eventLoaded.Add(new TraceEvent(new eventEeg(int.Parse(resultSplit[1]),int.Parse(resultSplit[0]))));
                     }
                 }
                 sr.Close();
@@ -446,7 +464,7 @@ public class eventsOptions : MonoBehaviour
         {
             Console.WriteLine("The pos file could not be read:");
             Console.WriteLine(e.Message);
-            return new List<eventEeg>();
+            return new List<TraceEvent>();
         }
     }
 
@@ -474,11 +492,15 @@ public class eventsOptions : MonoBehaviour
         {
             openEventAddUI(eventToEdit, traceIDCalled);
         });
+        infoDisp.processCorrelation -= new calculateCorrelation((TraceEvent e) =>
+        {
+            StartCoroutine(calcCorr(e));
+        });
         infoDisp.aaaagh -= new imDying(removeConnectionDispUI);
         infoDisp = null;
     }
 
-    void addEventToTexture(eventEeg currentEvent)
+    void addEventToTexture(TraceEvent currentEvent)
     {
         float perC = ((((float)currentEvent.sample / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
         int pixelID = (int)(perC * scrollTex.width);
@@ -511,7 +533,7 @@ public class eventsOptions : MonoBehaviour
         scrollTex.Apply();
     }
 
-    void removeEventToTexture(eventEeg currentEvent)
+    void removeEventToTexture(TraceEvent currentEvent)
     {
         float perC = ((((float)currentEvent.sample / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
         int pixelID = (int)(perC * scrollTex.width);
@@ -585,8 +607,32 @@ public class eventsOptions : MonoBehaviour
             }
         }
     }
-}
 
+    IEnumerator calcCorr(TraceEvent currentEvent)
+    {
+        yield return Ninja.JumpBack;
+        coMana.StartCoroutine(c_correlation(currentEvent));
+        yield return Ninja.JumpToUnity;
+    }
+
+    IEnumerator c_correlation(TraceEvent currentEvent)
+    {
+        int nbElec = win1.fileHandle.electList.Count;
+        int id = events.IndexOfKey(currentEvent.sample);
+        int idBase = win1.fileHandle.electList.FindIndex(x => x == currentEvent.elecOfInterest);
+        events.Values[id].correlationArray = new float[nbElec];
+        int beginSample = events.Values[id].sample;
+        int durationSample = (events.Values[id].duration / 1000) * events.Values[id].samplingFrequency;
+        int[] sizes = new int[5] { idBase, nbElec, beginSample, durationSample, win1.fileHandle.nbSam };
+        pearsonCoefficientsCorrelation(events.Values[id].correlationArray, win1.fileHandle.eegData, sizes);
+        yield return null;
+    }
+
+    #region DLLImport
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "pearsonCoefficientsCorrelation", CallingConvention = CallingConvention.Cdecl)]
+    static private extern void pearsonCoefficientsCorrelation(float[] coeffs, float[] eegData, int[] sizes);
+    #endregion
+}
 public delegate void offsetVideoChangedEventHandler(float newVal);
 public delegate void toggleAudioTraceEventHandler(bool isTraceOn);
 
@@ -1155,7 +1201,6 @@ public class UIOption
         nameText = buttonsPanel.transform.GetChild(idOpt).GetChild(0).GetComponent<Text>();
         options = contentPanel.transform.GetChild(idOpt).gameObject;
 
-
         showButton.onClick.AddListener(() =>
         {
             if (optionsPanel.activeSelf == false)
@@ -1345,21 +1390,19 @@ public class optionsHub : MonoBehaviour
     }
 
     #region UIMembers
+    //== Pannel Options 
     UIOption brainOpt = null;
-    //UIOption trace1Opt = null;
     UIXOption trace1Opt = null;
-    //UIOption trace2Opt = null;
     UIXOption trace2Opt = null;
     UIOption perfOpt = null;
     UIOption videoOpt = null;
     UIOption eventsOpt = null;
-    //==
+    //== Detailed Options
     brainOptions brainOpts = null;
     traceXOptions[] traceXOpts = new traceXOptions[2];
     perfDataOptions perfOpts = null;
     videoOptions vidOpts = null;
     eventsOptions eventsOpts = null;
-
     #endregion
 
     void Awake()

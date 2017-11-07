@@ -185,7 +185,7 @@ public class TracePerf : MonoBehaviour
                     perfLine[currentIndex[i]].SetActive(true);
                     perfLine[currentIndex[i]].transform.GetComponent<LineRenderer>().SetPosition(0, new Vector3(positionInsideRect, 5, -2));
 
-                    float value = verticalScale * (media.posFile.Triggers[currentIndex[i]].rtMs - 750);
+                    float value = verticalScale * (media.posFile.Triggers[currentIndex[i]].rtMs() - 750);
                     perfLine[currentIndex[i]].transform.GetComponent<LineRenderer>().SetPosition(1, new Vector3(positionInsideRect, value, -2));
                 }
             }

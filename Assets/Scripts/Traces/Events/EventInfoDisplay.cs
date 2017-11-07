@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public delegate void eventToEditHandler(eventEeg eventToEdit);
+public delegate void eventToEditHandler(TraceEvent eventToEdit);
+public delegate void calculateCorrelation(TraceEvent eventCorrelation);
 
 public class EventInfoDisplay : MonoBehaviour
 {
     public event eventToEditHandler editEvent;
+    public event calculateCorrelation processCorrelation;
     public event imDying aaaagh;
 
     Text timeText = null;
@@ -16,13 +18,14 @@ public class EventInfoDisplay : MonoBehaviour
     Text durationText = null;
     Text commentText = null;
     Button editEventButton = null;
+    Button correlationButton = null;
     Button closeButton = null;
 
-    eventEeg myCurrentEvent = null;
+    TraceEvent myCurrentEvent = null;
 
-    public void init(eventEeg clickedEvent)
+    public void init(TraceEvent clickedEvent)
     {
-        myCurrentEvent = new eventEeg(clickedEvent);
+        myCurrentEvent = new TraceEvent(clickedEvent);
 
         timeText = transform.GetChild(0).GetChild(1).GetComponent<Text>();
         elecText = transform.GetChild(0).GetChild(3).GetComponent<Text>();
@@ -30,10 +33,11 @@ public class EventInfoDisplay : MonoBehaviour
         durationText = transform.GetChild(0).GetChild(7).GetComponent<Text>();
         commentText = transform.GetChild(0).GetChild(9).GetComponent<Text>();
         editEventButton = transform.GetChild(0).GetChild(10).GetComponent<Button>();
-        closeButton = transform.GetChild(0).GetChild(11).GetComponent<Button>();
+        correlationButton = transform.GetChild(0).GetChild(11).GetComponent<Button>();
+        closeButton = transform.GetChild(0).GetChild(12).GetComponent<Button>();
 
         //int timeInSec = myCurrentEvent.sample / 64;
-        int timeInSec = (int)myCurrentEvent.getTimeSec();
+        int timeInSec = (int)myCurrentEvent.timeSeconds();
         int h = timeInSec / 3600;
         int m = (timeInSec / 60) % 60;
         int s = timeInSec % 60;
@@ -54,28 +58,35 @@ public class EventInfoDisplay : MonoBehaviour
             Destroy(gameObject);
         });
 
+        correlationButton.onClick.AddListener(() =>
+        {
+            processCorrelation(myCurrentEvent);
+        });
+
         closeButton.onClick.AddListener(() =>
         {
             Destroy(gameObject);
         });
+
+        if (myCurrentEvent.duration > 0)
+            correlationButton.interactable = true;
+        else
+            correlationButton.interactable = false;
     }
 
     void OnDestroy()
     {
         aaaagh();
         editEventButton.onClick.RemoveAllListeners();
+        correlationButton.onClick.RemoveAllListeners();
         closeButton.onClick.RemoveAllListeners();
     }
 
     string returnTimeString(int time)
     {
         if (time < 10)
-        {
             return "0" + time;
-        }
         else
-        {
             return time.ToString();
-        }
     }
 }

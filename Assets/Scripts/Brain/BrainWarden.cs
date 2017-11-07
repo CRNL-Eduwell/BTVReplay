@@ -220,7 +220,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             int right = sampleToLook;
 
             var keys = new List<int>(hub.eventRemote.userEvents.Keys);
-            var values = new List<eventEeg>(hub.eventRemote.userEvents.Values);
+            var values = new List<TraceEvent>(hub.eventRemote.userEvents.Values);
 
             float factor = ((float)curveTrace1.samplingFrequency / 1000);
             List<int> idOverFlow = values.Select((item, index) => new { Item = item, Index = index })
@@ -233,27 +233,52 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
                                            .Select(x => x.Index)
                                            .ToList();
 
-            List<int> idInside = values.Select((item, index) => new { Item = item, Index = index })
-                                       .Where(x => ((x.Item.sample < right) &&
-                                                    (x.Item.sample > left) &&
-                                                    (x.Item.sample + (x.Item.duration * factor) >= left) &&
-                                                    (x.Item.sample + (x.Item.duration * factor) <= right)))
-                                       .Select(x => x.Index)
-                                       .ToList();
-
             //Union joins and delete duplicates
-            List<int> indexes = idOverFlow.Union(idRightEnter).Union(idInside).ToList();
+            List<int> indexes = idOverFlow.Union(idRightEnter).ToList();
 
             changeColorEvent("", Color.white);
             for (int i = 0; i < indexes.Count; i++)
             {
-                changeColorEvent(values[indexes[i]].elecOfInterest, Color.red);
-                changeColorEvent(values[indexes[i]].secondElecOfInterest, Color.blue);
+                if (values[indexes[i]].correlationArray != null)
+                {
+                    for (int j = 0; j < curveTrace1.fileHandle.electList.Count; j++)
+                    {
+                        changeColorEvent(curveTrace1.fileHandle.electList[j], correlationColor(values[indexes[i]].correlationArray[j]));
+                    }
+                }
+                else
+                {
+                    changeColorEvent(values[indexes[i]].elecOfInterest, Color.red);
+                    changeColorEvent(values[indexes[i]].secondElecOfInterest, Color.blue);
+                }
             }
         }
         else
         {
             changeColorEvent("", Color.white);
+        }
+    }
+
+    Color correlationColor(float value)
+    {
+        if (value > 0)
+        {
+            float r = Color.white.r * (1 - value) + Color.red.r * value;
+            float g = Color.white.g * (1 - value) + Color.red.g * value;
+            float b = Color.white.b * (1 - value) + Color.red.b * value;
+            return new Color(r, g, b, 1);
+        }
+        else if (value < 0)
+        {
+            float absVal = Mathf.Abs(value);
+            float r = Color.white.r * (1 - absVal) + Color.blue.r * absVal;
+            float g = Color.white.g * (1 - absVal) + Color.blue.g * absVal;
+            float b = Color.white.b * (1 - absVal) + Color.blue.b * absVal;
+            return new Color(r, g, b, 1);
+        }
+        else
+        {
+            return Color.white;
         }
     }
 }

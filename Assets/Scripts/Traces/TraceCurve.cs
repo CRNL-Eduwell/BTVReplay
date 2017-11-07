@@ -4,9 +4,9 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Linq;
 
-public delegate void eventsClickedHandler(eventEeg newVal, int idWin);
-public delegate void eventsToDisplay(eventEeg newVal, int idWin);
-public delegate void eventsToDelete(eventEeg newVal, int idWin);
+public delegate void eventsClickedHandler(TraceEvent newVal, int idWin);
+public delegate void eventsToDisplay(TraceEvent newVal, int idWin);
+public delegate void eventsToDelete(TraceEvent newVal, int idWin);
 
 public class TraceCurve : MonoBehaviour, IPointerClickHandler
 {
@@ -70,6 +70,13 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         get
         {
             return numberPoint;
+        }
+    }
+    public ELAN fileHandle
+    {
+        get
+        {
+            return eHandle;
         }
     }
 
@@ -417,12 +424,13 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         float sampleClicked = (mostRecentSample - numberPoint) + (perCentX * numberPoint);
         if (sampleClicked >= 0)
         {
-            eventEeg currentEvent = new eventEeg(eventCode, (int)sampleClicked, samplingFreq:samplingFreq, elecOfInterest:elecLabel.text);
+            //eventEeg currentEvent = new eventEeg(eventCode, (int)sampleClicked, samplingFreq:samplingFreq, elecOfInterest:elecLabel.text);
+            TraceEvent currentEvent = new TraceEvent(new eventEeg(eventCode, (int)sampleClicked, samplingFreq), elecOfInterest:elecLabel.text);
             eventWasClicked(currentEvent, traceID);
         }
     }
 
-    void addEventToTrace(eventEeg currentEvent, int id)
+    void addEventToTrace(TraceEvent currentEvent, int id)
     {
         GameObject currentEventToAdd = null;
         if (currentEvent.duration == 0)
@@ -455,7 +463,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             int right = sampleToLook;
 
             var keys = new List<int>(hub.eventRemote.userEvents.Keys);
-            var values = new List<eventEeg>(hub.eventRemote.userEvents.Values);
+            var values = new List<TraceEvent>(hub.eventRemote.userEvents.Values);
 
             List<int> idOverFlow = values.Select((item, index) => new { Item = item, Index = index })
                                          .Where(x => (x.Item.sample <= left && (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= right)))
