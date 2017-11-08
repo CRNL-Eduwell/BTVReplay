@@ -215,11 +215,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         dataArray = new Vector3[numberPoint];
         dataArrayRMS = new Vector3[numberPoint];
 
-        lineRenderer.numPositions = numberPoint;
+        lineRenderer.positionCount = numberPoint;
         lineRenderer.startWidth = 0.04f;
         lineRenderer.endWidth = 0.04f;
 
-        lineRendererRMS.numPositions = numberPoint;
+        lineRendererRMS.positionCount = numberPoint;
         lineRendererRMS.startWidth = 0.04f;
         lineRendererRMS.endWidth = 0.04f;
 
@@ -266,8 +266,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         numberPoint = samplingFreq * periodSec;
         dataArray = new Vector3[numberPoint];
         dataArrayRMS = new Vector3[numberPoint];
-        lineRenderer.numPositions = numberPoint;
-        lineRendererRMS.numPositions = numberPoint;
+        lineRenderer.positionCount = numberPoint;
+        lineRendererRMS.positionCount = numberPoint;
         lineRenderer.sortingOrder = -1;
         lineRendererRMS.sortingOrder = -1;
         updateHorizontalScale(lineRenderer, dataArray);

@@ -481,7 +481,7 @@ public class BTVMedia : MonoBehaviour
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadVideo(myPat.video));
 
-        if(myPat.lhemi_MNI != "" && myPat.rhemi_MNI != "" && myPat.pts_MNI !="")
+        if (myPat.lhemi_MNI != "" && myPat.rhemi_MNI != "" && myPat.pts_MNI !="")
             loadBrain(myPat.lhemi_MNI, myPat.rhemi_MNI, myPat.pts_MNI);
         else if(myPat.lhemi_PAT != "" && myPat.rhemi_PAT != "" && myPat.pts_PAT != "")
             loadBrain(myPat.lhemi_PAT, myPat.rhemi_PAT, myPat.pts_PAT);

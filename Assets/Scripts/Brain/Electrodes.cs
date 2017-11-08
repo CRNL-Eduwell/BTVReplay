@@ -181,10 +181,10 @@ public class Electrodes : MonoBehaviour
     {
         for (int i = 0; i < electrodes.Count; i++)
         {
-            Transform childTransform = gameObject.transform.FindChild(electrodes[i].name);
+            Transform childTransform = gameObject.transform.Find(electrodes[i].name);
             for (int j = 1; j < electrodes[i].plots.Count; j++)
             {
-                Transform currentElec = childTransform.FindChild(electrodes[i].name + electrodes[i].plots[j].id.ToString());
+                Transform currentElec = childTransform.Find(electrodes[i].name + electrodes[i].plots[j].id.ToString());
                 if (currentElec != null)
                 {
                     currentElec.localPosition = new Vector3(-electrodes[i].plots[j].position3D.x,
@@ -204,10 +204,10 @@ public class Electrodes : MonoBehaviour
             int y = 0, z = 0;
 
             x += 5;
-            Transform childTransform = gameObject.transform.FindChild(electrodes[i].name);
+            Transform childTransform = gameObject.transform.Find(electrodes[i].name);
             for (int j = 1; j < electrodes[i].plots.Count; j++)
             {
-                Transform currentElec = childTransform.FindChild(electrodes[i].name + electrodes[i].plots[j].id.ToString());
+                Transform currentElec = childTransform.Find(electrodes[i].name + electrodes[i].plots[j].id.ToString());
                 z -= 5;
                 if (currentElec != null)
                     currentElec.localPosition = new Vector3(x, y, z);
