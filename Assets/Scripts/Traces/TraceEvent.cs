@@ -58,6 +58,10 @@ public class TraceEvent
         {
             return m_elecOfInterest;
         }
+        set
+        {
+            m_elecOfInterest = value;
+        }
     }
     public string secondElecOfInterest
     {

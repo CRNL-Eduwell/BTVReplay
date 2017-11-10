@@ -296,6 +296,12 @@ public class eventsOptions : MonoBehaviour
             if (modifyiedEvent.duration != events.Values[id].duration)
                 events.Values[id].correlationArray = null;
 
+            if (modifyiedEvent.elecOfInterest == "")
+            {
+                modifyiedEvent.elecOfInterest = win1.labelElectrode.text;
+                modifyiedEvent.secondElecOfInterest = win2.labelElectrode.text;
+            }
+
             events.Values[id].duration = modifyiedEvent.duration;
             addEventToTexture(events.Values[id]);
 
@@ -423,7 +429,7 @@ public class eventsOptions : MonoBehaviour
                     string[] resultSplit = System.Text.RegularExpressions.Regex.Split(r, @"\s{2,}");
                     if (resultSplit.Count() == 7)
                     {
-                        eventEeg currentEvent = new eventEeg(int.Parse(resultSplit[2]), int.Parse(resultSplit[3]), -1);
+                        eventEeg currentEvent = new eventEeg(int.Parse(resultSplit[2]), int.Parse(resultSplit[3]), win1.samplingFrequency);
                         eventLoaded.Add(new TraceEvent(currentEvent, int.Parse(resultSplit[4]), resultSplit[5], resultSplit[6], resultSplit[1]));
                     }
                 }
@@ -453,7 +459,7 @@ public class eventsOptions : MonoBehaviour
                     string[] resultSplit = r.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                     if (resultSplit.Count() == 3)
                     {
-                        eventLoaded.Add(new TraceEvent(new eventEeg(int.Parse(resultSplit[1]),int.Parse(resultSplit[0]))));
+                        eventLoaded.Add(new TraceEvent(new eventEeg(int.Parse(resultSplit[1]),int.Parse(resultSplit[0]), win1.samplingFrequency)));
                     }
                 }
                 sr.Close();
@@ -1109,7 +1115,9 @@ public class brainOptions
     public event gainChangedEventHandler gainHasChanged;
     public event brainChangeEventHandler needToChangeBrain;
 
-    Dropdown brainDD = null;
+    Button brainMNI = null;
+    Button brainPAT = null;
+    Button brainELEC = null;
     Button dispFullBrain = null;
     Button dispLeftBrain = null;
     Button dispRightBrain = null;
@@ -1120,7 +1128,9 @@ public class brainOptions
 
     public brainOptions(GameObject brainOptionsPanel)
     {
-        brainDD = brainOptionsPanel.transform.GetChild(0).GetComponent<Dropdown>();
+        brainMNI = brainOptionsPanel.transform.GetChild(0).GetChild(0).GetComponent<Button>();
+        brainPAT = brainOptionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Button>();
+        brainELEC = brainOptionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
         dispFullBrain = brainOptionsPanel.transform.GetChild(1).GetComponent<Button>();
         dispLeftBrain = brainOptionsPanel.transform.GetChild(2).GetComponent<Button>();
         dispRightBrain = brainOptionsPanel.transform.GetChild(3).GetComponent<Button>();
@@ -1128,7 +1138,18 @@ public class brainOptions
         gainAdd = brainOptionsPanel.transform.GetChild(4).GetChild(1).GetComponent<Button>();
         gainRemove = brainOptionsPanel.transform.GetChild(4).GetChild(2).GetComponent<Button>();
 
-        brainDD.onValueChanged.AddListener((int value) => needToChangeBrain(value));
+        brainMNI.onClick.AddListener(()=>
+        {
+            changeBrainDisplay(0);
+        });
+        brainPAT.onClick.AddListener(() =>
+        {
+            changeBrainDisplay(1);
+        });
+        brainELEC.onClick.AddListener(() =>
+        {
+            changeBrainDisplay(2);
+        });
 
         dispFullBrain.onClick.AddListener(() => Brain.changeVisuBrain(0));
         dispLeftBrain.onClick.AddListener(() => Brain.changeVisuBrain(-1));
@@ -1154,7 +1175,9 @@ public class brainOptions
 
     ~brainOptions()
     {
-        brainDD.onValueChanged.RemoveAllListeners();
+        brainMNI.onClick.RemoveAllListeners();
+        brainPAT.onClick.RemoveAllListeners();
+        brainELEC.onClick.RemoveAllListeners();
         dispFullBrain.onClick.RemoveAllListeners();
         dispLeftBrain.onClick.RemoveAllListeners();
         dispRightBrain.onClick.RemoveAllListeners();
@@ -1167,6 +1190,11 @@ public class brainOptions
         dispFullBrain.interactable = isInteractable;
         dispLeftBrain.interactable = isInteractable;
         dispRightBrain.interactable = isInteractable;
+    }
+
+    void changeBrainDisplay(int idDisplay)
+    {
+        needToChangeBrain(idDisplay);
     }
 }
 
