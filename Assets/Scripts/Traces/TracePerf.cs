@@ -139,7 +139,7 @@ public class TracePerf : MonoBehaviour
 
     void updateScales()
     {
-        horizontalScale = m_rectTransform.rect.width / numberPoint;
+        horizontalScale = (m_rectTransform.rect.width - 10) / numberPoint;
         verticalScale = m_rectTransform.rect.height / media.posFile.rtMsMax;
     }
 
@@ -156,31 +156,19 @@ public class TracePerf : MonoBehaviour
         int rightTime = sampleToLook;
 
         List<int> currentIndex = media.posFile.Triggers.Select((item, index) => new { Item = item, Index = index })
-                                                         .Where(x => x.Item.trigger.sample > leftTime && x.Item.trigger.sample < rightTime)
+                                                         .Where(x => x.Item.response.sample > leftTime && x.Item.response.sample < rightTime)
                                                          .Select(x => x.Index)
                                                          .ToList();
 
         if (currentIndex.Count != 0)
         {
-            for (int i = currentIndex[0] - 1; i >= 0; i--)
-            {
-                if (perfLine[i].activeSelf == true)
-                    perfLine[i].SetActive(false);
-            }
-
-
-            for (int i = currentIndex[currentIndex.Count - 1] + 1; i < perfLine.Count; i++)
-            {
-                if (perfLine[i].activeSelf == true)
-                    perfLine[i].SetActive(false);
-            }
-
+            deactivateSpawn();
             for (int i = 0; i < currentIndex.Count; i++)
             {
-                float sampleEventPlusResp = (media.posFile.Triggers[currentIndex[i]].trigger.sample + media.posFile.Triggers[currentIndex[i]].rtSample);
-                float positionInsideRect = (leftTime - sampleEventPlusResp) * -horizontalScale;
+                float posiionSample = (leftTime - media.posFile.Triggers[currentIndex[i]].response.sample);
+                float positionInsideRect = posiionSample * -horizontalScale;
 
-                if (sampleEventPlusResp <= rightTime)
+                if (media.posFile.Triggers[currentIndex[i]].response.sample <= rightTime)
                 {
                     perfLine[currentIndex[i]].SetActive(true);
                     perfLine[currentIndex[i]].transform.GetComponent<LineRenderer>().SetPosition(0, new Vector3(positionInsideRect, 5, -2));
@@ -192,14 +180,17 @@ public class TracePerf : MonoBehaviour
         }
         else //No New obj, we clean if there is some left
         {
-            List<GameObject> activeObj = perfLine.FindAll(x => x.activeSelf == true);
-            if (activeObj.Count > 0)
-            {
-                for (int i = 0; i < activeObj.Count; i++)
-                {
-                    activeObj[i].SetActive(false);
-                }
-            }
+            deactivateSpawn();
+        }
+    }
+
+    void deactivateSpawn()
+    {
+        List<GameObject> activeObj = perfLine.FindAll(x => x.activeSelf == true);
+        if (activeObj.Count > 0)
+        {
+            for (int i = 0; i < activeObj.Count; i++)
+                activeObj[i].SetActive(false);
         }
     }
 
