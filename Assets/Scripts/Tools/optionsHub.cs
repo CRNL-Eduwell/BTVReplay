@@ -1065,22 +1065,14 @@ public class traceXOptions
 
     void addGain()
     {
-        if (gain + 1 == 0)
-            gain += 2;
-        else
-            gain += 1;
-
+        gain += 1;
         gainLabel.text = "Gain : " + gain;
         gainHasChanged(gain);
     }
 
     void removeGain()
     {
-       if (gain - 1 == 0)
-            gain -= 2;
-        else
-            gain -= 1;
-
+        gain -= 1;
         gainLabel.text = "Gain : " + gain;
         gainHasChanged(gain);
     }
