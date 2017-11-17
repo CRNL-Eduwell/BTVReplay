@@ -141,14 +141,12 @@ public class eventsOptions : MonoBehaviour
                 if (traceID == 0)
                 {
                     addUI.transform.SetParent(win1.gameObject.transform);
-                    if (win2.gameObject.activeSelf)
-                        currentEvent.secondElecOfInterest = win2.labelElectrode.text;
+                    currentEvent.secondElecOfInterest = win2.labelElectrode.text;
                 }
                 else
                 {
                     addUI.transform.SetParent(win2.gameObject.transform);
-                    if (win1.gameObject.activeSelf)
-                        currentEvent.secondElecOfInterest = win1.labelElectrode.text;
+                    currentEvent.secondElecOfInterest = win1.labelElectrode.text;
                 }
                 addUI.transform.localScale = new Vector3(1, 1, 1);
                 addUI.transform.localPosition = new Vector3(0, 0, -402);
