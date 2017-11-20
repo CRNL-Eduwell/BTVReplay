@@ -641,13 +641,16 @@ public class eventsOptions : MonoBehaviour
     static private extern void pearsonCoefficientsCorrelation(float[] coeffs, float[] eegData, int[] sizes);
     #endregion
 }
+
 public delegate void offsetVideoChangedEventHandler(float newVal);
 public delegate void toggleAudioTraceEventHandler(bool isTraceOn);
+public delegate void gainAudioChangedEventHandler(int newGain);
 
 public class videoOptions
 {
     public event offsetVideoChangedEventHandler offsetVideoHasChanged;
     public event toggleAudioTraceEventHandler audioToggled;
+    public event gainAudioChangedEventHandler gainAudioHasChanged;
 
     Button removeVideoOffset = null;
     Scrollbar offsetScrollBar = null;
@@ -659,6 +662,11 @@ public class videoOptions
     Toggle showAudioTrace = null;
     Button filterAudio = null;
     Button loadAudio = null;
+    //====
+    Text gainLabel = null;
+    Button gainAddButton = null;
+    Button gainRemoveButton = null;
+    int gain = 1;
     //====
     VideoPlayer vid = null;
     CoroutineManager coMana = null;
@@ -673,6 +681,10 @@ public class videoOptions
         showAudioTrace = videoOptionsPanel.transform.GetChild(1).GetChild(0).GetComponent<Toggle>();
         filterAudio = videoOptionsPanel.transform.GetChild(1).GetChild(1).GetComponent<Button>();
         loadAudio = videoOptionsPanel.transform.GetChild(1).GetChild(2).GetComponent<Button>();
+        //==
+        gainLabel = videoOptionsPanel.transform.GetChild(2).GetChild(0).GetComponent<Text>();
+        gainAddButton = videoOptionsPanel.transform.GetChild(2).GetChild(1).GetComponent<Button>();
+        gainRemoveButton = videoOptionsPanel.transform.GetChild(2).GetChild(2).GetComponent<Button>();
         //==
         vid = GameObject.Find("PanelR").transform.GetComponent<VideoPlayer>();
         coMana = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
@@ -717,7 +729,11 @@ public class videoOptions
             loadAudio.interactable = false;
             showAudioTrace.isOn = true;
         });
-
+        //==
+        gainLabel.text = "Gain : " + gain;
+        gainAddButton.onClick.AddListener(addGain);
+        gainRemoveButton.onClick.AddListener(removeGain);
+        //==
         trigger = offsetScrollBar.gameObject.AddComponent<EventTrigger>();
         EventTrigger.Entry entry2 = new EventTrigger.Entry();
         entry2.eventID = EventTriggerType.PointerUp;
@@ -767,6 +783,20 @@ public class videoOptions
             filterAudio.interactable = false;
             loadAudio.interactable = true;
         }
+    }
+
+    void addGain()
+    {
+        gain += 1;
+        gainLabel.text = "Gain : " + gain;
+        gainAudioHasChanged(gain);
+    }
+
+    void removeGain()
+    {
+        gain -= 1;
+        gainLabel.text = "Gain : " + gain;
+        gainAudioHasChanged(gain);
     }
 }
 

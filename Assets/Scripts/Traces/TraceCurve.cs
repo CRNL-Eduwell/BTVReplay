@@ -116,8 +116,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     int numberPoint = 64 * 10;
     float widthOfGameObject = 0;
     float horizontalScale = 0;
-    float gain = 1;
-    float previousGain = 1;
+    float gain = 1, gainAudio = 1;
+    float previousGain = 1, previousGainAudio = 1;
     float maxValChanel = 0;
     float offsetCoefficient = 0;
     float offsetPerTen = 0;
@@ -155,6 +155,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                 {
                     lineRendererRMS.gameObject.SetActive(togg);
                 });
+            hub.videoRemote.gainAudioHasChanged -= new gainAudioChangedEventHandler(updateAudioGain);
 
             warden.plotWasClicked -= new newPlotClicked(plotClicked);
 
@@ -254,6 +255,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             {
                 lineRendererRMS.gameObject.SetActive(togg);
             });
+        hub.videoRemote.gainAudioHasChanged += new gainAudioChangedEventHandler(updateAudioGain);
 
         warden.plotWasClicked += new newPlotClicked(plotClicked);
 
@@ -327,6 +329,18 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         lineRenderer.SetPositions(dataArray);
     }
 
+    void updateAudioGain(int newGain)
+    {
+        previousGainAudio = gainAudio;
+        gainAudio = newGain;
+
+        for (int i = 0; i < numberPoint; i++)
+        {
+            dataArrayRMS[i].y = (dataArrayRMS[i].y / previousGainAudio) * gainAudio;
+        }
+        lineRendererRMS.SetPositions(dataArrayRMS);
+    }
+
     void updateDraw(int sampleToLook)
     {
         mostRecentSample = sampleToLook;
@@ -372,7 +386,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         {
             if ((i + posInArray >= 0) && (i + posInArray < video.audioWav.filteredData.Length))
             {
-                float value = gain * ((float)video.audioWav.filteredData[i + posInArray]);
+                float value = gainAudio * ((float)video.audioWav.filteredData[i + posInArray]);
                 if (value >= -limitVal && value <= limitVal)
                 {
                     dataArrayRMS[i].y = value;
