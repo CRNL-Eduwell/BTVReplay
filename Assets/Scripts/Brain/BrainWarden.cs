@@ -176,7 +176,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    bool isOver(Vector3 mousePos)
+    public bool isOver(Vector3 mousePos)
     {
         m_rectTransform.GetWorldCorners(worldCornerOfBrainPanel);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
