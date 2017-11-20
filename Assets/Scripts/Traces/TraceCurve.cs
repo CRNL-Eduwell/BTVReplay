@@ -370,7 +370,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
         for (int i = 0; i < numberPoint; i++)
         {
-            if (i + posInArray >= 0)
+            if ((i + posInArray >= 0) && (i + posInArray < video.audioWav.filteredData.Length))
             {
                 float value = gain * ((float)video.audioWav.filteredData[i + posInArray]);
                 if (value >= -limitVal && value <= limitVal)
