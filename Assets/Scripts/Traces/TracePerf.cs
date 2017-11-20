@@ -139,8 +139,8 @@ public class TracePerf : MonoBehaviour
 
     void updateScales()
     {
-        horizontalScale = (m_rectTransform.rect.width - 10) / numberPoint;
-        verticalScale = m_rectTransform.rect.height / media.posFile.rtMsMax;
+        horizontalScale = (m_perfHolder.rect.width) / numberPoint;
+        verticalScale = m_perfHolder.rect.height / media.posFile.rtMsMax;
     }
 
     void updateTimeResolution(int newPeriod)
