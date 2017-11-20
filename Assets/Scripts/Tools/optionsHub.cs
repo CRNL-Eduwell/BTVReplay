@@ -621,9 +621,9 @@ public class eventsOptions : MonoBehaviour
 
     IEnumerator c_correlation(TraceEvent currentEvent)
     {
-        int nbElec = win1.fileHandle.electList.Count;
+        int nbElec = win1.fileHandle.electrodes.Length;
         int id = events.IndexOfKey(currentEvent.sample);
-        int idBase = win1.fileHandle.electList.FindIndex(x => x == currentEvent.elecOfInterest);
+        int idBase = win1.fileHandle.electrodes.ToList().FindIndex(x => x.name == currentEvent.elecOfInterest);
         events.Values[id].correlationArray = new float[nbElec];
         int beginSample = events.Values[id].sample;
         int durationSample = (events.Values[id].duration / 1000) * events.Values[id].samplingFrequency;
@@ -981,10 +981,10 @@ public class traceXOptions
         sonifSoundDropDown.onValueChanged.RemoveAllListeners();
     }
 
-    public void loadElectrodeInPanel(List<string> electrodeList)
+    public void loadElectrodeInPanel(elecFile[] electrodeList)
     {
         deleteElectrodeInPanel();
-        for (int i = 0; i < electrodeList.Count; i++)
+        for (int i = 0; i < electrodeList.Length; i++)
         {
             GameObject currentElectrode = GameObject.Instantiate(elecPlot);
             Button currentElecButton = currentElectrode.GetComponent<Button>();
@@ -1005,8 +1005,8 @@ public class traceXOptions
             });
 
             Text currentElecText = currentElectrode.transform.GetChild(0).GetComponent<Text>();
-            currentElecText.text = electrodeList[i];
-            currentElectrode.name = electrodeList[i];
+            currentElecText.text = electrodeList[i].name;
+            currentElectrode.name = electrodeList[i].name;
             currentElectrode.transform.SetParent(electrodeContentPanel.transform);
             currentElectrode.transform.localScale = new Vector3(1, 1, 1);
         }

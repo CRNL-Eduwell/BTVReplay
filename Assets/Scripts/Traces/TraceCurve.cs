@@ -205,9 +205,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
         samplingFreq = (int)eHandle.sampFreq;
         numberPoint = samplingFreq * periodSec;
-        if (eHandle.electList.Count > 0)
+        if (eHandle.electrodes.Length > 0)
         {
-            elecLabel.text = eHandle.electList[idCurrentElec];
+            elecLabel.text = eHandle.electrodes[idCurrentElec].name;
             maxValChanel = eHandle.maxValues[idCurrentElec];
             hub.traceRemotes[traceID].changeButtonSMColor();
         }
@@ -241,7 +241,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             });
         hub.traceRemotes[traceID].gainHasChanged += new gainChangedEventHandler(updateTraceGain);
         hub.traceRemotes[traceID].offsetHasChanged += new offsetChangedEventHandler(updateTraceOffset);
-        hub.traceRemotes[traceID].loadElectrodeInPanel(eHandle.electList);
+        hub.traceRemotes[traceID].loadElectrodeInPanel(eHandle.electrodes);
         hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeID);
         hub.traceRemotes[traceID].timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
         hub.traceRemotes[traceID].gridToggled += new toggleGridDisplay(displayTimeGrid);
@@ -404,9 +404,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     void updateElectrodeLabel()
     {
         if(gain > 0)
-            elecLabel.text = eHandle.electList[idCurrentElec];
+            elecLabel.text = eHandle.electrodes[idCurrentElec].name;
         else
-            elecLabel.text = " - " + eHandle.electList[idCurrentElec];
+            elecLabel.text = " - " + eHandle.electrodes[idCurrentElec].name;
     }
 
     //===
@@ -585,7 +585,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                 handleOtherTrace.setBorderColor(blue);
             }
 
-            plotClicked(GameObject.Find(eHandle.electList[idCurrentElec].ToLower()));
+            plotClicked(GameObject.Find(eHandle.electrodes[idCurrentElec].name.ToLower()));
         }
         else
         {

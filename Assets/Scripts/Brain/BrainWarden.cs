@@ -241,9 +241,9 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             {
                 if (values[indexes[i]].correlationArray != null)
                 {
-                    for (int j = 0; j < curveTrace1.fileHandle.electList.Count; j++)
+                    for (int j = 0; j < curveTrace1.fileHandle.electrodes.Length; j++)
                     {
-                        changeColorEvent(curveTrace1.fileHandle.electList[j], correlationColor(values[indexes[i]].correlationArray[j]));
+                        changeColorEvent(curveTrace1.fileHandle.electrodes[j].name, correlationColor(values[indexes[i]].correlationArray[j]));
                     }
                 }
                 else

@@ -1,4 +1,9 @@
 ﻿using UnityEngine;
+using System;
+using System.IO;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using VLCSharp;
 
 public class ElecPlotSize : MonoBehaviour
@@ -50,8 +55,8 @@ public class ElecPlotSize : MonoBehaviour
 
         plotObject = GameObject.Find(goName.ToLower());
         mySphereRenderer = plotObject.GetComponent<MeshRenderer>();
-
-        int plotID = eHandle.electList.FindIndex(x => x.ToLower().Equals(plotObject.name));
+        
+        int plotID = eHandle.electrodes.ToList().FindIndex(x => x.name.ToLower().Equals(plotObject.name));
 
         if (plotID != -1)
             bipID = plotID;
