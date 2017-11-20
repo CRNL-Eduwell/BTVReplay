@@ -93,6 +93,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     Transform m_eventHolder = null;
     LineRenderer lineRenderer = null, lineRendererRMS = null;
     Text elecLabel = null;
+    Image elecColor = null;
     ELAN eHandle = null;
     bool initDone = false;
     public List<GameObject> eventsAdded = new List<GameObject>();
@@ -157,7 +158,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
             warden.plotWasClicked -= new newPlotClicked(plotClicked);
 
-            colorpicker.changeColor -= new colorChanged(setColorLineRenderer);
+            colorpicker.changeColor -= new colorChanged(setColors);
 
             hub.traceRemotes[traceID].deleteElectrodeInPanel();
         }
@@ -200,7 +201,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         lineRendererRMS = gameObject.transform.GetChild(1).GetComponent<LineRenderer>();
         lineRendererRMS.gameObject.SetActive(false);
 
-        elecLabel = gameObject.transform.GetChild(9).GetComponent<Text>();
+        elecLabel = gameObject.transform.GetChild(9).GetChild(0).GetComponent<Text>();
+        elecColor = gameObject.transform.GetChild(9).GetChild(1).GetComponent<Image>();
         
         eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
         samplingFreq = (int)eHandle.sampFreq;
@@ -208,6 +210,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         if (eHandle.electrodes.Length > 0)
         {
             elecLabel.text = eHandle.electrodes[idCurrentElec].name;
+            elecColor.gameObject.SetActive(true);
             maxValChanel = eHandle.maxValues[idCurrentElec];
             hub.traceRemotes[traceID].changeButtonSMColor();
         }
@@ -254,7 +257,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
         warden.plotWasClicked += new newPlotClicked(plotClicked);
 
-        colorpicker.changeColor += new colorChanged(setColorLineRenderer);
+        colorpicker.changeColor += new colorChanged(setColors);
 
         initDone = true;
         #endregion
@@ -636,8 +639,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    void setColorLineRenderer(Color color)
+    void setColors(Color color)
     {
+        elecColor.color = color;
         lineRenderer.startColor = color;
         lineRenderer.endColor = color;
     }
