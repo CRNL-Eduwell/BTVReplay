@@ -408,6 +408,10 @@ public class eventsOptions : MonoBehaviour
                 break;
         }
 
+        //if elements already loaded , delete everything
+        for (int i = events.Count - 1; i >= 0; i--)
+            deleteEvents(events.Values.ElementAt(i), -1);
+
         for (int i = 0; i < eventLoaded.Count; i++)
             eventValidatedForUI(eventLoaded[i]);
     }

@@ -278,7 +278,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         }
         else
         {
-            return Color.white;
+            return Color.green;
         }
     }
 }
