@@ -30,8 +30,10 @@ public class WavReader : CppDLLImportBase
         return filteredNbSample(_handle, downsampFreq);
     }
     public float[] filteredData = null;
+    public float[][] filtData2D = null;
 
     string m_wavFilePath = null;
+    int[] winMs = new int[6] { 0, 250, 500, 1000, 2500, 5000 };
 
     public static IEnumerator c_loadAudioFile(string p_wavFilePath, Action<WavReader> resultReader)
     {
@@ -73,13 +75,20 @@ public class WavReader : CppDLLImportBase
         yield return null;
     }
 
-    public IEnumerator ToHilbert(string freqBand, int downFreq)
+    public IEnumerator c_ToHilbert(string freqBand, int downFreq)
     {
         yield return Ninja.JumpBack;
-        filteredData = new float[filteredNumSample(downFreq)];
-        filterFileExist = (ToHilbert(_handle, freqBand, downFreq, filteredData) == 0);
+        filtData2D = new float[6][];
+        for (int i = 0; i < 6; i++)
+            filtData2D[i] = new float[filteredNumSample(downFreq)];
+
+        ToHilbert(_handle, freqBand, downFreq, filtData2D[0]);
+        for (int i = 1; i < 6; i++)
+            convolution(filtData2D[0], filtData2D[i].Length, filtData2D[i], (downFreq * winMs[i]) / 1000); 
+
         saveAudioFreq();
         releaseCppHandle();
+        filterFileExist = true;
         yield return Ninja.JumpToUnity;
     }
 
@@ -90,10 +99,13 @@ public class WavReader : CppDLLImportBase
 
         using (var w = new StreamWriter(filePath))
         {
-            for (int i = 0; i < filteredData.Length; i++)
+            for (int i = 0; i < filtData2D.Length; i++)
             {
-                w.WriteLine(filteredData[i] + ";");
-                w.Flush();
+                for (int j = 0; j < filtData2D[i].Length; j++)
+                {
+                    w.Write(filtData2D[i][j] + ";");
+                }
+                w.Write("\n");
             }
             w.Close();
         }
@@ -103,11 +115,17 @@ public class WavReader : CppDLLImportBase
     {
         using (StreamReader sr = new StreamReader(filePath))
         {
-            string[] resultSplit = sr.ReadToEnd().Split(new char[] { ';', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            filteredData = new float[resultSplit.Length];
-            for (int i = 0; i < filteredData.Length; i++)
-                filteredData[i] = float.Parse(resultSplit[i]);
-
+            string[] resultSplit = sr.ReadToEnd().Split(new char[] {'\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            filtData2D = new float[resultSplit.Length][];
+            for (int i = 0; i < filtData2D.Length; i++)
+            {
+                string[] resultSplit2 = resultSplit[i].Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                filtData2D[i] = new float[resultSplit2.Length];
+                for (int j = 0; j < filtData2D[i].Length; j++)
+                {
+                    filtData2D[i][j] = float.Parse(resultSplit2[j]);
+                }
+            }
             sr.Close();
         }
     }
@@ -145,6 +163,9 @@ public class WavReader : CppDLLImportBase
 
     [DllImport("BTVReplayLibraryC++", EntryPoint = "ToHilbert", CallingConvention = CallingConvention.Cdecl)]
     static private extern int ToHilbert(HandleRef handle, string freqBands, int downFrequency, float[] filteredData);
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "convolution", CallingConvention = CallingConvention.Cdecl)]
+    static private extern void convolution(float[] iinputData, int length, float[] outputData, int coeff);
 
     [DllImport("BTVReplayLibraryC++", EntryPoint = "originalSamplingFreq", CallingConvention = CallingConvention.Cdecl)]
     static private extern int originalSamplingFreq(HandleRef handle);

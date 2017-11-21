@@ -530,14 +530,17 @@ public class VideoPlayer : MonoBehaviour
     {
         // I give my callback to the process
         // Async needed for another thread and not freezing/laging UI
+        //return this.StartCoroutineAsync(WavReader.c_loadAudioFile(audioPath, resWav));
         return this.StartCoroutineAsync(WavReader.c_loadAudioFile(audioPath, resWav));
+
     }
 
     YieldInstruction filterAudio(WavReader wav, int samplingFreq)
     {
         // I give my callback to the process
         // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(wav.ToHilbert("300:100:1300", samplingFreq));
+        //return this.StartCoroutineAsync(wav.ToHilbert("300:100:1300", samplingFreq));
+        return this.StartCoroutineAsync(wav.c_ToHilbert("300:100:1300", samplingFreq));
     }
     #endregion
 }

@@ -645,12 +645,14 @@ public class eventsOptions : MonoBehaviour
 public delegate void offsetVideoChangedEventHandler(float newVal);
 public delegate void toggleAudioTraceEventHandler(bool isTraceOn);
 public delegate void gainAudioChangedEventHandler(int newGain);
+public delegate void idAudioSmChangedEventHandler(int newIdSm);
 
 public class videoOptions
 {
     public event offsetVideoChangedEventHandler offsetVideoHasChanged;
     public event toggleAudioTraceEventHandler audioToggled;
     public event gainAudioChangedEventHandler gainAudioHasChanged;
+    public event idAudioSmChangedEventHandler smAudioHasChanged;
 
     Button removeVideoOffset = null;
     Scrollbar offsetScrollBar = null;
@@ -668,8 +670,14 @@ public class videoOptions
     Button gainRemoveButton = null;
     int gain = 1;
     //====
+    Button[] smButton = null;
+
+    //====
     VideoPlayer vid = null;
     CoroutineManager coMana = null;
+    //====
+    Color hardBlue = new Color(0.6117f, 0.7058f, 0.7960f, 1f);
+    Color softBlue = new Color(0.6117f, 0.7058f, 0.7960f, 0.392156f);
 
     public videoOptions(GameObject videoOptionsPanel)
     {
@@ -685,6 +693,14 @@ public class videoOptions
         gainLabel = videoOptionsPanel.transform.GetChild(2).GetChild(0).GetComponent<Text>();
         gainAddButton = videoOptionsPanel.transform.GetChild(2).GetChild(1).GetComponent<Button>();
         gainRemoveButton = videoOptionsPanel.transform.GetChild(2).GetChild(2).GetComponent<Button>();
+        //==
+        smButton = new Button[6];
+        smButton[0] = videoOptionsPanel.transform.GetChild(3).GetChild(0).GetChild(0).GetComponent<Button>();
+        smButton[1] = videoOptionsPanel.transform.GetChild(3).GetChild(0).GetChild(1).GetComponent<Button>();
+        smButton[2] = videoOptionsPanel.transform.GetChild(3).GetChild(0).GetChild(2).GetComponent<Button>();
+        smButton[3] = videoOptionsPanel.transform.GetChild(3).GetChild(1).GetChild(0).GetComponent<Button>();
+        smButton[4] = videoOptionsPanel.transform.GetChild(3).GetChild(1).GetChild(1).GetComponent<Button>();
+        smButton[5] = videoOptionsPanel.transform.GetChild(3).GetChild(1).GetChild(2).GetComponent<Button>();
         //==
         vid = GameObject.Find("PanelR").transform.GetComponent<VideoPlayer>();
         coMana = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
@@ -734,6 +750,10 @@ public class videoOptions
         gainAddButton.onClick.AddListener(addGain);
         gainRemoveButton.onClick.AddListener(removeGain);
         //==
+        for (int i = 0; i < 6; i++)
+            connectButtonSM(i);
+        changeButtonSMColor(0);
+        //==
         trigger = offsetScrollBar.gameObject.AddComponent<EventTrigger>();
         EventTrigger.Entry entry2 = new EventTrigger.Entry();
         entry2.eventID = EventTriggerType.PointerUp;
@@ -750,6 +770,11 @@ public class videoOptions
         showAudioTrace.onValueChanged.RemoveAllListeners();
         filterAudio.onClick.RemoveAllListeners();
         loadAudio.onClick.RemoveAllListeners();
+        gainAddButton.onClick.RemoveAllListeners();
+        gainRemoveButton.onClick.RemoveAllListeners();
+
+        for (int i = 0; i < 6; i++)
+            smButton[i].onClick.RemoveAllListeners();
 
         for (int i = 0; i < trigger.triggers.Count; i++)
             trigger.triggers[i].callback.RemoveAllListeners();
@@ -797,6 +822,26 @@ public class videoOptions
         gain -= 1;
         gainLabel.text = "Gain : " + gain;
         gainAudioHasChanged(gain);
+    }
+
+    void connectButtonSM(int id)
+    {
+        smButton[id].onClick.AddListener(() => 
+        {
+            smAudioHasChanged(id);
+            changeButtonSMColor(id);
+        });
+    }
+
+    public void changeButtonSMColor(int id = -1)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (i == id)
+                smButton[i].gameObject.GetComponent<Image>().color = hardBlue;
+            else
+                smButton[i].gameObject.GetComponent<Image>().color = softBlue;
+        }
     }
 }
 

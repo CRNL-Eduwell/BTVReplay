@@ -121,6 +121,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     float maxValChanel = 0;
     float offsetCoefficient = 0;
     float offsetPerTen = 0;
+    int idAudioHandle = 0;
     bool gridDisplay = false;
 
     void Awake()
@@ -156,6 +157,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                     lineRendererRMS.gameObject.SetActive(togg);
                 });
             hub.videoRemote.gainAudioHasChanged -= new gainAudioChangedEventHandler(updateAudioGain);
+            hub.videoRemote.smAudioHasChanged -= new idAudioSmChangedEventHandler(
+                delegate (int newID)
+                {
+                    idAudioHandle = newID;
+                });
 
             warden.plotWasClicked -= new newPlotClicked(plotClicked);
 
@@ -256,6 +262,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                 lineRendererRMS.gameObject.SetActive(togg);
             });
         hub.videoRemote.gainAudioHasChanged += new gainAudioChangedEventHandler(updateAudioGain);
+        hub.videoRemote.smAudioHasChanged += new idAudioSmChangedEventHandler(
+            delegate (int newID)
+            {
+                idAudioHandle = newID;
+            });
 
         warden.plotWasClicked += new newPlotClicked(plotClicked);
 
@@ -384,9 +395,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
         for (int i = 0; i < numberPoint; i++)
         {
-            if ((i + posInArray >= 0) && (i + posInArray < video.audioWav.filteredData.Length))
+            if ((i + posInArray >= 0) && (i + posInArray < video.audioWav.filtData2D[idAudioHandle].Length))
             {
-                float value = gainAudio * ((float)video.audioWav.filteredData[i + posInArray]);
+                float value = gainAudio * ((float)video.audioWav.filtData2D[idAudioHandle][i + posInArray]);
                 if (value >= -limitVal && value <= limitVal)
                 {
                     dataArrayRMS[i].y = value;
