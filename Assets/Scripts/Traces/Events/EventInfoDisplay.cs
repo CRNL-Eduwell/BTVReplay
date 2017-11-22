@@ -1,5 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -54,16 +57,20 @@ public class EventInfoDisplay : MonoBehaviour
 
 
         int handleID = ELAN.returnFirstValidHandleId(media.elanFiles);
+        int currentHandle = media.elanFiles[handleID].electrodes.ToList().FindIndex(x => x.name == myCurrentEvent.elecOfInterest);
         elecText.options.Clear();
         for (int i = 0; i < media.elanFiles[handleID].electrodes.Length; i++)
             elecText.options.Add(new Dropdown.OptionData(media.elanFiles[handleID].electrodes[i].name));
+
+
+        elecText.value = currentHandle;
         elecText.transform.GetChild(0).GetComponent<Text>().text = elecText.options[elecText.value].text;
         elecText.onValueChanged.AddListener((int id) =>
         {
             TraceEvent modifyEvent = new TraceEvent(myCurrentEvent);
             modifyEvent.elecOfInterest = elecText.options[id].text;
             eventModifed(modifyEvent, myCurrentEvent);
-            myCurrentEvent.elecOfInterest = elecText.options[id].text;
+            myCurrentEvent = new TraceEvent(modifyEvent);
         });
 
         codeText.text = myCurrentEvent.code.ToString();
