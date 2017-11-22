@@ -24,7 +24,7 @@ public class EventInfoEdit : MonoBehaviour
 
     TraceEvent myCurrentEvent = null;
 
-	public void init(TraceEvent clickedEvent, TraceEvent memoryEvent, bool isModif)
+    public void init(TraceEvent clickedEvent, TraceEvent memoryEvent, bool isModif)
     {
         myCurrentEvent = new TraceEvent(clickedEvent);
 

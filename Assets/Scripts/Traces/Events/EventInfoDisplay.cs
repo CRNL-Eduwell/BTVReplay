@@ -5,15 +5,17 @@ using UnityEngine.UI;
 
 public delegate void eventToEditHandler(TraceEvent eventToEdit);
 public delegate void calculateCorrelation(TraceEvent eventCorrelation);
+public delegate void eventModifPlot(TraceEvent modifyEvent, TraceEvent previousEvent);
 
 public class EventInfoDisplay : MonoBehaviour
 {
     public event eventToEditHandler editEvent;
     public event calculateCorrelation processCorrelation;
+    public event eventModifPlot eventModifed;
     public event imDying aaaagh;
 
     Text timeText = null;
-    Text elecText = null;
+    Dropdown elecText = null;
     Text codeText = null;
     Text durationText = null;
     Text commentText = null;
@@ -22,13 +24,16 @@ public class EventInfoDisplay : MonoBehaviour
     Button closeButton = null;
 
     TraceEvent myCurrentEvent = null;
+    BTVMedia media = null;
 
     public void init(TraceEvent clickedEvent)
     {
+        media = GameObject.Find("Canvas").transform.GetChild(2).GetComponent<BTVMedia>();
+
         myCurrentEvent = new TraceEvent(clickedEvent);
 
         timeText = transform.GetChild(0).GetChild(1).GetComponent<Text>();
-        elecText = transform.GetChild(0).GetChild(3).GetComponent<Text>();
+        elecText = transform.GetChild(0).GetChild(3).GetComponent<Dropdown>();
         codeText = transform.GetChild(0).GetChild(5).GetComponent<Text>();
         durationText = transform.GetChild(0).GetChild(7).GetComponent<Text>();
         commentText = transform.GetChild(0).GetChild(9).GetComponent<Text>();
@@ -47,7 +52,20 @@ public class EventInfoDisplay : MonoBehaviour
         else
             timeText.text = "00:" + returnTimeString(m) + ":" + returnTimeString(s);
 
-        elecText.text = myCurrentEvent.elecOfInterest;
+
+        int handleID = ELAN.returnFirstValidHandleId(media.elanFiles);
+        elecText.options.Clear();
+        for (int i = 0; i < media.elanFiles[handleID].electrodes.Length; i++)
+            elecText.options.Add(new Dropdown.OptionData(media.elanFiles[handleID].electrodes[i].name));
+        elecText.transform.GetChild(0).GetComponent<Text>().text = elecText.options[elecText.value].text;
+        elecText.onValueChanged.AddListener((int id) =>
+        {
+            TraceEvent modifyEvent = new TraceEvent(myCurrentEvent);
+            modifyEvent.elecOfInterest = elecText.options[id].text;
+            eventModifed(modifyEvent, myCurrentEvent);
+            myCurrentEvent.elecOfInterest = elecText.options[id].text;
+        });
+
         codeText.text = myCurrentEvent.code.ToString();
         durationText.text = myCurrentEvent.duration.ToString();
         commentText.text = myCurrentEvent.comment;
@@ -79,6 +97,7 @@ public class EventInfoDisplay : MonoBehaviour
         aaaagh();
         editEventButton.onClick.RemoveAllListeners();
         correlationButton.onClick.RemoveAllListeners();
+        elecText.onValueChanged.RemoveAllListeners();
         closeButton.onClick.RemoveAllListeners();
     }
 

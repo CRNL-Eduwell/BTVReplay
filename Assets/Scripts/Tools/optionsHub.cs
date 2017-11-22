@@ -210,6 +210,10 @@ public class eventsOptions : MonoBehaviour
             {
                 StartCoroutine(calcCorr(e));
             });
+            infoDisp.eventModifed += new eventModifPlot((TraceEvent modifiedOne, TraceEvent previousOne) =>
+            {
+                applyChangeToEvent(modifiedOne, previousOne);
+            });
             infoDisp.aaaagh += new imDying(removeConnectionDispUI);
         }
     }
@@ -288,6 +292,7 @@ public class eventsOptions : MonoBehaviour
             int id = events.IndexOfKey(previousEvent.sample);
             removeEventToTexture(events.Values[id]);
             int memDuration = events.Values[id].duration;
+            events.Values[id].elecOfInterest = modifyiedEvent.elecOfInterest;
             events.Values[id].code = modifyiedEvent.code;
             events.Values[id].comment = modifyiedEvent.comment;
 
@@ -504,6 +509,10 @@ public class eventsOptions : MonoBehaviour
         {
             StartCoroutine(calcCorr(e));
         });
+        infoDisp.eventModifed -= new eventModifPlot((TraceEvent modifiedOne, TraceEvent previousOne) =>
+        {
+            applyChangeToEvent(modifiedOne, previousOne);
+        });
         infoDisp.aaaagh -= new imDying(removeConnectionDispUI);
         infoDisp = null;
     }
@@ -628,6 +637,7 @@ public class eventsOptions : MonoBehaviour
         int nbElec = win1.fileHandle.electrodes.Length;
         int id = events.IndexOfKey(currentEvent.sample);
         int idBase = win1.fileHandle.electrodes.ToList().FindIndex(x => x.name == currentEvent.elecOfInterest);
+
         events.Values[id].correlationArray = new float[nbElec];
         int beginSample = events.Values[id].sample;
         int durationSample = (events.Values[id].duration / 1000) * events.Values[id].samplingFrequency;
