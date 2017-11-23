@@ -59,6 +59,13 @@ public class Patient
         pos = thisPat.pos;
         prov = thisPat.prov;
         video = thisPat.video;
+
+        if (sm0 != "" && patientName == "") patientName = getPatientNameFromPath(sm0);
+        if (sm250 != "" && patientName == "") patientName = getPatientNameFromPath(sm250);
+        if (sm500 != "" && patientName == "") patientName = getPatientNameFromPath(sm500);
+        if (sm1000 != "" && patientName == "") patientName = getPatientNameFromPath(sm1000);
+        if (sm2500 != "" && patientName == "") patientName = getPatientNameFromPath(sm2500);
+        if (sm5000 != "" && patientName == "") patientName = getPatientNameFromPath(sm5000);
     }
 
     public void loadValue(int val, string[] data)
@@ -104,6 +111,12 @@ public class Patient
         pos = thisPat.pos;
         prov = thisPat.prov;
         video = thisPat.video;
+    }
+
+    public static string getPatientNameFromPath(string path)
+    {
+        string[] namesplit = path.Split(new string[] { @"\", "/" }, StringSplitOptions.RemoveEmptyEntries);
+        return namesplit[namesplit.Length - 2];
     }
 }
 
@@ -176,8 +189,7 @@ public class PatientManager
                         string[] splitPath = currentPatSplit[j].Split(new string[] { " : " }, StringSplitOptions.RemoveEmptyEntries);
                         if (indexToLook.IndexOf(j) != -1 && splitPath.Length > 1 && splitPath[1] != "" && nameFound == false)
                         {
-                            string[] namesplit = splitPath[1].Split(new string[] { @"\", "/" }, StringSplitOptions.RemoveEmptyEntries);
-                            currentPat.patientName = namesplit[namesplit.Length - 2];
+                            currentPat.patientName = Patient.getPatientNameFromPath(splitPath[1]);
                             nameFound = true;
                         }
                         currentPat.loadValue(j, splitPath);
@@ -228,7 +240,10 @@ public class BTVMedia : MonoBehaviour
     #endregion
 
     #region UIMembers
-    private Button addPatient = null;           /*||*/     private Button loadThisPat = null;
+    private Button showAddPanel = null;
+    private Image showAddPic = null;
+    private Transform addPatientPanel = null;
+    private Button addPatient = null;           
     //===
     private Transform patientContent = null;    /*||*/
     private GameObject patientTemplate = null;  /*||*/
@@ -244,7 +259,6 @@ public class BTVMedia : MonoBehaviour
     public PROV provFile = null;
     public WavReader audioReader = null;
     public bool loaded = false;
-
     #endregion
 
     void Awake()
@@ -253,18 +267,31 @@ public class BTVMedia : MonoBehaviour
         patDetailTemplate = Resources.Load("Prefabs/Media-InfoPatient", typeof(GameObject)) as GameObject;
 
         #region getObjectFromScene
-        addPatient = gameObject.transform.GetChild(0).GetChild(3).GetChild(0).GetComponent<Button>();
-        loadThisPat = gameObject.transform.GetChild(0).GetChild(3).GetChild(1).GetComponent<Button>();
+        showAddPanel = gameObject.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Button>();
+        showAddPic = showAddPanel.gameObject.GetComponent<Image>();
+        addPatientPanel = gameObject.transform.GetChild(0).GetChild(1).GetChild(0);
+        addPatient = gameObject.transform.GetChild(0).GetChild(1).GetChild(0).GetChild(3).GetChild(0).GetComponent<Button>(); // 0 1 0
 
-        patientContent = gameObject.transform.GetChild(0).GetChild(4).GetChild(1).GetChild(0).GetChild(0).GetChild(0);
-        saveBase = gameObject.transform.GetChild(0).GetChild(4).GetChild(2).GetComponent<Button>();
-        loadBase = gameObject.transform.GetChild(0).GetChild(4).GetChild(3).GetComponent<Button>();
-        loadBUBase = gameObject.transform.GetChild(0).GetChild(4).GetChild(4).GetComponent<Button>();
+        patientContent = gameObject.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetChild(0);
+        saveBase = gameObject.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(2).GetChild(0).GetComponent<Button>();
+        loadBase = gameObject.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(2).GetChild(1).GetComponent<Button>();
+        loadBUBase = gameObject.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(2).GetChild(2).GetComponent<Button>();
         #endregion
 
         #region addListener
+        showAddPanel.onClick.AddListener(() => 
+        {
+            addPatientPanel.transform.gameObject.SetActive(!addPatientPanel.transform.gameObject.activeSelf);
+            if (addPatientPanel.transform.gameObject.activeSelf)
+            {
+                showAddPic.transform.Rotate(new Vector3(0, 0, -90));
+            }
+            else
+            {
+                showAddPic.transform.Rotate(new Vector3(0, 0, 90));
+            }
+        });
         addPatient.onClick.AddListener(() => { addPatientToDB(); });
-        loadThisPat.onClick.AddListener(() => { loadPatientGUI(); });
         saveBase.onClick.AddListener(() => { SaveDB(); });
         loadBase.onClick.AddListener(() => { pm.LoadList(false); InstantiateDB(); });
         loadBUBase.onClick.AddListener(() => { pm.LoadList(true); InstantiateDB(); });
@@ -273,8 +300,8 @@ public class BTVMedia : MonoBehaviour
 
     void OnDestroy()
     {
+        showAddPanel.onClick.RemoveAllListeners();
         addPatient.onClick.RemoveAllListeners();
-        loadThisPat.onClick.RemoveAllListeners();
         saveBase.onClick.RemoveAllListeners();
         loadBase.onClick.RemoveAllListeners();
         loadBUBase.onClick.RemoveAllListeners();
@@ -305,7 +332,7 @@ public class BTVMedia : MonoBehaviour
         if (gameObject.activeSelf)
         {
             gameObject.SetActive(false);
-            setPatientGUI(gameObject.transform.GetChild(0).gameObject, new Patient());
+            setPatientGUI(gameObject.transform.GetChild(0).GetChild(1).GetChild(0).gameObject, new Patient());
         }
         else
         {
@@ -315,15 +342,24 @@ public class BTVMedia : MonoBehaviour
 
     void addPatientToDB()
     {
-        pm.addPat(getPatientGUI(gameObject.transform.GetChild(0).gameObject));
-        pm.SaveList();
-        pm.LoadList(false);
-        InstantiateDB();
+        if (patientContent.childCount == 0)
+        {
+            pm.LoadList(false);
+            pm.addPat(getPatientGUI(gameObject.transform.GetChild(0).GetChild(1).GetChild(0).gameObject));
+            pm.SaveList();
+            InstantiateDB();
+        }
+        else
+        {
+            pm.addPat(getPatientGUI(gameObject.transform.GetChild(0).GetChild(1).GetChild(0).gameObject));
+            pm.SaveList();
+            loadOnePatient(pm.currentPatients.Count - 1); 
+        }
     }
 
     void loadPatientGUI()
     {
-        loadMedia(getPatientGUI(gameObject.transform.GetChild(0).gameObject));
+        loadMedia(getPatientGUI(gameObject.transform.GetChild(0).GetChild(1).GetChild(0).gameObject));
     }
 
     void SaveDB()
@@ -348,20 +384,23 @@ public class BTVMedia : MonoBehaviour
         }
 
         for (int i = 0; i < pm.currentPatients.Count; i++)
-        {
-            GameObject currentPat = Instantiate(patientTemplate);
-            GameObject currentDetails = Instantiate(patDetailTemplate);
-            currentPat.name = "pat" + i;
-            currentPat.transform.SetParent(patientContent);
-            currentPat.transform.localScale = new Vector3(1, 1, 1);
-            currentDetails.name = "patDetails" + i;
-            currentDetails.transform.SetParent(patientContent);
-            currentDetails.transform.localScale = new Vector3(1, 1, 1);
-            currentDetails.SetActive(true);
-            currentDetails.SetActive(false);
+            loadOnePatient(i);
+    }
 
-            loadDataOnePatient(currentPat, currentDetails, i);
-        }
+    void loadOnePatient(int currentID)
+    {
+        GameObject currentPat = Instantiate(patientTemplate);
+        GameObject currentDetails = Instantiate(patDetailTemplate);
+        currentPat.name = "pat" + currentID;
+        currentPat.transform.SetParent(patientContent);
+        currentPat.transform.localScale = new Vector3(1, 1, 1);
+        currentDetails.name = "patDetails" + currentID;
+        currentDetails.transform.SetParent(patientContent);
+        currentDetails.transform.localScale = new Vector3(1, 1, 1);
+        currentDetails.SetActive(true);
+        currentDetails.SetActive(false);
+
+        loadDataOnePatient(currentPat, currentDetails, currentID);
     }
 
     void loadDataOnePatient(GameObject patientBar, GameObject patientDetails, int idPat)
