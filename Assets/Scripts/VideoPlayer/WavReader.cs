@@ -29,11 +29,21 @@ public class WavReader : CppDLLImportBase
     {
         return filteredNbSample(_handle, downsampFreq);
     }
-    public float[] filteredData = null;
-    public float[][] filtData2D = null;
+    public float[] currentAudio
+    {
+        get
+        {
+            return filtData2D[idAudioHandle];
+        }
+    }
+    public int idAudioHandle
+    {
+        get;set;
+    }
 
-    string m_wavFilePath = null;
-    int[] winMs = new int[6] { 0, 250, 500, 1000, 2500, 5000 };
+    private float[][] filtData2D = null;
+    private string m_wavFilePath = null;
+    private int[] winMs = new int[6] { 0, 250, 500, 1000, 2500, 5000 };
 
     public static IEnumerator c_loadAudioFile(string p_wavFilePath, Action<WavReader> resultReader)
     {
@@ -130,6 +140,11 @@ public class WavReader : CppDLLImportBase
         }
     }
 
+    public float[] getAudioHandle(int idHandle)
+    {
+        return filtData2D[idHandle];
+    }
+
     #region memory_management
     public WavReader(string pathAudioFile) : base(pathAudioFile)
     {
@@ -150,7 +165,7 @@ public class WavReader : CppDLLImportBase
 
     protected override void deleteDLLClass()
     {
-        filteredData = null;
+        filtData2D = null;
     }
     #endregion
 

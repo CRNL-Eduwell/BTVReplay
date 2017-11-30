@@ -636,19 +636,34 @@ public class eventsOptions : MonoBehaviour
     {
         int nbElec = win1.fileHandle.electrodes.Length;
         int id = events.IndexOfKey(currentEvent.sample);
-        int idBase = win1.fileHandle.electrodes.ToList().FindIndex(x => x.name == currentEvent.elecOfInterest);
-
         events.Values[id].correlationArray = new float[nbElec];
+
         int beginSample = events.Values[id].sample;
         int durationSample = (events.Values[id].duration / 1000) * events.Values[id].samplingFrequency;
-        int[] sizes = new int[5] { idBase, nbElec, beginSample, durationSample, win1.fileHandle.nbSam };
-        pearsonCoefficientsCorrelation(events.Values[id].correlationArray, win1.fileHandle.eegData, sizes);
+
+        int idBase = win1.fileHandle.electrodes.ToList().FindIndex(x => x.name == currentEvent.elecOfInterest);
+        if (idBase != -1)
+        {
+            int[] sizes = new int[5] { idBase, nbElec, beginSample, durationSample, win1.fileHandle.nbSam };
+            pearsonCoefficientsCorrelation(events.Values[id].correlationArray, win1.fileHandle.eegData, sizes);
+        }
+        else
+        {
+            if (currentEvent.elecOfInterest.StartsWith("AUD"))
+            {
+                int[] sizes = new int[4] { nbElec, beginSample, durationSample, win1.fileHandle.nbSam };
+                pearsonCoefficientsCorrelation2(events.Values[id].correlationArray,  v.audioWav.getAudioHandle(win1.fileHandle.idFileHandle), win1.fileHandle.eegData, sizes);
+            }
+        }
         yield return null;
     }
 
     #region DLLImport
     [DllImport("BTVReplayLibraryC++", EntryPoint = "pearsonCoefficientsCorrelation", CallingConvention = CallingConvention.Cdecl)]
     static private extern void pearsonCoefficientsCorrelation(float[] coeffs, float[] eegData, int[] sizes);
+
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "pearsonCoefficientsCorrelation2", CallingConvention = CallingConvention.Cdecl)]
+    static private extern void pearsonCoefficientsCorrelation2(float[] coeffs, float[] baseArray, float[] eegData, int[] sizes);
     #endregion
 }
 

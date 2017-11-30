@@ -27,15 +27,24 @@ public class ELAN : CppDLLImportBase
     public elecFile[] electrodes = null;
     public float[] maxValues = null;
     public float[] eegData = null;
+    public int idFileHandle
+    {
+        get; set;
+    }
     #endregion
 
     #region functions
     public static ELAN changeHandle(ELAN currentFile, ELAN[] elanFiles, int newID)
     {
         if (elanFiles[newID] != null)
+        {
+            elanFiles[newID].idFileHandle = newID;
             return elanFiles[newID];
+        }
         else
+        {
             return currentFile;
+        }
     }
 
     public static bool checkHandle(ELAN[] elanFiles, int newID)

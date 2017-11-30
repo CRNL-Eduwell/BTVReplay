@@ -24,11 +24,12 @@ public class EventInfoDisplay : MonoBehaviour
 
     TraceEvent myCurrentEvent = null;
     BTVMedia media = null;
+    VideoPlayer video = null;
 
     public void init(TraceEvent clickedEvent)
     {
         media = GameObject.Find("Canvas").transform.GetChild(2).GetComponent<BTVMedia>();
-
+        video = GameObject.Find("Canvas").transform.GetChild(0).GetChild(1).GetComponent<VideoPlayer>();
         myCurrentEvent = new TraceEvent(clickedEvent);
 
         timeText = transform.GetChild(0).GetChild(1).GetComponent<Text>();
@@ -58,6 +59,11 @@ public class EventInfoDisplay : MonoBehaviour
         for (int i = 0; i < media.elanFiles[handleID].electrodes.Length; i++)
             elecText.options.Add(new Dropdown.OptionData(media.elanFiles[handleID].electrodes[i].name));
 
+        if (video.audioWav != null)
+        {
+            if (video.audioWav.filterFileExist == true)
+                elecText.options.Add(new Dropdown.OptionData("AUD"));
+        }
 
         elecText.value = currentHandle;
         elecText.transform.GetChild(0).GetComponent<Text>().text = elecText.options[elecText.value].text;

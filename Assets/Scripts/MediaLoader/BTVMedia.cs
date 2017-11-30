@@ -257,7 +257,6 @@ public class BTVMedia : MonoBehaviour
     public POS posFile = null;
     public ELAN[] elanFiles = new ELAN[6];
     public PROV provFile = null;
-    public WavReader audioReader = null;
     public bool loaded = false;
     #endregion
 
@@ -364,15 +363,18 @@ public class BTVMedia : MonoBehaviour
 
     void SaveDB()
     {
-        for (int i = 0; i < patientContent.childCount; i += 2)
+        if (patientContent.childCount > 0)
         {
-            Patient currentPat = getPatientGUI(patientContent.transform.GetChild(i + 1).gameObject);
-            pm.currentPatients[i / 2] = currentPat;
-        }
+            for (int i = 0; i < patientContent.childCount; i += 2)
+            {
+                Patient currentPat = getPatientGUI(patientContent.transform.GetChild(i + 1).gameObject);
+                pm.currentPatients[i / 2] = currentPat;
+            }
 
-        pm.SaveList();
-        pm.LoadList(false);
-        InstantiateDB();
+            pm.SaveList();
+            pm.LoadList(false);
+            InstantiateDB();
+        }
     }
 
     void InstantiateDB()
