@@ -46,6 +46,10 @@ public class TraceSonification : MonoBehaviour
             });
             hub.traceRemotes[traceID].sonifToggled -= new toggleSonification(toggleSonification);
             hub.traceRemotes[traceID].soundChanged -= new newSoundSonif(changeAudioSonification);
+            video.stopTimeVideo -= new stopVideo(() =>
+            {
+                audioSourceScript.volume = 0;
+            });
 
             video.sendTime -= new timeVideo(updateSonif);
         }
@@ -62,6 +66,10 @@ public class TraceSonification : MonoBehaviour
         hub.traceRemotes[traceID].sonifToggled += new toggleSonification(toggleSonification);
         hub.traceRemotes[traceID].soundChanged += new newSoundSonif(changeAudioSonification);
         video.sendTime += new timeVideo(updateSonif);
+        video.stopTimeVideo += new stopVideo(() =>
+        {
+            audioSourceScript.volume = 0;
+        });
 
         StartCoroutine(StartAudio());
         initDone = true;

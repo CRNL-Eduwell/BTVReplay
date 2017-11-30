@@ -8,6 +8,7 @@ using CielaSpike;
 
 public delegate void timeVideo(int currentTime);
 public delegate void timeVideoSync(int currentTime);
+public delegate void stopVideo();
 
 public class VideoPlayer : MonoBehaviour
 {
@@ -82,6 +83,7 @@ public class VideoPlayer : MonoBehaviour
     //==
     public event timeVideo sendTime;
     public event timeVideoSync sendTimeVideo;
+    public event stopVideo stopTimeVideo;
 
     #region scene members
     [SerializeField] optionsHub hub = null;
@@ -304,6 +306,7 @@ public class VideoPlayer : MonoBehaviour
     void Stop()
     {
         _Iplayer.stop();
+        stopTimeVideo();
         TextureToDraw.texture = Instantiate(texLogo);
         playPause.GetComponent<RawImage>().texture = texPause;
     }
