@@ -18,12 +18,24 @@ public struct elecFile
 
 public class ELAN : CppDLLImportBase
 {
+    public string fileFolder
+    {
+        get
+        {
+            return Path.GetDirectoryName(filePath);
+        }
+    }
+    public string filePath
+    {
+        get;
+        set;
+    }
+
     #region members
     public int nbSam = 0;
     public int nbChan = 0;
     public int nbMeas = 0;
     public float sampFreq = 0;
-    public string filePath = "";
     public elecFile[] electrodes = null;
     public float[] maxValues = null;
     public float[] eegData = null;
@@ -139,6 +151,7 @@ public class ELAN : CppDLLImportBase
     /// <param name="p_pathfile"></param>
     public ELAN(string pathEEGFile) : base(pathEEGFile)
     {
+        filePath = pathEEGFile;
         sampFreq = samplingFrequency(_handle);
         nbSam = nbSample(_handle);
         nbChan = nbChannels(_handle);

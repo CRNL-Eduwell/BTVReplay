@@ -39,10 +39,12 @@ public class eventsOptions : MonoBehaviour
     TraceEvent eventMemory = null;
 
     Button activateEventsButton = null;
-    Text activateEventText = null;
+    Image activateEventPic = null;
     Transform panelContent = null;
     Button saveEvents = null;
     Button loadEvents = null;
+    Sprite startEventPic = null, stopEventPic = null;
+
 
     public bool addEvent = false;
     SortedList<int, TraceEvent> events = new SortedList<int, TraceEvent>();
@@ -60,6 +62,9 @@ public class eventsOptions : MonoBehaviour
         eventAddUI = Resources.Load("Prefabs/EventInfoEdit", typeof(GameObject)) as GameObject;
         eventDispUI = Resources.Load("Prefabs/EventInfoDisplay", typeof(GameObject)) as GameObject;
         scrollOrig = Resources.Load("Pictures/eventScroll", typeof(Texture2D)) as Texture2D;
+        startEventPic = Resources.Load("Pictures/ConfigBar/StartEvents", typeof(Sprite)) as Sprite;
+        stopEventPic = Resources.Load("Pictures/ConfigBar/StopEvents", typeof(Sprite)) as Sprite;
+
         //==
         v = GameObject.Find("PanelR").GetComponent<VideoPlayer>();
         win1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
@@ -68,11 +73,11 @@ public class eventsOptions : MonoBehaviour
         scrollObj = GameObject.Find("TimeScrollBar");
         scrollTex = Instantiate(scrollOrig);
         //==
-        activateEventsButton = eventsOptionPanel.transform.GetChild(0).GetComponent<Button>();
-        activateEventText = activateEventsButton.transform.GetChild(0).GetComponent<Text>();
         panelContent = eventsOptionPanel.transform.GetChild(1).GetChild(0).GetChild(0);
-        saveEvents = eventsOptionPanel.transform.GetChild(2).GetComponent<Button>();
-        loadEvents = eventsOptionPanel.transform.GetChild(3).GetComponent<Button>();
+        loadEvents = eventsOptionPanel.transform.GetChild(0).GetChild(0).GetComponent<Button>();
+        saveEvents = eventsOptionPanel.transform.GetChild(0).GetChild(1).GetComponent<Button>();
+        activateEventsButton = eventsOptionPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
+        activateEventPic = eventsOptionPanel.transform.GetChild(0).GetChild(2).GetComponent<Image>();
         scrollObj.GetComponent<RawImage>().texture = scrollTex;
         //==
         activateEventsButton.onClick.AddListener(activateEventsMode);
@@ -123,11 +128,10 @@ public class eventsOptions : MonoBehaviour
     void activateEventsMode()
     {
         addEvent = !addEvent;
-
-        if (addEvent == true)
-            activateEventText.text = "Stop Adding Events";
+        if (addEvent)
+            activateEventPic.sprite = stopEventPic;
         else
-            activateEventText.text = "Start Adding Events";
+            activateEventPic.sprite = startEventPic;
     }
 
     void openEventAddUI(TraceEvent currentEvent, int traceID)
@@ -325,7 +329,7 @@ public class eventsOptions : MonoBehaviour
 
     void saveEventsList()
     {
-        string btvPosFile = QtGUI_dll.Instance.getSaveFileName(new string[] { "pos" });
+        string btvPosFile = QtGUI_dll.Instance.getSaveFileName(new string[] { "pos" }, "Save Event File", win1.fileHandle.fileFolder);
         btvPosFile = btvPosFile.Replace(".pos", "_btv.pos");
 
         try
@@ -399,26 +403,29 @@ public class eventsOptions : MonoBehaviour
 
     void loadEventList()
     {
-        List<TraceEvent> eventLoaded = null;
-        string pathFile = QtGUI_dll.Instance.getOpenFileName(new string[] { "btv", "pos" });
-        string[] pathSplit = pathFile.Split(new char[] { '.' });
-
-        switch (pathSplit[pathSplit.Length - 1])
+        string pathFile = QtGUI_dll.Instance.getOpenFileName(new string[] { "btv", "pos" }, "Select an Event File", win1.fileHandle.fileFolder);
+        if (File.Exists(pathFile))
         {
-            case "btv":
-                eventLoaded = loadBTVFile(pathFile);
-                break;
-            case "pos":
-                eventLoaded = loadPOSFile(pathFile);
-                break;
+            string[] pathSplit = pathFile.Split(new char[] { '.' });
+
+            List<TraceEvent> eventLoaded = null;
+            switch (pathSplit[pathSplit.Length - 1])
+            {
+                case "btv":
+                    eventLoaded = loadBTVFile(pathFile);
+                    break;
+                case "pos":
+                    eventLoaded = loadPOSFile(pathFile);
+                    break;
+            }
+
+            //if elements already loaded , delete everything
+            for (int i = events.Count - 1; i >= 0; i--)
+                deleteEvents(events.Values.ElementAt(i), -1);
+
+            for (int i = 0; i < eventLoaded.Count; i++)
+                eventValidatedForUI(eventLoaded[i]);
         }
-
-        //if elements already loaded , delete everything
-        for (int i = events.Count - 1; i >= 0; i--)
-            deleteEvents(events.Values.ElementAt(i), -1);
-
-        for (int i = 0; i < eventLoaded.Count; i++)
-            eventValidatedForUI(eventLoaded[i]);
     }
 
     List<TraceEvent> loadBTVFile(string pathFile)
