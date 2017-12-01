@@ -1305,7 +1305,7 @@ public class UIOption
     #region UIMembers
     Button showButton = null;
     Image showPic = null;
-    Text nameText = null;
+    Image logo = null;
     GameObject contentPanel = null;
     GameObject options = null;
     eventsOptions eventMenu = null;
@@ -1320,7 +1320,7 @@ public class UIOption
         contentPanel = optionsPanel.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
         showButton = buttonsPanel.transform.GetChild(idOpt).GetComponent<Button>();
         showPic = buttonsPanel.transform.GetChild(idOpt).GetComponent<Image>();
-        nameText = buttonsPanel.transform.GetChild(idOpt).GetChild(0).GetComponent<Text>();
+        logo = buttonsPanel.transform.GetChild(idOpt).GetChild(0).GetComponent<Image>();
         options = contentPanel.transform.GetChild(idOpt).gameObject;
 
         showButton.onClick.AddListener(() =>
@@ -1386,16 +1386,16 @@ public class UIOption
         isVisible = !isVisible;
 
         if (isVisible)
-            nameText.color = orange;
+            logo.color = orange;
         else
-            nameText.color = blue;
+            logo.color = blue;
     }
 }
 
 public class UIXOption : MonoBehaviour, IPointerClickHandler
 {
     int positionCounter = 1;
-    Text nameText = null;
+    Image logo = null;
     GameObject contentPanel = null;
     public GameObject options = null;
     GameObject optionsPanel = null;
@@ -1403,19 +1403,18 @@ public class UIXOption : MonoBehaviour, IPointerClickHandler
     Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
     Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
     Color blueHide = new Color(0.6117f, 0.7058f, 0.7960f, 0.3921f);
-    int idCurve = 0;
     GameObject curve = null;
 
     public void init(GameObject buttonsPanel, GameObject optionsPanel, int idOpt)
     {
         this.optionsPanel = optionsPanel;
         contentPanel = optionsPanel.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
-        nameText = buttonsPanel.transform.GetChild(idOpt).GetChild(0).GetComponent<Text>();
+        logo = buttonsPanel.transform.GetChild(idOpt).GetChild(0).GetComponent<Image>();
         options = contentPanel.transform.GetChild(idOpt).gameObject;
 
-        if (nameText.transform.parent.name == "ButtonTrace1")
+        if (logo.transform.parent.name == "ButtonTrace1")
             curve = GameObject.Find("Trace1Window");
-        else if (nameText.transform.parent.name == "ButtonTrace2")
+        else if (logo.transform.parent.name == "ButtonTrace2")
             curve = GameObject.Find("Trace2Window");
 
     }
@@ -1438,12 +1437,12 @@ public class UIXOption : MonoBehaviour, IPointerClickHandler
         {
             case 0:
                 curve.SetActive(false);
-                nameText.color = blueHide;
+                logo.color = blueHide;
                 break;
             case 1:
                 curve.SetActive(true);
                 options.SetActive(false);
-                nameText.color = blue;
+                logo.color = blue;
 
                 bool hide = false;
                 for (int i = 0; i < contentPanel.transform.childCount; i++)
@@ -1456,13 +1455,13 @@ public class UIXOption : MonoBehaviour, IPointerClickHandler
             case 2:
                 optionsPanel.SetActive(true);
                 options.SetActive(true);
-                nameText.color = yellow;
+                logo.color = yellow;
 
                 if(curve.GetComponent<TraceCurve>().hasFocus)
                     curve.GetComponent<TraceCurve>().manageFocusClick();
                 break;
             case 3:
-                nameText.color = orange;
+                logo.color = orange;
                 if (!curve.GetComponent<TraceCurve>().hasFocus)
                     curve.GetComponent<TraceCurve>().manageFocusClick();
                 break;
