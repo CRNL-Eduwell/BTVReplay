@@ -46,3 +46,19 @@ POS :
 PROV : 
 VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/GRE_2015_PATa_MARA.AVI
 [----------]
+LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Lhemi.tri
+RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Rhemi.tri
+PTS_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MM_15SEP09G/Gre_2009_MWAm_MNI.pts
+LH_PAT : 
+RH_PAT : 
+PTS_PAT : 
+SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MM_15SEP09G/MM_15SEP09G_BTV_V15_f50f150_ds8_sm0.eeg
+SM250 : 
+SM500 : 
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : 
+PROV : 
+VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MM_15SEP09G/MM_15SEP09G_BTV_V15.mp4
+[----------]

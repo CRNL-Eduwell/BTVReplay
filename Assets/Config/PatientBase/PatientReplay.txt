@@ -44,7 +44,7 @@ SM2500 :
 SM5000 : 
 POS : 
 PROV : 
-VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/GRE_2015_PATa_MARA.AVI
+VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/GRE_2015_PATa_MARA.mp4
 [----------]
 LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Lhemi.tri
 RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Rhemi.tri

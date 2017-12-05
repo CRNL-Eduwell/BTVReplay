@@ -28,8 +28,8 @@ public class EventInfoDisplay : MonoBehaviour
 
     public void init(TraceEvent clickedEvent)
     {
-        media = GameObject.Find("Canvas").transform.GetChild(2).GetComponent<BTVMedia>();
-        video = GameObject.Find("Canvas").transform.GetChild(0).GetChild(1).GetComponent<VideoPlayer>();
+        media = GameObject.Find("Canvas").transform.GetChild(3).GetComponent<BTVMedia>();
+        video = GameObject.Find("Canvas").transform.GetChild(1).GetChild(1).GetComponent<VideoPlayer>();
         myCurrentEvent = new TraceEvent(clickedEvent);
 
         timeText = transform.GetChild(0).GetChild(1).GetComponent<Text>();

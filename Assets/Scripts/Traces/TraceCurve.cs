@@ -192,12 +192,12 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         if (traceID == 0)
         {
             handleOtherTrace = GameObject.Find("Trace" + (traceID + 2) + "Window").GetComponent<Window>();
-            colorpicker = GameObject.Find("Canvas").transform.GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(0).GetChild(1).GetChild(5).GetComponent<ColorPicker>();
+            colorpicker = GameObject.Find("Canvas").transform.GetChild(1).GetChild(2).GetChild(0).GetChild(2).GetComponent<ColorPicker>();
         }
         else
         {
             handleOtherTrace = GameObject.Find("Trace" + (traceID) + "Window").GetComponent<Window>();
-            colorpicker = GameObject.Find("Canvas").transform.GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(0).GetChild(1 + traceID).GetChild(5).GetComponent<ColorPicker>();
+            colorpicker = GameObject.Find("Canvas").transform.GetChild(1).GetChild(2).GetChild(1).GetChild(2).GetComponent<ColorPicker>();
         }
 
         m_rectTransform = gameObject.GetComponent<RectTransform>();
@@ -385,7 +385,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
     void updateDrawRMS(int sampleToLook)
     {
-        if (lineRendererRMS.gameObject.activeSelf == false || video.audioWav == null || 
+        if (lineRendererRMS.gameObject.activeSelf == false || video.audioWav == null ||
             video.audioWav.filterFileExist == false || sampleToLook == -1)
             return;
 
@@ -503,9 +503,9 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                                            .ToList();
 
             List<int> idInside = values.Select((item, index) => new { Item = item, Index = index })
-                                       .Where(x => ((x.Item.sample < right) && 
-                                                    (x.Item.sample > left) && 
-                                                    (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= left) && 
+                                       .Where(x => ((x.Item.sample < right) &&
+                                                    (x.Item.sample > left) &&
+                                                    (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= left) &&
                                                     (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) <= right)))
                                        .Select(x => x.Index)
                                        .ToList();
@@ -565,7 +565,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
             for (int i = 0; i < idOverFlow.Count; i++)
             {
-                float positionInsideRect =((-widthOfGameObject / 2) + 1);
+                float positionInsideRect = ((-widthOfGameObject / 2) + 1);
                 float size = widthOfGameObject;
                 eventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
                 eventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);

@@ -38,10 +38,10 @@ public class ElecPlotSize : MonoBehaviour
 
     public void init(string goName)
     {
-        media = GameObject.Find("Canvas").transform.GetChild(2).GetComponent<BTVMedia>();
-        video = GameObject.Find("Canvas").transform.GetChild(0).GetChild(1).GetComponent<VideoPlayer>();
-        hub = GameObject.Find("Canvas").transform.GetChild(0).GetChild(3).GetComponent<optionsHub>();
-        warden = GameObject.Find("Canvas").transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<BrainWarden>();
+        hub = GameObject.Find("Canvas").transform.GetChild(0).GetChild(0).GetComponent<optionsHub>();
+        warden = GameObject.Find("Canvas").transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<BrainWarden>();
+        video = GameObject.Find("Canvas").transform.GetChild(1).GetChild(1).GetComponent<VideoPlayer>();
+        media = GameObject.Find("Canvas").transform.GetChild(3).GetComponent<BTVMedia>();
 
         video.sendTime += new timeVideo(updateSize);
         hub.brainRemote.gainHasChanged += new gainChangedEventHandler((newGain) => 

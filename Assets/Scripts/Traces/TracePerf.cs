@@ -8,6 +8,10 @@ using UnityEngine.UI;
 
 public class TracePerf : MonoBehaviour
 {
+    public bool isUsed
+    {
+        get;set;
+    }
     [SerializeField] optionsHub hub = null;
     [SerializeField] BTVMedia media = null;
     [SerializeField] VideoPlayer video = null;
@@ -26,7 +30,7 @@ public class TracePerf : MonoBehaviour
     int periodSec = 10;
     int numberPoint = 64 * 10;
     bool initDone = false;
-    bool isUsed = false;
+    //bool isUsed = false;
     TraceCurve curveTrace1 = null;
      
     void Awake()
@@ -44,10 +48,10 @@ public class TracePerf : MonoBehaviour
             {
                 video.sendTime -= new timeVideo(UpdateSpawn);
                 video.sendTime -= new timeVideo(UpdatePicEvent);
-                hub.perfRemote.iAmHiden -= new hideMe((isHidden) =>
-                {
-                    gameObject.SetActive(isHidden);
-                });
+                //hub.perfRemote.iAmHiden -= new hideMe((isHidden) =>
+                //{
+                //    gameObject.SetActive(isHidden);
+                //});
                 hub.perfRemote.timeHasChanged -= new timePeriodChangedEventHandler(updateTimeResolution);
             }
             else
@@ -79,10 +83,10 @@ public class TracePerf : MonoBehaviour
         eventPicHolder = m_rectTransform.GetChild(11).GetChild(0).gameObject;
         eventImage = eventPicHolder.transform.GetChild(0).GetComponent<RawImage>();
 
-        hub.perfRemote.iAmHiden += new hideMe((isHidden) =>
-        {
-            gameObject.SetActive(isHidden);
-        });
+        //hub.perfRemote.iAmHiden += new hideMe((isHidden) =>
+        //{
+        //    gameObject.SetActive(isHidden);
+        //});
 
         if(isUsed)
         {
@@ -130,7 +134,7 @@ public class TracePerf : MonoBehaviour
         else
         {
             gameObject.SetActive(false);
-            hub.perfRemote.hideTog.isOn = false;
+            //hub.perfRemote.hideTog.isOn = false;
             hub.perfRemote.timeHasChanged += new timePeriodChangedEventHandler((int newPeriod) => { });
         }
 

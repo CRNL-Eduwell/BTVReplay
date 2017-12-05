@@ -51,7 +51,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         winTrace2 = GameObject.Find("Trace2Window").GetComponent<Window>();
         curveTrace1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
 
-        elecPointer = GameObject.Find("Canvas").transform.GetChild(4).gameObject;
+        elecPointer = GameObject.Find("Canvas").transform.GetChild(5).gameObject;
         elecPointerPic = elecPointer.transform.GetChild(0).gameObject;
         elecPointerText = elecPointerPic.transform.GetChild(0).GetComponent<Text>();
     }
@@ -64,7 +64,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             video.sendTime += new timeVideo(updateEventsOnBrain);
         });
 
-        if(initDone)
+        if (initDone)
             video.sendTime -= new timeVideo(updateEventsOnBrain);
     }
 

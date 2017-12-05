@@ -45,7 +45,6 @@ public class eventsOptions : MonoBehaviour
     Button loadEvents = null;
     Sprite startEventPic = null, stopEventPic = null;
 
-
     public bool addEvent = false;
     SortedList<int, TraceEvent> events = new SortedList<int, TraceEvent>();
 
@@ -56,7 +55,7 @@ public class eventsOptions : MonoBehaviour
     Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
     int currentPos = -1;
 
-    public void init(GameObject eventsOptionPanel)
+    public void init(ButtonUI button)
     {
         eventHubClick = Resources.Load("Prefabs/Hub-Event", typeof(GameObject)) as GameObject;
         eventAddUI = Resources.Load("Prefabs/EventInfoEdit", typeof(GameObject)) as GameObject;
@@ -73,11 +72,11 @@ public class eventsOptions : MonoBehaviour
         scrollObj = GameObject.Find("TimeScrollBar");
         scrollTex = Instantiate(scrollOrig);
         //==
-        panelContent = eventsOptionPanel.transform.GetChild(1).GetChild(0).GetChild(0);
-        loadEvents = eventsOptionPanel.transform.GetChild(0).GetChild(0).GetComponent<Button>();
-        saveEvents = eventsOptionPanel.transform.GetChild(0).GetChild(1).GetComponent<Button>();
-        activateEventsButton = eventsOptionPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
-        activateEventPic = eventsOptionPanel.transform.GetChild(0).GetChild(2).GetComponent<Image>();
+        panelContent = button.optionsPanel2.transform.GetChild(0).GetChild(0).GetChild(0);
+        loadEvents = button.optionsPanel.transform.GetChild(0).GetChild(0).GetComponent<Button>();
+        saveEvents = button.optionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Button>();
+        activateEventsButton = button.optionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
+        activateEventPic = button.optionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Image>();
         scrollObj.GetComponent<RawImage>().texture = scrollTex;
         //==
         activateEventsButton.onClick.AddListener(activateEventsMode);
@@ -99,10 +98,10 @@ public class eventsOptions : MonoBehaviour
     void Update()
     {
         if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.L))
-            goToEventLeft(); 
+            goToEventLeft();
 
         if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.M))
-            goToEventRight(); 
+            goToEventRight();
     }
 
     void OnDestroy()
@@ -210,7 +209,7 @@ public class eventsOptions : MonoBehaviour
             {
                 openEventModifyUI(eventToEdit, traceIDCalled);
             });
-            infoDisp.processCorrelation += new calculateCorrelation((TraceEvent e) => 
+            infoDisp.processCorrelation += new calculateCorrelation((TraceEvent e) =>
             {
                 StartCoroutine(calcCorr(e));
             });
@@ -270,7 +269,7 @@ public class eventsOptions : MonoBehaviour
         int m = (timeInSec / 60) % 60;
         int s = timeInSec % 60;
 
-        if(h > 0)
+        if (h > 0)
             currentEventGO.transform.GetChild(0).GetComponent<Text>().text = h + ":" + m + ":" + s;
         else
             currentEventGO.transform.GetChild(0).GetComponent<Text>().text = "00:" + m + ":" + s;
@@ -473,7 +472,7 @@ public class eventsOptions : MonoBehaviour
                     string[] resultSplit = r.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                     if (resultSplit.Count() == 3)
                     {
-                        eventLoaded.Add(new TraceEvent(new eventEeg(int.Parse(resultSplit[1]),int.Parse(resultSplit[0]), win1.samplingFrequency)));
+                        eventLoaded.Add(new TraceEvent(new eventEeg(int.Parse(resultSplit[1]), int.Parse(resultSplit[0]), win1.samplingFrequency)));
                     }
                 }
                 sr.Close();
@@ -659,7 +658,7 @@ public class eventsOptions : MonoBehaviour
             if (currentEvent.elecOfInterest.StartsWith("AUD"))
             {
                 int[] sizes = new int[4] { nbElec, beginSample, durationSample, win1.fileHandle.nbSam };
-                pearsonCoefficientsCorrelation2(events.Values[id].correlationArray,  v.audioWav.getAudioHandle(win1.fileHandle.idFileHandle), win1.fileHandle.eegData, sizes);
+                pearsonCoefficientsCorrelation2(events.Values[id].correlationArray, v.audioWav.getAudioHandle(win1.fileHandle.idFileHandle), win1.fileHandle.eegData, sizes);
             }
         }
         yield return null;
@@ -703,7 +702,7 @@ public class videoOptions
     int gain = 1;
     //====
     Button[] smButton = null;
-
+    bool sm_ChoicePending = false;
     //====
     VideoPlayer vid = null;
     CoroutineManager coMana = null;
@@ -713,26 +712,27 @@ public class videoOptions
 
     public videoOptions(GameObject videoOptionsPanel)
     {
-        removeVideoOffset = videoOptionsPanel.transform.GetChild(0).GetChild(0).GetComponent<Button>();
-        offsetScrollBar = videoOptionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Scrollbar>();
-        addVideoOffset = videoOptionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
-        videoOffsetLabel = videoOptionsPanel.transform.GetChild(0).GetChild(3).GetComponent<Text>();
+        gainLabel = videoOptionsPanel.transform.GetChild(0).GetChild(0).GetComponent<Text>();
+        gainAddButton = videoOptionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Button>();
+        gainRemoveButton = videoOptionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
         //==
-        showAudioTrace = videoOptionsPanel.transform.GetChild(1).GetChild(0).GetComponent<Toggle>();
-        filterAudio = videoOptionsPanel.transform.GetChild(1).GetChild(1).GetComponent<Button>();
-        loadAudio = videoOptionsPanel.transform.GetChild(1).GetChild(2).GetComponent<Button>();
+        videoOffsetLabel = videoOptionsPanel.transform.GetChild(1).GetChild(0).GetComponent<Text>();
+        removeVideoOffset = videoOptionsPanel.transform.GetChild(1).GetChild(1).GetComponent<Button>();
+        offsetScrollBar = videoOptionsPanel.transform.GetChild(1).GetChild(2).GetComponent<Scrollbar>();
+        addVideoOffset = videoOptionsPanel.transform.GetChild(1).GetChild(3).GetComponent<Button>();
         //==
-        gainLabel = videoOptionsPanel.transform.GetChild(2).GetChild(0).GetComponent<Text>();
-        gainAddButton = videoOptionsPanel.transform.GetChild(2).GetChild(1).GetComponent<Button>();
-        gainRemoveButton = videoOptionsPanel.transform.GetChild(2).GetChild(2).GetComponent<Button>();
+        showAudioTrace = videoOptionsPanel.transform.GetChild(2).GetChild(0).GetComponent<Toggle>();
+        filterAudio = videoOptionsPanel.transform.GetChild(2).GetChild(1).GetComponent<Button>();
+        loadAudio = videoOptionsPanel.transform.GetChild(2).GetChild(2).GetComponent<Button>();
         //==
+
         smButton = new Button[6];
-        smButton[0] = videoOptionsPanel.transform.GetChild(3).GetChild(0).GetChild(0).GetComponent<Button>();
-        smButton[1] = videoOptionsPanel.transform.GetChild(3).GetChild(0).GetChild(1).GetComponent<Button>();
-        smButton[2] = videoOptionsPanel.transform.GetChild(3).GetChild(0).GetChild(2).GetComponent<Button>();
-        smButton[3] = videoOptionsPanel.transform.GetChild(3).GetChild(1).GetChild(0).GetComponent<Button>();
-        smButton[4] = videoOptionsPanel.transform.GetChild(3).GetChild(1).GetChild(1).GetComponent<Button>();
-        smButton[5] = videoOptionsPanel.transform.GetChild(3).GetChild(1).GetChild(2).GetComponent<Button>();
+        smButton[0] = videoOptionsPanel.transform.GetChild(3).GetComponent<Button>();
+        smButton[1] = videoOptionsPanel.transform.GetChild(4).GetComponent<Button>();
+        smButton[2] = videoOptionsPanel.transform.GetChild(5).GetComponent<Button>();
+        smButton[3] = videoOptionsPanel.transform.GetChild(6).GetComponent<Button>();
+        smButton[4] = videoOptionsPanel.transform.GetChild(7).GetComponent<Button>();
+        smButton[5] = videoOptionsPanel.transform.GetChild(8).GetComponent<Button>();
         //==
         vid = GameObject.Find("PanelR").transform.GetComponent<VideoPlayer>();
         coMana = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
@@ -759,11 +759,11 @@ public class videoOptions
             }
         });
         //==
-        showAudioTrace.onValueChanged.AddListener((bool isChecked) => 
+        showAudioTrace.onValueChanged.AddListener((bool isChecked) =>
         {
             audioToggled(isChecked);
         });
-        filterAudio.onClick.AddListener(() => 
+        filterAudio.onClick.AddListener(() =>
         {
             coMana.StartCoroutine(vid.c_filterAudio());
             filterAudio.interactable = false;
@@ -858,10 +858,20 @@ public class videoOptions
 
     void connectButtonSM(int id)
     {
-        smButton[id].onClick.AddListener(() => 
+        smButton[id].onClick.AddListener(() =>
         {
-            smAudioHasChanged(id);
-            changeButtonSMColor(id);
+            if (!sm_ChoicePending)
+            {
+                setButtonsVisible(smButton, true, -1);
+                sm_ChoicePending = true;
+            }
+            else
+            {
+                smAudioHasChanged(id);
+                changeButtonSMColor(id);
+                setButtonsVisible(smButton, true, id);
+                sm_ChoicePending = false;
+            }
         });
     }
 
@@ -873,6 +883,25 @@ public class videoOptions
                 smButton[i].gameObject.GetComponent<Image>().color = hardBlue;
             else
                 smButton[i].gameObject.GetComponent<Image>().color = softBlue;
+        }
+    }
+
+    void setButtonsVisible(Button[] buttons, bool isVisible, int Id)
+    {
+        if (Id != -1)
+        {
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                if (i == Id)
+                    buttons[i].gameObject.SetActive(isVisible);
+                else
+                    buttons[i].gameObject.SetActive(!isVisible);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < buttons.Length; i++)
+                buttons[i].gameObject.SetActive(isVisible);
         }
     }
 }
@@ -898,22 +927,23 @@ public class perfDataOptions
     public perfDataOptions(GameObject perfOptionsPanel)
     {
         hideMeToggle = perfOptionsPanel.transform.GetChild(0).GetChild(0).GetComponent<Toggle>();
-        timePeriodInputField = perfOptionsPanel.transform.GetChild(1).GetChild(1).GetComponent<InputField>();
+        timePeriodInputField = perfOptionsPanel.transform.GetChild(0).GetChild(1).GetComponent<InputField>();
 
-        hideMeToggle.onValueChanged.AddListener(delegate {
-            if (hideMeToggle.isOn)
-                iAmHiden(true);
-            else
-                iAmHiden(false);
-        });
-        timePeriodInputField.onEndEdit.AddListener(delegate {
+        //hideMeToggle.onValueChanged.AddListener(delegate {
+        //    if (hideMeToggle.isOn)
+        //        iAmHiden(true);
+        //    else
+        //        iAmHiden(false);
+        //});
+        timePeriodInputField.onEndEdit.AddListener(delegate
+        {
             changeTimePeriod(timePeriodInputField);
         });
     }
 
     ~perfDataOptions()
     {
-        hideMeToggle.onValueChanged.RemoveAllListeners();
+        //hideMeToggle.onValueChanged.RemoveAllListeners();
         timePeriodInputField.onEndEdit.RemoveAllListeners();
     }
 
@@ -982,7 +1012,7 @@ public class traceXOptions
     Color softBlue = new Color(0.6117f, 0.7058f, 0.7960f, 0.392156f);
     Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
 
-    public traceXOptions(GameObject traceOptionsPanel, BTVMedia p_media)
+    public traceXOptions(ButtonUI_show buttonOpt, BTVMedia p_media)
     {
         media = p_media;
 
@@ -990,11 +1020,11 @@ public class traceXOptions
         sonifON = Resources.Load("Pictures/soundOK", typeof(Texture2D)) as Texture2D;
         sonifOFF = Resources.Load("Pictures/soundNOK", typeof(Texture2D)) as Texture2D;
 
-        electrodeContentPanel = traceOptionsPanel.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
+        electrodeContentPanel = buttonOpt.optionsPanel2.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
 
         smButton = new Button[6];
         for (int i = 0; i < 6; i++)
-            smButton[i] = traceOptionsPanel.transform.GetChild(1).GetChild(i).GetComponent<Button>();
+            smButton[i] = buttonOpt.optionsPanel2.transform.GetChild(1).GetChild(i).GetComponent<Button>();
 
         connectButtonSM(0);
         connectButtonSM(1);
@@ -1003,19 +1033,19 @@ public class traceXOptions
         connectButtonSM(4);
         connectButtonSM(5);
 
-        gainLabel = traceOptionsPanel.transform.GetChild(2).GetChild(0).GetComponent<Text>();
+        gainLabel = buttonOpt.optionsPanel.transform.GetChild(0).GetChild(0).GetComponent<Text>();
         gainLabel.text = "Gain : " + gain;
 
-        gainAddButton = traceOptionsPanel.transform.GetChild(2).GetChild(1).GetComponent<Button>();
+        gainAddButton = buttonOpt.optionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Button>();
         gainAddButton.onClick.AddListener(addGain);
 
-        gainRemoveButton = traceOptionsPanel.transform.GetChild(2).GetChild(2).GetComponent<Button>();
+        gainRemoveButton = buttonOpt.optionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
         gainRemoveButton.onClick.AddListener(removeGain);
 
-        offsetLabel = traceOptionsPanel.transform.GetChild(3).GetChild(0).GetComponent<Text>();
+        offsetLabel = buttonOpt.optionsPanel.transform.GetChild(1).GetChild(0).GetComponent<Text>();
         offsetLabel.text = "Offset : " + offset + "%";
-        offsetAddButton = traceOptionsPanel.transform.GetChild(3).GetChild(1).GetComponent<Button>();
-        offsetRemoveButton = traceOptionsPanel.transform.GetChild(3).GetChild(2).GetComponent<Button>();
+        offsetAddButton = buttonOpt.optionsPanel.transform.GetChild(1).GetChild(1).GetComponent<Button>();
+        offsetRemoveButton = buttonOpt.optionsPanel.transform.GetChild(1).GetChild(2).GetComponent<Button>();
 
         offsetAddButton.onClick.AddListener(() =>
         {
@@ -1036,16 +1066,16 @@ public class traceXOptions
             }
         });
 
-        timeGridToggle = traceOptionsPanel.transform.GetChild(4).GetChild(0).GetComponent<Toggle>();
+        timeGridToggle = buttonOpt.optionsPanel.transform.GetChild(2).GetChild(0).GetComponent<Toggle>();
         timeGridToggle.onValueChanged.AddListener(delegate { gridToggled(timeGridToggle.isOn); });
-        timePeriodInputField = traceOptionsPanel.transform.GetChild(4).GetChild(2).GetComponent<InputField>();
+        timePeriodInputField = buttonOpt.optionsPanel.transform.GetChild(2).GetChild(2).GetComponent<InputField>();
         timePeriodInputField.onEndEdit.AddListener(delegate { changeTimePeriod(timePeriodInputField); });
 
         //child 5 color
         //========
 
-        sonifButton = traceOptionsPanel.transform.GetChild(6).GetChild(0).GetComponent<Button>();
-        sonifSoundDropDown = traceOptionsPanel.transform.GetChild(6).GetChild(1).GetComponent<Dropdown>();
+        sonifButton = buttonOpt.optionsPanel.transform.GetChild(3).GetChild(0).GetComponent<Button>();
+        sonifSoundDropDown = buttonOpt.optionsPanel.transform.GetChild(3).GetChild(1).GetComponent<Dropdown>();
         sonifSoundDropDown.interactable = false;
         sonifDDownText = sonifSoundDropDown.transform.GetChild(0).GetComponent<Text>();
 
@@ -1216,48 +1246,119 @@ public class brainOptions
     public event gainChangedEventHandler gainHasChanged;
     public event brainChangeEventHandler needToChangeBrain;
 
-    Button brainMNI = null;
-    Button brainPAT = null;
-    Button brainELEC = null;
-    Button dispFullBrain = null;
-    Button dispLeftBrain = null;
-    Button dispRightBrain = null;
+    Button[] brainButtons = null;
+    Button[] visBrainButtons = null;
     Text gainValue = null;
     Button gainAdd = null;
     Button gainRemove = null;
     int gain = 1;
+    bool referential_choicePending = false;
+    bool visu_choicePending = false;
 
     public brainOptions(GameObject brainOptionsPanel)
     {
-        brainMNI = brainOptionsPanel.transform.GetChild(0).GetChild(0).GetComponent<Button>();
-        brainPAT = brainOptionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Button>();
-        brainELEC = brainOptionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
-        dispFullBrain = brainOptionsPanel.transform.GetChild(1).GetComponent<Button>();
-        dispLeftBrain = brainOptionsPanel.transform.GetChild(2).GetComponent<Button>();
-        dispRightBrain = brainOptionsPanel.transform.GetChild(3).GetComponent<Button>();
-        gainValue = brainOptionsPanel.transform.GetChild(4).GetChild(0).GetComponent<Text>();
-        gainAdd = brainOptionsPanel.transform.GetChild(4).GetChild(1).GetComponent<Button>();
-        gainRemove = brainOptionsPanel.transform.GetChild(4).GetChild(2).GetComponent<Button>();
+        brainButtons = new Button[3];
+        brainButtons[0] = brainOptionsPanel.transform.GetChild(0).GetComponent<Button>();
+        brainButtons[1] = brainOptionsPanel.transform.GetChild(1).GetComponent<Button>();
+        brainButtons[2] = brainOptionsPanel.transform.GetChild(2).GetComponent<Button>();
 
-        brainMNI.onClick.AddListener(()=>
+        visBrainButtons = new Button[3];
+        visBrainButtons[0] = brainOptionsPanel.transform.GetChild(3).GetComponent<Button>();
+        visBrainButtons[1] = brainOptionsPanel.transform.GetChild(4).GetComponent<Button>();
+        visBrainButtons[2] = brainOptionsPanel.transform.GetChild(5).GetComponent<Button>();
+        gainValue = brainOptionsPanel.transform.GetChild(6).GetChild(0).GetComponent<Text>();
+
+        gainAdd = brainOptionsPanel.transform.GetChild(6).GetChild(1).GetComponent<Button>();
+        gainRemove = brainOptionsPanel.transform.GetChild(6).GetChild(2).GetComponent<Button>();
+
+        brainButtons[0].onClick.AddListener(() =>
         {
-            changeBrainDisplay(0);
+            if (!referential_choicePending)
+            {
+                setButtonsVisible(brainButtons, true, true, true);
+                referential_choicePending = true;
+            }
+            else
+            {
+                needToChangeBrain(0);
+                setButtonsVisible(brainButtons, true, false, false);
+                referential_choicePending = false;
+            }
         });
-        brainPAT.onClick.AddListener(() =>
+        brainButtons[1].onClick.AddListener(() =>
         {
-            changeBrainDisplay(1);
+            if (!referential_choicePending)
+            {
+                setButtonsVisible(brainButtons, true, true, true);
+                referential_choicePending = true;
+            }
+            else
+            {
+                needToChangeBrain(1);
+                setButtonsVisible(brainButtons, false, true, false);
+                referential_choicePending = false;
+            }
         });
-        brainELEC.onClick.AddListener(() =>
+        brainButtons[2].onClick.AddListener(() =>
         {
-            changeBrainDisplay(2);
+            if (!referential_choicePending)
+            {
+                setButtonsVisible(brainButtons, true, true, true);
+                referential_choicePending = true;
+            }
+            else
+            {
+                needToChangeBrain(2);
+                setButtonsVisible(brainButtons, false, false, true);
+                referential_choicePending = false;
+            }
         });
 
-        dispFullBrain.onClick.AddListener(() => Brain.changeVisuBrain(0));
-        dispLeftBrain.onClick.AddListener(() => Brain.changeVisuBrain(-1));
-        dispRightBrain.onClick.AddListener(() => Brain.changeVisuBrain(1));
+        visBrainButtons[0].onClick.AddListener(() =>
+        {
+            if (!visu_choicePending)
+            {
+                setButtonsVisible(visBrainButtons, true, true, true);
+                visu_choicePending = true;
+            }
+            else
+            {
+                Brain.changeVisuBrain(0);
+                setButtonsVisible(visBrainButtons, true, false, false);
+                visu_choicePending = false;
+            }
+        });
+        visBrainButtons[1].onClick.AddListener(() =>
+        {
+            if (!visu_choicePending)
+            {
+                setButtonsVisible(visBrainButtons, true, true, true);
+                visu_choicePending = true;
+            }
+            else
+            {
+                Brain.changeVisuBrain(-1);
+                setButtonsVisible(visBrainButtons, false, true, false);
+                visu_choicePending = false;
+            }
+        });
+        visBrainButtons[2].onClick.AddListener(() =>
+        {
+            if (!visu_choicePending)
+            {
+                setButtonsVisible(visBrainButtons, true, true, true);
+                visu_choicePending = true;
+            }
+            else
+            {
+                Brain.changeVisuBrain(1);
+                setButtonsVisible(visBrainButtons, false, false, true);
+                visu_choicePending = false;
+            }
+        });
 
         gainValue.text = "Gain : " + gain;
-        gainAdd.onClick.AddListener(() => 
+        gainAdd.onClick.AddListener(() =>
         {
             gain += 1;
             gainValue.text = "Gain : " + gain;
@@ -1276,202 +1377,264 @@ public class brainOptions
 
     ~brainOptions()
     {
-        brainMNI.onClick.RemoveAllListeners();
-        brainPAT.onClick.RemoveAllListeners();
-        brainELEC.onClick.RemoveAllListeners();
-        dispFullBrain.onClick.RemoveAllListeners();
-        dispLeftBrain.onClick.RemoveAllListeners();
-        dispRightBrain.onClick.RemoveAllListeners();
+        brainButtons[0].onClick.RemoveAllListeners();
+        brainButtons[1].onClick.RemoveAllListeners();
+        brainButtons[2].onClick.RemoveAllListeners();
+        brainButtons = null;
+        visBrainButtons[0].onClick.RemoveAllListeners();
+        visBrainButtons[1].onClick.RemoveAllListeners();
+        visBrainButtons[2].onClick.RemoveAllListeners();
+        visBrainButtons = null;
         gainAdd.onClick.RemoveAllListeners();
         gainRemove.onClick.RemoveAllListeners();
     }
 
-    public void setBrainInteract(bool isInteractable)
+    void setButtonsVisible(Button[] buttons, bool isVisible1, bool isVisible2, bool isVisible3)
     {
-        dispFullBrain.interactable = isInteractable;
-        dispLeftBrain.interactable = isInteractable;
-        dispRightBrain.interactable = isInteractable;
+        buttons[0].gameObject.SetActive(isVisible1);
+        buttons[1].gameObject.SetActive(isVisible2);
+        buttons[2].gameObject.SetActive(isVisible3);
     }
 
-    void changeBrainDisplay(int idDisplay)
+    public void setBrainInteract(bool isInteractable)
     {
-        needToChangeBrain(idDisplay);
+        visBrainButtons[0].interactable = isInteractable;
+        visBrainButtons[1].interactable = isInteractable;
+        visBrainButtons[2].interactable = isInteractable;
     }
 }
 
-public class UIOption
+public class ButtonUI_show : ButtonUI_hide
+{
+    public override void OnPointerClick(PointerEventData eventData)
+    {
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Right:
+                if (m_positionCounter - 1 >= 0)
+                    m_positionCounter -= 1;
+                break;
+            case PointerEventData.InputButton.Left:
+                if (m_positionCounter + 1 <= 3)
+                    m_positionCounter += 1;
+                break;
+        }
+
+        if (m_curve != null)
+        {
+            switch (m_positionCounter)
+            {
+                case 0:
+                    m_curve.SetActive(false); //ni courbe ni option
+                    for (int i = 0; i < m_optionsPanel.transform.childCount; i++)
+                    {
+                        if (i != m_idOpt)
+                        {
+                            m_buttonsPanel.transform.GetChild(i).GetComponent<Image>().color = Color.black;
+                            m_buttonsPanel.transform.GetChild(i).GetComponent<ButtonUI>().showExtraPanels(false);
+                            m_optionsPanel.transform.GetChild(i).gameObject.SetActive(false);
+                        }
+                    }
+                    changeColorOptions(true);
+                    m_options.SetActive(m_isVisible);
+                    showExtraPanels(m_isVisible);
+                    break;
+                case 1:
+                    m_curve.SetActive(true); //courbe et option
+
+                    changeColorOptions(true);
+                    m_options.SetActive(m_isVisible);
+                    showExtraPanels(m_isVisible);
+                    break;
+                case 2:
+                    for (int i = 0; i < m_optionsPanel.transform.childCount; i++)
+                    {
+                        if (i != m_idOpt)
+                        {
+                            m_buttonsPanel.transform.GetChild(i).GetComponent<Image>().color = Color.black;
+                            m_buttonsPanel.transform.GetChild(i).GetComponent<ButtonUI>().showExtraPanels(false);
+                            m_optionsPanel.transform.GetChild(i).gameObject.SetActive(false);
+                        }
+                    }
+                    changeColorOptions(false);
+                    m_options.SetActive(m_isVisible);
+                    showExtraPanels(m_isVisible);
+
+                    if (m_curve.GetComponent<TraceCurve>().hasFocus)
+                        m_curve.GetComponent<TraceCurve>().manageFocusClick();
+                    break;
+                case 3:
+                    if (m_curve.GetComponent<TraceCurve>().hasFocus)
+                        m_curve.GetComponent<TraceCurve>().manageFocusClick();
+                    break;
+            }
+
+        }
+    }
+}
+
+public class ButtonUI_hide : ButtonUI
+{
+    protected GameObject m_curve = null;
+
+    new public void init(GameObject p_buttonsPanel, GameObject p_optionsPanel, int p_idOpt)
+    {
+        base.init(p_buttonsPanel, p_optionsPanel, p_idOpt);
+    }
+
+    new public void initExtraData(GameObject p_options2Panel)
+    {
+        base.initExtraData(p_options2Panel);
+    }
+
+    public void initUIElement(string name)
+    {
+        m_curve = GameObject.Find(name);
+    }
+
+    public override void OnPointerClick(PointerEventData eventData)
+    {
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Right:
+                if (m_positionCounter - 1 >= 0)
+                    m_positionCounter -= 1;
+                break;
+            case PointerEventData.InputButton.Left:
+                if (m_positionCounter + 1 <= 2)
+                    m_positionCounter += 1;
+                break;
+        }
+
+        if (m_curve != null)
+        {
+            switch (m_positionCounter)
+            {
+                case 0:
+                    m_curve.SetActive(false); //ni courbe ni option
+                    for (int i = 0; i < m_optionsPanel.transform.childCount; i++)
+                    {
+                        if (i != m_idOpt)
+                        {
+                            m_buttonsPanel.transform.GetChild(i).GetComponent<Image>().color = Color.black;
+                            m_buttonsPanel.transform.GetChild(i).GetComponent<ButtonUI>().showExtraPanels(false);
+                            m_optionsPanel.transform.GetChild(i).gameObject.SetActive(false);
+                        }
+                    }
+                    changeColorOptions(true);
+                    m_options.SetActive(m_isVisible);
+                    showExtraPanels(m_isVisible);
+                    break;
+                case 1:
+                    m_curve.SetActive(true); //courbe et option
+
+                    changeColorOptions(true);
+                    m_options.SetActive(m_isVisible);
+                    showExtraPanels(m_isVisible);
+                    break;
+                case 2:
+                    for (int i = 0; i < m_optionsPanel.transform.childCount; i++)
+                    {
+                        if (i != m_idOpt)
+                        {
+                            m_buttonsPanel.transform.GetChild(i).GetComponent<Image>().color = Color.black;
+                            m_buttonsPanel.transform.GetChild(i).GetComponent<ButtonUI>().showExtraPanels(false);
+                            m_optionsPanel.transform.GetChild(i).gameObject.SetActive(false);
+                        }
+                    }
+                    changeColorOptions(false);
+                    m_options.SetActive(m_isVisible);
+                    showExtraPanels(m_isVisible);
+                    break;
+            }
+        }
+    }
+}
+
+public class ButtonUI : MonoBehaviour, IPointerClickHandler
 {
     public GameObject optionsPanel
     {
         get
         {
-            return options;
+            return m_options;
+        }
+    }
+    public GameObject optionsPanel2
+    {
+        get
+        {
+            return m_options2Panel;
+        }
+    }
+    //==
+    protected GameObject m_buttonsPanel = null;
+    protected GameObject m_optionsPanel = null;
+    protected Image m_showPic = null;
+    protected GameObject m_options = null;
+    protected int m_idOpt = -2;
+    //==
+    protected GameObject m_options2Panel = null;
+    protected int m_positionCounter = 1;
+    //==
+    protected bool m_isVisible = false;
+    protected Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
+    protected Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
+    protected Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
+    protected Color blueHide = new Color(0.6117f, 0.7058f, 0.7960f, 0.3921f);
+
+    public void init(GameObject p_buttonsPanel, GameObject p_optionsPanel, int p_idOpt)
+    {
+        m_buttonsPanel = p_buttonsPanel;
+        m_optionsPanel = p_optionsPanel;
+        m_idOpt = p_idOpt;
+
+        m_showPic = p_buttonsPanel.transform.GetChild(m_idOpt).GetComponent<Image>();
+        m_options = m_optionsPanel.transform.GetChild(m_idOpt).gameObject;
+    }
+
+    public void initExtraData(GameObject p_options2Panel)
+    {
+        m_options2Panel = p_options2Panel;
+    }
+
+    public virtual void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            for (int i = 0; i < m_optionsPanel.transform.childCount; i++)
+            {
+                if (i != m_idOpt)
+                {
+                    m_buttonsPanel.transform.GetChild(i).GetComponent<Image>().color = Color.black;
+                    m_buttonsPanel.transform.GetChild(i).GetComponent<ButtonUI>().showExtraPanels(false);
+                    m_optionsPanel.transform.GetChild(i).gameObject.SetActive(false);
+                }
+            }
+            changeColorOptions(m_options.activeSelf);
+            m_options.SetActive(m_isVisible);
+            showExtraPanels(m_isVisible);
         }
     }
 
-    #region UIMembers
-    Button showButton = null;
-    Image showPic = null;
-    Image logo = null;
-    GameObject contentPanel = null;
-    GameObject options = null;
-    eventsOptions eventMenu = null;
-    #endregion
-
-    Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
-    Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
-    bool isVisible = false;
-
-    public UIOption(GameObject buttonsPanel, GameObject optionsPanel, int idOpt)
+    protected void changeColorOptions(bool currentStatus)
     {
-        contentPanel = optionsPanel.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
-        showButton = buttonsPanel.transform.GetChild(idOpt).GetComponent<Button>();
-        showPic = buttonsPanel.transform.GetChild(idOpt).GetComponent<Image>();
-        logo = buttonsPanel.transform.GetChild(idOpt).GetChild(0).GetComponent<Image>();
-        options = contentPanel.transform.GetChild(idOpt).gameObject;
+        m_isVisible = !currentStatus;
 
-        showButton.onClick.AddListener(() =>
-        {
-            if (optionsPanel.activeSelf == false)
-            {
-                changeColorOptions();
-                optionsPanel.SetActive(true);
-                options.SetActive(!options.activeSelf);
-            }
-            else
-            {
-                if (options.name == "OptionsEvents")
-                {
-                    Component[] objects = GameObject.Find("Canvas").GetComponentsInChildren(typeof(eventsOptions), true);
-                    eventMenu = (eventsOptions)objects[0];
-                    if (eventMenu && eventMenu.addEvent == false)
-                    {
-                        changeColorOptions();
-                        options.SetActive(!options.activeSelf);
-
-                        bool hide = false;
-                        for (int i = 0; i < contentPanel.transform.childCount; i++)
-                        {
-                            hide = hide || contentPanel.transform.GetChild(i).gameObject.activeSelf;
-                        }
-
-                        if (!hide)
-                        {
-                            optionsPanel.SetActive(false);
-                        }
-                    }
-                }
-                else
-                {
-                    changeColorOptions();
-                    options.SetActive(!options.activeSelf);
-
-                    bool hide = false;
-                    for (int i = 0; i < contentPanel.transform.childCount; i++)
-                    {
-                        hide = hide || contentPanel.transform.GetChild(i).gameObject.activeSelf;
-                    }
-
-                    if (!hide)
-                    {
-                        optionsPanel.SetActive(false);
-                    }
-                }
-
-
-            }
-        });
-    }
-
-    ~UIOption()
-    {
-        showButton.onClick.RemoveAllListeners();
-    }
-
-    void changeColorOptions()
-    {
-        isVisible = !isVisible;
-
-        if (isVisible)
-            logo.color = orange;
+        if (m_isVisible)
+            m_showPic.color = blue;
         else
-            logo.color = blue;
-    }
-}
-
-public class UIXOption : MonoBehaviour, IPointerClickHandler
-{
-    int positionCounter = 1;
-    Image logo = null;
-    GameObject contentPanel = null;
-    public GameObject options = null;
-    GameObject optionsPanel = null;
-    Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
-    Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
-    Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
-    Color blueHide = new Color(0.6117f, 0.7058f, 0.7960f, 0.3921f);
-    GameObject curve = null;
-
-    public void init(GameObject buttonsPanel, GameObject optionsPanel, int idOpt)
-    {
-        this.optionsPanel = optionsPanel;
-        contentPanel = optionsPanel.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
-        logo = buttonsPanel.transform.GetChild(idOpt).GetChild(0).GetComponent<Image>();
-        options = contentPanel.transform.GetChild(idOpt).gameObject;
-
-        if (logo.transform.parent.name == "ButtonTrace1")
-            curve = GameObject.Find("Trace1Window");
-        else if (logo.transform.parent.name == "ButtonTrace2")
-            curve = GameObject.Find("Trace2Window");
-
+            m_showPic.color = Color.black;
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    public void showExtraPanels(bool show)
     {
-        switch (eventData.button)
+        if (m_options2Panel != null)
         {
-            case PointerEventData.InputButton.Right:
-                if (positionCounter - 1 >= 0)
-                    positionCounter -= 1;
-                break;
-            case PointerEventData.InputButton.Left:
-                if (positionCounter + 1 <= 3)
-                    positionCounter += 1;
-                break;
-        }
-
-        switch (positionCounter)
-        {
-            case 0:
-                curve.SetActive(false);
-                logo.color = blueHide;
-                break;
-            case 1:
-                curve.SetActive(true);
-                options.SetActive(false);
-                logo.color = blue;
-
-                bool hide = false;
-                for (int i = 0; i < contentPanel.transform.childCount; i++)
-                    hide = hide || contentPanel.transform.GetChild(i).gameObject.activeSelf;
-
-                if (!hide)
-                    optionsPanel.SetActive(false);
-
-                break;
-            case 2:
-                optionsPanel.SetActive(true);
-                options.SetActive(true);
-                logo.color = yellow;
-
-                if(curve.GetComponent<TraceCurve>().hasFocus)
-                    curve.GetComponent<TraceCurve>().manageFocusClick();
-                break;
-            case 3:
-                logo.color = orange;
-                if (!curve.GetComponent<TraceCurve>().hasFocus)
-                    curve.GetComponent<TraceCurve>().manageFocusClick();
-                break;
+            m_options2Panel.SetActive(show);
+            m_options2Panel.transform.parent.gameObject.SetActive(show);
+            if(!show)
+                m_positionCounter = 1;
         }
     }
 }
@@ -1479,7 +1642,7 @@ public class UIXOption : MonoBehaviour, IPointerClickHandler
 public class optionsHub : MonoBehaviour
 {
     [SerializeField] BTVMedia media = null;
-    [SerializeField] GameObject detaileOptionsPanel = null;
+    [SerializeField] GameObject detaileOptionsPanel = null; //before => View=>PanelOption
 
     public brainOptions brainRemote
     {
@@ -1519,12 +1682,12 @@ public class optionsHub : MonoBehaviour
 
     #region UIMembers
     //== Pannel Options 
-    UIOption brainOpt = null;
-    UIXOption trace1Opt = null;
-    UIXOption trace2Opt = null;
-    UIOption perfOpt = null;
-    UIOption videoOpt = null;
-    UIOption eventsOpt = null;
+    ButtonUI brainOpt = null;
+    ButtonUI_show trace1Opt = null;
+    ButtonUI_show trace2Opt = null;
+    ButtonUI_hide perfOpt = null;
+    ButtonUI videoOpt = null;
+    ButtonUI eventsOpt = null;
     //== Detailed Options
     brainOptions brainOpts = null;
     traceXOptions[] traceXOpts = new traceXOptions[2];
@@ -1545,25 +1708,35 @@ public class optionsHub : MonoBehaviour
 
     void initOptionMenu()
     {
-        brainOpt = new UIOption(gameObject, detaileOptionsPanel, 0);
+        brainOpt = gameObject.transform.GetChild(0).gameObject.AddComponent<ButtonUI>();
+        brainOpt.init(gameObject, detaileOptionsPanel, 0);
         brainOpts = new brainOptions(brainOpt.optionsPanel);
-        //==
-        trace1Opt = gameObject.transform.GetChild(1).gameObject.AddComponent<UIXOption>();
+        ////==
+        trace1Opt = gameObject.transform.GetChild(1).gameObject.AddComponent<ButtonUI_show>();
         trace1Opt.init(gameObject, detaileOptionsPanel, 1);
-        traceXOpts[0] = new traceXOptions(trace1Opt.options, media);
-        //==
-        trace2Opt = gameObject.transform.GetChild(2).gameObject.AddComponent<UIXOption>();
+        trace1Opt.initUIElement("Trace1Window");
+        trace1Opt.initExtraData(GameObject.Find("Canvas").transform.GetChild(1).GetChild(2).GetChild(0).gameObject);
+        traceXOpts[0] = new traceXOptions(trace1Opt, media);
+        //////==
+        trace2Opt = gameObject.transform.GetChild(2).gameObject.AddComponent<ButtonUI_show>();
         trace2Opt.init(gameObject, detaileOptionsPanel, 2);
-        traceXOpts[1] = new traceXOptions(trace2Opt.options, media);
-        //==
-        perfOpt = new UIOption(gameObject, detaileOptionsPanel, 3);
+        trace2Opt.initUIElement("Trace2Window");
+        trace2Opt.initExtraData(GameObject.Find("Canvas").transform.GetChild(1).GetChild(2).GetChild(1).gameObject);
+        traceXOpts[1] = new traceXOptions(trace2Opt, media);
+        ////==
+        perfOpt = gameObject.transform.GetChild(3).gameObject.AddComponent<ButtonUI_hide>();
+        perfOpt.init(gameObject, detaileOptionsPanel, 3);
+        perfOpt.initUIElement("TracePerfWindow");
         perfOpts = new perfDataOptions(perfOpt.optionsPanel);
-        //==
-        videoOpt = new UIOption(gameObject, detaileOptionsPanel, 4);
+        ////==
+        videoOpt = gameObject.transform.GetChild(4).gameObject.AddComponent<ButtonUI>();
+        videoOpt.init(gameObject, detaileOptionsPanel, 4);
         vidOpts = new videoOptions(videoOpt.optionsPanel);
-        //==
-        eventsOpt = new UIOption(gameObject, detaileOptionsPanel, 5);
+        ////==
+        eventsOpt = gameObject.transform.GetChild(5).gameObject.AddComponent<ButtonUI>();
+        eventsOpt.init(gameObject, detaileOptionsPanel, 5);
+        eventsOpt.initExtraData(GameObject.Find("Canvas").transform.GetChild(1).GetChild(2).GetChild(2).gameObject);
         eventsOpts = gameObject.AddComponent<eventsOptions>();
-        eventsOpts.init(eventsOpt.optionsPanel);
+        eventsOpts.init(eventsOpt);
     }
 }
