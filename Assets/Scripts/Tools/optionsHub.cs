@@ -675,7 +675,7 @@ public class eventsOptions : MonoBehaviour
 
 public delegate void offsetVideoChangedEventHandler(float newVal);
 public delegate void toggleAudioTraceEventHandler(bool isTraceOn);
-public delegate void gainAudioChangedEventHandler(int newGain);
+public delegate void gainAudioChangedEventHandler(float newGain);
 public delegate void idAudioSmChangedEventHandler(int newIdSm);
 
 public class videoOptions
@@ -699,7 +699,7 @@ public class videoOptions
     Text gainLabel = null;
     Button gainAddButton = null;
     Button gainRemoveButton = null;
-    int gain = 1;
+    float gain = 1;
     //====
     Button[] smButton = null;
     bool sm_ChoicePending = false;
@@ -844,14 +844,20 @@ public class videoOptions
 
     void addGain()
     {
-        gain += 1;
+        if (gain < 1 && gain >= -1)
+            gain += 0.25f;
+        else
+            gain += 1;
         gainLabel.text = "Gain : " + gain;
         gainAudioHasChanged(gain);
     }
 
     void removeGain()
     {
-        gain -= 1;
+        if (gain <= 1 && gain > -1)
+            gain -= 0.25f;
+        else
+            gain -= 1;
         gainLabel.text = "Gain : " + gain;
         gainAudioHasChanged(gain);
     }
@@ -955,7 +961,7 @@ public class perfDataOptions
     }
 }
 
-public delegate void gainChangedEventHandler(int newVal);
+public delegate void gainChangedEventHandler(float newVal);
 public delegate void offsetChangedEventHandler(float newVal);
 public delegate void idFileChangedEventHandler(int newIdHandle);
 public delegate void idElecChangedEventHandler(int newIDElec);
@@ -1004,7 +1010,7 @@ public class traceXOptions
     public List<string> soundFilesAbsPath = null;
     public string[] soundFileShort;
 
-    int gain = 1;
+    float gain = 1;
     int offset = 0;
     bool isSonifOn = false;
 
@@ -1204,14 +1210,20 @@ public class traceXOptions
 
     void addGain()
     {
-        gain += 1;
+        if (gain < 1 && gain >= -1)
+            gain += 0.25f;
+        else
+            gain += 1;
         gainLabel.text = "Gain : " + gain;
         gainHasChanged(gain);
     }
 
     void removeGain()
     {
-        gain -= 1;
+        if (gain <= 1 && gain > -1)
+            gain -= 0.25f;
+        else
+            gain -= 1;
         gainLabel.text = "Gain : " + gain;
         gainHasChanged(gain);
     }

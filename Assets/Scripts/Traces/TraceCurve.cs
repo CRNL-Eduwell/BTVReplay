@@ -330,13 +330,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         offsetCoefficient = (offsetPerTen / 10) * maxValChanel;
     }
 
-    void updateTraceGain(int newGain)
+    void updateTraceGain(float newGain)
     {
         previousGain = gain;
         gain = newGain;
-
-        if(newGain / previousGain < 0)
-            updateElectrodeLabel();
+        updateElectrodeLabel();
 
         for (int i = 0; i < numberPoint; i++)
         {
@@ -345,7 +343,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         lineRenderer.SetPositions(dataArray);
     }
 
-    void updateAudioGain(int newGain)
+    void updateAudioGain(float newGain)
     {
         previousGainAudio = gainAudio;
         gainAudio = newGain;
@@ -436,7 +434,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
     void updateElectrodeLabel()
     {
-        if(gain > 0)
+        if(gain >= 0)
             elecLabel.text = eHandle.electrodes[idCurrentElec].name;
         else
             elecLabel.text = " - " + eHandle.electrodes[idCurrentElec].name;
