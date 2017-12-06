@@ -1404,7 +1404,7 @@ public class brainOptions
     }
 }
 
-public class ButtonUI_show : ButtonUI_hide
+public class ButtonUI_show : ButtonUI
 {
     public override void OnPointerClick(PointerEventData eventData)
     {
@@ -1437,7 +1437,6 @@ public class ButtonUI_show : ButtonUI_hide
                     }
                     changeColorOptions(true);
                     m_options.SetActive(m_isVisible);
-                    showExtraPanels(m_isVisible);
                     break;
                 case 1:
                     m_curve.SetActive(true); //courbe et option
@@ -1447,6 +1446,7 @@ public class ButtonUI_show : ButtonUI_hide
                     showExtraPanels(m_isVisible);
                     break;
                 case 2:
+                    m_curve.SetActive(true); //courbe et option
                     for (int i = 0; i < m_optionsPanel.transform.childCount; i++)
                     {
                         if (i != m_idOpt)
@@ -1460,38 +1460,20 @@ public class ButtonUI_show : ButtonUI_hide
                     m_options.SetActive(m_isVisible);
                     showExtraPanels(m_isVisible);
 
-                    if (m_curve.GetComponent<TraceCurve>().hasFocus)
-                        m_curve.GetComponent<TraceCurve>().manageFocusClick();
+                    if (m_curve.transform.GetComponent<TraceCurve>().hasFocus)
+                        m_curve.transform.GetComponent<TraceCurve>().manageFocusClick();
                     break;
                 case 3:
-                    if (m_curve.GetComponent<TraceCurve>().hasFocus)
-                        m_curve.GetComponent<TraceCurve>().manageFocusClick();
+                    if (!m_curve.transform.GetComponent<TraceCurve>().hasFocus)
+                        m_curve.transform.GetComponent<TraceCurve>().manageFocusClick();
                     break;
             }
-
         }
     }
 }
 
 public class ButtonUI_hide : ButtonUI
 {
-    protected GameObject m_curve = null;
-
-    new public void init(GameObject p_buttonsPanel, GameObject p_optionsPanel, int p_idOpt)
-    {
-        base.init(p_buttonsPanel, p_optionsPanel, p_idOpt);
-    }
-
-    new public void initExtraData(GameObject p_options2Panel)
-    {
-        base.initExtraData(p_options2Panel);
-    }
-
-    public void initUIElement(string name)
-    {
-        m_curve = GameObject.Find(name);
-    }
-
     public override void OnPointerClick(PointerEventData eventData)
     {
         switch (eventData.button)
@@ -1523,7 +1505,6 @@ public class ButtonUI_hide : ButtonUI
                     }
                     changeColorOptions(true);
                     m_options.SetActive(m_isVisible);
-                    showExtraPanels(m_isVisible);
                     break;
                 case 1:
                     m_curve.SetActive(true); //courbe et option
@@ -1574,6 +1555,7 @@ public class ButtonUI : MonoBehaviour, IPointerClickHandler
     protected GameObject m_options = null;
     protected int m_idOpt = -2;
     //==
+    protected GameObject m_curve = null;
     protected GameObject m_options2Panel = null;
     protected int m_positionCounter = 1;
     //==
@@ -1596,6 +1578,11 @@ public class ButtonUI : MonoBehaviour, IPointerClickHandler
     public void initExtraData(GameObject p_options2Panel)
     {
         m_options2Panel = p_options2Panel;
+    }
+
+    public void initUIElement(string name)
+    {
+        m_curve = GameObject.Find(name);
     }
 
     public virtual void OnPointerClick(PointerEventData eventData)
@@ -1627,14 +1614,22 @@ public class ButtonUI : MonoBehaviour, IPointerClickHandler
             m_showPic.color = Color.black;
     }
 
-    public void showExtraPanels(bool show)
+    public virtual void showExtraPanels(bool show)
     {
         if (m_options2Panel != null)
         {
             m_options2Panel.SetActive(show);
             m_options2Panel.transform.parent.gameObject.SetActive(show);
-            if(!show)
+            if (show == false)
                 m_positionCounter = 1;
+            if (m_curve != null)
+            {
+                if (m_curve.transform.GetComponent<TraceCurve>() != null)
+                {
+                    if (m_curve.transform.GetComponent<TraceCurve>().hasFocus)
+                        m_curve.transform.GetComponent<TraceCurve>().manageFocusClick();
+                }
+            }
         }
     }
 }
