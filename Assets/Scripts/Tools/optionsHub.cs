@@ -708,7 +708,7 @@ public class videoOptions
     CoroutineManager coMana = null;
     //====
     Color hardBlue = new Color(0.6117f, 0.7058f, 0.7960f, 1f);
-    Color softBlue = new Color(0.6117f, 0.7058f, 0.7960f, 0.392156f);
+    Color softBlue = new Color(0.6117f, 0.7058f, 0.7960f, 0.627450f);
 
     public videoOptions(GameObject videoOptionsPanel)
     {

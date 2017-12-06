@@ -94,6 +94,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     LineRenderer lineRenderer = null, lineRendererRMS = null;
     Text elecLabel = null;
     Image elecColor = null;
+    Button elecButton = null;
     ELAN eHandle = null;
     bool initDone = false;
     public List<GameObject> eventsAdded = new List<GameObject>();
@@ -166,6 +167,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
             colorpicker.changeColor -= new colorChanged(setColors);
 
+            elecButton.onClick.RemoveAllListeners();
+
             hub.traceRemotes[traceID].deleteElectrodeInPanel();
         }
     }
@@ -209,7 +212,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
         elecLabel = gameObject.transform.GetChild(9).GetChild(0).GetComponent<Text>();
         elecColor = gameObject.transform.GetChild(9).GetChild(1).GetComponent<Image>();
-        
+        elecButton = gameObject.transform.GetChild(9).GetChild(1).GetComponent<Button>();
+
         eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
         samplingFreq = (int)eHandle.sampFreq;
         numberPoint = samplingFreq * periodSec;
@@ -225,12 +229,12 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         dataArrayRMS = new Vector3[numberPoint];
 
         lineRenderer.positionCount = numberPoint;
-        lineRenderer.startWidth = 0.04f;
-        lineRenderer.endWidth = 0.04f;
+        lineRenderer.startWidth = 0.02f; //0.04f; = width 1
+        lineRenderer.endWidth = 0.02f;
 
         lineRendererRMS.positionCount = numberPoint;
-        lineRendererRMS.startWidth = 0.04f;
-        lineRendererRMS.endWidth = 0.04f;
+        lineRendererRMS.startWidth = 0.02f;
+        lineRendererRMS.endWidth = 0.02f;
 
         updateHorizontalScale(lineRenderer, dataArray);
         updateHorizontalScale(lineRendererRMS, dataArrayRMS);
@@ -270,6 +274,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         warden.plotWasClicked += new newPlotClicked(plotClicked);
 
         colorpicker.changeColor += new colorChanged(setColors);
+
+        elecButton.onClick.AddListener(updateTracesWidth);
 
         initDone = true;
         #endregion
@@ -436,6 +442,26 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             elecLabel.text = " - " + eHandle.electrodes[idCurrentElec].name;
     }
 
+    void updateTracesWidth()
+    {
+        if (lineRenderer.startWidth == 0.02f)
+        {
+            lineRenderer.startWidth = 0.04f;
+            lineRenderer.endWidth = 0.04f;
+            //==
+            lineRendererRMS.startWidth = 0.04f;
+            lineRendererRMS.endWidth = 0.04f;
+        }
+        else
+        {
+            lineRenderer.startWidth = 0.02f;
+            lineRenderer.endWidth = 0.02f;
+            //==
+            lineRendererRMS.startWidth = 0.02f;
+            lineRendererRMS.endWidth = 0.02f;
+        }
+
+    }
     //===
 
     public void OnPointerClick(PointerEventData eventData)
@@ -636,7 +662,6 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                     gameObject.transform.SetSiblingIndex(1);
                     handleOtherTrace.gameObject.transform.SetSiblingIndex(0);
                 }
-
             }
             else
             {
