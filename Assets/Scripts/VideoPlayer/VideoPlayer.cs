@@ -10,6 +10,10 @@ public delegate void timeVideo(int currentTime);
 public delegate void timeVideoSync(int currentTime);
 public delegate void stopVideo();
 
+/// <summary>
+/// Represents an instance of a video, either from a real video
+/// or a simulated video just to view eeg data
+/// </summary>
 public class VideoPlayer : MonoBehaviour
 {
     public WavReader audioWav
@@ -30,22 +34,15 @@ public class VideoPlayer : MonoBehaviour
             return _Iplayer;
         }
     }
-    public float SamplingFrequency
-    {
-        get
-        {
-            return sampFreq;
-        }
-    }
     public string VideoPath
     {
         get
         {
-            return m_vidPath;
+            return m_videoPath;
         }
         set
         {
-            m_vidPath = value;
+            m_videoPath = value;
         }
     }
     public string AudioPath
@@ -101,22 +98,22 @@ public class VideoPlayer : MonoBehaviour
     [SerializeField] Scrollbar loopScroll = null;
     #endregion
 
+    #region private members
     private WavReader _wavReader = null;
     private IVideoPlayer _Iplayer = null;
-    private bool scrollbarnotclicked = true, initDone = false, forceMove = false;
-    private EventTrigger trigger = null;
-    private Texture2D texPlay = null, texPause = null, texLogo = null;
-    private Sprite texHandle = null, texHandleSlave = null;
-    private float sampFreq = 0;
+    private bool m_scrollbarnotclicked = true, m_initDone = false, m_forceMove = false;
+    private EventTrigger m_trigger = null;
+    private Texture2D m_texPlay = null, m_texPause = null, m_texLogo = null;
+    private Sprite m_texHandle = null, m_texHandleSlave = null;
 
-    private bool slaved = false, keyForceMove = false;
-    private EventTrigger triggerSlaved = null;
-    private long timeClick = -1;
-    private float minTC = 0.0f, maxTC = 0.0f;
-    private float scrollVal = 0.0f, memSc = 0.0f;
-    private long currentTimeScrollBar = 0;
-
-    private string m_vidPath = "";
+    private bool m_slaved = false, m_keyForceMove = false;
+    private EventTrigger m_triggerSlaved = null;
+    private long m_timeClick = -1;
+    private float m_minTimeClick = 0.0f, m_maxTimeClick = 0.0f;
+    private float m_scrollVal = 0.0f, m_scrollMemory = 0.0f;
+    private long m_currentTimeScrollBar = 0;
+    private string m_videoPath = "";
+    #endregion
 
     private void Awake()
     {
@@ -126,7 +123,7 @@ public class VideoPlayer : MonoBehaviour
     private void OnDestroy()
     {
         media.loadVideo -= new initVideo(init);
-        if (initDone)
+        if (m_initDone)
         {
             _Iplayer.cleanup();
 
@@ -140,29 +137,29 @@ public class VideoPlayer : MonoBehaviour
             frontTime10.onClick.RemoveAllListeners();
             volumeScrollBar.onValueChanged.RemoveAllListeners();
 
-            for (int i = 0; i < trigger.triggers.Count; i++)
-                trigger.triggers[i].callback.RemoveAllListeners();
+            for (int i = 0; i < m_trigger.triggers.Count; i++)
+                m_trigger.triggers[i].callback.RemoveAllListeners();
 
-            for (int i = 0; i < triggerSlaved.triggers.Count; i++)
-                triggerSlaved.triggers[i].callback.RemoveAllListeners();
+            for (int i = 0; i < m_triggerSlaved.triggers.Count; i++)
+                m_triggerSlaved.triggers[i].callback.RemoveAllListeners();
 
-            Destroy(trigger); //Not done before if it bugs ? 
-            Destroy(triggerSlaved); //Not done before if it bugs ? 
+            Destroy(m_trigger); //Not done before if it bugs ? 
+            Destroy(m_triggerSlaved); //Not done before if it bugs ? 
         }
     }
 
     private void Start()
     {
-        texPause = Resources.Load("Pictures/playIcone", typeof(Texture2D)) as Texture2D;
-        texPlay = Resources.Load("Pictures/pauseIcone", typeof(Texture2D)) as Texture2D;
-        texLogo = Resources.Load("Pictures/BTVLogo", typeof(Texture2D)) as Texture2D;
-        texHandle = Resources.Load("Pictures/handleScroll", typeof(Sprite)) as Sprite;
-        texHandleSlave = Resources.Load("Pictures/handleSlave", typeof(Sprite)) as Sprite;
+        m_texPause = Resources.Load("Pictures/playIcone", typeof(Texture2D)) as Texture2D;
+        m_texPlay = Resources.Load("Pictures/pauseIcone", typeof(Texture2D)) as Texture2D;
+        m_texLogo = Resources.Load("Pictures/BTVLogo", typeof(Texture2D)) as Texture2D;
+        m_texHandle = Resources.Load("Pictures/handleScroll", typeof(Sprite)) as Sprite;
+        m_texHandleSlave = Resources.Load("Pictures/handleSlave", typeof(Sprite)) as Sprite;
     }
 
     private void Update()
     {
-        if (initDone)
+        if (m_initDone)
         {
             if (_Iplayer.isPlaying)
             {
@@ -170,12 +167,12 @@ public class VideoPlayer : MonoBehaviour
                 if (_Iplayer.currentTime > _Iplayer.totalVideoTime)
                     Stop();
 
-                if (slaved && !forceMove)
+                if (m_slaved && !m_forceMove)
                 {
-                    if (_Iplayer.currentTime > timeClick + 2000)
-                        setTime((int)timeClick - 2000);
-                    if (_Iplayer.currentTime < timeClick - 2000)
-                        setTime((int)timeClick + 2000);
+                    if (_Iplayer.currentTime > m_timeClick + 2000)
+                        setTime((int)m_timeClick - 2000);
+                    if (_Iplayer.currentTime < m_timeClick - 2000)
+                        setTime((int)m_timeClick + 2000);
                 }
                 updateScrollBarPosition();
                 updateTimeText();
@@ -190,7 +187,7 @@ public class VideoPlayer : MonoBehaviour
                 sendTimeVideo((int)videoTime);
             }
 
-            if (slaved)
+            if (m_slaved)
             {
                 if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.J))
                     forceMoveLoopScroll(-0.05f);
@@ -203,7 +200,7 @@ public class VideoPlayer : MonoBehaviour
     }
 
     #region implement Interface
-    void init(string videoPath, int eegSampFreq, int eegFileDurationInSec)
+    void init(string videoPath, int eegFileDurationInSec)
     {
         VideoPath = videoPath;
         if (needAudioProcess)
@@ -211,17 +208,15 @@ public class VideoPlayer : MonoBehaviour
         else
             hub.videoRemote.setButtonsInteractable(false);
 
-        sampFreq = eegSampFreq;
-
         if (videoPath == "")
             _Iplayer = gameObject.AddComponent<VLCLess>();
         else
             _Iplayer = gameObject.AddComponent<VLCSharp.VLCSharp>();
 
-        TextureToDraw.texture = (Texture2D)Instantiate(texLogo);
+        TextureToDraw.texture = (Texture2D)Instantiate(m_texLogo);
 
         _Iplayer.getVideoReference(TextureToDraw, hub);
-        _Iplayer.init(videoPath, eegSampFreq, eegFileDurationInSec);
+        _Iplayer.init(videoPath, eegFileDurationInSec);
         initListeners();
     }
 
@@ -235,33 +230,33 @@ public class VideoPlayer : MonoBehaviour
         volumeScrollBar.onValueChanged.AddListener((float newVolume) =>
                                                     _Iplayer.setVolume(newVolume));
 
-        trigger = scrollBar.gameObject.AddComponent<EventTrigger>();
+        m_trigger = scrollBar.gameObject.AddComponent<EventTrigger>();
 
         EventTrigger.Entry entry = new EventTrigger.Entry();
         entry.eventID = EventTriggerType.PointerDown;
         entry.callback.AddListener((eventData) =>
         {
-            if (!slaved)
+            if (!m_slaved)
                 initForceMoveLoopScroll();
         });
-        trigger.triggers.Add(entry);
+        m_trigger.triggers.Add(entry);
 
         EventTrigger.Entry entry2 = new EventTrigger.Entry();
         entry2.eventID = EventTriggerType.PointerUp;
         entry2.callback.AddListener((eventData) => 
         {
-            if (!scrollbarnotclicked)
+            if (!m_scrollbarnotclicked)
             {
-                if (forceMove)
-                    forceMove = false;
+                if (m_forceMove)
+                    m_forceMove = false;
                 
                 setTimeIfValueChanged();
-                scrollbarnotclicked = true;
+                m_scrollbarnotclicked = true;
             }
         });
-        trigger.triggers.Add(entry2);
+        m_trigger.triggers.Add(entry2);
 
-        triggerSlaved = loopScroll.gameObject.AddComponent<EventTrigger>();
+        m_triggerSlaved = loopScroll.gameObject.AddComponent<EventTrigger>();
 
         EventTrigger.Entry entry3 = new EventTrigger.Entry();
         entry3.eventID = EventTriggerType.BeginDrag; 
@@ -269,7 +264,7 @@ public class VideoPlayer : MonoBehaviour
         {
             initForceMoveLoopScroll();
         });
-        triggerSlaved.triggers.Add(entry3);
+        m_triggerSlaved.triggers.Add(entry3);
 
         EventTrigger.Entry entry4 = new EventTrigger.Entry();
         entry4.eventID = EventTriggerType.EndDrag;
@@ -277,16 +272,16 @@ public class VideoPlayer : MonoBehaviour
         {
             finishForceMoveLoopScroll();
         });
-        triggerSlaved.triggers.Add(entry4);
+        m_triggerSlaved.triggers.Add(entry4);
 
-        initDone = true;
+        m_initDone = true;
     }
 
     public void setTime(int timeMilliSec)
     {
-        scrollbarnotclicked = false;
+        m_scrollbarnotclicked = false;
         _Iplayer.setTime(timeMilliSec);
-        scrollbarnotclicked = true;
+        m_scrollbarnotclicked = true;
     }
 
     void Play()
@@ -294,12 +289,12 @@ public class VideoPlayer : MonoBehaviour
         if (_Iplayer.isPaused || _Iplayer.isStopped)
         {
             _Iplayer.play();
-            playPause.GetComponent<RawImage>().texture = texPlay;
+            playPause.GetComponent<RawImage>().texture = m_texPlay;
         }
         else
         {
             _Iplayer.pause();
-            playPause.GetComponent<RawImage>().texture = texPause;
+            playPause.GetComponent<RawImage>().texture = m_texPause;
         }
     }
 
@@ -307,8 +302,8 @@ public class VideoPlayer : MonoBehaviour
     {
         _Iplayer.stop();
         stopTimeVideo();
-        TextureToDraw.texture = Instantiate(texLogo);
-        playPause.GetComponent<RawImage>().texture = texPause;
+        TextureToDraw.texture = Instantiate(m_texLogo);
+        playPause.GetComponent<RawImage>().texture = m_texPause;
     }
 
     void MoveTime(long secondsToAdd)
@@ -321,22 +316,22 @@ public class VideoPlayer : MonoBehaviour
     public void setTimeScrollBar()
     {
         _Iplayer.setTime((long)(scrollBar.value * _Iplayer.totalVideoTime));
-        scrollbarnotclicked = true;
+        m_scrollbarnotclicked = true;
     }
 
     public void OnValueChangeScrollBar()
     {
-        if (_Iplayer.isPlaying && !scrollbarnotclicked)
+        if (_Iplayer.isPlaying && !m_scrollbarnotclicked)
             _Iplayer.setTime((long)(scrollBar.value * _Iplayer.totalVideoTime));
     }
 
     public void setTimeIfValueChanged()
     {
-        if (memSc != scrollBar.value)
+        if (m_scrollMemory != scrollBar.value)
         {
             if (_Iplayer.isPaused)
                 Play();
-            memSc = scrollBar.value;
+            m_scrollMemory = scrollBar.value;
             _Iplayer.setTime((long)(scrollBar.value * _Iplayer.totalVideoTime));
         }
         else
@@ -346,58 +341,66 @@ public class VideoPlayer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Time of the video, there is a possible offset due to user input
+    /// In MilliSeconds
+    /// </summary>
     long Time
     {
         get
         {
-            if (scrollbarnotclicked)
+            if (m_scrollbarnotclicked)
                 return _Iplayer.time;
             else
-                return (long)((scrollBar.value * _Iplayer.totalVideoTime) * (sampFreq / 1000));
+                return (long)((scrollBar.value * _Iplayer.totalVideoTime));
         }
     }
 
+    /// <summary>
+    /// Exact Time of the video without a possible offset
+    /// In MilliSeconds
+    /// </summary>
     long videoTime
     {
         get
         {
-            if (scrollbarnotclicked)
+            if (m_scrollbarnotclicked)
                 return _Iplayer.videoTime;
             else
-                return (long)((scrollBar.value * _Iplayer.totalVideoTime) * (sampFreq / 1000));
+                return (long)((scrollBar.value * _Iplayer.totalVideoTime));
         }
     }
 
     void updateScrollBarPosition()
     {
-        if (scrollbarnotclicked)
+        if (m_scrollbarnotclicked)
         {
             scrollBar.value = (float)(_Iplayer.currentTime) / _Iplayer.totalVideoTime;
-            currentTimeScrollBar = (long)(_Iplayer.currentTime * 0.001f);
+            m_currentTimeScrollBar = (long)(_Iplayer.currentTime * 0.001f);
         }
-        else if (slaved)
+        else if (m_slaved)
         {
-            if (forceMove)
+            if (m_forceMove)
                 setTimeIfValueChanged();
 
-            scrollVal = (loopScroll.value * 4000) - 2000;
-            scrollBar.value = (float)(timeClick + scrollVal) / _Iplayer.totalVideoTime;
-            currentTimeScrollBar = (long)(_Iplayer.currentTime * 0.001f);
+            m_scrollVal = (loopScroll.value * 4000) - 2000;
+            scrollBar.value = (float)(m_timeClick + m_scrollVal) / _Iplayer.totalVideoTime;
+            m_currentTimeScrollBar = (long)(_Iplayer.currentTime * 0.001f);
 
-            if (keyForceMove)
+            if (m_keyForceMove)
                 finishForceMoveLoopScroll();
         }
         else
         {
-            if (forceMove)
+            if (m_forceMove)
                 setTimeIfValueChanged();
-            currentTimeScrollBar = (long)(scrollBar.value * _Iplayer.totalVideoTime * 0.001f);
+            m_currentTimeScrollBar = (long)(scrollBar.value * _Iplayer.totalVideoTime * 0.001f);
         }
     }
 
     void updateTimeText()
     {
-        displayTimeGUI(currentTimetext, currentTimeScrollBar);
+        displayTimeGUI(currentTimetext, m_currentTimeScrollBar);
 
         long totalTimeSec = Mathf.RoundToInt(_Iplayer.totalVideoTime * 0.001f);
         displayTimeGUI(totalTimeText, totalTimeSec);
@@ -411,6 +414,13 @@ public class VideoPlayer : MonoBehaviour
         timeToString(textGUI, h, m, s);
     }
 
+    /// <summary>
+    /// Create The String to display Current Time
+    /// </summary>
+    /// <param name="textGUI">Object to display Time</param>
+    /// <param name="h">Calculated Hour</param>
+    /// <param name="m">Calculated Minute</param>
+    /// <param name="s">Calculated Second</param>
     void timeToString(Text textGUI, long h, long m, long s)
     {
         if (h > 0)
@@ -419,6 +429,12 @@ public class VideoPlayer : MonoBehaviour
             textGUI.text = returnTimeString(m) + ":" + returnTimeString(s);
     }
 
+    /// <summary>
+    /// Convert number Value to String representation
+    /// parsed with a possible 0 to represent Time
+    /// </summary>
+    /// <param name="time">Value To Convert</param>
+    /// <returns>\a String to display </returns>
     string returnTimeString(long time)
     {
         if (time < 10)
@@ -436,60 +452,60 @@ public class VideoPlayer : MonoBehaviour
             _Iplayer.setVolume(0.0f);
             if (_Iplayer.isPlaying)
                 Play();
-            slaved = true;
+            m_slaved = true;
             loopScroll.gameObject.SetActive(true);
-            timeClick = _Iplayer.currentTime;
-            minTC = timeClick - (2 * 1000);
-            maxTC = timeClick + (2 * 1000);
-            scrollBar.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = texHandleSlave;
+            m_timeClick = _Iplayer.currentTime;
+            m_minTimeClick = m_timeClick - (2 * 1000);
+            m_maxTimeClick = m_timeClick + (2 * 1000);
+            scrollBar.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = m_texHandleSlave;
         }
         else
         {
             _Iplayer.setVolume(volumeScrollBar.value);
             if (_Iplayer.isPaused)
                 Play();
-            slaved = false;
-            scrollVal = 0;
-            timeClick = -1;
+            m_slaved = false;
+            m_scrollVal = 0;
+            m_timeClick = -1;
             loopScroll.value = 0.5f;
             loopScroll.gameObject.SetActive(false);
-            scrollBar.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = texHandle;
+            scrollBar.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = m_texHandle;
         }
     }
 
     public void changeTimeClick(long timeMS)
     {
-        timeClick = timeMS;
-        minTC = timeClick - (2 * 1000);
-        maxTC = timeClick + (2 * 1000);
+        m_timeClick = timeMS;
+        m_minTimeClick = m_timeClick - (2 * 1000);
+        m_maxTimeClick = m_timeClick + (2 * 1000);
     }
 
     void initForceMoveLoopScroll()
     {
-        scrollbarnotclicked = false;
+        m_scrollbarnotclicked = false;
         if (_Iplayer.isPaused)
         {
-            forceMove = true;
+            m_forceMove = true;
             Play();
         }
     }
 
     void finishForceMoveLoopScroll()
     {
-        if (!scrollbarnotclicked)
+        if (!m_scrollbarnotclicked)
         {          
             if (_Iplayer.isPlaying)
                 Play();
 
-            forceMove = false;
-            scrollbarnotclicked = true;
-            keyForceMove = false;
+            m_forceMove = false;
+            m_scrollbarnotclicked = true;
+            m_keyForceMove = false;
         }
     }
 
     void forceMoveLoopScroll(float value)
     {
-        keyForceMove = true;
+        m_keyForceMove = true;
         initForceMoveLoopScroll();
         loopScroll.value += value;
     }

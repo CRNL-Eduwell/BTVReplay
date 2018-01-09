@@ -83,11 +83,11 @@ public class ElecPlotSize : MonoBehaviour
             warden.changeColorEvent -= new changeColorPlotEvent(updateColorForEvent);
     }
 
-    void updateSize(int sampleToLook)
+    void updateSize(int milliSecToLook)
     {
         if (!isFrozen)
         {
-            mostRecentSample = sampleToLook;
+            mostRecentSample = (int)(milliSecToLook * (eHandle.sampFreq / 1000));
             int posInArray = (bipID * eHandle.nbSam) + mostRecentSample;
             float currentValue = eHandle.eegData[posInArray] / 100;
             scale = 2 + (gain * currentValue);

@@ -84,9 +84,9 @@ public class TraceSonification : MonoBehaviour
             audioSourceScript.Pause();
     }
 
-    void updateSonif(int sampleToLook)
+    void updateSonif(int milliSecToLook)
     {
-        int posInArray = (curve.idElectrode * eHandle.nbSam) + sampleToLook;
+        int posInArray = (curve.idElectrode * eHandle.nbSam) + (int)(milliSecToLook * (eHandle.sampFreq / 1000));
         if (video.videoInterface.isPlaying)
         {
             float currentValue = 0.5f + ((eHandle.eegData[posInArray] / 100) * curve.Gain);

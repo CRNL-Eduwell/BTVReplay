@@ -11,7 +11,7 @@ public interface IVideoPlayer
     bool isStopped { get; }
     byte[] textureBytes { get; }
 
-    void init(string videoPath, int eegSampFreq, int eegFileDurationInSec);
+    void init(string videoPath, int eegFileDurationInSec);
     void getVideoReference(RawImage tex, optionsHub hub);
     void cleanup();
     void update();

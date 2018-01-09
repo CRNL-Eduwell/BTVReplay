@@ -144,6 +144,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                 {
                     eHandle = ELAN.changeHandle(eHandle, media.elanFiles, newID);
                     samplingFreq = (int)eHandle.sampFreq;
+                    updateTimeResolution(periodSec);
                 });
             hub.traceRemotes[traceID].gainHasChanged -= new gainChangedEventHandler(updateTraceGain);
             hub.traceRemotes[traceID].offsetHasChanged -= new offsetChangedEventHandler(updateTraceOffset);
@@ -251,6 +252,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             {
                 eHandle = ELAN.changeHandle(eHandle, media.elanFiles, newID);
                 samplingFreq = (int)eHandle.sampFreq;
+                updateTimeResolution(periodSec);
             });
         hub.traceRemotes[traceID].gainHasChanged += new gainChangedEventHandler(updateTraceGain);
         hub.traceRemotes[traceID].offsetHasChanged += new offsetChangedEventHandler(updateTraceOffset);
@@ -286,7 +288,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         periodSec = newPeriod;
         numberPoint = samplingFreq * periodSec;
         dataArray = new Vector3[numberPoint];
-        dataArrayRMS = new Vector3[numberPoint];
+        dataArrayRMS = new Vector3[64 * periodSec];
         lineRenderer.positionCount = numberPoint;
         lineRendererRMS.positionCount = numberPoint;
         lineRenderer.sortingOrder = -1;
@@ -299,8 +301,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     void updateHorizontalScale(LineRenderer p_lineRenderer, Vector3[] p_dataArray)
     {
         widthOfGameObject = m_rectTransform.rect.width - 10;
-        horizontalScale = widthOfGameObject / numberPoint;
-        for (int i = 0; i < numberPoint; i++)
+        horizontalScale = widthOfGameObject / p_dataArray.Length;
+        for (int i = 0; i < p_dataArray.Length; i++)
         {
             p_dataArray[i].x = ((-widthOfGameObject / 2) + 1) + i * horizontalScale;
             p_dataArray[i].y = 0;
@@ -355,11 +357,11 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         lineRendererRMS.SetPositions(dataArrayRMS);
     }
 
-    void updateDraw(int sampleToLook)
+    void updateDraw(int milliSecToLook)
     {
-        mostRecentSample = sampleToLook;
+        mostRecentSample = (int)(milliSecToLook * ((float)samplingFreq / 1000));
         int elecPosOffset = idCurrentElec * eHandle.nbSam;
-        int posInArray = sampleToLook - numberPoint + elecPosOffset;
+        int posInArray = mostRecentSample - numberPoint + elecPosOffset;
         float limitVal = (m_rectTransform.rect.height - 6.5f) / 2;
 
         for (int i = 0; i < numberPoint; i++)
@@ -387,13 +389,13 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         lineRenderer.SetPositions(dataArray);
     }
 
-    void updateDrawRMS(int sampleToLook)
+    void updateDrawRMS(int milliSecToLook)
     {
         if (lineRendererRMS.gameObject.activeSelf == false || video.audioWav == null ||
-            video.audioWav.filterFileExist == false || sampleToLook == -1)
+            video.audioWav.filterFileExist == false || milliSecToLook == -1)
             return;
 
-        int posInArray = sampleToLook - numberPoint;
+        int posInArray = (int)(milliSecToLook * ((float)64 / 1000)) - numberPoint;
         float limitVal = (m_rectTransform.rect.height - 6.5f) / 2;
 
         for (int i = 0; i < numberPoint; i++)
@@ -506,12 +508,12 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         });
     }
 
-    void updateEventsDraw(int sampleToLook)
+    void updateEventsDraw(int milliSecToLook)
     {
         if (hub.eventRemote.userEvents.Count > 0)
         {
-            int left = sampleToLook - numberPoint;
-            int right = sampleToLook;
+            int left = (int)(milliSecToLook * ((float)samplingFreq / 1000)) - numberPoint;
+            int right = (int)(milliSecToLook * ((float)samplingFreq / 1000));
 
             var keys = new List<int>(hub.eventRemote.userEvents.Keys);
             var values = new List<TraceEvent>(hub.eventRemote.userEvents.Values);

@@ -302,7 +302,7 @@ namespace VLCSharp
             }
         }
 
-        public void getSize(uint[] width, uint[] height)
+        public void getSize(UInt32[] width, UInt32[] height)
         {
             LibVlc.libvlc_video_get_size(Handle, TrackId, width, height);
         }
@@ -334,128 +334,148 @@ namespace VLCSharp
         }
     }
 
+    /// <summary>
+    /// Represents an instance of a Video Reader using VLC lib
+    /// </summary>
     public class VLCSharp : MonoBehaviour, IVideoPlayer
     {
+        /// <summary>
+        /// Exact Time of the video without a possible offset, there is a possible offset due to user input
+        /// This is an extrapolation of the time returned by VLC API since we need a greater precision
+        /// In MilliSeconds
+        /// </summary>
         public long currentTime
         {
             get
             {
-                long currentTime = player.currentTime;
-                if (lastPlayTime == currentTime && lastPlayTime != 0)
+                long currentTime = m_player.currentTime;
+                if (m_lastPlayTime == currentTime && m_lastPlayTime != 0)
                 {
-                    currentTime += (long)stopwatch.Elapsed.TotalMilliseconds - lastPlayTimeGlobal;
+                    currentTime += (long)m_stopwatch.Elapsed.TotalMilliseconds - m_lastPlayTimeGlobal;
                 }
                 else
                 {
-                    lastPlayTime = currentTime;
-                    lastPlayTimeGlobal = (long)stopwatch.Elapsed.TotalMilliseconds;
+                    m_lastPlayTime = currentTime;
+                    m_lastPlayTimeGlobal = (long)m_stopwatch.Elapsed.TotalMilliseconds;
                 }
-                return currentTime + offsetVideoMilliSec;
+                return currentTime + m_offsetVideoMilliSec;
             }
         }
+
+        /// <summary>
+        /// Time of the video, there is a possible offset due to user input
+        /// In MilliSeconds
+        /// </summary>
         public long time
         {
             get
             {
-                return (long)(currentTime * ((float)eegSampFreq / 1000));
+                return (long)(currentTime);
             }
         }
+
+        /// <summary>
+        /// Exact Time of the video without a possible offset
+        /// In MilliSeconds
+        /// </summary>
         public long videoTime
         {
             get
             {
-                return (long)((currentTime - offsetVideoMilliSec) * ((float)eegSampFreq / 1000));
+                return (long)((currentTime - m_offsetVideoMilliSec));
             }
         }
+
+        /// <summary>
+        /// Total Duration of the Video
+        /// In MilliSeconds
+        /// </summary>
         public long totalVideoTime
         {
             get
             {
-                return player.totalVideoTime;
+                return m_player.totalVideoTime;
             }
         }
         public bool isPlaying
         {
             get
             {
-                return player.IsPlaying;
+                return m_player.IsPlaying;
             }
         }
         public bool isPaused
         {
             get
             {
-                return player.IsPaused;
+                return m_player.IsPaused;
             }
         }
         public bool isStopped
         {
             get
             {
-                return player.IsStopped;
+                return m_player.IsStopped;
             }
         }
         public byte[] textureBytes
         {
             get
             {
-                return textureByteArray;
+                return m_textureByteArray;
             }
         }
-        //===
-        private string videoPath = "";
-        private int eegSampFreq = 0;
-        private long eegFileDurationInSec = 0;
-        //===
-        VlcMediaPlayer player = null;
-        VlcInstance instance = null;
-        RawImage Tex2Draw = null;
-        optionsHub hub = null;
-        Bitmap picCopy = null;
-        byte[] textureByteArray;
-        bool newPic = false;
-        //===
-        Stopwatch stopwatch;
-        long lastPlayTime = 0;
-        long lastPlayTimeGlobal = 0;
-        int offsetVideoMilliSec = 0;
-        //===
-        private object objectLock = new object();
 
-        public void init(string videoPath, int eegSampFreq, int eegFileDurationInSec)
+        #region private members
+        private string m_videoPath = "";
+        private long m_eegFileDurationInSec = 0;
+        //===
+        VlcMediaPlayer m_player = null;
+        VlcInstance m_instance = null;
+        RawImage m_Tex2Draw = null;
+        optionsHub m_hub = null;
+        Bitmap m_picCopy = null;
+        byte[] m_textureByteArray;
+        bool m_newPic = false;
+        //===
+        Stopwatch m_stopwatch;
+        long m_lastPlayTime = 0, m_lastPlayTimeGlobal = 0;
+        int m_offsetVideoMilliSec = 0;
+        #endregion
+
+        public void init(string videoPath, int eegFileDurationInSec)
         {
-            this.videoPath = videoPath;
-            this.eegSampFreq = eegSampFreq;
-            this.eegFileDurationInSec = eegFileDurationInSec;
-            stopwatch = new Stopwatch();
-            instance = new VlcInstance(new string[] {""});
-            stopwatch = new Stopwatch();
-            stopwatch.Start();
+            m_videoPath = videoPath;
+            m_eegFileDurationInSec = eegFileDurationInSec;
+            m_stopwatch = new Stopwatch();
+            m_instance = new VlcInstance(new string[] {""});
+            m_stopwatch = new Stopwatch();
+            m_stopwatch.Start();
 
-            using (VlcMedia media = new VlcMedia(instance, "file:///" + videoPath))
+            using (VlcMedia media = new VlcMedia(m_instance, "file:///" + videoPath))
             {
-                if (player == null)
+                if (m_player == null)
                 {
-                    player = new VlcMediaPlayer(media);
+                    m_player = new VlcMediaPlayer(media);
 
-                    IMemoryRenderer memRender = player.CustomRenderer;
+                    IMemoryRenderer memRender = m_player.CustomRenderer;
                     memRender.SetCallback(delegate (Bitmap frame)
                     {
-                        picCopy = frame.Clone(new RectangleF(0, 0, frame.Width, frame.Height), PixelFormat.Format32bppArgb);
+                        m_picCopy = frame.Clone(new RectangleF(0, 0, frame.Width, frame.Height), PixelFormat.Format32bppArgb);
                         //===
                         //Memory stream to store the bitmap data.
                         MemoryStream ms = new MemoryStream();
                         //Save to that memory stream.
-                        picCopy.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                        m_picCopy.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
                         //Go to the beginning of the memory stream.
                         ms.Seek(0, SeekOrigin.Begin);
-                        textureByteArray = ms.ToArray();
+                        m_textureByteArray = ms.ToArray();
                         //Close the stream.
                         ms.Close();
                         ms = null;
                         //===
-                        picCopy.Dispose();
-                        newPic = true;
+                        m_picCopy.Dispose();
+                        m_newPic = true;
                     });
 
                     //the size of the bitmap format need to be the same as 
@@ -464,14 +484,14 @@ namespace VLCSharp
                 }
                 else
                 {
-                    player.Media = media;
+                    m_player.Media = media;
                 }
             }
 
-            hub.videoRemote.offsetVideoHasChanged += new offsetVideoChangedEventHandler(
+            m_hub.videoRemote.offsetVideoHasChanged += new offsetVideoChangedEventHandler(
                 delegate (float newVal)
                 {
-                    offsetVideoMilliSec = (int)newVal;
+                    m_offsetVideoMilliSec = (int)newVal;
                 });
 
             setVolume(0.5f);
@@ -479,77 +499,77 @@ namespace VLCSharp
 
         public void getVideoReference(RawImage tex, optionsHub hubOpt)
         {
-            Tex2Draw = tex;
-            hub = hubOpt;
+            m_Tex2Draw = tex;
+            m_hub = hubOpt;
         }
 
         public void cleanup()
         {
             //remove offset video event
-            hub.videoRemote.offsetVideoHasChanged -= new offsetVideoChangedEventHandler(
+            m_hub.videoRemote.offsetVideoHasChanged -= new offsetVideoChangedEventHandler(
                 delegate (float newVal)
                 {
-                    offsetVideoMilliSec = (int)newVal;
+                    m_offsetVideoMilliSec = (int)newVal;
                 });
 
             //to release resources
-            if (player != null)
+            if (m_player != null)
             {
-                player.Stop();
-                player.Dispose();
-                player = null;
+                m_player.Stop();
+                m_player.Dispose();
+                m_player = null;
             }
 
-            instance = new VlcInstance(new string[] { "" });
+            m_instance = new VlcInstance(new string[] { "" });
         }
 
         public void update()
         {
-            if (eegSampFreq != 0 && newPic && player.IsPlaying)
+            if (m_newPic && m_player.IsPlaying)
             {
-               ((Texture2D)Tex2Draw.texture).LoadImage(textureByteArray);
-                newPic = false;
+               ((Texture2D)m_Tex2Draw.texture).LoadImage(m_textureByteArray);
+                m_newPic = false;
             }
         }
 
         public void play()
         {
-            if (player.IsPaused || player.IsStopped)
+            if (m_player.IsPaused || m_player.IsStopped)
             {
-                player.Play();
-                stopwatch.Start();
+                m_player.Play();
+                m_stopwatch.Start();
             }
         }
 
         public void pause()
         {
-            if (player.IsPlaying)
+            if (m_player.IsPlaying)
             {
-                player.Pause();
-                stopwatch.Stop();
+                m_player.Pause();
+                m_stopwatch.Stop();
             }
         }
 
         public void stop()
         {
-            player.Stop();
-            stopwatch.Stop();
+            m_player.Stop();
+            m_stopwatch.Stop();
         }
 
         public void moveTime(long secondsToAdd)
         {
-            player.setTime(currentTime + (secondsToAdd * 1000));
+            m_player.setTime(currentTime + (secondsToAdd * 1000));
         }
 
         public void setTime(long timeMilliSec)
         {
-            player.setTime(timeMilliSec);
+            m_player.setTime(timeMilliSec);
         }
 
         public void setVolume(float volume)
         {
             int maxPercentVideo = 200;
-            player.SetVolume((int)(volume * maxPercentVideo));
+            m_player.SetVolume((int)(volume * maxPercentVideo));
         }
 
         static void Image2Texture(System.Drawing.Image im, Texture2D myTex)

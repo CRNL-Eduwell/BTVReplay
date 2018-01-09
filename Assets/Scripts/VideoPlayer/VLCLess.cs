@@ -2,22 +2,43 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Represents an instance of a "fake" Video Reader.
+/// This allow us to visualise EEG Data the same way we would with the video
+/// Of an experiment.
+/// This is an extrapolation generated with a timer To simulate a real video
+/// according to the length of an EEG file
+/// </summary>
 public class VLCLess : MonoBehaviour, IVideoPlayer
 {
+    /// <summary>
+    /// Exact Time of the video
+    /// In MilliSeconds
+    /// </summary>
     public long currentTime
     {
         get
         {
-            return internalTime;
+            return m_internalTime;
         }
     }
+
+    /// <summary>
+    /// Time of the video, there is no possible offset due to user input since 
+    /// In MilliSeconds
+    /// </summary>
     public long time
     {
         get
         {
-            return (long)(currentTime * ((float)eegSampFreq / 1000));
+            return currentTime;
         }
     }
+
+    /// <summary>
+    /// Exact Time of the video
+    /// In MilliSeconds
+    /// </summary>
     public long videoTime
     {
         get
@@ -26,32 +47,36 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
         }
     }
 
-    public long totalVideoTime //In MilliSec
+    /// <summary>
+    /// Total Duration of the Video
+    /// In MilliSeconds
+    /// </summary>
+    public long totalVideoTime
     {
         get
         {
-            return eegFileDurationInSec * 1000;
+            return m_eegFileDurationInSec * 1000;
         }
     }
     public bool isPlaying
     {
         get
         {
-            return playing && !paused;
+            return m_playing && !m_paused;
         }
     }
     public bool isPaused
     {
         get
         {
-            return playing && paused;
+            return m_playing && m_paused;
         }
     }
     public bool isStopped
     {
         get
         {
-            return !playing;
+            return !m_playing;
         }
     }
     public byte[] textureBytes
@@ -61,23 +86,20 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
             return null;
         }
     }
-    //==
-    private string videoPath = "";
-    private int eegSampFreq = 0;
-    private long eegFileDurationInSec = 0;
-    //==
-    private object objectLock = new object();
-    private Stopwatch internalTimer = null;
-    private long internalTime = 0;
-    private long internalLastTime = 0;
-    private bool paused = true, playing = false;
 
-    public void init(string videoPath, int eegSampFreq, int eegFileDurationInSec)
+    #region private members
+    private string m_videoPath = "";
+    private long m_eegFileDurationInSec = 0;
+    private Stopwatch m_internalTimer = null;
+    private long m_internalTime = 0, m_internalLastTime = 0;
+    private bool m_paused = true, m_playing = false;
+    #endregion
+
+    public void init(string videoPath, int eegFileDurationInSec)
     {
-        this.videoPath = videoPath;
-        this.eegSampFreq = eegSampFreq;
-        this.eegFileDurationInSec = eegFileDurationInSec;
-        internalTimer = new Stopwatch();
+        m_videoPath = videoPath;
+        m_eegFileDurationInSec = eegFileDurationInSec;
+        m_internalTimer = new Stopwatch();
     }
 
     public void getVideoReference(RawImage tex, optionsHub hub)
@@ -92,15 +114,15 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
 
     public void update()
     {
-        if (internalTimer != null && internalTimer.IsRunning)
+        if (m_internalTimer != null && m_internalTimer.IsRunning)
         {
-            internalTime = internalTime + (internalTimer.ElapsedMilliseconds - internalLastTime);
-            internalLastTime = internalTimer.ElapsedMilliseconds;
+            m_internalTime = m_internalTime + (m_internalTimer.ElapsedMilliseconds - m_internalLastTime);
+            m_internalLastTime = m_internalTimer.ElapsedMilliseconds;
             //if (internalTime < totalVideoTime)
             //    sendTimeEvent((int)time);
             //else
             //    stop();
-            if (internalTime > totalVideoTime)
+            if (m_internalTime > totalVideoTime)
                 stop();
         }
     }
@@ -109,43 +131,43 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
     {
         //if (paused)
         //{
-            if (internalTimer != null)
-                internalTimer.Start();
+            if (m_internalTimer != null)
+                m_internalTimer.Start();
             else
-                internalTimer = Stopwatch.StartNew();
+                m_internalTimer = Stopwatch.StartNew();
 
-            paused = false;
-            playing = true;
+            m_paused = false;
+            m_playing = true;
         //}
     }
 
     public void pause()
     {
-        if (!paused)
+        if (!m_paused)
         {
-            internalTimer.Stop();
-            if (playing)
-                paused ^= true;
+            m_internalTimer.Stop();
+            if (m_playing)
+                m_paused ^= true;
         }
     }
 
     public void stop()
     {
-        internalTimer.Reset();
-        internalTime = 0;
-        internalLastTime = 0;
-        paused = false;
-        playing = false;
+        m_internalTimer.Reset();
+        m_internalTime = 0;
+        m_internalLastTime = 0;
+        m_paused = false;
+        m_playing = false;
     }
 
     public void moveTime(long secondsToAdd)
     {
-        internalTime = internalTime + (secondsToAdd * 1000);
+        m_internalTime = m_internalTime + (secondsToAdd * 1000);
     }
 
     public void setTime(long timeMilliSec)
     {
-        internalTime = timeMilliSec;
+        m_internalTime = timeMilliSec;
     }
 
     public void setVolume(float volume)

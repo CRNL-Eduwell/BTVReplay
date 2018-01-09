@@ -223,7 +223,7 @@ public class PatientManager
 public delegate void mediaLoadedEventHandler();
 public delegate void BrainLoadEventHandler(string lhemi, string rhemi, string pts);
 public delegate void initTrace();
-public delegate void initVideo(string videoPath, int sampFreq, int totalFileDuration);
+public delegate void initVideo(string videoPath, int totalFileDuration);
 public delegate void initPerf(bool init);
 
 public class BTVMedia : MonoBehaviour
@@ -590,7 +590,7 @@ public class BTVMedia : MonoBehaviour
         float sampFreq = ELAN.getSamplingFreq(elanFiles);
         int id = ELAN.returnFirstValidHandleId(elanFiles);
         long totalDuration = ELAN.getTotalFileDuration(elanFiles[id]);
-        loadVideo(videoPath, (int)sampFreq, (int)totalDuration);
+        loadVideo(videoPath, (int)totalDuration);
 
         yield return null;
     }

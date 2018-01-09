@@ -154,10 +154,10 @@ public class TracePerf : MonoBehaviour
         updateScales();
     }
 
-    void UpdateSpawn(int sampleToLook)
+    void UpdateSpawn(int milliSecToLook)
     {
-        int leftTime = (sampleToLook - numberPoint);
-        int rightTime = sampleToLook;
+        int leftTime = (int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000)) - curveTrace1.numberOfPoint;
+        int rightTime = (int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000));
 
         List<int> currentIndex = media.posFile.Triggers.Select((item, index) => new { Item = item, Index = index })
                                                          .Where(x => x.Item.response.sample > leftTime && x.Item.response.sample < rightTime)
@@ -198,8 +198,9 @@ public class TracePerf : MonoBehaviour
         }
     }
 
-    void UpdatePicEvent(int sampleToLook)
+    void UpdatePicEvent(int milliSecToLook)
     {
+        int sampleToLook = (int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000));
         int found = media.posFile.Triggers.FindIndex(x => x.trigger.sample >= sampleToLook - 8 && x.trigger.sample < sampleToLook + 8);
 
         if (found != -1 && mainCodes.Contains(media.posFile.Triggers[found].trigger.code))

@@ -212,12 +212,12 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    void updateEventsOnBrain(int sampleToLook)
+    void updateEventsOnBrain(int milliSecToLook)
     {
         if (hub.eventRemote.userEvents.Count > 0)
         {
-            int left = sampleToLook - curveTrace1.numberOfPoint;
-            int right = sampleToLook;
+            int left =(int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000)) - curveTrace1.numberOfPoint;
+            int right = (int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000));
 
             var keys = new List<int>(hub.eventRemote.userEvents.Keys);
             var values = new List<TraceEvent>(hub.eventRemote.userEvents.Values);
