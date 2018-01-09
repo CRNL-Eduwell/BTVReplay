@@ -99,7 +99,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     bool initDone = false;
     public List<GameObject> eventsAdded = new List<GameObject>();
 
-    GameObject gridLine = null;
+    GameObject gridLine = null, gridLineMS = null;
     GameObject gridCont = null;
     BrainWarden warden = null;
     Window m_window = null;
@@ -188,6 +188,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         traceEventClick = Resources.Load("Prefabs/Trace-Event", typeof(GameObject)) as GameObject;
         traceEventClick2 = Resources.Load("Prefabs/Trace-Event2", typeof(GameObject)) as GameObject;
         gridLine = Resources.Load("Prefabs/ImageGrid", typeof(GameObject)) as GameObject;
+        gridLineMS = Resources.Load("Prefabs/ImageGridMS", typeof(GameObject)) as GameObject;
 
         ring = GameObject.Find("ringSelect").GetComponent<selectRing>();
         warden = GameObject.Find("BrainWindow").GetComponent<BrainWarden>();
@@ -323,6 +324,19 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             newLine.transform.localScale = new Vector3(1, 1, 1);
             newLine.transform.localPosition = new Vector3(newLine.transform.localPosition.x, newLine.transform.localPosition.y, 0);
             newLine.SetActive(gridDisplay);
+
+            if (newPeriod <= 3)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    GameObject newLineMS = Instantiate(gridLineMS);
+                    newLineMS.name = "lineMs " + i;
+                    newLineMS.transform.SetParent(gridCont.transform);
+                    newLineMS.transform.localScale = new Vector3(1, 1, 1);
+                    newLineMS.transform.localPosition = new Vector3(newLineMS.transform.localPosition.x, newLineMS.transform.localPosition.y, 0);
+                    newLineMS.SetActive(gridDisplay);
+                }
+            }
         }
     }
 
