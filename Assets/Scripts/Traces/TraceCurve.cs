@@ -122,7 +122,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     float maxValChanel = 0;
     float offsetCoefficient = 0;
     float offsetPerTen = 0;
-    bool gridDisplay = false;
+    bool gridDisplay = false, showEvents = true;
 
     void Awake()
     {
@@ -152,6 +152,10 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             hub.traceRemotes[traceID].timeHasChanged -= new timePeriodChangedEventHandler(updateTimeResolution);
             hub.traceRemotes[traceID].gridToggled -= new toggleGridDisplay(displayTimeGrid);
             hub.eventRemote.newEventToShow -= new newEventToShowHandler(addEventToTrace);
+            hub.eventRemote.showEvents -= new showAllEventsHandler((bool show) =>
+            {
+                showEvents = show;
+            });
             hub.videoRemote.audioToggled -= new toggleAudioTraceEventHandler(
                 delegate (bool togg)
                 {
@@ -262,6 +266,10 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         hub.traceRemotes[traceID].timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
         hub.traceRemotes[traceID].gridToggled += new toggleGridDisplay(displayTimeGrid);
         hub.eventRemote.newEventToShow += new newEventToShowHandler(addEventToTrace);
+        hub.eventRemote.showEvents += new showAllEventsHandler((bool show)=> 
+        {
+            showEvents = show;
+        });
         hub.videoRemote.audioToggled += new toggleAudioTraceEventHandler(
             delegate (bool togg)
             {
@@ -558,59 +566,62 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                                           .ToList();
 
             hideActiveEvents();
-            float sizeV = m_rectTransform.rect.height - 10;
-
-            for (int i = 0; i < idRightEnter.Count; i++)
+            if (showEvents)
             {
-                float positionInsideRect = (left - keys[idRightEnter[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                float rightevent = right - values[idRightEnter[i]].sample;
-                float size = (rightevent / (right - left)) * widthOfGameObject;
+                float sizeV = m_rectTransform.rect.height - 10;
 
-                eventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                eventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                eventsAdded[idRightEnter[i]].SetActive(true);
-                eventsAdded[idRightEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
-            }
-
-            for (int i = 0; i < idInside.Count; i++)
-            {
-                float positionInsideRect = (left - keys[idInside[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                float size = ((values[idInside[i]].duration * ((float)samplingFreq / 1000)) / (right - left)) * widthOfGameObject;
-
-                if (values[idInside[i]].duration > 0)
+                for (int i = 0; i < idRightEnter.Count; i++)
                 {
-                    eventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                    eventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                    eventsAdded[idInside[i]].SetActive(true);
-                    eventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
+                    float positionInsideRect = (left - keys[idRightEnter[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float rightevent = right - values[idRightEnter[i]].sample;
+                    float size = (rightevent / (right - left)) * widthOfGameObject;
+
+                    eventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                    eventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                    eventsAdded[idRightEnter[i]].SetActive(true);
+                    eventsAdded[idRightEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
                 }
-                else
+
+                for (int i = 0; i < idInside.Count; i++)
                 {
-                    eventsAdded[idInside[i]].SetActive(true);
-                    eventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, dataArray[keys[idInside[i]] - left].y, -201);
+                    float positionInsideRect = (left - keys[idInside[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float size = ((values[idInside[i]].duration * ((float)samplingFreq / 1000)) / (right - left)) * widthOfGameObject;
+
+                    if (values[idInside[i]].duration > 0)
+                    {
+                        eventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                        eventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                        eventsAdded[idInside[i]].SetActive(true);
+                        eventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
+                    }
+                    else
+                    {
+                        eventsAdded[idInside[i]].SetActive(true);
+                        eventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, dataArray[keys[idInside[i]] - left].y, -201);
+                    }
                 }
-            }
 
-            for (int i = 0; i < idLeftEnter.Count; i++)
-            {
-                float positionInsideRect = ((-widthOfGameObject / 2) + 1);
-                float leftevent = (values[idLeftEnter[i]].sample + (values[idLeftEnter[i]].duration * ((float)samplingFreq / 1000)) - left);
-                float size = (leftevent / (right - left)) * widthOfGameObject;
+                for (int i = 0; i < idLeftEnter.Count; i++)
+                {
+                    float positionInsideRect = ((-widthOfGameObject / 2) + 1);
+                    float leftevent = (values[idLeftEnter[i]].sample + (values[idLeftEnter[i]].duration * ((float)samplingFreq / 1000)) - left);
+                    float size = (leftevent / (right - left)) * widthOfGameObject;
 
-                eventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                eventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                eventsAdded[idLeftEnter[i]].SetActive(true);
-                eventsAdded[idLeftEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
-            }
+                    eventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                    eventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                    eventsAdded[idLeftEnter[i]].SetActive(true);
+                    eventsAdded[idLeftEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
+                }
 
-            for (int i = 0; i < idOverFlow.Count; i++)
-            {
-                float positionInsideRect = ((-widthOfGameObject / 2) + 1);
-                float size = widthOfGameObject;
-                eventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                eventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                eventsAdded[idOverFlow[i]].SetActive(true);
-                eventsAdded[idOverFlow[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
+                for (int i = 0; i < idOverFlow.Count; i++)
+                {
+                    float positionInsideRect = ((-widthOfGameObject / 2) + 1);
+                    float size = widthOfGameObject;
+                    eventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                    eventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                    eventsAdded[idOverFlow[i]].SetActive(true);
+                    eventsAdded[idOverFlow[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
+                }
             }
         }
     }

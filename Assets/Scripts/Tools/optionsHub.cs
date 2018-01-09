@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using CielaSpike;
 
 public delegate void newEventToShowHandler(TraceEvent newEvent, int id);
+public delegate void showAllEventsHandler(bool show);
 
 public class eventsOptions : MonoBehaviour
 {
@@ -24,6 +25,7 @@ public class eventsOptions : MonoBehaviour
     }
 
     public event newEventToShowHandler newEventToShow;
+    public event showAllEventsHandler showEvents;
 
     GameObject eventHubClick = null;
     GameObject eventAddUI = null;
@@ -38,14 +40,13 @@ public class eventsOptions : MonoBehaviour
     TraceEvent eventCalled = null;
     TraceEvent eventMemory = null;
 
-    Button activateEventsButton = null;
-    Image activateEventPic = null;
+    Image activateEventPic = null, showEventPic = null;
     Transform panelContent = null;
-    Button saveEvents = null;
-    Button loadEvents = null;
+    Button saveEvents = null, loadEvents = null, activateEventsButton = null, showEventsButton = null;
     Sprite startEventPic = null, stopEventPic = null;
+    Sprite showEventSprite = null, hideEventSprite = null;
 
-    public bool addEvent = false;
+    public bool addEvent = false, showEvent = true;
     SortedList<int, TraceEvent> events = new SortedList<int, TraceEvent>();
 
     GameObject scrollObj = null;
@@ -63,7 +64,8 @@ public class eventsOptions : MonoBehaviour
         scrollOrig = Resources.Load("Pictures/eventScroll", typeof(Texture2D)) as Texture2D;
         startEventPic = Resources.Load("Pictures/ConfigBar/StartEvents", typeof(Sprite)) as Sprite;
         stopEventPic = Resources.Load("Pictures/ConfigBar/StopEvents", typeof(Sprite)) as Sprite;
-
+        showEventSprite = Resources.Load("Pictures/ConfigBar/showEvents", typeof(Sprite)) as Sprite;
+        hideEventSprite = Resources.Load("Pictures/ConfigBar/hideEvents", typeof(Sprite)) as Sprite;
         //==
         v = GameObject.Find("PanelR").GetComponent<VideoPlayer>();
         win1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
@@ -76,10 +78,14 @@ public class eventsOptions : MonoBehaviour
         loadEvents = button.optionsPanel.transform.GetChild(0).GetChild(0).GetComponent<Button>();
         saveEvents = button.optionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Button>();
         activateEventsButton = button.optionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
-        activateEventPic = button.optionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Image>();
+        showEventsButton = button.optionsPanel.transform.GetChild(0).GetChild(3).GetComponent<Button>();
+
+        activateEventPic = activateEventsButton.transform.GetComponent<Image>();
+        showEventPic = showEventsButton.transform.GetComponent<Image>();
         scrollObj.GetComponent<RawImage>().texture = scrollTex;
         //==
         activateEventsButton.onClick.AddListener(activateEventsMode);
+        showEventsButton.onClick.AddListener(showEventsMode);
         saveEvents.onClick.AddListener(saveEventsList);
         loadEvents.onClick.AddListener(loadEventList);
         win1.eventWasClicked += new eventsClickedHandler(openEventAddUI);
@@ -107,6 +113,7 @@ public class eventsOptions : MonoBehaviour
     void OnDestroy()
     {
         activateEventsButton.onClick.RemoveAllListeners();
+        showEventsButton.onClick.RemoveAllListeners();
         saveEvents.onClick.RemoveAllListeners();
         loadEvents.onClick.RemoveAllListeners();
         win1.eventWasClicked -= new eventsClickedHandler(openEventAddUI);
@@ -131,6 +138,17 @@ public class eventsOptions : MonoBehaviour
             activateEventPic.sprite = stopEventPic;
         else
             activateEventPic.sprite = startEventPic;
+    }
+
+    void showEventsMode()
+    {
+        showEvent = !showEvent;
+        if (showEvent)
+            showEventPic.sprite = hideEventSprite;
+        else
+            showEventPic.sprite = showEventSprite;
+
+        showEvents(showEvent);
     }
 
     void openEventAddUI(TraceEvent currentEvent, int traceID)
