@@ -417,7 +417,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             video.audioWav.filterFileExist == false || milliSecToLook == -1)
             return;
 
-        int posInArray = (int)(milliSecToLook * ((float)64 / 1000)) - numberPoint;
+        int posInArray = (int)(milliSecToLook * ((float)64 / 1000)) - (64 * periodSec);
         float limitVal = (m_rectTransform.rect.height - 6.5f) / 2;
 
         for (int i = 0; i < numberPoint; i++)
