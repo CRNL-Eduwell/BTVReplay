@@ -124,6 +124,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
     float offsetPerTen = 0;
     bool gridDisplay = false, showEvents = true;
 
+    Vector3[] worldCornerOfBrainPanel = new Vector3[4];
+
     void Awake()
     {
         media.loadTrace += new initTrace(init);
@@ -175,6 +177,21 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
             elecButton.onClick.RemoveAllListeners();
 
             hub.traceRemotes[traceID].deleteElectrodeInPanel();
+        }
+    }
+
+    void Update()
+    {
+        if (initDone && isOver(Input.mousePosition) && m_window.hasFocus)
+        {
+            Vector2 scrollDelta = Input.mouseScrollDelta;
+            if (scrollDelta.y != 0)
+            {
+                if (scrollDelta.y < 0)
+                    updateElectrodeID(idCurrentElec - 1);
+                else
+                    updateElectrodeID(idCurrentElec + 1);
+            }
         }
     }
 
@@ -420,7 +437,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         int posInArray = (int)(milliSecToLook * ((float)64 / 1000)) - (64 * periodSec);
         float limitVal = (m_rectTransform.rect.height - 6.5f) / 2;
 
-        for (int i = 0; i < numberPoint; i++)
+        for (int i = 0; i < (64 * periodSec); i++)
         {
             if ((i + posInArray >= 0) && (i + posInArray < video.audioWav.currentAudio.Length))
             {
@@ -447,7 +464,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
     void updateElectrodeID(int newID)
     {
-        if (newID != -1)
+        if (newID != -1 && newID < eHandle.electrodes.Length)
         {
             idCurrentElec = newID;
             updateElectrodeLabel();
@@ -725,5 +742,17 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
         gridDisplay = isGridOn;
         for (int i = 0; i < gridCont.transform.childCount; i++)
             gridCont.transform.GetChild(i).gameObject.SetActive(isGridOn);
+    }
+
+    public bool isOver(Vector3 mousePos)
+    {
+        m_rectTransform.GetWorldCorners(worldCornerOfBrainPanel);
+        Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        if (worldClick.x > worldCornerOfBrainPanel[1].x && worldClick.x < worldCornerOfBrainPanel[2].x
+            && worldClick.y > worldCornerOfBrainPanel[3].y && worldClick.y < worldCornerOfBrainPanel[2].y)
+            return true;
+        else
+            return false;
     }
 }
