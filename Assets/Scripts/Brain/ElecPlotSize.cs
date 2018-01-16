@@ -22,6 +22,7 @@ public class ElecPlotSize : MonoBehaviour
     }
 
     GameObject plotObject = null;
+    TraceCurve curve = null;
     BTVMedia media = null;
     optionsHub hub = null;
     VideoPlayer video = null;
@@ -42,6 +43,7 @@ public class ElecPlotSize : MonoBehaviour
         warden = GameObject.Find("Canvas").transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<BrainWarden>();
         video = GameObject.Find("Canvas").transform.GetChild(1).GetChild(1).GetComponent<VideoPlayer>();
         media = GameObject.Find("Canvas").transform.GetChild(3).GetComponent<BTVMedia>();
+        curve = GameObject.Find("Canvas").transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<TraceCurve>();
 
         video.sendTime += new timeVideo(updateSize);
         hub.brainRemote.gainHasChanged += new gainChangedEventHandler((newGain) => 
@@ -50,12 +52,12 @@ public class ElecPlotSize : MonoBehaviour
         });
         warden.changeColorEvent += new changeColorPlotEvent(updateColorForEvent);
 
+        plotObject = GameObject.Find(goName.ToLower());
+        mySphereRenderer = plotObject.GetComponent<MeshRenderer>();
+
         if (media != null)
             eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
 
-        plotObject = GameObject.Find(goName.ToLower());
-        mySphereRenderer = plotObject.GetComponent<MeshRenderer>();
-        
         int plotID = eHandle.electrodes.ToList().FindIndex(x => x.name.ToLower().Equals(plotObject.name));
 
         if (plotID != -1)
@@ -87,9 +89,9 @@ public class ElecPlotSize : MonoBehaviour
     {
         if (!isFrozen)
         {
-            mostRecentSample = (int)(milliSecToLook * (eHandle.sampFreq / 1000));
-            int posInArray = (bipID * eHandle.nbSam) + mostRecentSample;
-            float currentValue = eHandle.eegData[posInArray] / 100;
+            mostRecentSample = (int)(milliSecToLook * (curve.fileHandle.sampFreq / 1000));
+            int posInArray = (bipID * curve.fileHandle.nbSam) + mostRecentSample;
+            float currentValue = curve.fileHandle.eegData[posInArray] / 100;
             scale = 2 + (gain * currentValue);
 
             if (scale >= 7)

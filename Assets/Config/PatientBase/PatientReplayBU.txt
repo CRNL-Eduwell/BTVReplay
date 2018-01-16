@@ -4,8 +4,8 @@ PTS_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa
 LH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa_Lhemi.gii
 RH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa_Rhemi.gii
 PTS_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa.pts
-SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/LYONNEURO_2017_DAMa_BTV.eeg
-SM250 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm250.eeg
+SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm250.eeg
+SM250 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/LYONNEURO_2017_DAMa_BTV.eeg
 SM500 : 
 SM1000 : 
 SM2500 : 
@@ -13,22 +13,6 @@ SM5000 :
 POS : 
 PROV : 
 VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/LYONNEURO_2017_DAMa_BTV.mp4
-[----------]
-LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Lhemi.tri
-RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Rhemi.tri
-PTS_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/Gre_2014_LESs_MNI.pts
-LH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/Gre_2014_LESs_Lhemi.gii
-RH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/Gre_2014_LESs_Rhemi.gii
-PTS_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/Gre_2014_LESs.pts
-SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/GRE_2014_LESs_MARD_f50f150_ds16_sm0.eeg
-SM250 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/GRE_2014_LESs_MARD_f50f150_ds16_sm250.eeg
-SM500 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/GRE_2014_LESs_MARD_f50f150_ds16_sm500.eeg
-SM1000 : 
-SM2500 : 
-SM5000 : 
-POS : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/GRE_2014_LESs_MARD_ds16.pos
-PROV : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/MARM.prov
-VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/GRE_2014_LESs_MARD_x264.mp4
 [----------]
 LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/MNI/MNI_single_hight_Lhemi.tri
 RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/MNI/MNI_single_hight_Rhemi.tri
