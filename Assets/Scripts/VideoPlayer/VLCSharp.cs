@@ -64,8 +64,8 @@ namespace VLCSharp
         [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern int libvlc_video_get_size(IntPtr player,
             int num,
-            UInt32[] px,
-            UInt32[] py);
+            out uint px,
+            out uint py);
         #endregion
 
         #region audio
@@ -293,18 +293,20 @@ namespace VLCSharp
                 return false;
         }
 
-        //TODO : use trackID and getSize to init video and texture to real size of video
         public int TrackId
         {
             get
             {
-                return LibVlc.libvlc_video_get_track(Handle);
+                return LibVlc.libvlc_video_get_track(Handle) - 1;
             }
         }
 
-        public void getSize(UInt32[] width, UInt32[] height)
+        public Size getSize()
         {
-            LibVlc.libvlc_video_get_size(Handle, TrackId, width, height);
+            uint a = 0;
+            uint b = 0;
+            LibVlc.libvlc_video_get_size(Handle, TrackId, out a, out b);
+            return new Size((int)a, (int)b);
         }
 
         public void Play()
