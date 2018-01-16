@@ -74,18 +74,18 @@ public class Brain : MonoBehaviour {
                 LHBrain.gameObject.SetActive(true);
                 RHBrain.gameObject.SetActive(true);
                 hub.brainRemote.setBrainInteract(true);
-                l = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].lhemi_MNI;
-                r = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].rhemi_MNI;
-                p = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pts_MNI;
+                l = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].mni.lhemi;
+                r = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].mni.rhemi;
+                p = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].mni.pts;
                 updateBrainMesh(l, r, p);
                 break;
             case 1:
                 LHBrain.gameObject.SetActive(true);
                 RHBrain.gameObject.SetActive(true);
                 hub.brainRemote.setBrainInteract(true);
-                l = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].lhemi_PAT;
-                r = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].rhemi_PAT;
-                p = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pts_PAT;
+                l = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pat.lhemi;
+                r = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pat.rhemi;
+                p = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pat.pts;
                 updateBrainMesh(l, r, p);
                 break;
             case 2:
@@ -99,7 +99,7 @@ public class Brain : MonoBehaviour {
         }
     }
 
-    public void loadBrainAndElectrodes(string LHtri, string RHtri, string PTS)
+    public void loadBrainAndElectrodes(brain_anat brainToLoad)
     {
         Brain3DHandle = GameObject.Find("BrainGameObject");
 
@@ -107,7 +107,7 @@ public class Brain : MonoBehaviour {
         LHBrain.transform.parent = Brain3DHandle.transform;
         LHBrain.layer = Brain3DHandle.layer;
         Hemisphere lhemi = LHBrain.GetComponent<Hemisphere>();
-        lhemi.InitializeData(LHtri);
+        lhemi.InitializeData(brainToLoad.lhemi);
         for (int i = 0; i < lhemi.brainMeshes.Count; i++)
             lhemi.brainMeshes[i].transform.parent = LHBrain.transform;
 
@@ -115,14 +115,14 @@ public class Brain : MonoBehaviour {
         RHBrain.transform.parent = Brain3DHandle.transform;
         RHBrain.layer = Brain3DHandle.layer;
         Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
-        rhemi.InitializeData(RHtri);
+        rhemi.InitializeData(brainToLoad.rhemi);
         for(int i = 0; i<rhemi.brainMeshes.Count;i++)
             rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
 
         Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
         Electrodes.transform.parent = Brain3DHandle.transform;
         ElectrodesScript = Electrodes.GetComponent<Electrodes>();
-        ElectrodesScript.loadPtsFile(PTS);
+        ElectrodesScript.loadPtsFile(brainToLoad.pts);
         ElectrodesScript.loadElecOnBrain();
 
         CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();

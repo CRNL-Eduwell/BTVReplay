@@ -1,227 +1,14 @@
 ﻿using System;
-using System.IO;
-using System.Collections.Generic;
+using System.Collections; //IEnumerator
+
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-using System.Collections; //IEnumerator
 using CielaSpike;
-using System.Diagnostics; //stopwatch
-
-public class Patient
-{
-    #region members
-    public string lhemi_MNI = "";
-    public string rhemi_MNI = "";
-    public string pts_MNI = "";
-
-    public string lhemi_PAT = "";
-    public string rhemi_PAT = "";
-    public string pts_PAT = "";
-
-    public string sm0 = "";
-    public string sm250 = "";
-    public string sm500 = "";
-    public string sm1000 = "";
-    public string sm2500 = "";
-    public string sm5000 = "";
-
-    public string pos = "";
-    public string prov = "";
-    public string video = "";
-
-    public string patientName = "";
-    #endregion
-
-    public Patient()
-    {
-
-    }
-
-    public Patient(Patient thisPat)
-    {
-        lhemi_MNI = thisPat.lhemi_MNI;
-        rhemi_MNI = thisPat.rhemi_MNI;
-        pts_MNI = thisPat.pts_MNI;
-
-        lhemi_PAT = thisPat.lhemi_PAT;
-        rhemi_PAT = thisPat.rhemi_PAT;
-        pts_PAT = thisPat.pts_PAT;
-
-        sm0 = thisPat.sm0;
-        sm250 = thisPat.sm250;
-        sm500 = thisPat.sm500;
-        sm1000 = thisPat.sm1000;
-        sm2500 = thisPat.sm2500;
-        sm5000 = thisPat.sm5000;
-
-        pos = thisPat.pos;
-        prov = thisPat.prov;
-        video = thisPat.video;
-
-        if (sm0 != "" && patientName == "") patientName = getPatientNameFromPath(sm0);
-        if (sm250 != "" && patientName == "") patientName = getPatientNameFromPath(sm250);
-        if (sm500 != "" && patientName == "") patientName = getPatientNameFromPath(sm500);
-        if (sm1000 != "" && patientName == "") patientName = getPatientNameFromPath(sm1000);
-        if (sm2500 != "" && patientName == "") patientName = getPatientNameFromPath(sm2500);
-        if (sm5000 != "" && patientName == "") patientName = getPatientNameFromPath(sm5000);
-    }
-
-    public void loadValue(int val, string[] data)
-    {
-        switch (val)
-        {
-            case 0: if (data.Length > 1) lhemi_MNI = data[1]; break;
-            case 1: if (data.Length > 1) rhemi_MNI = data[1]; break;
-            case 2: if (data.Length > 1) pts_MNI = data[1]; break;
-            case 3: if (data.Length > 1) lhemi_PAT = data[1]; break;
-            case 4: if (data.Length > 1) rhemi_PAT = data[1]; break;
-            case 5: if (data.Length > 1) pts_PAT = data[1]; break;
-            case 6: if (data.Length > 1) sm0 = data[1]; break;
-            case 7: if (data.Length > 1) sm250 = data[1]; break;
-            case 8: if (data.Length > 1) sm500 = data[1]; break;
-            case 9: if (data.Length > 1) sm1000 = data[1]; break;
-            case 10: if (data.Length > 1) sm2500 = data[1]; break;
-            case 11: if (data.Length > 1) sm5000 = data[1]; break;
-            case 12: if (data.Length > 1) pos = data[1]; break;
-            case 13: if (data.Length > 1) prov = data[1]; break;
-            case 14: if (data.Length > 1) video = data[1]; break;
-            default: UnityEngine.Debug.LogError("Problem with patients file"); break;
-        }
-    }
-
-    public void CopyValues(Patient thisPat)
-    {
-        lhemi_MNI = thisPat.lhemi_MNI;
-        rhemi_MNI = thisPat.rhemi_MNI;
-        pts_MNI = thisPat.pts_MNI;
-
-        lhemi_PAT = thisPat.lhemi_PAT;
-        rhemi_PAT = thisPat.rhemi_PAT;
-        pts_PAT = thisPat.pts_PAT;
-
-        sm0 = thisPat.sm0;
-        sm250 = thisPat.sm250;
-        sm500 = thisPat.sm500;
-        sm1000 = thisPat.sm1000;
-        sm2500 = thisPat.sm2500;
-        sm5000 = thisPat.sm5000;
-
-        pos = thisPat.pos;
-        prov = thisPat.prov;
-        video = thisPat.video;
-    }
-
-    public static string getPatientNameFromPath(string path)
-    {
-        string[] namesplit = path.Split(new string[] { @"\", "/" }, StringSplitOptions.RemoveEmptyEntries);
-        return namesplit[namesplit.Length - 2];
-    }
-}
-
-public class PatientManager
-{
-    public List<Patient> currentPatients = new List<Patient>();
-    public int idCurrentPatientLoaded = 0;
-    string pathFile { get { return Application.dataPath + @"/Config/PatientBase/PatientReplay.txt"; } }
-    string pathBUFile { get { return Application.dataPath + @"/Config/PatientBase/PatientReplayBU.txt"; } }
-
-    public void SaveList()
-    {
-        File.Copy(pathFile, pathBUFile, true);
-
-        try
-        {
-            using (StreamWriter sw = new StreamWriter(pathFile))
-            {
-                for (int i = 0; i < currentPatients.Count; i++)
-                {
-                    sw.WriteLine("LH_MNI : " + currentPatients[i].lhemi_MNI);
-                    sw.WriteLine("RH_MNI : " + currentPatients[i].rhemi_MNI);
-                    sw.WriteLine("PTS_MNI : " + currentPatients[i].pts_MNI);
-                    sw.WriteLine("LH_PAT : " + currentPatients[i].lhemi_PAT);
-                    sw.WriteLine("RH_PAT : " + currentPatients[i].rhemi_PAT);
-                    sw.WriteLine("PTS_PAT : " + currentPatients[i].pts_PAT);
-                    sw.WriteLine("SM0 : " + currentPatients[i].sm0);
-                    sw.WriteLine("SM250 : " + currentPatients[i].sm250);
-                    sw.WriteLine("SM500 : " + currentPatients[i].sm500);
-                    sw.WriteLine("SM1000 : " + currentPatients[i].sm1000);
-                    sw.WriteLine("SM2500 : " + currentPatients[i].sm2500);
-                    sw.WriteLine("SM5000 : " + currentPatients[i].sm5000);
-                    sw.WriteLine("POS : " + currentPatients[i].pos);
-                    sw.WriteLine("PROV : " + currentPatients[i].prov);
-                    sw.WriteLine("VID : " + currentPatients[i].video);
-                    sw.WriteLine("[----------]");
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Error writing file", e.ToString());
-        }
-    }
-
-    public void LoadList(bool backUp)
-    {
-        List<int> indexToLook = new List<int> { 6, 7, 8, 9, 10, 11 };
-        bool nameFound = false;
-
-        string fileToLoad = pathFile;
-
-        try
-        {
-            if (currentPatients.Count > 0)
-                currentPatients = new List<Patient>();
-
-            if (backUp)
-                fileToLoad = pathBUFile;
-
-            using (StreamReader sr = new StreamReader(fileToLoad))
-            {
-                string[] fileSplited = sr.ReadToEnd().Split(new string[] { "[----------]" }, StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < fileSplited.Length - 1; i++)   // -1 because of last line jump
-                {
-                    Patient currentPat = new Patient();
-                    string[] currentPatSplit = fileSplited[i].Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    for (int j = 0; j < currentPatSplit.Length; j++)
-                    {
-                        string[] splitPath = currentPatSplit[j].Split(new string[] { " : " }, StringSplitOptions.RemoveEmptyEntries);
-                        if (indexToLook.IndexOf(j) != -1 && splitPath.Length > 1 && splitPath[1] != "" && nameFound == false)
-                        {
-                            currentPat.patientName = Patient.getPatientNameFromPath(splitPath[1]);
-                            nameFound = true;
-                        }
-                        currentPat.loadValue(j, splitPath);
-                    }
-
-                    currentPatients.Add(currentPat);
-                    nameFound = false;
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Error Reading file", e.ToString());
-        }
-    }
-
-    public void addPat(Patient thisPatient)
-    {
-        currentPatients.Add(new Patient(thisPatient));
-    }
-
-    public void removePatientAt(int index)
-    {
-        if (currentPatients.Count > 0)
-        {
-            currentPatients.Remove(currentPatients[index]);
-        }
-    }
-}
 
 public delegate void mediaLoadedEventHandler();
-public delegate void BrainLoadEventHandler(string lhemi, string rhemi, string pts);
+public delegate void BrainLoadEventHandler(brain_anat brainToLoad);
 public delegate void initTrace();
 public delegate void initVideo(string videoPath, int totalFileDuration);
 public delegate void initPerf(bool init);
@@ -253,7 +40,7 @@ public class BTVMedia : MonoBehaviour
     #endregion
 
     #region members
-    public PatientManager pm = new PatientManager();
+    public DBManager pm = new DBManager();
     public POS posFile = null;
     public ELAN[] elanFiles = new ELAN[6];
     public PROV provFile = null;
@@ -292,8 +79,24 @@ public class BTVMedia : MonoBehaviour
         });
         addPatient.onClick.AddListener(() => { addPatientToDB(); });
         saveBase.onClick.AddListener(() => { SaveDB(); });
-        loadBase.onClick.AddListener(() => { pm.LoadList(false); InstantiateDB(); });
-        loadBUBase.onClick.AddListener(() => { pm.LoadList(true); InstantiateDB(); });
+        loadBase.onClick.AddListener(() => 
+        {
+            string bddFilePath = QtGUI_dll.Instance.getOpenFileName(new string[] { "txt" }, "Select a bdd file", Application.dataPath + @"/Config/PatientBase");
+            if (bddFilePath != "")
+            {
+                pm.LoadList(false, bddFilePath);
+                InstantiateDB();
+            }
+        });
+        loadBUBase.onClick.AddListener(() => 
+        {
+            string bddFilePath = QtGUI_dll.Instance.getOpenFileName(new string[] { "txt" }, "Select a bdd backup file", Application.dataPath + @"/Config/PatientBase");
+            if (bddFilePath != "")
+            {
+                pm.LoadList(true, bddFilePath);
+                InstantiateDB();
+            }
+        });
         #endregion
     }
 
@@ -341,19 +144,11 @@ public class BTVMedia : MonoBehaviour
 
     void addPatientToDB()
     {
+        pm.addPat(getPatientGUI(gameObject.transform.GetChild(0).GetChild(1).GetChild(0).gameObject));
         if (patientContent.childCount == 0)
-        {
-            pm.LoadList(false);
-            pm.addPat(getPatientGUI(gameObject.transform.GetChild(0).GetChild(1).GetChild(0).gameObject));
-            pm.SaveList();
             InstantiateDB();
-        }
         else
-        {
-            pm.addPat(getPatientGUI(gameObject.transform.GetChild(0).GetChild(1).GetChild(0).gameObject));
-            pm.SaveList();
             loadOnePatient(pm.currentPatients.Count - 1); 
-        }
     }
 
     void loadPatientGUI()
@@ -371,9 +166,13 @@ public class BTVMedia : MonoBehaviour
                 pm.currentPatients[i / 2] = currentPat;
             }
 
-            pm.SaveList();
-            pm.LoadList(false);
-            InstantiateDB();
+            string bddFilePath = QtGUI_dll.Instance.getSaveFileName(new string[] { "txt" }, "Save to a bdd File", Application.dataPath + @"/Config/PatientBase");
+            if (bddFilePath != "")
+            {
+                pm.SaveList(bddFilePath);
+                pm.LoadList(false, bddFilePath);
+                InstantiateDB();
+            }
         }
     }
 
@@ -447,7 +246,6 @@ public class BTVMedia : MonoBehaviour
         deleteMe.onClick.AddListener(() =>
         {
             pm.removePatientAt(idPat);
-            pm.SaveList();
             InstantiateDB();
         });
         #endregion
@@ -457,20 +255,16 @@ public class BTVMedia : MonoBehaviour
 
     void setPatientGUI(GameObject patientDetails, Patient myPat)
     {
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.lhemi_MNI;
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.rhemi_MNI;
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.pts_MNI;
+        patientDetails.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.mni.lhemi;
+        patientDetails.transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.mni.rhemi;
+        patientDetails.transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.mni.pts;
 
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.lhemi_PAT;
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.rhemi_PAT;
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.pts_PAT;
+        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.pat.lhemi;
+        patientDetails.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.pat.rhemi;
+        patientDetails.transform.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.pat.pts;
 
-        patientDetails.transform.GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.sm0;
-        patientDetails.transform.GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.sm250;
-        patientDetails.transform.GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.sm500;
-        patientDetails.transform.GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text = myPat.sm1000;
-        patientDetails.transform.GetChild(1).GetChild(5).GetComponent<browseButton>().inputfield.text = myPat.sm2500;
-        patientDetails.transform.GetChild(1).GetChild(6).GetComponent<browseButton>().inputfield.text = myPat.sm5000;
+        for (int i = 0; i < 6; i++)
+            patientDetails.transform.GetChild(1).GetChild(i + 1).GetComponent<browseButton>().inputfield.text = myPat.smFiles[i];
 
         patientDetails.transform.GetChild(2).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.pos;
         patientDetails.transform.GetChild(2).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.prov;
@@ -481,20 +275,16 @@ public class BTVMedia : MonoBehaviour
     {
         Patient myPat = new Patient();
 
-        myPat.lhemi_MNI = rootUI.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.rhemi_MNI = rootUI.transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.pts_MNI = rootUI.transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text;
+        myPat.mni.lhemi = rootUI.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text;
+        myPat.mni.rhemi = rootUI.transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text;
+        myPat.mni.pts = rootUI.transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text;
 
-        myPat.lhemi_PAT = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.rhemi_PAT = rootUI.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.pts_PAT = rootUI.transform.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text;
+        myPat.pat.lhemi = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text;
+        myPat.pat.rhemi = rootUI.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text;
+        myPat.pat.pts = rootUI.transform.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text;
 
-        myPat.sm0 = rootUI.transform.GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.sm250 = rootUI.transform.GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.sm500 = rootUI.transform.GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text;
-        myPat.sm1000 = rootUI.transform.GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text;
-        myPat.sm2500 = rootUI.transform.GetChild(1).GetChild(5).GetComponent<browseButton>().inputfield.text;
-        myPat.sm5000 = rootUI.transform.GetChild(1).GetChild(6).GetComponent<browseButton>().inputfield.text;
+        for (int i = 0; i < 6; i++)
+            myPat.smFiles[i] = rootUI.transform.GetChild(1).GetChild(i + 1).GetComponent<browseButton>().inputfield.text;
 
         myPat.pos = rootUI.transform.GetChild(2).GetChild(1).GetComponent<browseButton>().inputfield.text;
         myPat.prov = rootUI.transform.GetChild(2).GetChild(2).GetComponent<browseButton>().inputfield.text;
@@ -522,10 +312,10 @@ public class BTVMedia : MonoBehaviour
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadVideo(myPat.video));
 
-        if (myPat.lhemi_MNI != "" && myPat.rhemi_MNI != "" && myPat.pts_MNI !="")
-            loadBrain(myPat.lhemi_MNI, myPat.rhemi_MNI, myPat.pts_MNI);
-        else if(myPat.lhemi_PAT != "" && myPat.rhemi_PAT != "" && myPat.pts_PAT != "")
-            loadBrain(myPat.lhemi_PAT, myPat.rhemi_PAT, myPat.pts_PAT);
+        if (myPat.hasMNI)
+            loadBrain(myPat.mni);
+        else if(myPat.hasPAT)
+            loadBrain(myPat.pat);
 
         loadTrace();
 
@@ -548,32 +338,32 @@ public class BTVMedia : MonoBehaviour
         loadingCircle.Set(0, "Finding files");
         loadingCircle.Set(0.1f, "Loading File 1");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm0, r => elanFiles[0] = r);
+        yield return Process(myPat.smFiles[0], r => elanFiles[0] = r);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.2f, "Loading File 2");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm250, r => elanFiles[1] = r);
+        yield return Process(myPat.smFiles[1], r => elanFiles[1] = r);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.4f, "Loading File 3");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm500, r => elanFiles[2] = r);
+        yield return Process(myPat.smFiles[2], r => elanFiles[2] = r);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.6f, "Loading File 4");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm1000, r => elanFiles[3] = r);
+        yield return Process(myPat.smFiles[3], r => elanFiles[3] = r);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.8f, "Loading File 5");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm2500, r => elanFiles[4] = r);
+        yield return Process(myPat.smFiles[4], r => elanFiles[4] = r);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(1.0f, "Loading File 6");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm5000, r => elanFiles[5] = r);
+        yield return Process(myPat.smFiles[5], r => elanFiles[5] = r);
         yield return Ninja.JumpToUnity;
     }
 
@@ -631,20 +421,20 @@ public class BTVMedia : MonoBehaviour
 
         ReloadMedia r = reloadGameObject.GetComponent<ReloadMedia>();
 
-        r.lhemi_MNI = myPat.lhemi_MNI;
-        r.rhemi_MNI = myPat.rhemi_MNI;
-        r.pts_MNI = myPat.pts_MNI;
+        r.lhemi_MNI = myPat.mni.lhemi;
+        r.rhemi_MNI = myPat.mni.rhemi;
+        r.pts_MNI = myPat.mni.pts;
 
-        r.lhemi_PAT = myPat.lhemi_PAT;
-        r.rhemi_PAT = myPat.rhemi_PAT;
-        r.pts_PAT = myPat.pts_PAT;
+        r.lhemi_PAT = myPat.pat.lhemi;
+        r.rhemi_PAT = myPat.pat.rhemi;
+        r.pts_PAT = myPat.pat.pts;
 
-        r.sm0 = myPat.sm0;
-        r.sm250 = myPat.sm250;
-        r.sm500 = myPat.sm500;
-        r.sm1000 = myPat.sm1000;
-        r.sm2500 = myPat.sm2500;
-        r.sm5000 = myPat.sm5000;
+        r.sm0 = myPat.smFiles[0];
+        r.sm250 = myPat.smFiles[1];
+        r.sm500 = myPat.smFiles[2];
+        r.sm1000 = myPat.smFiles[3];
+        r.sm2500 = myPat.smFiles[3];
+        r.sm5000 = myPat.smFiles[5];
 
         r.pos = myPat.pos;
         r.prov = myPat.prov;
