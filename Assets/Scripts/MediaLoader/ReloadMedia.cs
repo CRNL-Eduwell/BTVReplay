@@ -25,6 +25,7 @@ public class ReloadMedia : MonoBehaviour
     public string video = "";
 
     public int id = -2;
+    public string path = "";
 
     GameObject mediaGameObject = null;
     Transform addPatientPanel = null;
@@ -65,8 +66,7 @@ public class ReloadMedia : MonoBehaviour
                 addPatientPanel.GetChild(2).GetChild(2).GetComponent<browseButton>().inputfield.text = prov;
                 addPatientPanel.GetChild(2).GetChild(4).GetComponent<browseButton>().inputfield.text = video;
 
-
-                media.pm.LoadList(false);
+                media.pm.LoadList(false, path);
                 //m.InstantiateDB();
                 media.pm.idCurrentPatientLoaded = id;
                 media.gameObject.SetActive(true);

@@ -440,6 +440,7 @@ public class BTVMedia : MonoBehaviour
         r.prov = myPat.prov;
         r.video = myPat.video;
         r.id = pm.idCurrentPatientLoaded;
+        r.path = pm.pathFile;
 
         SceneManager.LoadScene("_main");
     }

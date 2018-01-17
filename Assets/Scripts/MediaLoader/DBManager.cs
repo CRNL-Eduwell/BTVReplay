@@ -98,7 +98,7 @@ public class DBManager
 {
     public List<Patient> currentPatients = new List<Patient>();
     public int idCurrentPatientLoaded = 0;
-    string pathFile { get; set; }
+    public string pathFile { get; private set; }
     string pathBUFile { get { return pathFile.Replace(".txt", "BU.txt"); } }
 
     public void SaveList(string dbPath = "")
