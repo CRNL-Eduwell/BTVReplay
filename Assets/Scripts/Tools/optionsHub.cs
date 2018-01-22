@@ -1587,6 +1587,7 @@ public class ButtonUI : MonoBehaviour, IPointerClickHandler
     //==
     protected GameObject m_curve = null;
     protected GameObject m_options2Panel = null;
+    protected WindowOpt m_optionsWindow = null;
     protected int m_positionCounter = 1;
     //==
     protected bool m_isVisible = false;
@@ -1608,6 +1609,7 @@ public class ButtonUI : MonoBehaviour, IPointerClickHandler
     public void initExtraData(GameObject p_options2Panel)
     {
         m_options2Panel = p_options2Panel;
+        m_optionsWindow = p_options2Panel.transform.parent.GetComponent<WindowOpt>();
     }
 
     public void initUIElement(string name)
@@ -1648,8 +1650,8 @@ public class ButtonUI : MonoBehaviour, IPointerClickHandler
     {
         if (m_options2Panel != null)
         {
-            m_options2Panel.SetActive(show);
-            m_options2Panel.transform.parent.gameObject.SetActive(show);
+            m_optionsWindow.HideOptionPanel(show); //Full Option Panel
+            m_options2Panel.SetActive(show); //Child to show or hide
             if (show == false)
                 m_positionCounter = 1;
             if (m_curve != null)
