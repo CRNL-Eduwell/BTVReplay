@@ -14,8 +14,6 @@ public class WindowOpt : MonoBehaviour
     private float m_initialWidth = 0;
     private bool m_optionVisible = false;
     private Vector3 m_initialMousePosition;
-    private Vector2 m_minSizeWindow = new Vector2(50, 50); // new Vector2(150, 50);
-    private Vector2 m_maxSizeWindow = new Vector2(5000, 5000);  //new Vector2(300, 150);
 
     void Start()
     {
@@ -92,7 +90,6 @@ public class WindowOpt : MonoBehaviour
         else
         {
             float percent = m_rectTransform.rect.width / m_initialWidth;
-
             m_rectTransformL.anchorMin = new Vector2(0, 0);
             m_rectTransformL.anchorMax = new Vector2((1 - percent) / 2, 1);
             m_rectTransformL.offsetMin = new Vector2(0, 0);

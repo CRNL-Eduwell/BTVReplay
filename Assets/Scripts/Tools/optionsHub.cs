@@ -16,18 +16,17 @@ public delegate void showAllEventsHandler(bool show);
 
 public class eventsOptions : MonoBehaviour
 {
-    public SortedList<int, TraceEvent> userEvents
+    public TraceEvent[] userEvents
     {
         get
         {
-            return events;
+            return list.Objects;
         }
     }
 
     public event newEventToShowHandler newEventToShow;
     public event showAllEventsHandler showEvents;
 
-    GameObject eventHubClick = null;
     GameObject eventAddUI = null;
     GameObject eventDispUI = null;
     VideoPlayer v = null;
@@ -39,6 +38,7 @@ public class eventsOptions : MonoBehaviour
     int traceIDCalled = 0;
     TraceEvent eventCalled = null;
     TraceEvent eventMemory = null;
+    EventList list;
 
     Image activateEventPic = null, showEventPic = null;
     Transform panelContent = null;
@@ -47,7 +47,6 @@ public class eventsOptions : MonoBehaviour
     Sprite showEventSprite = null, hideEventSprite = null;
 
     public bool addEvent = false, showEvent = true;
-    SortedList<int, TraceEvent> events = new SortedList<int, TraceEvent>();
 
     GameObject scrollObj = null;
     Texture2D scrollOrig = null, scrollTex = null;
@@ -58,7 +57,6 @@ public class eventsOptions : MonoBehaviour
 
     public void init(ButtonUI button)
     {
-        eventHubClick = Resources.Load("Prefabs/Hub-Event", typeof(GameObject)) as GameObject;
         eventAddUI = Resources.Load("Prefabs/EventInfoEdit", typeof(GameObject)) as GameObject;
         eventDispUI = Resources.Load("Prefabs/EventInfoDisplay", typeof(GameObject)) as GameObject;
         scrollOrig = Resources.Load("Pictures/eventScroll", typeof(Texture2D)) as Texture2D;
@@ -67,6 +65,7 @@ public class eventsOptions : MonoBehaviour
         showEventSprite = Resources.Load("Pictures/ConfigBar/showEvents", typeof(Sprite)) as Sprite;
         hideEventSprite = Resources.Load("Pictures/ConfigBar/hideEvents", typeof(Sprite)) as Sprite;
         //==
+        list = GameObject.Find("Canvas").transform.GetChild(1).GetChild(2).GetChild(2).GetChild(0).GetChild(1).GetComponent<EventList>();
         v = GameObject.Find("PanelR").GetComponent<VideoPlayer>();
         win1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
         win2 = GameObject.Find("Trace2Window").GetComponent<TraceCurve>();
@@ -241,66 +240,39 @@ public class eventsOptions : MonoBehaviour
 
     void deleteEvents(TraceEvent eventToDelete, int traceID)
     {
+        List<int> ids = list.Objects.Select((item, index) => new { Item = item, Index = index })
+                         .Where(x => x.Item.sample == eventToDelete.sample)
+                         .Select(x => x.Index)
+                         .ToList();
+
         removeEventToTexture(eventToDelete);
-        //Debug.Log("del ev " + eventToDelete.sample);
-        //==List behind the scene
-        //int id = events.IndexOfKey(eventToDelete.sample);
-        events.Remove(eventToDelete.sample);
+        list.Remove(list.Objects[ids[0]]); //par ref
 
         //Remove : 
         //  -event connection
         //  -then destroy object 
         //  -then the reference in list of gameobject 
-        int index1 = win1.eventsAdded.FindIndex(x => x.name == "Event - " + eventToDelete.sample);
-        win1.removeEventConnections(win1.eventsAdded[index1].gameObject);
-        Destroy(win1.eventsAdded[index1].gameObject);
-        win1.eventsAdded.RemoveAt(index1);
-        win2.removeEventConnections(win2.eventsAdded[index1].gameObject);
-        Destroy(win2.eventsAdded[index1].gameObject);
-        win2.eventsAdded.RemoveAt(index1);
-
-        //== Event in Hub
-        var hubObj = GameObject.Find("HubEvent - " + eventToDelete.sample);
-        if (hubObj != null)
-        {
-            hubObj.GetComponent<Button>().onClick.RemoveAllListeners();
-            Destroy(hubObj);
-        }
+        //int index1 = win1.eventsAdded.FindIndex(x => x.name == "Event - " + eventToDelete.sample);
+        win1.removeEventConnections(win1.eventsAdded[ids[0]].gameObject);
+        Destroy(win1.eventsAdded[ids[0]].gameObject);
+        win1.eventsAdded.RemoveAt(ids[0]);
+        win2.removeEventConnections(win2.eventsAdded[ids[0]].gameObject);
+        Destroy(win2.eventsAdded[ids[0]].gameObject);
+        win2.eventsAdded.RemoveAt(ids[0]);
     }
 
     void eventValidatedForUI(TraceEvent currentEvent)
     {
         eventMemory = new TraceEvent(currentEvent);
 
-        events.Add(currentEvent.sample, currentEvent);
-        int id = events.IndexOfKey(currentEvent.sample);
-
-        GameObject currentEventGO = Instantiate(eventHubClick);
-        currentEventGO.name = "HubEvent - " + currentEvent.sample;
-        currentEventGO.GetComponent<Button>().onClick.AddListener(() =>
-        {
-            v.setTime((currentEvent.sample / win1.samplingFrequency) * 1000);
-        });
-
-        int timeInSec = currentEvent.sample / win1.samplingFrequency;
-        int h = timeInSec / 3600;
-        int m = (timeInSec / 60) % 60;
-        int s = timeInSec % 60;
-
-        if (h > 0)
-            currentEventGO.transform.GetChild(0).GetComponent<Text>().text = h + ":" + m + ":" + s;
-        else
-            currentEventGO.transform.GetChild(0).GetComponent<Text>().text = "00:" + m + ":" + s;
-
-        currentEventGO.transform.GetChild(1).GetComponent<Text>().text = currentEvent.elecOfInterest;
-        currentEventGO.transform.GetChild(2).GetComponent<Text>().text = currentEvent.comment;
-        currentEventGO.transform.SetParent(panelContent);
-        currentEventGO.transform.localScale = new Vector3(1, 1, 1);
-        currentEventGO.transform.position = currentEventGO.transform.parent.position;
-        currentEventGO.transform.SetSiblingIndex(id);
-
+        list.Add(currentEvent);
+        list.sortBySample();
+        List<int> ids = list.Objects.Select((item, index) => new { Item = item, Index = index })
+                                         .Where(x => x.Item.sample == currentEvent.sample)
+                                         .Select(x => x.Index)
+                                         .ToList();
         addEventToTexture(currentEvent);
-        newEventToShow(currentEvent, id);
+        newEventToShow(currentEvent, ids[0]);
     }
 
     void applyChangeToEvent(TraceEvent modifyiedEvent, TraceEvent previousEvent)
@@ -308,17 +280,23 @@ public class eventsOptions : MonoBehaviour
         var eventToChangeObjects = Resources.FindObjectsOfTypeAll<GameObject>().Where(
                                    obj => obj.name == "Event - " + previousEvent.sample);
 
-        if (eventToChangeObjects.Count() > 0)
-        {
-            int id = events.IndexOfKey(previousEvent.sample);
-            removeEventToTexture(events.Values[id]);
-            int memDuration = events.Values[id].duration;
-            events.Values[id].elecOfInterest = modifyiedEvent.elecOfInterest;
-            events.Values[id].code = modifyiedEvent.code;
-            events.Values[id].comment = modifyiedEvent.comment;
+        List<int> ids = list.Objects.Select((item, index) => new { Item = item, Index = index })
+                                         .Where(x => x.Item.sample == previousEvent.sample)
+                                         .Select(x => x.Index)
+                                         .ToList();
 
-            if (modifyiedEvent.duration != events.Values[id].duration)
-                events.Values[id].correlationArray = null;
+        if (ids.Count > 0)
+        {
+            TraceEvent eventFound = list.Objects[ids[0]];
+            removeEventToTexture(eventFound);
+
+            int memDuration = eventFound.duration;
+            eventFound.elecOfInterest = modifyiedEvent.elecOfInterest;
+            eventFound.code = modifyiedEvent.code;
+            eventFound.comment = modifyiedEvent.comment;
+
+            if (modifyiedEvent.duration != eventFound.duration)
+                eventFound.correlationArray = null;
 
             if (modifyiedEvent.elecOfInterest == "")
             {
@@ -326,8 +304,8 @@ public class eventsOptions : MonoBehaviour
                 modifyiedEvent.secondElecOfInterest = win2.labelElectrode.text;
             }
 
-            events.Values[id].duration = modifyiedEvent.duration;
-            addEventToTexture(events.Values[id]);
+            eventFound.duration = modifyiedEvent.duration;
+            addEventToTexture(eventFound);
 
             //if event goes from no duration to with duration or the other way around we switch it
             if ((modifyiedEvent.duration - memDuration == modifyiedEvent.duration) ||
@@ -353,10 +331,10 @@ public class eventsOptions : MonoBehaviour
         {
             using (StreamWriter sw = new StreamWriter(btvPosFile))
             {
-                foreach (KeyValuePair<int, TraceEvent> kvp in events)
+                foreach (TraceEvent eegEvent in list.Objects)
                 {
-                    sw.Write(kvp.Value.sample.ToString().PadRight(10));
-                    sw.Write(kvp.Value.code.ToString().PadRight(10));
+                    sw.Write(eegEvent.sample.ToString().PadRight(10));
+                    sw.Write(eegEvent.code.ToString().PadRight(10));
                     sw.Write("0\n");
                 }
 
@@ -374,9 +352,9 @@ public class eventsOptions : MonoBehaviour
         {
             using (StreamWriter sw = new StreamWriter(btvPosFile))
             {
-                foreach (KeyValuePair<int, TraceEvent> kvp in events)
+                foreach (TraceEvent eegEvent in list.Objects)
                 {
-                    int timeInSec = kvp.Value.sample / win1.samplingFrequency;
+                    int timeInSec = eegEvent.sample / win1.samplingFrequency;
                     int h = timeInSec / 3600;
                     int m = (timeInSec / 60) % 60;
                     int s = timeInSec % 60;
@@ -388,12 +366,12 @@ public class eventsOptions : MonoBehaviour
                         timeString = "00:" + returnTimeString(m) + ":" + returnTimeString(s);
 
                     sw.Write(timeString.PadRight(10));
-                    sw.Write(kvp.Value.comment.PadRight(40));
-                    sw.Write(kvp.Value.code.ToString().PadRight(10));
-                    sw.Write(kvp.Value.sample.ToString().PadRight(10));
-                    sw.Write(kvp.Value.duration.ToString().PadRight(10));
-                    sw.Write(kvp.Value.elecOfInterest.PadRight(10));
-                    sw.WriteLine(kvp.Value.secondElecOfInterest);
+                    sw.Write(eegEvent.comment.PadRight(40));
+                    sw.Write(eegEvent.code.ToString().PadRight(10));
+                    sw.Write(eegEvent.sample.ToString().PadRight(10));
+                    sw.Write(eegEvent.duration.ToString().PadRight(10));
+                    sw.Write(eegEvent.elecOfInterest.PadRight(10));
+                    sw.WriteLine(eegEvent.secondElecOfInterest);
                 }
 
                 sw.Close();
@@ -437,8 +415,8 @@ public class eventsOptions : MonoBehaviour
             }
 
             //if elements already loaded , delete everything
-            for (int i = events.Count - 1; i >= 0; i--)
-                deleteEvents(events.Values.ElementAt(i), -1);
+            for (int i = list.Objects.Length - 1; i >= 0; i--)
+                deleteEvents(list.Objects.ElementAt(i), -1);
 
             for (int i = 0; i < eventLoaded.Count; i++)
                 eventValidatedForUI(eventLoaded[i]);
@@ -609,42 +587,42 @@ public class eventsOptions : MonoBehaviour
 
     void goToEventLeft()
     {
-        if (events.Count > 0)
+        if (list.Objects.Length > 0)
         {
             long timeSec = v.videoInterface.currentTime / 1000;
             long timeSample = timeSec * win1.samplingFrequency;
-            var keys = new List<int>(events.Keys);
+            var keys = list.sampleValues;
             var index = keys.BinarySearch((int)timeSample);
 
             if (Math.Abs(index) - 1 == 0)
             {
                 currentPos = 0;
-                v.changeTimeClick((events[keys[currentPos]].sample / win1.samplingFrequency) * 1000);
-                v.setTime((events[keys[currentPos]].sample / win1.samplingFrequency) * 1000);
+                v.changeTimeClick((list.Objects[currentPos].sample / win1.samplingFrequency) * 1000);
+                v.setTime((list.Objects[currentPos].sample / win1.samplingFrequency) * 1000);
             }
             else
             {
                 currentPos = Math.Abs(index) - 1;
-                v.changeTimeClick((events[keys[currentPos - 1]].sample / win1.samplingFrequency) * 1000);
-                v.setTime((events[keys[currentPos - 1]].sample / win1.samplingFrequency) * 1000);
+                v.changeTimeClick((list.Objects[currentPos - 1].sample / win1.samplingFrequency) * 1000);
+                v.setTime((list.Objects[currentPos - 1].sample / win1.samplingFrequency) * 1000);
             }
         }
     }
 
     void goToEventRight()
     {
-        if (events.Count > 0)
+        if (list.Objects.Length > 0)
         {
             long timeSec = v.videoInterface.currentTime / 1000;
             long timeSample = timeSec * win1.samplingFrequency;
-            var keys = new List<int>(events.Keys);
+            var keys = list.sampleValues;
             var index = keys.BinarySearch((int)timeSample);
 
-            if (Math.Abs(index) < keys.Count)
+            currentPos = Math.Abs(index) - 1;
+            if (currentPos + 1 < list.Objects.Length)
             {
-                currentPos = Math.Abs(index) - 1;
-                v.changeTimeClick((events[keys[currentPos + 1]].sample / win1.samplingFrequency) * 1000);
-                v.setTime((events[keys[currentPos + 1]].sample / win1.samplingFrequency) * 1000);
+                v.changeTimeClick((list.Objects[currentPos + 1].sample / win1.samplingFrequency) * 1000);
+                v.setTime((list.Objects[currentPos + 1].sample / win1.samplingFrequency) * 1000);
             }
         }
     }
@@ -659,24 +637,28 @@ public class eventsOptions : MonoBehaviour
     IEnumerator c_correlation(TraceEvent currentEvent)
     {
         int nbElec = win1.fileHandle.electrodes.Length;
-        int id = events.IndexOfKey(currentEvent.sample);
-        events.Values[id].correlationArray = new float[nbElec];
+        List<int> ids = list.Objects.Select((item, index) => new { Item = item, Index = index })
+                                 .Where(x => x.Item.sample == currentEvent.sample)
+                                 .Select(x => x.Index)
+                                 .ToList();
 
-        int beginSample = events.Values[id].sample;
-        int durationSample = (events.Values[id].duration / 1000) * events.Values[id].samplingFrequency;
+        list.Objects[ids[0]].correlationArray = new float[nbElec];
+
+        int beginSample = list.Objects[ids[0]].sample;
+        int durationSample = (list.Objects[ids[0]].duration / 1000) * list.Objects[ids[0]].samplingFrequency;
 
         int idBase = win1.fileHandle.electrodes.ToList().FindIndex(x => x.name == currentEvent.elecOfInterest);
         if (idBase != -1)
         {
             int[] sizes = new int[5] { idBase, nbElec, beginSample, durationSample, win1.fileHandle.nbSam };
-            pearsonCoefficientsCorrelation(events.Values[id].correlationArray, win1.fileHandle.eegData, sizes);
+            pearsonCoefficientsCorrelation(list.Objects[ids[0]].correlationArray, win1.fileHandle.eegData, sizes);
         }
         else
         {
             if (currentEvent.elecOfInterest.StartsWith("AUD"))
             {
                 int[] sizes = new int[4] { nbElec, beginSample, durationSample, win1.fileHandle.nbSam };
-                pearsonCoefficientsCorrelation2(events.Values[id].correlationArray, v.audioWav.getAudioHandle(win1.fileHandle.idFileHandle), win1.fileHandle.eegData, sizes);
+                pearsonCoefficientsCorrelation2(list.Objects[ids[0]].correlationArray, v.audioWav.getAudioHandle(win1.fileHandle.idFileHandle), win1.fileHandle.eegData, sizes);
             }
         }
         yield return null;

@@ -549,25 +549,25 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
     void updateEventsDraw(int milliSecToLook)
     {
-        if (hub.eventRemote.userEvents.Count > 0)
+        if (hub.eventRemote.userEvents.Length > 0)
         {
             int left = (int)(milliSecToLook * ((float)samplingFreq / 1000)) - numberPoint;
             int right = (int)(milliSecToLook * ((float)samplingFreq / 1000));
 
-            var keys = new List<int>(hub.eventRemote.userEvents.Keys);
-            var values = new List<TraceEvent>(hub.eventRemote.userEvents.Values);
+            //var keys = new List<int>(hub.eventRemote.userEvents.Keys);
+            //var values = new List<TraceEvent>(hub.eventRemote.userEvents.Values);
 
-            List<int> idOverFlow = values.Select((item, index) => new { Item = item, Index = index })
+            List<int> idOverFlow = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
                                          .Where(x => (x.Item.sample <= left && (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= right)))
                                          .Select(x => x.Index)
                                          .ToList();
 
-            List<int> idRightEnter = values.Select((item, index) => new { Item = item, Index = index })
+            List<int> idRightEnter = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
                                            .Where(x => (x.Item.sample < right && x.Item.sample > left && (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= right)))
                                            .Select(x => x.Index)
                                            .ToList();
 
-            List<int> idInside = values.Select((item, index) => new { Item = item, Index = index })
+            List<int> idInside = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
                                        .Where(x => ((x.Item.sample < right) &&
                                                     (x.Item.sample > left) &&
                                                     (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= left) &&
@@ -575,7 +575,7 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                                        .Select(x => x.Index)
                                        .ToList();
 
-            List<int> idLeftEnter = values.Select((item, index) => new { Item = item, Index = index })
+            List<int> idLeftEnter = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
                                           .Where(x => ((x.Item.sample < left) &&
                                                        (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) >= left) &&
                                                        (x.Item.sample + (x.Item.duration * ((float)samplingFreq / 1000)) <= right)))
@@ -589,8 +589,8 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
                 for (int i = 0; i < idRightEnter.Count; i++)
                 {
-                    float positionInsideRect = (left - keys[idRightEnter[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                    float rightevent = right - values[idRightEnter[i]].sample;
+                    float positionInsideRect = (left - hub.eventRemote.userEvents[idRightEnter[i]].sample) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float rightevent = right - hub.eventRemote.userEvents[idRightEnter[i]].sample;
                     float size = (rightevent / (right - left)) * widthOfGameObject;
 
                     eventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
@@ -601,10 +601,10 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
 
                 for (int i = 0; i < idInside.Count; i++)
                 {
-                    float positionInsideRect = (left - keys[idInside[i]]) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                    float size = ((values[idInside[i]].duration * ((float)samplingFreq / 1000)) / (right - left)) * widthOfGameObject;
+                    float positionInsideRect = (left - hub.eventRemote.userEvents[idInside[i]].sample) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float size = ((hub.eventRemote.userEvents[idInside[i]].duration * ((float)samplingFreq / 1000)) / (right - left)) * widthOfGameObject;
 
-                    if (values[idInside[i]].duration > 0)
+                    if (hub.eventRemote.userEvents[idInside[i]].duration > 0)
                     {
                         eventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
                         eventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
@@ -614,14 +614,14 @@ public class TraceCurve : MonoBehaviour, IPointerClickHandler
                     else
                     {
                         eventsAdded[idInside[i]].SetActive(true);
-                        eventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, dataArray[keys[idInside[i]] - left].y, -201);
+                        eventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, dataArray[hub.eventRemote.userEvents[idInside[i]].sample - left].y, -201);
                     }
                 }
 
                 for (int i = 0; i < idLeftEnter.Count; i++)
                 {
                     float positionInsideRect = ((-widthOfGameObject / 2) + 1);
-                    float leftevent = (values[idLeftEnter[i]].sample + (values[idLeftEnter[i]].duration * ((float)samplingFreq / 1000)) - left);
+                    float leftevent = (hub.eventRemote.userEvents[idLeftEnter[i]].sample + (hub.eventRemote.userEvents[idLeftEnter[i]].duration * ((float)samplingFreq / 1000)) - left);
                     float size = (leftevent / (right - left)) * widthOfGameObject;
 
                     eventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);

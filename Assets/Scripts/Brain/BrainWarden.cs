@@ -214,21 +214,21 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     void updateEventsOnBrain(int milliSecToLook)
     {
-        if (hub.eventRemote.userEvents.Count > 0)
+        if (hub.eventRemote.userEvents.Length > 0)
         {
             int left =(int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000)) - curveTrace1.numberOfPoint;
             int right = (int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000));
 
-            var keys = new List<int>(hub.eventRemote.userEvents.Keys);
-            var values = new List<TraceEvent>(hub.eventRemote.userEvents.Values);
+            //var keys = new List<int>(hub.eventRemote.userEvents.Keys);
+            //var values = new List<TraceEvent>(hub.eventRemote.userEvents.Values);
 
             float factor = ((float)curveTrace1.samplingFrequency / 1000);
-            List<int> idOverFlow = values.Select((item, index) => new { Item = item, Index = index })
+            List<int> idOverFlow = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
                                          .Where(x => (x.Item.sample <= left && (x.Item.sample + (x.Item.duration * factor) >= right)))
                                          .Select(x => x.Index)
                                          .ToList();
 
-            List<int> idRightEnter = values.Select((item, index) => new { Item = item, Index = index })
+            List<int> idRightEnter = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
                                            .Where(x => (x.Item.sample < right && x.Item.sample > left && (x.Item.sample + (x.Item.duration * factor) >= right)))
                                            .Select(x => x.Index)
                                            .ToList();
@@ -239,17 +239,17 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             changeColorEvent("", Color.white);
             for (int i = 0; i < indexes.Count; i++)
             {
-                if (values[indexes[i]].correlationArray != null)
+                if (hub.eventRemote.userEvents[indexes[i]].correlationArray != null)
                 {
                     for (int j = 0; j < curveTrace1.fileHandle.electrodes.Length; j++)
                     {
-                        changeColorEvent(curveTrace1.fileHandle.electrodes[j].name, correlationColor(values[indexes[i]].correlationArray[j]));
+                        changeColorEvent(curveTrace1.fileHandle.electrodes[j].name, correlationColor(hub.eventRemote.userEvents[indexes[i]].correlationArray[j]));
                     }
                 }
                 else
                 {
-                    changeColorEvent(values[indexes[i]].elecOfInterest, Color.red);
-                    changeColorEvent(values[indexes[i]].secondElecOfInterest, Color.blue);
+                    changeColorEvent(hub.eventRemote.userEvents[indexes[i]].elecOfInterest, Color.red);
+                    changeColorEvent(hub.eventRemote.userEvents[indexes[i]].secondElecOfInterest, Color.blue);
                 }
             }
         }
