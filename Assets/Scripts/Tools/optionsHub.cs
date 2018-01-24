@@ -319,6 +319,8 @@ public class eventsOptions : MonoBehaviour
             {
                 eventToChange.GetComponent<EventTrace>().UpdateEvent(modifyiedEvent);
             }
+
+            list.Refresh();
         }
     }
 
