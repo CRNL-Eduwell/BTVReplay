@@ -37,6 +37,13 @@ public class Window : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             return m_initialPanelPosition;
         }
     }
+    public Vector2 initialSizeDelta
+    {
+        get
+        {
+            return m_initialSizeDelta;
+        }
+    }
     public Transform initialParent
     {
         get
@@ -93,7 +100,8 @@ public class Window : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         m_canvasGameObject = GameObject.Find("Canvas");
         m_worldRectTransform = m_canvasGameObject.transform.GetComponent<RectTransform>();
         m_rectTransform = gameObject.GetComponent<RectTransform>();
-        //m_maxSizeWindow = new Vector2(m_rectTransform.rect.width, m_rectTransform.rect.height);
+        m_initialTransform = m_rectTransform.transform.parent;
+        m_maxSizeWindow = new Vector2(m_rectTransform.rect.width * 2, m_rectTransform.rect.height);
     }
 
     #region MouseEnterEvents

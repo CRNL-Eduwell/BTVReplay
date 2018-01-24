@@ -124,6 +124,7 @@ public class windowLayout : MonoBehaviour, IDropHandler
     {
         Window.itemBeingDragged.transform.SetParent(currentWindowManager.initialParent);
         currentRectTransform.localPosition = new Vector3(currentWindowManager.initialPosition.x, currentWindowManager.initialPosition.y);
+        currentRectTransform.sizeDelta = new Vector2(currentWindowManager.initialSizeDelta.x, currentWindowManager.initialSizeDelta.y);
     }
 
     void defineSizeGrid()
