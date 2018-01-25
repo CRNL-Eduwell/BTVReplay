@@ -31,7 +31,7 @@ public class TracePerf : MonoBehaviour
     int numberPoint = 64 * 10;
     bool initDone = false;
     //bool isUsed = false;
-    TraceCurve curveTrace1 = null;
+    Trace curveTrace1 = null;
      
     void Awake()
     {
@@ -75,8 +75,8 @@ public class TracePerf : MonoBehaviour
         isUsed = initMe;
         perfLRPrefab = Resources.Load("Prefabs/PerfTrace", typeof(GameObject)) as GameObject;
         defaultEventPic = Resources.Load("Pictures/EventDefault", typeof(Texture2D)) as Texture2D;
-        curveTrace1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
-        numberPoint = curveTrace1.samplingFrequency * periodSec;
+        curveTrace1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
+        numberPoint = curveTrace1.TraceEeg.SamplingFrequency * periodSec;
 
         m_rectTransform = gameObject.GetComponent<RectTransform>();
         m_perfHolder = m_rectTransform.GetChild(10).GetComponent<RectTransform>();
@@ -150,14 +150,14 @@ public class TracePerf : MonoBehaviour
     void updateTimeResolution(int newPeriod)
     {
         periodSec = newPeriod;
-        numberPoint = curveTrace1.samplingFrequency * periodSec;
+        numberPoint = curveTrace1.TraceEeg.SamplingFrequency * periodSec;
         updateScales();
     }
 
     void UpdateSpawn(int milliSecToLook)
     {
-        int leftTime = (int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000)) - curveTrace1.numberOfPoint;
-        int rightTime = (int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000));
+        int leftTime = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - curveTrace1.TraceEeg.numberOfPoint;
+        int rightTime = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
 
         List<int> currentIndex = media.posFile.Triggers.Select((item, index) => new { Item = item, Index = index })
                                                          .Where(x => x.Item.response.sample > leftTime && x.Item.response.sample < rightTime)
@@ -200,7 +200,7 @@ public class TracePerf : MonoBehaviour
 
     void UpdatePicEvent(int milliSecToLook)
     {
-        int sampleToLook = (int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000));
+        int sampleToLook = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
         int found = media.posFile.Triggers.FindIndex(x => x.trigger.sample >= sampleToLook - 8 && x.trigger.sample < sampleToLook + 8);
 
         if (found != -1 && mainCodes.Contains(media.posFile.Triggers[found].trigger.code))

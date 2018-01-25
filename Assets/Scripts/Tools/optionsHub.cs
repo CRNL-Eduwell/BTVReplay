@@ -30,8 +30,9 @@ public class eventsOptions : MonoBehaviour
     GameObject eventAddUI = null;
     GameObject eventDispUI = null;
     VideoPlayer v = null;
-    TraceCurve win1 = null;
-    TraceCurve win2 = null;
+    Trace win1 = null;
+    Trace win2 = null;
+    //Trace win3 = null;
     CoroutineManager coMana = null;
     EventInfoEdit infoEdit = null;
     EventInfoDisplay infoDisp = null;
@@ -67,8 +68,8 @@ public class eventsOptions : MonoBehaviour
         //==
         list = GameObject.Find("Canvas").transform.GetChild(1).GetChild(2).GetChild(2).GetChild(0).GetChild(1).GetComponent<EventList>();
         v = GameObject.Find("PanelR").GetComponent<VideoPlayer>();
-        win1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
-        win2 = GameObject.Find("Trace2Window").GetComponent<TraceCurve>();
+        win1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
+        win2 = GameObject.Find("Trace2Window").GetComponent<Trace>();
         coMana = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
         scrollObj = GameObject.Find("TimeScrollBar");
         scrollTex = Instantiate(scrollOrig);
@@ -88,14 +89,11 @@ public class eventsOptions : MonoBehaviour
         saveEvents.onClick.AddListener(saveEventsList);
         loadEvents.onClick.AddListener(loadEventList);
         win1.eventWasClicked += new eventsClickedHandler(openEventAddUI);
+        win1.EventsEeg.eventsToDisplay += new eventsToDisplay(openEventDisplayUI);
+        win1.EventsEeg.eventsToDelete += new eventsToDelete(deleteEvents);
         win2.eventWasClicked += new eventsClickedHandler(openEventAddUI);
-        win1.eventsToDisplay += new eventsToDisplay(openEventDisplayUI);
-        win2.eventsToDisplay += new eventsToDisplay(openEventDisplayUI);
-        win1.eventsToDelete += new eventsToDelete(deleteEvents);
-        win2.eventsToDelete += new eventsToDelete(deleteEvents);
-        //==
-        win1.eventCode = 0;
-        win2.eventCode = 0;
+        win2.EventsEeg.eventsToDisplay += new eventsToDisplay(openEventDisplayUI);
+        win2.EventsEeg.eventsToDelete += new eventsToDelete(deleteEvents);
 
         dataTexScroll = scrollTex.GetPixels();
     }
@@ -115,12 +113,12 @@ public class eventsOptions : MonoBehaviour
         showEventsButton.onClick.RemoveAllListeners();
         saveEvents.onClick.RemoveAllListeners();
         loadEvents.onClick.RemoveAllListeners();
-        win1.eventWasClicked -= new eventsClickedHandler(openEventAddUI);
-        win2.eventWasClicked -= new eventsClickedHandler(openEventAddUI);
-        win1.eventsToDisplay -= new eventsToDisplay(openEventDisplayUI);
-        win2.eventsToDisplay -= new eventsToDisplay(openEventDisplayUI);
-        win1.eventsToDelete -= new eventsToDelete(deleteEvents);
-        win2.eventsToDelete -= new eventsToDelete(deleteEvents);
+        win1.eventWasClicked += new eventsClickedHandler(openEventAddUI);
+        win1.EventsEeg.eventsToDisplay += new eventsToDisplay(openEventDisplayUI);
+        win1.EventsEeg.eventsToDelete += new eventsToDelete(deleteEvents);
+        win2.eventWasClicked += new eventsClickedHandler(openEventAddUI);
+        win2.EventsEeg.eventsToDisplay += new eventsToDisplay(openEventDisplayUI);
+        win2.EventsEeg.eventsToDelete += new eventsToDelete(deleteEvents);
 
         for (int i = 0; i < panelContent.transform.childCount; i++)
         {
@@ -161,12 +159,12 @@ public class eventsOptions : MonoBehaviour
                 if (traceID == 0)
                 {
                     addUI.transform.SetParent(win1.gameObject.transform);
-                    currentEvent.secondElecOfInterest = win2.labelElectrode.text;
+                    currentEvent.secondElecOfInterest = win2.TraceEeg.LabelElectrode;
                 }
                 else
                 {
                     addUI.transform.SetParent(win2.gameObject.transform);
-                    currentEvent.secondElecOfInterest = win1.labelElectrode.text;
+                    currentEvent.secondElecOfInterest = win1.TraceEeg.LabelElectrode;
                 }
                 addUI.transform.localScale = new Vector3(1, 1, 1);
                 addUI.transform.localPosition = new Vector3(0, 0, -402);
@@ -253,12 +251,12 @@ public class eventsOptions : MonoBehaviour
         //  -then destroy object 
         //  -then the reference in list of gameobject 
         //int index1 = win1.eventsAdded.FindIndex(x => x.name == "Event - " + eventToDelete.sample);
-        win1.removeEventConnections(win1.eventsAdded[ids[0]].gameObject);
-        Destroy(win1.eventsAdded[ids[0]].gameObject);
-        win1.eventsAdded.RemoveAt(ids[0]);
-        win2.removeEventConnections(win2.eventsAdded[ids[0]].gameObject);
-        Destroy(win2.eventsAdded[ids[0]].gameObject);
-        win2.eventsAdded.RemoveAt(ids[0]);
+        win1.EventsEeg.removeEventConnections(win1.EventsEeg.eventsAdded[ids[0]].gameObject);
+        Destroy(win1.EventsEeg.eventsAdded[ids[0]].gameObject);
+        win1.EventsEeg.eventsAdded.RemoveAt(ids[0]);
+        win2.EventsEeg.removeEventConnections(win2.EventsEeg.eventsAdded[ids[0]].gameObject);
+        Destroy(win2.EventsEeg.eventsAdded[ids[0]].gameObject);
+        win2.EventsEeg.eventsAdded.RemoveAt(ids[0]);
     }
 
     void eventValidatedForUI(TraceEvent currentEvent)
@@ -300,8 +298,8 @@ public class eventsOptions : MonoBehaviour
 
             if (modifyiedEvent.elecOfInterest == "")
             {
-                modifyiedEvent.elecOfInterest = win1.labelElectrode.text;
-                modifyiedEvent.secondElecOfInterest = win2.labelElectrode.text;
+                modifyiedEvent.elecOfInterest = win1.TraceEeg.LabelElectrode;
+                modifyiedEvent.secondElecOfInterest = win2.TraceEeg.LabelElectrode;
             }
 
             eventFound.duration = modifyiedEvent.duration;
@@ -326,7 +324,7 @@ public class eventsOptions : MonoBehaviour
 
     void saveEventsList()
     {
-        string btvPosFile = QtGUI_dll.Instance.getSaveFileName(new string[] { "pos" }, "Save Event File", win1.fileHandle.fileFolder);
+        string btvPosFile = QtGUI_dll.Instance.getSaveFileName(new string[] { "pos" }, "Save Event File", win1.TraceEeg.fileHandle.fileFolder);
         btvPosFile = btvPosFile.Replace(".pos", "_btv.pos");
 
         try
@@ -356,7 +354,7 @@ public class eventsOptions : MonoBehaviour
             {
                 foreach (TraceEvent eegEvent in list.Objects)
                 {
-                    int timeInSec = eegEvent.sample / win1.samplingFrequency;
+                    int timeInSec = eegEvent.sample / win1.TraceEeg.SamplingFrequency;
                     int h = timeInSec / 3600;
                     int m = (timeInSec / 60) % 60;
                     int s = timeInSec % 60;
@@ -400,7 +398,7 @@ public class eventsOptions : MonoBehaviour
 
     void loadEventList()
     {
-        string pathFile = QtGUI_dll.Instance.getOpenFileName(new string[] { "btv", "pos" }, "Select an Event File", win1.fileHandle.fileFolder);
+        string pathFile = QtGUI_dll.Instance.getOpenFileName(new string[] { "btv", "pos" }, "Select an Event File", win1.TraceEeg.fileHandle.fileFolder);
         if (File.Exists(pathFile))
         {
             string[] pathSplit = pathFile.Split(new char[] { '.' });
@@ -440,7 +438,7 @@ public class eventsOptions : MonoBehaviour
                     string[] resultSplit = System.Text.RegularExpressions.Regex.Split(r, @"\s{2,}");
                     if (resultSplit.Count() == 7)
                     {
-                        eventEeg currentEvent = new eventEeg(int.Parse(resultSplit[2]), int.Parse(resultSplit[3]), win1.samplingFrequency);
+                        eventEeg currentEvent = new eventEeg(int.Parse(resultSplit[2]), int.Parse(resultSplit[3]), win1.TraceEeg.SamplingFrequency);
                         eventLoaded.Add(new TraceEvent(currentEvent, int.Parse(resultSplit[4]), resultSplit[5], resultSplit[6], resultSplit[1]));
                     }
                 }
@@ -470,7 +468,7 @@ public class eventsOptions : MonoBehaviour
                     string[] resultSplit = r.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                     if (resultSplit.Count() == 3)
                     {
-                        eventLoaded.Add(new TraceEvent(new eventEeg(int.Parse(resultSplit[1]), int.Parse(resultSplit[0]), win1.samplingFrequency)));
+                        eventLoaded.Add(new TraceEvent(new eventEeg(int.Parse(resultSplit[1]), int.Parse(resultSplit[0]), win1.TraceEeg.SamplingFrequency)));
                     }
                 }
                 sr.Close();
@@ -523,15 +521,15 @@ public class eventsOptions : MonoBehaviour
 
     void addEventToTexture(TraceEvent currentEvent)
     {
-        float perC = ((((float)currentEvent.sample / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
+        float perC = ((((float)currentEvent.sample / win1.TraceEeg.SamplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
         int pixelID = (int)(perC * scrollTex.width);
 
         if (currentEvent.duration > 0)
         {
             if (currentEvent.duration > 1000)
             {
-                float durationInSample = (currentEvent.duration * ((float)win1.samplingFrequency / 1000));
-                float perCDuration = (((((float)currentEvent.sample + durationInSample) / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
+                float durationInSample = (currentEvent.duration * ((float)win1.TraceEeg.SamplingFrequency / 1000));
+                float perCDuration = (((((float)currentEvent.sample + durationInSample) / win1.TraceEeg.SamplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
                 int pixelIDDuration = (int)(perCDuration * scrollTex.width);
                 for (int i = 0; i < scrollTex.height / 2; i++)
                 {
@@ -556,15 +554,15 @@ public class eventsOptions : MonoBehaviour
 
     void removeEventToTexture(TraceEvent currentEvent)
     {
-        float perC = ((((float)currentEvent.sample / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
+        float perC = ((((float)currentEvent.sample / win1.TraceEeg.SamplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
         int pixelID = (int)(perC * scrollTex.width);
 
         if (currentEvent.duration > 0)
         {
             if (currentEvent.duration > 1000)
             {
-                float durationInSample = (currentEvent.duration * ((float)win1.samplingFrequency / 1000));
-                float perCDuration = (((((float)currentEvent.sample + durationInSample) / win1.samplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
+                float durationInSample = (currentEvent.duration * ((float)win1.TraceEeg.SamplingFrequency / 1000));
+                float perCDuration = (((((float)currentEvent.sample + durationInSample) / win1.TraceEeg.SamplingFrequency) / v.videoInterface.totalVideoTime) * 1000);
                 int pixelIDDuration = (int)(perCDuration * scrollTex.width);
                 for (int i = 0; i < scrollTex.height / 2; i++)
                 {
@@ -592,21 +590,21 @@ public class eventsOptions : MonoBehaviour
         if (list.Objects.Length > 0)
         {
             long timeSec = v.videoInterface.currentTime / 1000;
-            long timeSample = timeSec * win1.samplingFrequency;
+            long timeSample = timeSec * win1.TraceEeg.SamplingFrequency;
             var keys = list.sampleValues;
             var index = keys.BinarySearch((int)timeSample);
 
             if (Math.Abs(index) - 1 == 0)
             {
                 currentPos = 0;
-                v.changeTimeClick((list.Objects[currentPos].sample / win1.samplingFrequency) * 1000);
-                v.setTime((list.Objects[currentPos].sample / win1.samplingFrequency) * 1000);
+                v.changeTimeClick((list.Objects[currentPos].sample / win1.TraceEeg.SamplingFrequency) * 1000);
+                v.setTime((list.Objects[currentPos].sample / win1.TraceEeg.SamplingFrequency) * 1000);
             }
             else
             {
                 currentPos = Math.Abs(index) - 1;
-                v.changeTimeClick((list.Objects[currentPos - 1].sample / win1.samplingFrequency) * 1000);
-                v.setTime((list.Objects[currentPos - 1].sample / win1.samplingFrequency) * 1000);
+                v.changeTimeClick((list.Objects[currentPos - 1].sample / win1.TraceEeg.SamplingFrequency) * 1000);
+                v.setTime((list.Objects[currentPos - 1].sample / win1.TraceEeg.SamplingFrequency) * 1000);
             }
         }
     }
@@ -616,15 +614,15 @@ public class eventsOptions : MonoBehaviour
         if (list.Objects.Length > 0)
         {
             long timeSec = v.videoInterface.currentTime / 1000;
-            long timeSample = timeSec * win1.samplingFrequency;
+            long timeSample = timeSec * win1.TraceEeg.SamplingFrequency;
             var keys = list.sampleValues;
             var index = keys.BinarySearch((int)timeSample);
 
             currentPos = Math.Abs(index) - 1;
             if (currentPos + 1 < list.Objects.Length)
             {
-                v.changeTimeClick((list.Objects[currentPos + 1].sample / win1.samplingFrequency) * 1000);
-                v.setTime((list.Objects[currentPos + 1].sample / win1.samplingFrequency) * 1000);
+                v.changeTimeClick((list.Objects[currentPos + 1].sample / win1.TraceEeg.SamplingFrequency) * 1000);
+                v.setTime((list.Objects[currentPos + 1].sample / win1.TraceEeg.SamplingFrequency) * 1000);
             }
         }
     }
@@ -638,7 +636,7 @@ public class eventsOptions : MonoBehaviour
 
     IEnumerator c_correlation(TraceEvent currentEvent)
     {
-        int nbElec = win1.fileHandle.electrodes.Length;
+        int nbElec = win1.TraceEeg.fileHandle.electrodes.Length;
         List<int> ids = list.Objects.Select((item, index) => new { Item = item, Index = index })
                                  .Where(x => x.Item.sample == currentEvent.sample)
                                  .Select(x => x.Index)
@@ -649,18 +647,18 @@ public class eventsOptions : MonoBehaviour
         int beginSample = list.Objects[ids[0]].sample;
         int durationSample = (list.Objects[ids[0]].duration / 1000) * list.Objects[ids[0]].samplingFrequency;
 
-        int idBase = win1.fileHandle.electrodes.ToList().FindIndex(x => x.name == currentEvent.elecOfInterest);
+        int idBase = win1.TraceEeg.fileHandle.electrodes.ToList().FindIndex(x => x.name == currentEvent.elecOfInterest);
         if (idBase != -1)
         {
-            int[] sizes = new int[5] { idBase, nbElec, beginSample, durationSample, win1.fileHandle.nbSam };
-            pearsonCoefficientsCorrelation(list.Objects[ids[0]].correlationArray, win1.fileHandle.eegData, sizes);
+            int[] sizes = new int[5] { idBase, nbElec, beginSample, durationSample, win1.TraceEeg.fileHandle.nbSam };
+            pearsonCoefficientsCorrelation(list.Objects[ids[0]].correlationArray, win1.TraceEeg.fileHandle.eegData, sizes);
         }
         else
         {
             if (currentEvent.elecOfInterest.StartsWith("AUD"))
             {
-                int[] sizes = new int[4] { nbElec, beginSample, durationSample, win1.fileHandle.nbSam };
-                pearsonCoefficientsCorrelation2(list.Objects[ids[0]].correlationArray, v.audioWav.getAudioHandle(win1.fileHandle.idFileHandle), win1.fileHandle.eegData, sizes);
+                int[] sizes = new int[4] { nbElec, beginSample, durationSample, win1.TraceEeg.fileHandle.nbSam };
+                pearsonCoefficientsCorrelation2(list.Objects[ids[0]].correlationArray, v.audioWav.getAudioHandle(win1.TraceEeg.fileHandle.idFileHandle), win1.TraceEeg.fileHandle.eegData, sizes);
             }
         }
         yield return null;
@@ -1474,12 +1472,12 @@ public class ButtonUI_show : ButtonUI
                     m_options.SetActive(m_isVisible);
                     showExtraPanels(m_isVisible);
 
-                    if (m_curve.transform.GetComponent<TraceCurve>().hasFocus)
-                        m_curve.transform.GetComponent<TraceCurve>().manageFocusClick();
+                    //if (m_curve.transform.GetComponent<Trace>().hasFocus)
+                    //    m_curve.transform.GetComponent<Trace>().manageFocusClick();
                     break;
                 case 3:
-                    if (!m_curve.transform.GetComponent<TraceCurve>().hasFocus)
-                        m_curve.transform.GetComponent<TraceCurve>().manageFocusClick();
+                    //if (!m_curve.transform.GetComponent<Trace>().hasFocus)
+                    //    m_curve.transform.GetComponent<Trace>().manageFocusClick();
                     break;
             }
         }
@@ -1640,10 +1638,10 @@ public class ButtonUI : MonoBehaviour, IPointerClickHandler
                 m_positionCounter = 1;
             if (m_curve != null)
             {
-                if (m_curve.transform.GetComponent<TraceCurve>() != null)
+                if (m_curve.transform.GetComponent<Trace>() != null)
                 {
-                    if (m_curve.transform.GetComponent<TraceCurve>().hasFocus)
-                        m_curve.transform.GetComponent<TraceCurve>().manageFocusClick();
+                    //if (m_curve.transform.GetComponent<Trace>().hasFocus)
+                    //    m_curve.transform.GetComponent<Trace>().manageFocusClick();
                 }
             }
         }

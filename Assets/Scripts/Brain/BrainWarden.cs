@@ -24,7 +24,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     Vector3[] worldCornerOfBrainPanel = new Vector3[4];
     Window winTrace1 = null;
     Window winTrace2 = null;
-    TraceCurve curveTrace1 = null;
+    Trace curveTrace1 = null;
     GameObject plot = null;
     GameObject elecPointer = null;
     GameObject elecPointerPic = null;
@@ -49,7 +49,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
         winTrace1 = GameObject.Find("Trace1Window").GetComponent<Window>();
         winTrace2 = GameObject.Find("Trace2Window").GetComponent<Window>();
-        curveTrace1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
+        curveTrace1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
 
         elecPointer = GameObject.Find("Canvas").transform.GetChild(5).gameObject;
         elecPointerPic = elecPointer.transform.GetChild(0).gameObject;
@@ -216,13 +216,13 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     {
         if (hub.eventRemote.userEvents.Length > 0)
         {
-            int left =(int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000)) - curveTrace1.numberOfPoint;
-            int right = (int)(milliSecToLook * ((float)curveTrace1.samplingFrequency / 1000));
+            int left =(int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - curveTrace1.TraceEeg.numberOfPoint;
+            int right = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
 
             //var keys = new List<int>(hub.eventRemote.userEvents.Keys);
             //var values = new List<TraceEvent>(hub.eventRemote.userEvents.Values);
 
-            float factor = ((float)curveTrace1.samplingFrequency / 1000);
+            float factor = ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000);
             List<int> idOverFlow = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
                                          .Where(x => (x.Item.sample <= left && (x.Item.sample + (x.Item.duration * factor) >= right)))
                                          .Select(x => x.Index)
@@ -241,9 +241,9 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             {
                 if (hub.eventRemote.userEvents[indexes[i]].correlationArray != null)
                 {
-                    for (int j = 0; j < curveTrace1.fileHandle.electrodes.Length; j++)
+                    for (int j = 0; j < curveTrace1.TraceEeg.fileHandle.electrodes.Length; j++)
                     {
-                        changeColorEvent(curveTrace1.fileHandle.electrodes[j].name, correlationColor(hub.eventRemote.userEvents[indexes[i]].correlationArray[j]));
+                        changeColorEvent(curveTrace1.TraceEeg.fileHandle.electrodes[j].name, correlationColor(hub.eventRemote.userEvents[indexes[i]].correlationArray[j]));
                     }
                 }
                 else
