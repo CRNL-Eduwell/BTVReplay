@@ -26,6 +26,13 @@ public class EegSignal : SignalDisp
                 return " - " + eHandle.electrodes[idCurrentElec].name;
         }
     }
+    public string nameElectrode
+    {
+        get
+        {
+            return eHandle.electrodes[idCurrentElec].name;
+        }
+    }
     public ELAN fileHandle
     {
         get

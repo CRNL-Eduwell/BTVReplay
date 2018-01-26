@@ -44,12 +44,16 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     [SerializeField] GraphEvents graphEvent = null;
     [SerializeField] GraphSonification graphSonif = null;
     [SerializeField] Window m_window = null;
+    [SerializeField] Window m_handleOtherTrace = null;
     [SerializeField] int traceID = 0;
 
     bool m_initDone = false;
     RectTransform m_rectTransform = null;
     Vector3[] m_worldCornerOfBrainPanel = new Vector3[4];
     Vector3[] m_worldCorners = new Vector3[4];
+    Color orange = new Color(0.9058f, 0.5254f, 0.1921f);
+    Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
+    Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
 
     void Awake()
     {
@@ -209,10 +213,10 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        //if (eventData.clickCount == 2)
-        //    manageFocusClick();
+        if (eventData.clickCount == 2)
+            manageFocusClick();
 
-        //focusClickElecLabel();
+        focusClickElecLabel();
 
         m_rectTransform.GetWorldCorners(m_worldCorners);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -222,6 +226,56 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         {
             TraceEvent currentEvent = new TraceEvent(new eventEeg(0, (int)sampleClicked, eegSignal.SamplingFrequency), elecOfInterest:eegSignal.LabelElectrode);
             eventWasClicked(currentEvent, traceID);
+        }
+    }
+
+    public void manageFocusClick()
+    {
+        if (!m_window.hasFocus)
+        {
+            m_window.setBorderColor(orange);
+            m_window.hasFocus = !m_window.hasFocus;
+
+            if (m_handleOtherTrace != null)
+            {
+                m_handleOtherTrace.hasFocus = false;
+                m_handleOtherTrace.setBorderColor(blue);
+            }
+
+            plotClicked(GameObject.Find(eegSignal.nameElectrode.ToLower()));
+        }
+        else
+        {
+            plotClicked(null);
+            m_window.setBorderColor(blue);
+            m_window.hasFocus = !m_window.hasFocus;
+        }
+    }
+
+    void focusClickElecLabel()
+    {
+        Ray r = new Ray(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector3.forward);
+        RaycastHit hit;
+        if (Physics.Raycast(r, out hit))
+        {
+            if (hit.collider.name == "ElecLabel" + (traceID + 1))
+            {
+                manageFocusClick();
+                if (m_window.transform.position == m_handleOtherTrace.transform.position)
+                {
+                    gameObject.transform.SetSiblingIndex(1);
+                    m_handleOtherTrace.gameObject.transform.SetSiblingIndex(0);
+                }
+            }
+            else
+            {
+                m_handleOtherTrace.gameObject.GetComponent<Trace>().manageFocusClick();
+                if (m_window.transform.position == m_handleOtherTrace.transform.position)
+                {
+                    gameObject.transform.SetSiblingIndex(0);
+                    m_handleOtherTrace.gameObject.transform.SetSiblingIndex(1);
+                }
+            }
         }
     }
 }
