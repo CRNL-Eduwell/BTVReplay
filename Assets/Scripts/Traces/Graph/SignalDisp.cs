@@ -57,6 +57,7 @@ public abstract class SignalDisp : MonoBehaviour
     protected Vector3[] m_dataArray;
     protected float m_gain = 1, m_previousGain = 1;
     protected int m_periodSec = 10, m_samplingFreq = 64, m_numberPoint = 64 * 10;
+    protected bool m_initDone = false;
 
     void Awake()
     {
@@ -70,11 +71,13 @@ public abstract class SignalDisp : MonoBehaviour
         lineRenderer.startWidth = 0.02f;
         lineRenderer.endWidth = 0.02f;
         updateHorizontalScale();
+
+        m_initDone = true;
     }
 
     void OnRectTransformDimensionsChange()
     {
-        if (m_parentRectTransform != null)
+        if (m_parentRectTransform != null && m_initDone)
             updateHorizontalScale();
     }
 

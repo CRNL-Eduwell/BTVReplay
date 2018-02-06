@@ -17,7 +17,7 @@ public class Brain : MonoBehaviour {
     void Awake()
     {
         media.loadBrain += new BrainLoadEventHandler(loadBrainAndElectrodes);
-        media.loadTrace += new initTrace(() => 
+        media.loadTrace += new initTrace(() =>
         {
             hub.brainRemote.needToChangeBrain += new brainChangeEventHandler(changeBrain);
         });
@@ -61,35 +61,27 @@ public class Brain : MonoBehaviour {
         {
             Debug.LogError("Brain wasn't loaded or there was a problem");
         }
-        
+
     }
 
     public void changeBrain(int idBrain)
     {
-        string l = "", r = "", p = "";
-
         switch (idBrain)
         {
             case 0:
                 LHBrain.gameObject.SetActive(true);
                 RHBrain.gameObject.SetActive(true);
                 hub.brainRemote.setBrainInteract(true);
-                l = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].mni.lhemi;
-                r = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].mni.rhemi;
-                p = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].mni.pts;
-                updateBrainMesh(l, r, p);
+                updateBrainMesh(media.pm.currentPatients[media.pm.idCurrentPatientLoaded].mni);
                 break;
             case 1:
                 LHBrain.gameObject.SetActive(true);
                 RHBrain.gameObject.SetActive(true);
                 hub.brainRemote.setBrainInteract(true);
-                l = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pat.lhemi;
-                r = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pat.rhemi;
-                p = media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pat.pts;
-                updateBrainMesh(l, r, p);
+                updateBrainMesh(media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pat);
                 break;
             case 2:
-                LHBrain.gameObject.SetActive(false); 
+                LHBrain.gameObject.SetActive(false);
                 RHBrain.gameObject.SetActive(false);
                 hub.brainRemote.setBrainInteract(false);
                 ElectrodesScript.updateElecPearl();
@@ -116,22 +108,26 @@ public class Brain : MonoBehaviour {
         RHBrain.layer = Brain3DHandle.layer;
         Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
         rhemi.InitializeData(brainToLoad.rhemi);
-        for(int i = 0; i<rhemi.brainMeshes.Count;i++)
+        for (int i = 0; i < rhemi.brainMeshes.Count; i++)
             rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
 
         Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
         Electrodes.transform.parent = Brain3DHandle.transform;
         ElectrodesScript = Electrodes.GetComponent<Electrodes>();
         ElectrodesScript.loadPtsFile(brainToLoad.pts);
+
+        if(brainToLoad.atlasCSV != null)
+            ElectrodesScript.loadAtlasData(brainToLoad.atlasCSV);
+
         ElectrodesScript.loadElecOnBrain();
 
         CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         CameraScript.initCameraPosition();
     }
 
-    void updateBrainMesh(string LHtri, string RHtri, string PTS)
+    void updateBrainMesh(brain_anat brainToLoad)
     {
-        if(Brain3DHandle == null)
+        if (Brain3DHandle == null)
             Brain3DHandle = GameObject.Find("BrainGameObject");
 
         Destroy(GameObject.Find("LeftHemi"));
@@ -142,7 +138,7 @@ public class Brain : MonoBehaviour {
         LHBrain.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
         LHBrain.layer = Brain3DHandle.layer;
         Hemisphere lhemi = LHBrain.GetComponent<Hemisphere>();
-        lhemi.InitializeData(LHtri);
+        lhemi.InitializeData(brainToLoad.lhemi);
         for (int i = 0; i < lhemi.brainMeshes.Count; i++)
         {
             lhemi.brainMeshes[i].transform.parent = LHBrain.transform;
@@ -158,14 +154,18 @@ public class Brain : MonoBehaviour {
         RHBrain.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
         RHBrain.layer = Brain3DHandle.layer;
         Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
-        rhemi.InitializeData(RHtri);
+        rhemi.InitializeData(brainToLoad.rhemi);
         for (int i = 0; i < rhemi.brainMeshes.Count; i++)
         {
             rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
             rhemi.brainMeshes[i].transform.localPosition = new Vector3(0, 0, 0);
             rhemi.brainMeshes[i].transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
         }
-        ElectrodesScript.loadPtsFile(PTS);
+        ElectrodesScript.loadPtsFile(brainToLoad.pts);
+
+        if (brainToLoad.atlasCSV != null)
+            ElectrodesScript.loadAtlasData(brainToLoad.atlasCSV);
+
         ElectrodesScript.updateElecPosition();
     }
 }

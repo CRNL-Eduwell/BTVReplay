@@ -30,6 +30,13 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             return graphEvent;
         }
     }
+    public bool hasFocus
+    {
+        get
+        {
+            return m_window.hasFocus;
+        }
+    }
 
     [SerializeField] optionsHub hub = null;
     [SerializeField] BTVMedia media = null;

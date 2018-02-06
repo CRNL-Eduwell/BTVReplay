@@ -74,6 +74,7 @@ public class WindowOpt : MonoBehaviour
     {
         m_optionVisible = showMe;
         m_rectTransform.gameObject.SetActive(m_optionVisible);
+        m_initialWidth = m_rectTransformView.gameObject.GetComponent<RectTransform>().rect.width;
 
         if (m_optionVisible == false)
         {

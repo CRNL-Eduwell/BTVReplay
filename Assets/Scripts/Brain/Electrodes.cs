@@ -7,11 +7,33 @@ using System.Text;
 
 public class ElectrodePlot
 {
+    public string label
+    {
+        get
+        {
+            return plotName + Id;
+        }
+    }
+
+    public string Id
+    {
+        get
+        {
+            if (id < 10)
+                return "0" + id;
+            else
+                return id.ToString();
+        }
+    }
+
     public int id;
     public Vector3 position3D;
+    public MarsAtlas_plot atlas;
+    string plotName = "";
 
-    public ElectrodePlot(int p_id, Vector3 p_position)
+    public ElectrodePlot(string p_plotName, int p_id, Vector3 p_position)
     {
+        plotName = p_plotName;
         id = p_id;
         position3D = p_position;
     }
@@ -41,6 +63,17 @@ public class Electrodes : MonoBehaviour
     string patientName = "";
     List<bool> mask = new List<bool>();
     List<Electrode> electrodes = new List<Electrode>();
+    MarsAtlas atlas = null;
+
+    void Awake()
+    {
+        atlas = new MarsAtlas(Application.dataPath);
+    }
+
+    void OnDestroy()
+    {
+        atlas.Dispose();
+    }
 
     public int loadPtsFile(string p_pathPtsFile)
     {
@@ -131,7 +164,7 @@ public class Electrodes : MonoBehaviour
 
                     if (plotName == currentElectrodeName) //This is just a new plot in current Electrode
                     {
-                        electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotID, new Vector3(x, y, z)));
+                        electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotName, plotID, new Vector3(x, y, z)));
                         electrodes[electrodes.Count - 1].mask.Add(true);
                     }
                     else //This is a new Electrode
@@ -139,7 +172,7 @@ public class Electrodes : MonoBehaviour
                         currentElectrodeName = plotName;
                         electrodes.Add(new Electrode(plotName));
                         mask.Add(true);
-                        electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotID, new Vector3(x, y, z)));
+                        electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotName, plotID, new Vector3(x, y, z)));
                         electrodes[electrodes.Count - 1].mask.Add(true);
                     }
                 }
@@ -150,6 +183,12 @@ public class Electrodes : MonoBehaviour
             }
         }
         return 0;
+    }
+
+    public void loadAtlasData(string p_pathAtlasCSV)
+    {
+        atlas.loadPatientAtlas(p_pathAtlasCSV);
+        atlas.findElectrodesWithAtlas(electrodes);
     }
 
     public void loadElecOnBrain()
@@ -172,7 +211,7 @@ public class Electrodes : MonoBehaviour
                 currentElecPlot.transform.parent = currentElec.transform;
 
                 ElecPlotSize sphereSizeScript = currentElecPlot.AddComponent<ElecPlotSize>();
-                sphereSizeScript.init(currentElecPlot.name);
+                sphereSizeScript.init(currentElecPlot.name, electrodes[i].plots[j]);
             }
         }
     }
@@ -190,6 +229,7 @@ public class Electrodes : MonoBehaviour
                     currentElec.localPosition = new Vector3(-electrodes[i].plots[j].position3D.x,
                                                             electrodes[i].plots[j].position3D.y,
                                                             electrodes[i].plots[j].position3D.z);
+                    currentElec.GetComponent<ElecPlotSize>().setPlot(electrodes[i].plots[j]);
                     //Debug.Log("Update : " + currentElec.name);
                 }
             }

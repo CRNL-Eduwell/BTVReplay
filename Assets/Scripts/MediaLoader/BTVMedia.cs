@@ -262,6 +262,7 @@ public class BTVMedia : MonoBehaviour
         patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.pat.lhemi;
         patientDetails.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.pat.rhemi;
         patientDetails.transform.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.pat.pts;
+        patientDetails.transform.GetChild(0).GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text = myPat.pat.atlasCSV;
 
         for (int i = 0; i < 6; i++)
             patientDetails.transform.GetChild(1).GetChild(i + 1).GetComponent<browseButton>().inputfield.text = myPat.smFiles[i];
@@ -282,6 +283,7 @@ public class BTVMedia : MonoBehaviour
         myPat.pat.lhemi = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text;
         myPat.pat.rhemi = rootUI.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text;
         myPat.pat.pts = rootUI.transform.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text;
+        myPat.pat.atlasCSV = rootUI.transform.GetChild(0).GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text;
 
         for (int i = 0; i < 6; i++)
             myPat.smFiles[i] = rootUI.transform.GetChild(1).GetChild(i + 1).GetComponent<browseButton>().inputfield.text;
@@ -428,12 +430,13 @@ public class BTVMedia : MonoBehaviour
         r.lhemi_PAT = myPat.pat.lhemi;
         r.rhemi_PAT = myPat.pat.rhemi;
         r.pts_PAT = myPat.pat.pts;
+        r.atlas_PAT = myPat.pat.atlasCSV;
 
         r.sm0 = myPat.smFiles[0];
         r.sm250 = myPat.smFiles[1];
         r.sm500 = myPat.smFiles[2];
         r.sm1000 = myPat.smFiles[3];
-        r.sm2500 = myPat.smFiles[3];
+        r.sm2500 = myPat.smFiles[4];
         r.sm5000 = myPat.smFiles[5];
 
         r.pos = myPat.pos;

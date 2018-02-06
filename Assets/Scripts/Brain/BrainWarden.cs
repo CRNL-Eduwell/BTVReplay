@@ -30,6 +30,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     GameObject elecPointerPic = null;
     Text elecPointerText = null;
 
+    ElecPointer el = null;
     GameObject elecOptionPanel = null;
     GameObject ElecOption = null;
 
@@ -51,6 +52,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         winTrace2 = GameObject.Find("Trace2Window").GetComponent<Window>();
         curveTrace1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
 
+        el = GameObject.Find("Canvas").transform.GetChild(5).GetChild(0).GetComponent<ElecPointer>();
         elecPointer = GameObject.Find("Canvas").transform.GetChild(5).gameObject;
         elecPointerPic = elecPointer.transform.GetChild(0).gameObject;
         elecPointerText = elecPointerPic.transform.GetChild(0).GetComponent<Text>();
@@ -202,13 +204,17 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
         if (Physics.Raycast(ray2, out hit))
         {
-            elecPointer.transform.position = new Vector3(worldClick.x, worldClick.y, 0);
-            elecPointerPic.SetActive(true);
-            elecPointerText.text = hit.collider.name.ToUpper();
+            ElecPlotSize hitPlot = GameObject.Find(hit.collider.name).GetComponent<ElecPlotSize>();
+            el.moveTo(worldClick.x, worldClick.y, 0);
+            el.show(true);
+            el.setElecLabel(hit.collider.name.ToUpper());
+            el.setMarsAtlasLabel(hitPlot.MarsAtlasName);
+            el.setBroadmanLabel(hitPlot.BroadmanName);
+            el.setCorrdinatesLabel(hitPlot.Coordinates);
         }
         else
         {
-            elecPointerPic.SetActive(false);
+            el.show(false);
         }
     }
 

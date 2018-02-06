@@ -20,6 +20,27 @@ public class ElecPlotSize : MonoBehaviour
         get;
         set;
     }
+    public string MarsAtlasName
+    {
+        get
+        {
+            return m_plot.atlas.nameFull;
+        }
+    }
+    public string BroadmanName
+    {
+        get
+        {
+            return m_plot.atlas.broadman;
+        }
+    }
+    public Vector3 Coordinates
+    {
+        get
+        {
+            return plotObject.transform.localPosition;
+        }
+    }
 
     GameObject plotObject = null;
     Trace curve = null;
@@ -27,7 +48,7 @@ public class ElecPlotSize : MonoBehaviour
     optionsHub hub = null;
     VideoPlayer video = null;
     BrainWarden warden = null;
-
+    ElectrodePlot m_plot = null;
     ELAN eHandle = null;
     int bipID = 0;
     int mostRecentSample = 0;
@@ -37,7 +58,7 @@ public class ElecPlotSize : MonoBehaviour
 
     MeshRenderer mySphereRenderer = null;
 
-    public void init(string goName)
+    public void init(string goName, ElectrodePlot plot)
     {
         hub = GameObject.Find("Canvas").transform.GetChild(0).GetChild(0).GetComponent<optionsHub>();
         warden = GameObject.Find("Canvas").transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<BrainWarden>();
@@ -52,6 +73,7 @@ public class ElecPlotSize : MonoBehaviour
         });
         warden.changeColorEvent += new changeColorPlotEvent(updateColorForEvent);
 
+        setPlot(plot);
         plotObject = GameObject.Find(goName.ToLower());
         mySphereRenderer = plotObject.GetComponent<MeshRenderer>();
 
@@ -114,5 +136,10 @@ public class ElecPlotSize : MonoBehaviour
     public void fixSize()
     {
         plotObject.transform.localScale = new Vector3(1, 1, 1);
+    }
+
+    public void setPlot(ElectrodePlot plot)
+    {
+        m_plot = plot;
     }
 }

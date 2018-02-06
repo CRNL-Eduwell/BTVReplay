@@ -12,6 +12,7 @@ public class ReloadMedia : MonoBehaviour
     public string lhemi_PAT = "";
     public string rhemi_PAT = "";
     public string pts_PAT = "";
+    public string atlas_PAT = "";
 
     public string sm0 = "";
     public string sm250 = "";
@@ -54,6 +55,7 @@ public class ReloadMedia : MonoBehaviour
                 addPatientPanel.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = lhemi_PAT;
                 addPatientPanel.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = rhemi_PAT;
                 addPatientPanel.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text = pts_PAT;
+                addPatientPanel.GetChild(0).GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text = atlas_PAT;
 
                 addPatientPanel.GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = sm0;
                 addPatientPanel.GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = sm250;

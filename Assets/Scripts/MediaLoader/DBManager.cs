@@ -7,6 +7,7 @@ public struct brain_anat
     public string lhemi;
     public string rhemi;
     public string pts;
+    public string atlasCSV;
 };
 
 public class Patient
@@ -74,15 +75,40 @@ public class Patient
             case 3: if (data.Length > 1) pat.lhemi = data[1]; break;
             case 4: if (data.Length > 1) pat.rhemi = data[1]; break;
             case 5: if (data.Length > 1) pat.pts = data[1]; break;
-            case 6: if (data.Length > 1) smFiles[0] = data[1]; break;
-            case 7: if (data.Length > 1) smFiles[1] = data[1]; break;
-            case 8: if (data.Length > 1) smFiles[2] = data[1]; break;
-            case 9: if (data.Length > 1) smFiles[3] = data[1]; break;
-            case 10: if (data.Length > 1) smFiles[4] = data[1]; break;
-            case 11: if (data.Length > 1) smFiles[5] = data[1]; break;
-            case 12: if (data.Length > 1) pos = data[1]; break;
-            case 13: if (data.Length > 1) prov = data[1]; break;
-            case 14: if (data.Length > 1) video = data[1]; break;
+            case 6: if (data.Length > 1) pat.atlasCSV = data[1]; break;
+            case 7: if (data.Length > 1) smFiles[0] = data[1]; break;
+            case 8: if (data.Length > 1) smFiles[1] = data[1]; break;
+            case 9: if (data.Length > 1) smFiles[2] = data[1]; break;
+            case 10: if (data.Length > 1) smFiles[3] = data[1]; break;
+            case 11: if (data.Length > 1) smFiles[4] = data[1]; break;
+            case 12: if (data.Length > 1) smFiles[5] = data[1]; break;
+            case 13: if (data.Length > 1) pos = data[1]; break;
+            case 14: if (data.Length > 1) prov = data[1]; break;
+            case 15: if (data.Length > 1) video = data[1]; break;
+            default: UnityEngine.Debug.LogError("Problem with patients file"); break;
+        }
+    }
+
+    public void loadValue(string key, string[] data)
+    {
+        switch (key)
+        {
+            case "LH_MNI": if (data.Length > 1) mni.lhemi = data[1]; break;
+            case "RH_MNI": if (data.Length > 1) mni.rhemi = data[1]; break;
+            case "PTS_MNI": if (data.Length > 1) mni.pts = data[1]; break;
+            case "LH_PAT": if (data.Length > 1) pat.lhemi = data[1]; break;
+            case "RH_PAT": if (data.Length > 1) pat.rhemi = data[1]; break;
+            case "PTS_PAT": if (data.Length > 1) pat.pts = data[1]; break;
+            case "ATLAS_PAT": if (data.Length > 1) pat.atlasCSV = data[1]; break;
+            case "SM0": if (data.Length > 1) smFiles[0] = data[1]; break;
+            case "SM250": if (data.Length > 1) smFiles[1] = data[1]; break;
+            case "SM500": if (data.Length > 1) smFiles[2] = data[1]; break;
+            case "SM1000": if (data.Length > 1) smFiles[3] = data[1]; break;
+            case "SM2500": if (data.Length > 1) smFiles[4] = data[1]; break;
+            case "SM5000": if (data.Length > 1) smFiles[5] = data[1]; break;
+            case "POS": if (data.Length > 1) pos = data[1]; break;
+            case "PROV": if (data.Length > 1) prov = data[1]; break;
+            case "VID": if (data.Length > 1) video = data[1]; break;
             default: UnityEngine.Debug.LogError("Problem with patients file"); break;
         }
     }
@@ -135,6 +161,7 @@ public class DBManager
                 sw.WriteLine("LH_PAT : " + currentPatients[i].pat.lhemi);
                 sw.WriteLine("RH_PAT : " + currentPatients[i].pat.rhemi);
                 sw.WriteLine("PTS_PAT : " + currentPatients[i].pat.pts);
+                sw.WriteLine("ATLAS_PAT : " + currentPatients[i].pat.atlasCSV);
                 sw.WriteLine("SM0 : " + currentPatients[i].smFiles[0]);
                 sw.WriteLine("SM250 : " + currentPatients[i].smFiles[1]);
                 sw.WriteLine("SM500 : " + currentPatients[i].smFiles[2]);
@@ -152,7 +179,7 @@ public class DBManager
 
     public void LoadList(bool backUp, string dbPath = "")
     {
-        List<int> indexToLook = new List<int> { 6, 7, 8, 9, 10, 11 };
+        List<int> indexToLook = new List<int> { 7, 8, 9, 10, 11, 12 };
         bool nameFound = false;
         string fileToLoad = "";
 
@@ -184,7 +211,8 @@ public class DBManager
                             currentPat.patientName = Patient.getPatientNameFromPath(splitPath[1]);
                             nameFound = true;
                         }
-                        currentPat.loadValue(j, splitPath);
+                        //currentPat.loadValue(j, splitPath);
+                        currentPat.loadValue(splitPath[0], splitPath);
                     }
 
                     currentPatients.Add(currentPat);

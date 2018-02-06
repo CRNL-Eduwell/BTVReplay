@@ -1472,12 +1472,12 @@ public class ButtonUI_show : ButtonUI
                     m_options.SetActive(m_isVisible);
                     showExtraPanels(m_isVisible);
 
-                    //if (m_curve.transform.GetComponent<Trace>().hasFocus)
-                    //    m_curve.transform.GetComponent<Trace>().manageFocusClick();
+                    if (m_curve.transform.GetComponent<Trace>().hasFocus)
+                        m_curve.transform.GetComponent<Trace>().manageFocusClick();
                     break;
                 case 3:
-                    //if (!m_curve.transform.GetComponent<Trace>().hasFocus)
-                    //    m_curve.transform.GetComponent<Trace>().manageFocusClick();
+                    if (!m_curve.transform.GetComponent<Trace>().hasFocus)
+                        m_curve.transform.GetComponent<Trace>().manageFocusClick();
                     break;
             }
         }
@@ -1640,8 +1640,8 @@ public class ButtonUI : MonoBehaviour, IPointerClickHandler
             {
                 if (m_curve.transform.GetComponent<Trace>() != null)
                 {
-                    //if (m_curve.transform.GetComponent<Trace>().hasFocus)
-                    //    m_curve.transform.GetComponent<Trace>().manageFocusClick();
+                    if (m_curve.transform.GetComponent<Trace>().hasFocus)
+                        m_curve.transform.GetComponent<Trace>().manageFocusClick();
                 }
             }
         }
