@@ -25,9 +25,7 @@ public class Hemisphere : MonoBehaviour
         BaseMaterialTransparency = Resources.Load("Materials/Brain-TransparencyStencil", typeof(Material)) as Material;
         Surface baseSurface = new Surface(triFilePath);
 
-
-        int nbSurface = (baseSurface.verticesObj.Count / 65000) + 1;
-
+        int nbSurface = ((baseSurface.verticesObj.Count * 3) / 65000) + 1;
         if (nbSurface > 1)
         {
             Surface[] array = baseSurface.split_to_surfaces(nbSurface);
