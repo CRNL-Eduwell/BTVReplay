@@ -3,17 +3,17 @@ using UnityEngine.UI;
 
 public class browseButton : MonoBehaviour
 {
-    GameObject handleFileBrowser = null;
-    public InputField inputfield = null;
-    private Text textfield = null;
-    private Button buttonBrowse = null;
+    [SerializeField] bool open = true;
+
+    [SerializeField] public InputField inputfield = null;
+    [SerializeField] Text textfield = null;
+    [SerializeField] Button buttonBrowse = null;
 
     void Awake()
     {
-        handleFileBrowser = gameObject;
-        textfield = handleFileBrowser.transform.GetChild(0).GetComponent<Text>();
-        inputfield = handleFileBrowser.transform.GetChild(1).GetComponent<InputField>();
-        buttonBrowse = handleFileBrowser.transform.GetChild(2).GetComponent<Button>();
+        //textfield = handleFileBrowser.transform.GetChild(0).GetComponent<Text>();
+        //inputfield = handleFileBrowser.transform.GetChild(1).GetComponent<InputField>();
+        //buttonBrowse = handleFileBrowser.transform.GetChild(2).GetComponent<Button>();
         buttonBrowse.onClick.AddListener(() => loadFile());
     }
 
@@ -24,6 +24,9 @@ public class browseButton : MonoBehaviour
 
     void loadFile()
     {
-        inputfield.text = QtGUI_dll.Instance.getOpenFileName(new string[] { "tri", "gii", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni", "csv" });
+        if(open)
+            inputfield.text = QtGUI_dll.Instance.getOpenFileName(new string[] { "tri", "gii", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni", "csv" });
+        else
+            inputfield.text = QtGUI_dll.Instance.getSaveFileName(new string[] { "mp4" }, "Save Video To");
     }
 }

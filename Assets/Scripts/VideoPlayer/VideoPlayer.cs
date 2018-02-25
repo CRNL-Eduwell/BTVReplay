@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;//Requiered for Event data.
 using System;
 using System.IO;
+using System.Diagnostics;
 using System.Collections; //IEnumerator
 using CielaSpike;
 
@@ -74,7 +75,7 @@ public class VideoPlayer : MonoBehaviour
             if (File.Exists(AudioPath) && File.Exists(AudioFilteredPath))
                 return false;
             else
-                return true; 
+                return true;
         }
     }
     //==
@@ -96,6 +97,7 @@ public class VideoPlayer : MonoBehaviour
     [SerializeField] Scrollbar scrollBar = null;
     [SerializeField] Scrollbar volumeScrollBar = null;
     [SerializeField] Scrollbar loopScroll = null;
+    [SerializeField] Button recordVideo = null;
     #endregion
 
     #region private members
@@ -114,6 +116,8 @@ public class VideoPlayer : MonoBehaviour
     private long m_currentTimeScrollBar = 0;
     private string m_videoPath = "";
     #endregion
+
+    Process m_recordProcess = null;
 
     private void Awake()
     {
@@ -136,6 +140,7 @@ public class VideoPlayer : MonoBehaviour
             backTime1.onClick.RemoveAllListeners();
             frontTime10.onClick.RemoveAllListeners();
             volumeScrollBar.onValueChanged.RemoveAllListeners();
+            recordVideo.onClick.RemoveAllListeners();
 
             for (int i = 0; i < m_trigger.triggers.Count; i++)
                 m_trigger.triggers[i].callback.RemoveAllListeners();
@@ -229,6 +234,12 @@ public class VideoPlayer : MonoBehaviour
         frontTime10.onClick.AddListener(() => MoveTime(10));
         volumeScrollBar.onValueChanged.AddListener((float newVolume) =>
                                                     _Iplayer.setVolume(newVolume));
+        recordVideo.onClick.AddListener(()=> 
+        {
+            GameObject recordPanel = GameObject.Find("Canvas").transform.GetChild(6).gameObject;
+            recordPanel.SetActive(!recordPanel.activeSelf);
+            //StartCoroutine(record());
+        });
 
         m_trigger = scrollBar.gameObject.AddComponent<EventTrigger>();
 
@@ -243,13 +254,13 @@ public class VideoPlayer : MonoBehaviour
 
         EventTrigger.Entry entry2 = new EventTrigger.Entry();
         entry2.eventID = EventTriggerType.PointerUp;
-        entry2.callback.AddListener((eventData) => 
+        entry2.callback.AddListener((eventData) =>
         {
             if (!m_scrollbarnotclicked)
             {
                 if (m_forceMove)
                     m_forceMove = false;
-                
+
                 setTimeIfValueChanged();
                 m_scrollbarnotclicked = true;
             }
@@ -259,8 +270,8 @@ public class VideoPlayer : MonoBehaviour
         m_triggerSlaved = loopScroll.gameObject.AddComponent<EventTrigger>();
 
         EventTrigger.Entry entry3 = new EventTrigger.Entry();
-        entry3.eventID = EventTriggerType.BeginDrag; 
-        entry3.callback.AddListener((eventData) => 
+        entry3.eventID = EventTriggerType.BeginDrag;
+        entry3.callback.AddListener((eventData) =>
         {
             initForceMoveLoopScroll();
         });
@@ -493,7 +504,7 @@ public class VideoPlayer : MonoBehaviour
     void finishForceMoveLoopScroll()
     {
         if (!m_scrollbarnotclicked)
-        {          
+        {
             if (_Iplayer.isPlaying)
                 Play();
 
@@ -518,7 +529,7 @@ public class VideoPlayer : MonoBehaviour
         yield return StartCoroutine(c_loadAudio());
         float sampFreq = ELAN.getSamplingFreq(media.elanFiles);
         yield return filterAudio(_wavReader, (int)sampFreq);
-        yield return Ninja.JumpToUnity; 
+        yield return Ninja.JumpToUnity;
         yield return null;
     }
 
@@ -562,4 +573,29 @@ public class VideoPlayer : MonoBehaviour
         return this.StartCoroutineAsync(wav.c_ToHilbert("300:100:1300", samplingFreq));
     }
     #endregion
+
+    public void record(string outVideoPath, string durationInSeconds)
+    {
+        if (m_recordProcess == null)
+            this.StartCoroutineAsync(c_startRecording(outVideoPath, durationInSeconds));
+    }
+
+    IEnumerator c_startRecording(string outVideoPath, string durationInSeconds)
+    {
+        m_recordProcess = new Process();
+        ProcessStartInfo startInfo = new ProcessStartInfo();
+        startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+        startInfo.FileName = "cmd.exe";
+
+        string cmd = "c:\\Program^ Files^ ^(x86^)\\VideoLAN\\VLC\\vlc.exe";
+        //string cmd2 = " -I dummy-quiet rc screen:// --screen-fps 25 --noaudio --sout ^\"#transcode{vcodec=h264,venc=x264, vb=2048,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + "\"" + outVideoPath + "\"" + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
+        string cmd2 = " -I dummy-quiet rc screen:// --screen-fps 25 --sout ^\"#transcode{vcodec=h264,venc=x264, vb=2048,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + "\"" + outVideoPath + "\"" + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
+
+        startInfo.Arguments = "/c " + "^\"" + cmd + "^\"" + cmd2;
+        m_recordProcess.StartInfo = startInfo;
+        m_recordProcess.Start();
+
+        m_recordProcess.WaitForExit();
+        yield return null;
+    }
 }

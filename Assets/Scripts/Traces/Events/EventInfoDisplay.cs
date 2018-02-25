@@ -4,12 +4,14 @@ using UnityEngine.UI;
 
 public delegate void eventToEditHandler(TraceEvent eventToEdit);
 public delegate void calculateCorrelation(TraceEvent eventCorrelation);
+public delegate void calculateCorrelation2D(TraceEvent eventCorrelation);
 public delegate void eventModifPlot(TraceEvent modifyEvent, TraceEvent previousEvent);
 
 public class EventInfoDisplay : MonoBehaviour
 {
     public event eventToEditHandler editEvent;
     public event calculateCorrelation processCorrelation;
+    public event calculateCorrelation2D processCorrelation2D;
     public event eventModifPlot eventModifed;
     public event imDying aaaagh;
 
@@ -20,6 +22,7 @@ public class EventInfoDisplay : MonoBehaviour
     Text commentText = null;
     Button editEventButton = null;
     Button correlationButton = null;
+    Button correlation2DButton = null;
     Button closeButton = null;
 
     TraceEvent myCurrentEvent = null;
@@ -34,12 +37,13 @@ public class EventInfoDisplay : MonoBehaviour
 
         timeText = transform.GetChild(0).GetChild(1).GetComponent<Text>();
         elecText = transform.GetChild(0).GetChild(3).GetComponent<Dropdown>();
-        codeText = transform.GetChild(0).GetChild(5).GetComponent<Text>();
-        durationText = transform.GetChild(0).GetChild(7).GetComponent<Text>();
-        commentText = transform.GetChild(0).GetChild(9).GetComponent<Text>();
-        editEventButton = transform.GetChild(0).GetChild(10).GetComponent<Button>();
-        correlationButton = transform.GetChild(0).GetChild(11).GetComponent<Button>();
-        closeButton = transform.GetChild(0).GetChild(12).GetComponent<Button>();
+        codeText = transform.GetChild(2).GetChild(1).GetComponent<Text>();
+        durationText = transform.GetChild(2).GetChild(3).GetComponent<Text>();
+        commentText = transform.GetChild(4).GetChild(1).GetComponent<Text>();
+        editEventButton = transform.GetChild(6).GetChild(0).GetComponent<Button>();
+        correlationButton = transform.GetChild(6).GetChild(1).GetComponent<Button>();
+        correlation2DButton = transform.GetChild(6).GetChild(2).GetComponent<Button>();
+        closeButton = transform.GetChild(6).GetChild(3).GetComponent<Button>();
 
         //int timeInSec = myCurrentEvent.sample / 64;
         int timeInSec = (int)myCurrentEvent.timeSeconds();
@@ -90,6 +94,11 @@ public class EventInfoDisplay : MonoBehaviour
             processCorrelation(myCurrentEvent);
         });
 
+        correlation2DButton.onClick.AddListener(() =>
+        {
+            processCorrelation2D(myCurrentEvent);
+        });
+
         closeButton.onClick.AddListener(() =>
         {
             Destroy(gameObject);
@@ -106,6 +115,7 @@ public class EventInfoDisplay : MonoBehaviour
         aaaagh();
         editEventButton.onClick.RemoveAllListeners();
         correlationButton.onClick.RemoveAllListeners();
+        correlation2DButton.onClick.RemoveAllListeners();
         elecText.onValueChanged.RemoveAllListeners();
         closeButton.onClick.RemoveAllListeners();
     }

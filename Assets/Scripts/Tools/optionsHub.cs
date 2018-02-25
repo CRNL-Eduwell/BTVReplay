@@ -228,6 +228,10 @@ public class eventsOptions : MonoBehaviour
             {
                 StartCoroutine(calcCorr(e));
             });
+            infoDisp.processCorrelation2D += new calculateCorrelation2D((TraceEvent e) =>
+            {
+                StartCoroutine(calcCorr2D(e));
+            });
             infoDisp.eventModifed += new eventModifPlot((TraceEvent modifiedOne, TraceEvent previousOne) =>
             {
                 applyChangeToEvent(modifiedOne, previousOne);
@@ -294,7 +298,10 @@ public class eventsOptions : MonoBehaviour
             eventFound.comment = modifyiedEvent.comment;
 
             if (modifyiedEvent.duration != eventFound.duration)
+            {
                 eventFound.correlationArray = null;
+                eventFound.correlation2DArray = null;
+            }
 
             if (modifyiedEvent.elecOfInterest == "")
             {
@@ -511,6 +518,10 @@ public class eventsOptions : MonoBehaviour
         {
             StartCoroutine(calcCorr(e));
         });
+        infoDisp.processCorrelation2D -= new calculateCorrelation2D((TraceEvent e) =>
+        {
+            StartCoroutine(calcCorr2D(e));
+        });
         infoDisp.eventModifed -= new eventModifPlot((TraceEvent modifiedOne, TraceEvent previousOne) =>
         {
             applyChangeToEvent(modifiedOne, previousOne);
@@ -661,6 +672,37 @@ public class eventsOptions : MonoBehaviour
                 pearsonCoefficientsCorrelation2(list.Objects[ids[0]].correlationArray, v.audioWav.getAudioHandle(win1.TraceEeg.fileHandle.idFileHandle), win1.TraceEeg.fileHandle.eegData, sizes);
             }
         }
+        yield return null;
+    }
+
+    IEnumerator calcCorr2D(TraceEvent currentEvent)
+    {
+        yield return Ninja.JumpBack;
+        coMana.StartCoroutine(c_correlation2D(currentEvent));
+        yield return Ninja.JumpToUnity;
+    }
+
+    IEnumerator c_correlation2D(TraceEvent currentEvent)
+    {
+        int nbElec = win1.TraceEeg.fileHandle.electrodes.Length;
+        List<int> ids = list.Objects.Select((item, index) => new { Item = item, Index = index })
+                                 .Where(x => x.Item.sample == currentEvent.sample)
+                                 .Select(x => x.Index)
+                                 .ToList();
+
+        list.Objects[ids[0]].correlation2DArray = new float[nbElec][];
+        for (int i = 0; i < list.Objects[ids[0]].correlation2DArray.Length; i++)
+            list.Objects[ids[0]].correlation2DArray[i] = new float[nbElec];
+
+        int beginSample = list.Objects[ids[0]].sample;
+        int durationSample = (list.Objects[ids[0]].duration / 1000) * list.Objects[ids[0]].samplingFrequency;
+
+        for (int i = 0; i < list.Objects[ids[0]].correlation2DArray.Length; i++)
+        {
+            int[] sizes = new int[5] { i, nbElec, beginSample, durationSample, win1.TraceEeg.fileHandle.nbSam };
+            pearsonCoefficientsCorrelation(list.Objects[ids[0]].correlation2DArray[i], win1.TraceEeg.fileHandle.eegData, sizes);
+        }
+
         yield return null;
     }
 

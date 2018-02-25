@@ -12,7 +12,8 @@ public class TraceEvent
     string m_elecOfInterest = "";
     string m_secondElecOfInterest = "";
     string m_comment = "";
-    float[] m_correlationData = null; 
+    float[] m_correlationData = null;
+    float[][] m_correlationData2D = null;
     #endregion
 
     #region Public Properties
@@ -94,6 +95,17 @@ public class TraceEvent
         set
         {
             m_correlationData = value;
+        }
+    }
+    public float[][] correlation2DArray
+    {
+        get
+        {
+            return m_correlationData2D;
+        }
+        set
+        {
+            m_correlationData2D = value;
         }
     }
     #endregion
