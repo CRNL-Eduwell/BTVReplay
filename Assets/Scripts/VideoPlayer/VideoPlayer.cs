@@ -97,6 +97,7 @@ public class VideoPlayer : MonoBehaviour
     [SerializeField] Scrollbar scrollBar = null;
     [SerializeField] Scrollbar volumeScrollBar = null;
     [SerializeField] Scrollbar loopScroll = null;
+    [SerializeField] videoRecorder VideoRecorder = null;
     [SerializeField] Button recordVideo = null;
     #endregion
 
@@ -122,11 +123,13 @@ public class VideoPlayer : MonoBehaviour
     private void Awake()
     {
         media.loadVideo += new initVideo(init);
+        VideoRecorder.recordVideo += new launchRecordVideo(record);
     }
 
     private void OnDestroy()
     {
         media.loadVideo -= new initVideo(init);
+        VideoRecorder.recordVideo -= new launchRecordVideo(record);
         if (m_initDone)
         {
             _Iplayer.cleanup();
@@ -234,6 +237,7 @@ public class VideoPlayer : MonoBehaviour
         frontTime10.onClick.AddListener(() => MoveTime(10));
         volumeScrollBar.onValueChanged.AddListener((float newVolume) =>
                                                     _Iplayer.setVolume(newVolume));
+
         recordVideo.onClick.AddListener(()=> 
         {
             GameObject recordPanel = GameObject.Find("Canvas").transform.GetChild(6).gameObject;
@@ -577,7 +581,20 @@ public class VideoPlayer : MonoBehaviour
     public void record(string outVideoPath, string durationInSeconds)
     {
         if (m_recordProcess == null)
-            this.StartCoroutineAsync(c_startRecording(outVideoPath, durationInSeconds));
+            StartCoroutine(record2(outVideoPath, durationInSeconds));
+    }
+
+
+    public IEnumerator record2(string outVideoPath, string durationInSeconds)
+    {
+        yield return Ninja.JumpBack;
+        yield return recordVideo2(outVideoPath, durationInSeconds);
+        yield return Ninja.JumpToUnity;
+    }
+
+    YieldInstruction recordVideo2(string outVideoPath, string durationInSeconds)
+    {
+        return this.StartCoroutineAsync(c_startRecording(outVideoPath, durationInSeconds));
     }
 
     IEnumerator c_startRecording(string outVideoPath, string durationInSeconds)
@@ -588,14 +605,14 @@ public class VideoPlayer : MonoBehaviour
         startInfo.FileName = "cmd.exe";
 
         string cmd = "c:\\Program^ Files^ ^(x86^)\\VideoLAN\\VLC\\vlc.exe";
-        //string cmd2 = " -I dummy-quiet rc screen:// --screen-fps 25 --noaudio --sout ^\"#transcode{vcodec=h264,venc=x264, vb=2048,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + "\"" + outVideoPath + "\"" + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
-        string cmd2 = " -I dummy-quiet rc screen:// --screen-fps 25 --sout ^\"#transcode{vcodec=h264,venc=x264, vb=2048,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + "\"" + outVideoPath + "\"" + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
+        string cmd2 = " -I dummy-quiet rc screen:// --screen-fps 25 --sout ^\"#transcode{vcodec=h264,venc=x264, vb=2048,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + outVideoPath + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
 
         startInfo.Arguments = "/c " + "^\"" + cmd + "^\"" + cmd2;
         m_recordProcess.StartInfo = startInfo;
         m_recordProcess.Start();
 
         m_recordProcess.WaitForExit();
+        m_recordProcess = null;
         yield return null;
     }
 }

@@ -5,8 +5,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+public delegate void launchRecordVideo(string videoPath, string durationInSec);
+
 public class videoRecorder : MonoBehaviour
 {
+    public event launchRecordVideo recordVideo;
+
     [SerializeField] InputField outputPath = null;
     //===
     [SerializeField] InputField beg_hour = null;
@@ -55,9 +59,11 @@ public class videoRecorder : MonoBehaviour
         int durationInSeconds = endTimeInSecond - beginTimeInSecond;
         if (beginOk && endOk && durationInSeconds > 0)
         {
+            //UnityEngine.Debug.Log(outputPath.text);
+            //UnityEngine.Debug.Log(durationInSeconds.ToString());
             videoPlayer.setTime(beginTimeInSecond * 1000);
-            videoPlayer.record(outputPath.text, durationInSeconds.ToString());
-            gameObject.transform.parent.gameObject.SetActive(false);
+            //videoPlayer.record(outputPath.text, durationInSeconds.ToString());
+            recordVideo(outputPath.text, durationInSeconds.ToString());
         }
     }
 }

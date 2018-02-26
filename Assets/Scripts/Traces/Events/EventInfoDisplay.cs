@@ -105,9 +105,15 @@ public class EventInfoDisplay : MonoBehaviour
         });
 
         if (myCurrentEvent.duration > 0)
+        {
             correlationButton.interactable = true;
+            correlation2DButton.interactable = true;
+        }
         else
+        {
             correlationButton.interactable = false;
+            correlation2DButton.interactable = false;
+        }
     }
 
     void OnDestroy()

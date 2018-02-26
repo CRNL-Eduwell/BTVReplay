@@ -29,12 +29,12 @@ public class EventInfoEdit : MonoBehaviour
         myCurrentEvent = new TraceEvent(clickedEvent);
 
         timeText = transform.GetChild(0).GetChild(1).GetComponent<Text>();
-        codeInputField = transform.GetChild(0).GetChild(3).GetComponent<InputField>();
-        durationInputField = transform.GetChild(0).GetChild(5).GetComponent<InputField>();
-        commentInputField = transform.GetChild(0).GetChild(7).GetComponent<InputField>();
-        saveButton = transform.GetChild(0).GetChild(8).GetComponent<Button>();
-        delButton = transform.GetChild(0).GetChild(9).GetComponent<Button>();
-        closeButton = transform.GetChild(0).GetChild(10).GetComponent<Button>();
+        codeInputField = transform.GetChild(2).GetChild(1).GetComponent<InputField>();
+        durationInputField = transform.GetChild(2).GetChild(3).GetComponent<InputField>();
+        commentInputField = transform.GetChild(4).GetChild(1).GetComponent<InputField>();
+        saveButton = transform.GetChild(6).GetChild(0).GetComponent<Button>();
+        delButton = transform.GetChild(6).GetChild(1).GetComponent<Button>();
+        closeButton = transform.GetChild(6).GetChild(2).GetComponent<Button>();
 
         //int timeInSec = myCurrentEvent.sample / 64;
         int timeInSec = (int)myCurrentEvent.timeSeconds();
