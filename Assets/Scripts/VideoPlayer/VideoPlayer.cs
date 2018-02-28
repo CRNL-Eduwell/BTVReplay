@@ -82,6 +82,7 @@ public class VideoPlayer : MonoBehaviour
     public event timeVideo sendTime;
     public event timeVideoSync sendTimeVideo;
     public event stopVideo stopTimeVideo;
+    //==
 
     #region scene members
     [SerializeField] optionsHub hub = null;
@@ -99,6 +100,7 @@ public class VideoPlayer : MonoBehaviour
     [SerializeField] Scrollbar loopScroll = null;
     [SerializeField] videoRecorder VideoRecorder = null;
     [SerializeField] Button recordVideo = null;
+    [SerializeField] MessageWindow messageWindow = null;
     #endregion
 
     #region private members
@@ -117,8 +119,6 @@ public class VideoPlayer : MonoBehaviour
     private long m_currentTimeScrollBar = 0;
     private string m_videoPath = "";
     #endregion
-
-    Process m_recordProcess = null;
 
     private void Awake()
     {
@@ -580,10 +580,8 @@ public class VideoPlayer : MonoBehaviour
 
     public void record(string outVideoPath, string durationInSeconds)
     {
-        if (m_recordProcess == null)
-            StartCoroutine(record2(outVideoPath, durationInSeconds));
+        StartCoroutine(record2(outVideoPath, durationInSeconds));
     }
-
 
     public IEnumerator record2(string outVideoPath, string durationInSeconds)
     {
@@ -599,20 +597,26 @@ public class VideoPlayer : MonoBehaviour
 
     IEnumerator c_startRecording(string outVideoPath, string durationInSeconds)
     {
-        m_recordProcess = new Process();
+        Process m_recordProcess = new Process();
         ProcessStartInfo startInfo = new ProcessStartInfo();
         startInfo.WindowStyle = ProcessWindowStyle.Hidden;
         startInfo.FileName = "cmd.exe";
 
         string cmd = "c:\\Program^ Files^ ^(x86^)\\VideoLAN\\VLC\\vlc.exe";
-        string cmd2 = " -I dummy-quiet rc screen:// --screen-fps 25 --sout ^\"#transcode{vcodec=h264,venc=x264, vb=2048,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + outVideoPath + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
+        string cmd2 = " -I rc-quiet screen:// --screen-fps 25 --sout ^\"#transcode{vcodec=h264,venc=x264, vb=2048,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + outVideoPath.Replace("/", "\\") + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
+        string cmd3 = "VLC -I dummy-quiet screen:// --screen-fps 25 --sout ^\"#transcode{vcodec=h264,venc=x264, vb=1500,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + outVideoPath + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
 
-        startInfo.Arguments = "/c " + "^\"" + cmd + "^\"" + cmd2;
+        //startInfo.Arguments = "/c " + "^\"" + cmd + "^\"" + cmd2;
+        startInfo.Arguments = "/c " + cmd3;
         m_recordProcess.StartInfo = startInfo;
         m_recordProcess.Start();
 
         m_recordProcess.WaitForExit();
-        m_recordProcess = null;
+
+        yield return Ninja.JumpToUnity;
+        messageWindow.display("Video Record", "OK", "Video as been correctly recorded. \n Please Check the output path you have provided.");
+        yield return Ninja.JumpBack;
+
         yield return null;
     }
 }

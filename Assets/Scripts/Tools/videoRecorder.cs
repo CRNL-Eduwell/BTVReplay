@@ -64,6 +64,7 @@ public class videoRecorder : MonoBehaviour
             videoPlayer.setTime(beginTimeInSecond * 1000);
             //videoPlayer.record(outputPath.text, durationInSeconds.ToString());
             recordVideo(outputPath.text, durationInSeconds.ToString());
+            gameObject.transform.parent.gameObject.SetActive(false);
         }
     }
 }
