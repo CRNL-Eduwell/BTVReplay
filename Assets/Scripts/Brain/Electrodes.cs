@@ -185,6 +185,55 @@ public class Electrodes : MonoBehaviour
         return 0;
     }
 
+    public int loadDefaultPearl(ELAN[] elanFiles)
+    {
+        if (mask.Count > 0)
+            mask = new List<bool>();
+
+        if (electrodes.Count > 0)
+            electrodes = new List<Electrode>();
+
+        string currentElectrodeName = "";
+        int idHandle = ELAN.returnFirstValidHandleId(elanFiles);
+        for (int i = 0; i < elanFiles[idHandle].electrodes.Length; i++)
+        {
+            Regex ReLeft = new Regex(@"([a-zA-Z]+)(\d+)");
+            Regex ReRight = new Regex(@"([a-zA-Z]+)(\')(\d+)");
+
+            Match resultLeft = ReLeft.Match(elanFiles[idHandle].electrodes[i].name);
+            Match resultRight = ReRight.Match(elanFiles[idHandle].electrodes[i].name);
+
+            string plotName = "";
+            int plotID = -1;
+
+            if (resultLeft.Groups[1].Length == 1)
+            {
+                plotName = (resultLeft.Groups[1].Value).ToLower();
+                plotID = int.Parse(resultLeft.Groups[2].Value.ToString());
+            }
+            else if (resultRight.Groups[1].Length == 1)
+            {
+                plotName = (resultRight.Groups[1].Value + resultRight.Groups[2].Value).ToLower();
+                plotID = int.Parse(resultRight.Groups[3].Value.ToString());
+            }
+            
+            if (plotName == currentElectrodeName) //This is just a new plot in current Electrode
+            {
+                electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotName, plotID, new Vector3(((electrodes.Count - 1) * -5), 0, -(electrodes[electrodes.Count - 1].plots.Count - 1) * 5)));
+                electrodes[electrodes.Count - 1].mask.Add(true);
+            }
+            else //This is a new Electrode
+            {
+                currentElectrodeName = plotName;
+                electrodes.Add(new Electrode(plotName));
+                mask.Add(true);
+                electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotName, plotID, new Vector3(((electrodes.Count - 1) * -5), 0, -(electrodes[electrodes.Count - 1].plots.Count - 1) * 5)));
+                electrodes[electrodes.Count - 1].mask.Add(true);
+            }
+        }
+        return 0;
+    }
+
     public void loadAtlasData(string p_pathAtlasCSV)
     {
         atlas.loadPatientAtlas(p_pathAtlasCSV);
@@ -200,7 +249,7 @@ public class Electrodes : MonoBehaviour
             currentElec.name = electrodes[i].name;
             currentElec.transform.parent = gameObject.transform;
 
-            for (int j = 1; j < electrodes[i].plots.Count; j++)
+            for (int j = 0; j < electrodes[i].plots.Count; j++)
             {
                 /********************** /!\Axe x de unity inversé /!\ **********************/
                 electrodes[i].plots[j].position3D.x = -electrodes[i].plots[j].position3D.x;
@@ -221,7 +270,7 @@ public class Electrodes : MonoBehaviour
         for (int i = 0; i < electrodes.Count; i++)
         {
             Transform childTransform = gameObject.transform.Find(electrodes[i].name);
-            for (int j = 1; j < electrodes[i].plots.Count; j++)
+            for (int j = 0; j < electrodes[i].plots.Count; j++)
             {
                 Transform currentElec = childTransform.Find(electrodes[i].name + electrodes[i].plots[j].id.ToString());
                 if (currentElec != null)
@@ -245,7 +294,7 @@ public class Electrodes : MonoBehaviour
 
             x += 5;
             Transform childTransform = gameObject.transform.Find(electrodes[i].name);
-            for (int j = 1; j < electrodes[i].plots.Count; j++)
+            for (int j = 0; j < electrodes[i].plots.Count; j++)
             {
                 Transform currentElec = childTransform.Find(electrodes[i].name + electrodes[i].plots[j].id.ToString());
                 z -= 5;

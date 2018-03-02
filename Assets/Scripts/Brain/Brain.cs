@@ -17,6 +17,7 @@ public class Brain : MonoBehaviour {
     void Awake()
     {
         media.loadBrain += new BrainLoadEventHandler(loadBrainAndElectrodes);
+        media.loadDefault += new BrainNotPresentLoadEventHandler(loadElectrodesDefault);
         media.loadTrace += new initTrace(() =>
         {
             hub.brainRemote.needToChangeBrain += new brainChangeEventHandler(changeBrain);
@@ -26,6 +27,7 @@ public class Brain : MonoBehaviour {
     void OnDestroy()
     {
         media.loadBrain -= new BrainLoadEventHandler(loadBrainAndElectrodes);
+        media.loadDefault -= new BrainNotPresentLoadEventHandler(loadElectrodesDefault);
         media.loadTrace -= new initTrace(() =>
         {
             hub.brainRemote.needToChangeBrain -= new brainChangeEventHandler(changeBrain);
@@ -123,6 +125,29 @@ public class Brain : MonoBehaviour {
 
         CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         CameraScript.initCameraPosition();
+    }
+
+    public void loadElectrodesDefault()
+    {
+        Brain3DHandle = GameObject.Find("BrainGameObject");
+
+        LHBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
+        LHBrain.transform.parent = Brain3DHandle.transform;
+        LHBrain.layer = Brain3DHandle.layer;
+        RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
+        RHBrain.transform.parent = Brain3DHandle.transform;
+        RHBrain.layer = Brain3DHandle.layer;
+
+        Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
+        Electrodes.transform.parent = Brain3DHandle.transform;
+        ElectrodesScript = Electrodes.GetComponent<Electrodes>();
+        ElectrodesScript.loadDefaultPearl(media.elanFiles);
+        ElectrodesScript.loadElecOnBrain();
+
+        CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
+        CameraScript.initCameraPosition();
+
+        hub.brainRemote.setBrainInteract(false, false, true);
     }
 
     void updateBrainMesh(brain_anat brainToLoad)

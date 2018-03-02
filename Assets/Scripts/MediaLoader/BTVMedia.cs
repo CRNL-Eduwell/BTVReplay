@@ -9,6 +9,7 @@ using CielaSpike;
 
 public delegate void mediaLoadedEventHandler();
 public delegate void BrainLoadEventHandler(brain_anat brainToLoad);
+public delegate void BrainNotPresentLoadEventHandler();
 public delegate void initTrace();
 public delegate void initVideo(string videoPath, int totalFileDuration);
 public delegate void initPerf(bool init);
@@ -17,6 +18,7 @@ public class BTVMedia : MonoBehaviour
 {
     public event mediaLoadedEventHandler mediaLoaded;
     public event BrainLoadEventHandler loadBrain;
+    public event BrainNotPresentLoadEventHandler loadDefault;
     public event initTrace loadTrace;
     public event initVideo loadVideo;
     public event initPerf loadPerf;
@@ -316,8 +318,10 @@ public class BTVMedia : MonoBehaviour
 
         if (myPat.hasMNI)
             loadBrain(myPat.mni);
-        else if(myPat.hasPAT)
+        else if (myPat.hasPAT)
             loadBrain(myPat.pat);
+        else if (!myPat.hasMNI && !myPat.hasPAT)
+            loadDefault();
 
         loadTrace();
 
@@ -328,6 +332,7 @@ public class BTVMedia : MonoBehaviour
         loadingCircle.Close();
         gameObject.SetActive(false);
         loaded = true;
+        ApplicationState.init();
         yield return new WaitForSeconds(0.1f);
     }
 

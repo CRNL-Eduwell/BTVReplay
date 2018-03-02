@@ -17,7 +17,9 @@ public class Patient
     {
         get
         {
-            if (mni.lhemi != "" && mni.rhemi != "" && mni.pts != "")
+            if ((mni.lhemi != "" && mni.lhemi != null) && 
+                (mni.rhemi != "" && mni.rhemi != null) &&
+                (mni.pts != "" && mni.pts != null))
                 return true;
             else
                 return false;
@@ -27,7 +29,9 @@ public class Patient
     {
         get
         {
-            if (pat.lhemi != "" && pat.rhemi != "" && pat.pts != "")
+            if ((pat.lhemi != "" && pat.lhemi != null) &&
+                (pat.rhemi != "" && pat.rhemi != null) &&
+                (pat.pts != "" && pat.pts != null))
                 return true;
             else
                 return false;

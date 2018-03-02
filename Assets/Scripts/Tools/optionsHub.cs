@@ -1301,6 +1301,7 @@ public class brainOptions
     public event brainChangeEventHandler needToChangeBrain;
 
     Button[] brainButtons = null;
+    bool[] brainStates = null;
     Button[] visBrainButtons = null;
     Text gainValue = null;
     Button gainAdd = null;
@@ -1312,6 +1313,7 @@ public class brainOptions
     public brainOptions(GameObject brainOptionsPanel)
     {
         brainButtons = new Button[3];
+        brainStates = new bool[3] { true, true, true };
         brainButtons[0] = brainOptionsPanel.transform.GetChild(0).GetComponent<Button>();
         brainButtons[1] = brainOptionsPanel.transform.GetChild(1).GetComponent<Button>();
         brainButtons[2] = brainOptionsPanel.transform.GetChild(2).GetComponent<Button>();
@@ -1329,7 +1331,8 @@ public class brainOptions
         {
             if (!referential_choicePending)
             {
-                setButtonsVisible(brainButtons, true, true, true);
+                setButtonsVisible(brainButtons, brainStates[0], brainStates[1], brainStates[2]);
+                //ssetButtonsVisible(brainButtons, true, true, true);
                 referential_choicePending = true;
             }
             else
@@ -1343,7 +1346,8 @@ public class brainOptions
         {
             if (!referential_choicePending)
             {
-                setButtonsVisible(brainButtons, true, true, true);
+                //setButtonsVisible(brainButtons, true, true, true);
+                setButtonsVisible(brainButtons, brainStates[0], brainStates[1], brainStates[2]);
                 referential_choicePending = true;
             }
             else
@@ -1357,7 +1361,8 @@ public class brainOptions
         {
             if (!referential_choicePending)
             {
-                setButtonsVisible(brainButtons, true, true, true);
+                //setButtonsVisible(brainButtons, true, true, true);
+                setButtonsVisible(brainButtons, brainStates[0], brainStates[1], brainStates[2]);
                 referential_choicePending = true;
             }
             else
@@ -1455,6 +1460,18 @@ public class brainOptions
         visBrainButtons[0].interactable = isInteractable;
         visBrainButtons[1].interactable = isInteractable;
         visBrainButtons[2].interactable = isInteractable;
+    }
+
+    public void setBrainInteract(bool isVisible1, bool isVisible2, bool isVisible3)
+    {
+        setButtonsVisible(brainButtons, false, false, true);
+        brainStates[0] = false;
+        brainStates[1] = false;
+        brainStates[2] = true;
+
+        //brainButtons[0].interactable = false;
+        //brainButtons[1].interactable = false;
+        //brainButtons[2].interactable = true;
     }
 }
 

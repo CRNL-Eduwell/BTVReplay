@@ -81,5 +81,5 @@ SM2500 :
 SM5000 : 
 POS : 
 PROV : 
-VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_BenTV.mp4
+VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_BenTV.AVI
 [----------]

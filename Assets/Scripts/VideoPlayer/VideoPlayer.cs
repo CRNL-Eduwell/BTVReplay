@@ -100,7 +100,6 @@ public class VideoPlayer : MonoBehaviour
     [SerializeField] Scrollbar loopScroll = null;
     [SerializeField] videoRecorder VideoRecorder = null;
     [SerializeField] Button recordVideo = null;
-    [SerializeField] MessageWindow messageWindow = null;
     #endregion
 
     #region private members
@@ -602,20 +601,14 @@ public class VideoPlayer : MonoBehaviour
         startInfo.WindowStyle = ProcessWindowStyle.Hidden;
         startInfo.FileName = "cmd.exe";
 
-        string cmd = "c:\\Program^ Files^ ^(x86^)\\VideoLAN\\VLC\\vlc.exe";
-        string cmd2 = " -I rc-quiet screen:// --screen-fps 25 --sout ^\"#transcode{vcodec=h264,venc=x264, vb=2048,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + outVideoPath.Replace("/", "\\") + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
-        string cmd3 = "VLC -I dummy-quiet screen:// --screen-fps 25 --sout ^\"#transcode{vcodec=h264,venc=x264, vb=1500,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + outVideoPath + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
+        string cmd = "VLC -I dummy-quiet screen:// --screen-fps 25 --sout ^\"#transcode{vcodec=h264,venc=x264, vb=1500,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + outVideoPath + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
 
-        //startInfo.Arguments = "/c " + "^\"" + cmd + "^\"" + cmd2;
-        startInfo.Arguments = "/c " + cmd3;
+        startInfo.Arguments = "/c " + cmd;
         m_recordProcess.StartInfo = startInfo;
         m_recordProcess.Start();
-
         m_recordProcess.WaitForExit();
-
-        yield return Ninja.JumpToUnity;
-        messageWindow.display("Video Record", "OK", "Video as been correctly recorded. \n Please Check the output path you have provided.");
-        yield return Ninja.JumpBack;
+        
+        ApplicationState.displayMessage("Video Record", "OK", "Video as been correctly recorded. \n Please Check the output path you have provided.");
 
         yield return null;
     }
