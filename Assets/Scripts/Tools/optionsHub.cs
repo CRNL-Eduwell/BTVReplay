@@ -769,12 +769,12 @@ public class videoOptions
         //==
 
         smButton = new Button[6];
-        smButton[0] = videoOptionsPanel.transform.GetChild(3).GetComponent<Button>();
-        smButton[1] = videoOptionsPanel.transform.GetChild(4).GetComponent<Button>();
-        smButton[2] = videoOptionsPanel.transform.GetChild(5).GetComponent<Button>();
-        smButton[3] = videoOptionsPanel.transform.GetChild(6).GetComponent<Button>();
-        smButton[4] = videoOptionsPanel.transform.GetChild(7).GetComponent<Button>();
-        smButton[5] = videoOptionsPanel.transform.GetChild(8).GetComponent<Button>();
+        smButton[0] = videoOptionsPanel.transform.GetChild(3).GetChild(0).GetComponent<Button>();
+        smButton[1] = videoOptionsPanel.transform.GetChild(3).GetChild(1).GetComponent<Button>();
+        smButton[2] = videoOptionsPanel.transform.GetChild(3).GetChild(2).GetComponent<Button>();
+        smButton[3] = videoOptionsPanel.transform.GetChild(3).GetChild(3).GetComponent<Button>();
+        smButton[4] = videoOptionsPanel.transform.GetChild(3).GetChild(4).GetComponent<Button>();
+        smButton[5] = videoOptionsPanel.transform.GetChild(3).GetChild(5).GetComponent<Button>();
         //==
         vid = GameObject.Find("PanelR").transform.GetComponent<VideoPlayer>();
         coMana = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
@@ -1314,18 +1314,18 @@ public class brainOptions
     {
         brainButtons = new Button[3];
         brainStates = new bool[3] { true, true, true };
-        brainButtons[0] = brainOptionsPanel.transform.GetChild(0).GetComponent<Button>();
-        brainButtons[1] = brainOptionsPanel.transform.GetChild(1).GetComponent<Button>();
-        brainButtons[2] = brainOptionsPanel.transform.GetChild(2).GetComponent<Button>();
+        brainButtons[0] = brainOptionsPanel.transform.GetChild(0).GetChild(0).GetComponent<Button>();
+        brainButtons[1] = brainOptionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Button>();
+        brainButtons[2] = brainOptionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
 
         visBrainButtons = new Button[3];
-        visBrainButtons[0] = brainOptionsPanel.transform.GetChild(3).GetComponent<Button>();
-        visBrainButtons[1] = brainOptionsPanel.transform.GetChild(4).GetComponent<Button>();
-        visBrainButtons[2] = brainOptionsPanel.transform.GetChild(5).GetComponent<Button>();
-        gainValue = brainOptionsPanel.transform.GetChild(6).GetChild(0).GetComponent<Text>();
+        visBrainButtons[0] = brainOptionsPanel.transform.GetChild(1).GetChild(0).GetComponent<Button>();
+        visBrainButtons[1] = brainOptionsPanel.transform.GetChild(1).GetChild(1).GetComponent<Button>();
+        visBrainButtons[2] = brainOptionsPanel.transform.GetChild(1).GetChild(2).GetComponent<Button>();
 
-        gainAdd = brainOptionsPanel.transform.GetChild(6).GetChild(1).GetComponent<Button>();
-        gainRemove = brainOptionsPanel.transform.GetChild(6).GetChild(2).GetComponent<Button>();
+        gainValue = brainOptionsPanel.transform.GetChild(2).GetChild(0).GetComponent<Text>();
+        gainAdd = brainOptionsPanel.transform.GetChild(2).GetChild(1).GetComponent<Button>();
+        gainRemove = brainOptionsPanel.transform.GetChild(2).GetChild(2).GetComponent<Button>();
 
         brainButtons[0].onClick.AddListener(() =>
         {

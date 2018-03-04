@@ -332,6 +332,8 @@ public class BTVMedia : MonoBehaviour
         loadingCircle.Close();
         gameObject.SetActive(false);
         loaded = true;
+        Text PatientNameHeader = GameObject.Find("HeaderDisplay").transform.GetChild(0).GetComponent<Text>();
+        PatientNameHeader.text = myPat.patientName;
         ApplicationState.init();
         yield return new WaitForSeconds(0.1f);
     }
