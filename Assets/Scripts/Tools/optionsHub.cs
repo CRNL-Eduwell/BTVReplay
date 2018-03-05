@@ -669,7 +669,7 @@ public class eventsOptions : MonoBehaviour
             if (currentEvent.elecOfInterest.StartsWith("AUD"))
             {
                 int[] sizes = new int[4] { nbElec, beginSample, durationSample, win1.TraceEeg.fileHandle.nbSam };
-                pearsonCoefficientsCorrelation2(list.Objects[ids[0]].correlationArray, v.audioWav.getAudioHandle(win1.TraceEeg.fileHandle.idFileHandle), win1.TraceEeg.fileHandle.eegData, sizes);
+                pearsonCoefficientsCorrelation2(list.Objects[ids[0]].correlationArray, v.audioWav.getAudioHandle(v.audioWav.idAudioHandle), win1.TraceEeg.fileHandle.eegData, sizes);
             }
         }
         yield return null;
