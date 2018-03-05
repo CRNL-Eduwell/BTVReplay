@@ -396,7 +396,10 @@ namespace VLCSharp
         {
             get
             {
-                return m_player.totalVideoTime;
+                if (m_player.totalVideoTime != -1)
+                    return m_player.totalVideoTime;
+                else
+                    return m_eegFileDurationInSec * 1000;
             }
         }
         public bool isPlaying
