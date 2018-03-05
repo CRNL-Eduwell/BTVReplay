@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 public class MessageWindow : MonoBehaviour
 {
@@ -13,11 +14,6 @@ public class MessageWindow : MonoBehaviour
 
     private void Awake()
     {
-        validate.onClick.AddListener(()=> 
-        {
-            showMe(false);
-        });
-
         m_picInfo[0] = Resources.Load("Pictures/DisplayWin/OkFinish", typeof(Sprite)) as Sprite;
         m_picInfo[1] = Resources.Load("Pictures/DisplayWin/InfoFinish", typeof(Sprite)) as Sprite;
         m_picInfo[2] = Resources.Load("Pictures/DisplayWin/NokFinish", typeof(Sprite)) as Sprite;
@@ -25,12 +21,17 @@ public class MessageWindow : MonoBehaviour
 
     private void OnDestroy()
     {
-        validate.onClick.RemoveAllListeners();
         m_picInfo = null;
     }
 
     public void display(string header, string infoPic, string detailedMessage)
     {
+        validate.onClick.RemoveAllListeners();
+        validate.onClick.AddListener(() =>
+        {
+            showMe(false);
+        });
+
         showMe(true);
         headerMessage.text = header;
 
@@ -51,6 +52,29 @@ public class MessageWindow : MonoBehaviour
 
         cancel.interactable = false;
         cancel.gameObject.SetActive(false);
+    }
+
+    public void displayConfirmation(string HeaderMessage, string DetailledMessage, UnityAction yesAction, UnityAction cancelAction)
+    {
+        showMe(true);
+        headerMessage.text = HeaderMessage;
+        longMessage.text = DetailledMessage;
+        displayPic.sprite = m_picInfo[1];
+        cancel.interactable = true;
+        cancel.gameObject.SetActive(true);
+
+        validate.onClick.RemoveAllListeners();
+        validate.onClick.AddListener(yesAction);
+        validate.onClick.AddListener(() =>
+         {
+             showMe(false);
+         });
+        cancel.onClick.RemoveAllListeners();
+        cancel.onClick.AddListener(cancelAction);
+        cancel.onClick.AddListener(() =>
+        {
+            showMe(false);
+        });
     }
 
     void showMe(bool show)

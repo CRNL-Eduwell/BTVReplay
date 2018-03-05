@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 public delegate void eventValidated(TraceEvent validEvent);
 public delegate void eventModifValidated(TraceEvent validEvent);
@@ -69,8 +70,7 @@ public class EventInfoEdit : MonoBehaviour
 
         delButton.onClick.AddListener(() => 
         {
-            eventsToDelete(myCurrentEvent, 0);
-            Destroy(gameObject);
+            ApplicationState.displayConfirmation("Event Deletion", "Are You Sure You Want To Delete This Event ?", deleteAction, cancelAction);
         });
 
         closeButton.onClick.AddListener(() =>
@@ -116,5 +116,16 @@ public class EventInfoEdit : MonoBehaviour
 
         myCurrentEvent.comment = commentInputField.text;
         myCurrentEvent.duration = int.Parse(durationInputField.text);
+    }
+
+    void deleteAction()
+    {
+        eventsToDelete(myCurrentEvent, 0);
+        Destroy(gameObject);
+    }
+
+    void cancelAction()
+    {
+        Destroy(gameObject);
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 using CielaSpike;
 
 public static class ApplicationState
@@ -36,6 +37,22 @@ public static class ApplicationState
     {
         yield return Ninja.JumpToUnity;
         messageWindow.display(HeaderMessage, TypeMessage, DetailledMessage);
+        yield return Ninja.JumpBack;
+
+        yield return null;
+    }
+
+    public static void displayConfirmation(string HeaderMessage, string DetailledMessage, UnityAction yesAction, UnityAction cancelAction)
+    {
+        if (messageWindow == null)
+            messageWindow = GameObject.Find("Canvas").transform.GetChild(7).GetChild(0).GetComponent<MessageWindow>();
+        coroutineManager.StartCoroutine(c_displayConfirmation(HeaderMessage, DetailledMessage, yesAction, cancelAction));
+    }
+
+    static IEnumerator c_displayConfirmation(string HeaderMessage, string DetailledMessage, UnityAction yesAction, UnityAction cancelAction)
+    {
+        yield return Ninja.JumpToUnity;
+        messageWindow.displayConfirmation(HeaderMessage, DetailledMessage, yesAction, cancelAction);
         yield return Ninja.JumpBack;
 
         yield return null;

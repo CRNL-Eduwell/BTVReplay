@@ -56,7 +56,10 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
         closeButton = choiceWin.transform.GetChild(0).GetChild(2).GetComponent<Button>();
 
         editButton.onClick.AddListener(choiceEdit);
-        deleteButton.onClick.AddListener(choiceDelete);
+        deleteButton.onClick.AddListener(()=> 
+        {
+            ApplicationState.displayConfirmation("Event Deletion", "Are You Sure You Want To Delete This Event ?", choiceDelete, choiceClose);
+        });
         closeButton.onClick.AddListener(choiceClose);
     }
 
