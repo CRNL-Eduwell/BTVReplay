@@ -607,8 +607,10 @@ public class VideoPlayer : MonoBehaviour
         m_recordProcess.StartInfo = startInfo;
         m_recordProcess.Start();
         m_recordProcess.WaitForExit();
-        
+
+        yield return Ninja.JumpToUnity;
         ApplicationState.displayMessage("Video Record", "OK", "Video as been correctly recorded. \n Please Check the output path you have provided.");
+        yield return Ninja.JumpBack;
 
         yield return null;
     }

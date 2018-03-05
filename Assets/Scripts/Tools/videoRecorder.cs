@@ -38,7 +38,7 @@ public class videoRecorder : MonoBehaviour
     {
         if (outputPath.text == "")
         {
-            UnityEngine.Debug.Log("Erreur : outputpath");
+            ApplicationState.displayMessage("Error Output Path", "NOK", "Output Path can not be an empty string");
             gameObject.transform.parent.gameObject.SetActive(false);
             return;
         }
@@ -59,10 +59,7 @@ public class videoRecorder : MonoBehaviour
         int durationInSeconds = endTimeInSecond - beginTimeInSecond;
         if (beginOk && endOk && durationInSeconds > 0)
         {
-            //UnityEngine.Debug.Log(outputPath.text);
-            //UnityEngine.Debug.Log(durationInSeconds.ToString());
             videoPlayer.setTime(beginTimeInSecond * 1000);
-            //videoPlayer.record(outputPath.text, durationInSeconds.ToString());
             recordVideo(outputPath.text, durationInSeconds.ToString());
             gameObject.transform.parent.gameObject.SetActive(false);
         }

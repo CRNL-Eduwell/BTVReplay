@@ -26,20 +26,15 @@ public static class ApplicationState
             messageWindow = GameObject.Find("Canvas").transform.GetChild(7).GetChild(0).GetComponent<MessageWindow>();
     }
 
+    // If in coroutine, need to be as such, otherwise it trigger error : "StartCoroutine_Auto_Internal can only be called from the main thread"
+    // yield return Ninja.JumpToUnity;
+    // ApplicationState.displayMessage(string HeaderMessage, string TypeMessage, string DetailledMessage);
+    // yield return Ninja.JumpBack;
     public static void displayMessage(string HeaderMessage, string TypeMessage, string DetailledMessage)
     {
         if (messageWindow == null)
             messageWindow = GameObject.Find("Canvas").transform.GetChild(7).GetChild(0).GetComponent<MessageWindow>();
-        coroutineManager.StartCoroutine(c_dislayMessage(HeaderMessage, TypeMessage, DetailledMessage));
-    }
-
-    static IEnumerator c_dislayMessage(string HeaderMessage, string TypeMessage, string DetailledMessage)
-    {
-        yield return Ninja.JumpToUnity;
         messageWindow.display(HeaderMessage, TypeMessage, DetailledMessage);
-        yield return Ninja.JumpBack;
-
-        yield return null;
     }
 
     public static void displayConfirmation(string HeaderMessage, string DetailledMessage, UnityAction yesAction, UnityAction cancelAction)
