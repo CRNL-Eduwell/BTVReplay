@@ -225,9 +225,6 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             int left =(int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - curveTrace1.TraceEeg.numberOfPoint;
             int right = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
 
-            //var keys = new List<int>(hub.eventRemote.userEvents.Keys);
-            //var values = new List<TraceEvent>(hub.eventRemote.userEvents.Values);
-
             float factor = ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000);
             List<int> idOverFlow = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
                                          .Where(x => (x.Item.sample <= left && (x.Item.sample + (x.Item.duration * factor) >= right)))
@@ -243,21 +240,6 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             List<int> indexes = idOverFlow.Union(idRightEnter).ToList();
 
             changeColorEvent("", Color.white);
-            //for (int i = 0; i < indexes.Count; i++)
-            //{
-            //    if (hub.eventRemote.userEvents[indexes[i]].correlationArray != null)
-            //    {
-            //        for (int j = 0; j < curveTrace1.TraceEeg.fileHandle.electrodes.Length; j++)
-            //        {
-            //            changeColorEvent(curveTrace1.TraceEeg.fileHandle.electrodes[j].name, correlationColor(hub.eventRemote.userEvents[indexes[i]].correlationArray[j]));
-            //        }
-            //    }
-            //    else
-            //    {
-            //        changeColorEvent(hub.eventRemote.userEvents[indexes[i]].elecOfInterest, Color.red);
-            //        changeColorEvent(hub.eventRemote.userEvents[indexes[i]].secondElecOfInterest, Color.blue);
-            //    }
-            //}
             for (int i = 0; i < indexes.Count; i++)
             {
                 if (hub.eventRemote.userEvents[indexes[i]].correlation2DArray != null)

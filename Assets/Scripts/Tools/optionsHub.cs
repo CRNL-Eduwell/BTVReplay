@@ -654,6 +654,7 @@ public class eventsOptions : MonoBehaviour
                                  .ToList();
 
         list.Objects[ids[0]].correlationArray = new float[nbElec];
+        list.Objects[ids[0]].correlation2DArray = null;
 
         int beginSample = list.Objects[ids[0]].sample;
         int durationSample = (list.Objects[ids[0]].duration / 1000) * list.Objects[ids[0]].samplingFrequency;
@@ -690,6 +691,7 @@ public class eventsOptions : MonoBehaviour
                                  .Select(x => x.Index)
                                  .ToList();
 
+        list.Objects[ids[0]].correlationArray = null;
         list.Objects[ids[0]].correlation2DArray = new float[nbElec][];
         for (int i = 0; i < list.Objects[ids[0]].correlation2DArray.Length; i++)
             list.Objects[ids[0]].correlation2DArray[i] = new float[nbElec];
