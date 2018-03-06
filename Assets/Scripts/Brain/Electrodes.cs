@@ -19,7 +19,9 @@ public class ElectrodePlot
     {
         get
         {
-            if (id < 10)
+            if (id == -1)
+                return "";
+            else if (id < 10)
                 return "0" + id;
             else
                 return id.ToString();
@@ -77,6 +79,17 @@ public class Electrodes : MonoBehaviour
 
     public int loadPtsFile(string p_pathPtsFile)
     {
+        bool isIntra = !(p_pathPtsFile.Contains("MNI_EEG"));
+        if (isIntra)
+            loadIntraElec(p_pathPtsFile);
+        else
+            loadScalpElec(p_pathPtsFile);
+
+        return 0;
+    }
+
+    int loadIntraElec(string p_pathPtsFile)
+    {
         if (mask.Count > 0)
             mask = new List<bool>();
 
@@ -120,8 +133,8 @@ public class Electrodes : MonoBehaviour
 
                     //== Correct if elec is named Pp1 (P'1)
                     List<int> nbP = plot.ToLower().Select((v, ii) => new { v, ii })
-                                                    .Where(c => c.v.Equals('p'))
-                                                    .Select(c => c.ii).ToList();
+                    .Where(c => c.v.Equals('p'))
+                    .Select(c => c.ii).ToList();
 
                     if (nbP.Count > 1)
                     {
@@ -185,6 +198,63 @@ public class Electrodes : MonoBehaviour
         return 0;
     }
 
+    int loadScalpElec(string p_pathPtsFile)
+    {
+        if (mask.Count > 0)
+            mask = new List<bool>();
+
+        if (electrodes.Count > 0)
+            electrodes = new List<Electrode>();
+
+        string line = "";
+        int numberPlot = 0;
+
+        using (StreamReader sr = new StreamReader(p_pathPtsFile))
+        {
+            line = sr.ReadLine();
+            if (!line.StartsWith("ptsfile"))
+            {
+                Debug.LogError("Error ElectrodeList.LoadPtsFile -> format file incorrect : " + p_pathPtsFile);
+                return -1;
+            }
+
+            line = sr.ReadLine();
+            line = sr.ReadLine();
+            numberPlot = int.Parse(line);
+
+            if (numberPlot <= 0)
+            {
+                Debug.LogError("Error ElectrodeList.LoadPtsFile -> format file incorrect : " + p_pathPtsFile);
+                return -1;
+            }
+
+            electrodes.Add(new Electrode("Scalp_Eeg"));
+            mask.Add(true);
+            patientName = getPatientName(p_pathPtsFile);
+            for (int i = 0; i < numberPlot; i++)
+            {
+                line = sr.ReadLine();
+                string[] split = line.Split(new string[] { "\t" }, System.StringSplitOptions.RemoveEmptyEntries);
+
+                if (split.Length >= 3)
+                {
+                    string plot = split.GetValue(0).ToString().ToLower();
+                    float x = float.Parse(split.GetValue(1).ToString());
+                    float y = float.Parse(split.GetValue(2).ToString());
+                    float z = float.Parse(split.GetValue(3).ToString());
+
+                    electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plot, -1, new Vector3(x, y, z)));
+                    electrodes[electrodes.Count - 1].mask.Add(true);
+                }
+                else
+                {
+                    Debug.LogError("Error Reading Pts : Each Line must have at least 4 elements (label + xyz coordinates) ");
+                }
+            }
+        }
+        return 0;
+    }
+
     public int loadDefaultPearl(ELAN[] elanFiles)
     {
         if (mask.Count > 0)
@@ -216,7 +286,7 @@ public class Electrodes : MonoBehaviour
                 plotName = (resultRight.Groups[1].Value + resultRight.Groups[2].Value).ToLower();
                 plotID = int.Parse(resultRight.Groups[3].Value.ToString());
             }
-            
+
             if (plotName == currentElectrodeName) //This is just a new plot in current Electrode
             {
                 electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotName, plotID, new Vector3(-5 + ((electrodes.Count - 1) * -5), 0, -5 + (electrodes[electrodes.Count - 1].plots.Count) * -5)));
@@ -256,7 +326,7 @@ public class Electrodes : MonoBehaviour
                 /***************************************************************************/
 
                 GameObject currentElecPlot = (GameObject)Instantiate(ElecPlot, electrodes[i].plots[j].position3D, Quaternion.identity);
-                currentElecPlot.name = electrodes[i].name + electrodes[i].plots[j].id;
+                currentElecPlot.name = electrodes[i].plots[j].label; // electrodes[i].name + electrodes[i].plots[j].id;
                 currentElecPlot.transform.parent = currentElec.transform;
 
                 ElecPlotSize sphereSizeScript = currentElecPlot.AddComponent<ElecPlotSize>();

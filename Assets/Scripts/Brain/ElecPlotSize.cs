@@ -24,14 +24,20 @@ public class ElecPlotSize : MonoBehaviour
     {
         get
         {
-            return m_plot.atlas.nameFull;
+            if (m_plot.atlas.nameFull != null)
+                return m_plot.atlas.nameFull;
+            else
+                return "";
         }
     }
     public string BroadmanName
     {
         get
         {
-            return m_plot.atlas.broadman;
+            if (m_plot.atlas.broadman != null)
+                return m_plot.atlas.broadman;
+            else
+                return "";
         }
     }
     public Vector3 Coordinates
