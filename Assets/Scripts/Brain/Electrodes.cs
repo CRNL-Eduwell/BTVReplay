@@ -219,7 +219,7 @@ public class Electrodes : MonoBehaviour
             
             if (plotName == currentElectrodeName) //This is just a new plot in current Electrode
             {
-                electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotName, plotID, new Vector3(((electrodes.Count - 1) * -5), 0, -(electrodes[electrodes.Count - 1].plots.Count - 1) * 5)));
+                electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotName, plotID, new Vector3(-5 + ((electrodes.Count - 1) * -5), 0, -5 + (electrodes[electrodes.Count - 1].plots.Count) * -5)));
                 electrodes[electrodes.Count - 1].mask.Add(true);
             }
             else //This is a new Electrode
@@ -227,7 +227,7 @@ public class Electrodes : MonoBehaviour
                 currentElectrodeName = plotName;
                 electrodes.Add(new Electrode(plotName));
                 mask.Add(true);
-                electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotName, plotID, new Vector3(((electrodes.Count - 1) * -5), 0, -(electrodes[electrodes.Count - 1].plots.Count - 1) * 5)));
+                electrodes[electrodes.Count - 1].plots.Add(new ElectrodePlot(plotName, plotID, new Vector3(-5 + ((electrodes.Count - 1) * -5), 0, -5 + (electrodes[electrodes.Count - 1].plots.Count) * -5)));
                 electrodes[electrodes.Count - 1].mask.Add(true);
             }
         }

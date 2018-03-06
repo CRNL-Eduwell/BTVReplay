@@ -34,6 +34,71 @@ public class Brain : MonoBehaviour {
         });
     }
 
+    public void loadBrainAndElectrodes(brain_anat brainToLoad, int otherBrain)
+    {
+        Brain3DHandle = GameObject.Find("BrainGameObject");
+
+        LHBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
+        LHBrain.transform.parent = Brain3DHandle.transform;
+        LHBrain.layer = Brain3DHandle.layer;
+        Hemisphere lhemi = LHBrain.GetComponent<Hemisphere>();
+        lhemi.InitializeData(brainToLoad.lhemi);
+        for (int i = 0; i < lhemi.brainMeshes.Count; i++)
+            lhemi.brainMeshes[i].transform.parent = LHBrain.transform;
+
+        RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
+        RHBrain.transform.parent = Brain3DHandle.transform;
+        RHBrain.layer = Brain3DHandle.layer;
+        Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
+        rhemi.InitializeData(brainToLoad.rhemi);
+        for (int i = 0; i < rhemi.brainMeshes.Count; i++)
+            rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
+
+        Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
+        Electrodes.transform.parent = Brain3DHandle.transform;
+        ElectrodesScript = Electrodes.GetComponent<Electrodes>();
+        ElectrodesScript.loadPtsFile(brainToLoad.pts);
+
+        if(brainToLoad.atlasCSV != null)
+            ElectrodesScript.loadAtlasData(brainToLoad.atlasCSV);
+
+        ElectrodesScript.loadElecOnBrain();
+
+        CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
+        CameraScript.initCameraPosition();
+
+        if(otherBrain == 0)
+            hub.brainRemote.initBrainInteract(true, false, true);
+        else if(otherBrain == 1)
+            hub.brainRemote.initBrainInteract(true, true, true);
+        else if(otherBrain == 2)
+            hub.brainRemote.initBrainInteract(false, true, true);
+
+    }
+
+    public void loadElectrodesDefault()
+    {
+        Brain3DHandle = GameObject.Find("BrainGameObject");
+
+        LHBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
+        LHBrain.transform.parent = Brain3DHandle.transform;
+        LHBrain.layer = Brain3DHandle.layer;
+        RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
+        RHBrain.transform.parent = Brain3DHandle.transform;
+        RHBrain.layer = Brain3DHandle.layer;
+
+        Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
+        Electrodes.transform.parent = Brain3DHandle.transform;
+        ElectrodesScript = Electrodes.GetComponent<Electrodes>();
+        ElectrodesScript.loadDefaultPearl(media.elanFiles);
+        ElectrodesScript.loadElecOnBrain();
+
+        CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
+        CameraScript.initCameraPosition();
+
+        hub.brainRemote.initBrainInteract(false, false, true);
+    }
+
     //-1 L - 0 All - 1 R
     public static void changeVisuBrain(int codeSide)
     {
@@ -93,63 +158,6 @@ public class Brain : MonoBehaviour {
         }
     }
 
-    public void loadBrainAndElectrodes(brain_anat brainToLoad)
-    {
-        Brain3DHandle = GameObject.Find("BrainGameObject");
-
-        LHBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
-        LHBrain.transform.parent = Brain3DHandle.transform;
-        LHBrain.layer = Brain3DHandle.layer;
-        Hemisphere lhemi = LHBrain.GetComponent<Hemisphere>();
-        lhemi.InitializeData(brainToLoad.lhemi);
-        for (int i = 0; i < lhemi.brainMeshes.Count; i++)
-            lhemi.brainMeshes[i].transform.parent = LHBrain.transform;
-
-        RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
-        RHBrain.transform.parent = Brain3DHandle.transform;
-        RHBrain.layer = Brain3DHandle.layer;
-        Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
-        rhemi.InitializeData(brainToLoad.rhemi);
-        for (int i = 0; i < rhemi.brainMeshes.Count; i++)
-            rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
-
-        Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
-        Electrodes.transform.parent = Brain3DHandle.transform;
-        ElectrodesScript = Electrodes.GetComponent<Electrodes>();
-        ElectrodesScript.loadPtsFile(brainToLoad.pts);
-
-        if(brainToLoad.atlasCSV != null)
-            ElectrodesScript.loadAtlasData(brainToLoad.atlasCSV);
-
-        ElectrodesScript.loadElecOnBrain();
-
-        CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
-        CameraScript.initCameraPosition();
-    }
-
-    public void loadElectrodesDefault()
-    {
-        Brain3DHandle = GameObject.Find("BrainGameObject");
-
-        LHBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
-        LHBrain.transform.parent = Brain3DHandle.transform;
-        LHBrain.layer = Brain3DHandle.layer;
-        RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
-        RHBrain.transform.parent = Brain3DHandle.transform;
-        RHBrain.layer = Brain3DHandle.layer;
-
-        Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
-        Electrodes.transform.parent = Brain3DHandle.transform;
-        ElectrodesScript = Electrodes.GetComponent<Electrodes>();
-        ElectrodesScript.loadDefaultPearl(media.elanFiles);
-        ElectrodesScript.loadElecOnBrain();
-
-        CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
-        CameraScript.initCameraPosition();
-
-        hub.brainRemote.setBrainInteract(false, false, true);
-    }
-
     void updateBrainMesh(brain_anat brainToLoad)
     {
         if (Brain3DHandle == null)
@@ -193,4 +201,5 @@ public class Brain : MonoBehaviour {
 
         ElectrodesScript.updateElecPosition();
     }
+
 }

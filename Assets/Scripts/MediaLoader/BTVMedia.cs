@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 using CielaSpike;
 
 public delegate void mediaLoadedEventHandler();
-public delegate void BrainLoadEventHandler(brain_anat brainToLoad);
+public delegate void BrainLoadEventHandler(brain_anat brainToLoad, int otherBrain);
 public delegate void BrainNotPresentLoadEventHandler();
 public delegate void initTrace();
 public delegate void initVideo(string videoPath, int totalFileDuration);
@@ -316,12 +316,23 @@ public class BTVMedia : MonoBehaviour
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadVideo(myPat.video));
 
-        if (myPat.hasMNI)
-            loadBrain(myPat.mni);
-        else if (myPat.hasPAT)
-            loadBrain(myPat.pat);
+
+        if (myPat.hasMNI && !myPat.hasPAT)
+        {
+            loadBrain(myPat.mni, 0);
+        }
+        else if (myPat.hasMNI && myPat.hasPAT)
+        {
+            loadBrain(myPat.mni, 1);
+        }
+        else if (!myPat.hasMNI && myPat.hasPAT)
+        {
+            loadBrain(myPat.pat, 2);
+        }
         else if (!myPat.hasMNI && !myPat.hasPAT)
+        {
             loadDefault();
+        }
 
         loadTrace();
 
