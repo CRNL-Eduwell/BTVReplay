@@ -143,10 +143,10 @@ public class Electrodes : MonoBehaviour
                         plot = stringBuilder.ToString();
                     }
                     //=========
-                    if (plot[0] != 'p') //if electrode is p then just to lower case else change p for ' and to lower
-                        plot = plot.ToLower().Replace('p', '\'');
-                    else
+                    if (plot[0] == 'p' || plot[0] == 'P') //if electrode is p then just to lower case else change p for ' and to lower
                         plot = plot.ToLower();
+                    else
+                        plot = plot.ToLower().Replace('p', '\'');
 
                     string[] tempPlot = plot.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
                     plot = string.Join(" ", tempPlot);
@@ -326,7 +326,12 @@ public class Electrodes : MonoBehaviour
                 /***************************************************************************/
 
                 GameObject currentElecPlot = (GameObject)Instantiate(ElecPlot, electrodes[i].plots[j].position3D, Quaternion.identity);
-                currentElecPlot.name = electrodes[i].plots[j].label; // electrodes[i].name + electrodes[i].plots[j].id;
+
+                if (electrodes.Count == 1) //gros hack tout sale, rajouter un champ qui definit si c'est du scalp ou de l'intra /!\
+                    currentElecPlot.name = electrodes[i].plots[j].label;
+                else
+                    currentElecPlot.name = electrodes[i].name + electrodes[i].plots[j].id;
+
                 currentElecPlot.transform.parent = currentElec.transform;
 
                 ElecPlotSize sphereSizeScript = currentElecPlot.AddComponent<ElecPlotSize>();
