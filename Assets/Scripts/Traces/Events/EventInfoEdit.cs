@@ -50,7 +50,7 @@ public class EventInfoEdit : MonoBehaviour
 
         if (memoryEvent != null && !isModif)
             initValueUI(memoryEvent);
-        else
+        else if(memoryEvent != null)
             initValueUI(myCurrentEvent);
 
         saveButton.onClick.AddListener(() => 
