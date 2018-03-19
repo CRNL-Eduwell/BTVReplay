@@ -247,8 +247,9 @@ public class BTVMedia : MonoBehaviour
 
         deleteMe.onClick.AddListener(() =>
         {
-            pm.removePatientAt(idPat);
-            InstantiateDB();
+            ApplicationState.displayConfirmation("Deleting Patient", "Are You Sure You Want To Delete This Patient From The Base ?",
+                () => { pm.removePatientAt(idPat); InstantiateDB(); },
+                () => { });
         });
         #endregion
 
@@ -257,42 +258,48 @@ public class BTVMedia : MonoBehaviour
 
     void setPatientGUI(GameObject patientDetails, Patient myPat)
     {
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.mni.lhemi;
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.mni.rhemi;
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.mni.pts;
+        patientDetails.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text = myPat.mni.lhemi;
+        patientDetails.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.mni.rhemi;
+        patientDetails.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.mni.pts;
 
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.pat.lhemi;
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.pat.rhemi;
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.pat.pts;
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text = myPat.pat.atlasCSV;
+        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text = myPat.pat.lhemi;
+        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.pat.rhemi;
+        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.pat.pts;
+        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.pat.atlasCSV;
 
-        for (int i = 0; i < 6; i++)
-            patientDetails.transform.GetChild(1).GetChild(i + 1).GetComponent<browseButton>().inputfield.text = myPat.smFiles[i];
+        for (int i = 0; i < 3; i++)
+        {
+            patientDetails.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(i).GetComponent<browseButton>().inputfield.text = myPat.smFiles[i];
+            patientDetails.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(i).GetComponent<browseButton>().inputfield.text = myPat.smFiles[3 + i];
+        }
 
-        patientDetails.transform.GetChild(2).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.pos;
-        patientDetails.transform.GetChild(2).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.prov;
-        patientDetails.transform.GetChild(2).GetChild(4).GetComponent<browseButton>().inputfield.text = myPat.video;
+        patientDetails.transform.GetChild(2).GetChild(0).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text = myPat.pos;
+        patientDetails.transform.GetChild(2).GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.prov;
+        patientDetails.transform.GetChild(2).GetChild(1).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text = myPat.video;
     }
 
     public Patient getPatientGUI(GameObject rootUI)
     {
         Patient myPat = new Patient();
 
-        myPat.mni.lhemi = rootUI.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.mni.rhemi = rootUI.transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.mni.pts = rootUI.transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text;
+        myPat.mni.lhemi = rootUI.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text;
+        myPat.mni.rhemi = rootUI.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text;
+        myPat.mni.pts = rootUI.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text;
 
-        myPat.pat.lhemi = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.pat.rhemi = rootUI.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.pat.pts = rootUI.transform.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text;
-        myPat.pat.atlasCSV = rootUI.transform.GetChild(0).GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text;
+        myPat.pat.lhemi = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text;
+        myPat.pat.rhemi = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text;
+        myPat.pat.pts = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text;
+        myPat.pat.atlasCSV = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text;
 
-        for (int i = 0; i < 6; i++)
-            myPat.smFiles[i] = rootUI.transform.GetChild(1).GetChild(i + 1).GetComponent<browseButton>().inputfield.text;
+        for (int i = 0; i < 3; i++)
+        {
+            myPat.smFiles[i] = rootUI.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(i).GetComponent<browseButton>().inputfield.text;
+            myPat.smFiles[3 + i] = rootUI.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(i).GetComponent<browseButton>().inputfield.text;
+        }
 
-        myPat.pos = rootUI.transform.GetChild(2).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.prov = rootUI.transform.GetChild(2).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.video = rootUI.transform.GetChild(2).GetChild(4).GetComponent<browseButton>().inputfield.text;
+        myPat.pos = rootUI.transform.GetChild(2).GetChild(0).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text;
+        myPat.prov = rootUI.transform.GetChild(2).GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text;
+        myPat.video = rootUI.transform.GetChild(2).GetChild(1).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text;
 
         return myPat;
     }

@@ -39,8 +39,8 @@ public static class ApplicationState
 
     public static void displayConfirmation(string HeaderMessage, string DetailledMessage, UnityAction yesAction, UnityAction cancelAction)
     {
-        if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(7).GetChild(0).GetComponent<MessageWindow>();
+        if (messageWindow == null || coroutineManager == null)
+            init();
         coroutineManager.StartCoroutine(c_displayConfirmation(HeaderMessage, DetailledMessage, yesAction, cancelAction));
     }
 

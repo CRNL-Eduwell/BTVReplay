@@ -120,9 +120,9 @@ VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYO
 LH_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Lhemi.tri
 RH_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Rhemi.tri
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_EEG.pts
-LH_PAT : 
-RH_PAT : 
-PTS_PAT : 
+LH_PAT : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/oskull_2562.surf.gii
+RH_PAT : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/scalp_2562.surf.gii
+PTS_PAT : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_EEG.pts
 ATLAS_PAT : 
 SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/Scalp Vania/Vania stabilo/Cognit-AIC_003LO151217_TRC.eeg
 SM250 : 
