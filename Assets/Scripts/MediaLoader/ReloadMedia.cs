@@ -48,25 +48,25 @@ public class ReloadMedia : MonoBehaviour
             {
                 addPatientPanel = media.transform.gameObject.transform.GetChild(0).GetChild(1).GetChild(0);
 
-                addPatientPanel.GetChild(0).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = lhemi_MNI;
-                addPatientPanel.GetChild(0).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = rhemi_MNI;
-                addPatientPanel.GetChild(0).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text = pts_MNI;
+                addPatientPanel.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text = lhemi_MNI;
+                addPatientPanel.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = rhemi_MNI;
+                addPatientPanel.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = pts_MNI;
 
-                addPatientPanel.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = lhemi_PAT;
-                addPatientPanel.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = rhemi_PAT;
-                addPatientPanel.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text = pts_PAT;
-                addPatientPanel.GetChild(0).GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text = atlas_PAT;
+                addPatientPanel.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text = lhemi_PAT;
+                addPatientPanel.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = rhemi_PAT;
+                addPatientPanel.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = pts_PAT;
+                addPatientPanel.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text = atlas_PAT;
 
-                addPatientPanel.GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = sm0;
-                addPatientPanel.GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = sm250;
-                addPatientPanel.GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text = sm500;
-                addPatientPanel.GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text = sm1000;
-                addPatientPanel.GetChild(1).GetChild(5).GetComponent<browseButton>().inputfield.text = sm2500;
-                addPatientPanel.GetChild(1).GetChild(6).GetComponent<browseButton>().inputfield.text = sm5000;
+                addPatientPanel.GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text = sm0;
+                addPatientPanel.GetChild(1).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = sm250;
+                addPatientPanel.GetChild(1).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = sm500;
+                addPatientPanel.GetChild(1).GetChild(1).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text = sm1000;
+                addPatientPanel.GetChild(1).GetChild(1).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = sm2500;
+                addPatientPanel.GetChild(1).GetChild(1).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = sm5000;
 
-                addPatientPanel.GetChild(2).GetChild(1).GetComponent<browseButton>().inputfield.text = pos;
-                addPatientPanel.GetChild(2).GetChild(2).GetComponent<browseButton>().inputfield.text = prov;
-                addPatientPanel.GetChild(2).GetChild(4).GetComponent<browseButton>().inputfield.text = video;
+                addPatientPanel.GetChild(2).GetChild(0).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text = pos;
+                addPatientPanel.GetChild(2).GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = prov;
+                addPatientPanel.GetChild(2).GetChild(1).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text = video;
 
                 media.pm.LoadList(false, path);
                 //m.InstantiateDB();

@@ -66,63 +66,12 @@ POS :
 PROV : 
 VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MM_15SEP09G/MM_15SEP09G_BTV_V15.mp4
 [----------]
-LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Lhemi.tri
-RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Rhemi.tri
-PTS_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/MNI/LYONNEURO_2018_ESCm_MNI.pts
-LH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/PAT/LYONNEURO_2018_ESCm_Lhemi.gii
-RH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/PAT/LYONNEURO_2018_ESCm_Rhemi.gii
-PTS_PAT : 
-ATLAS_PAT : 
-SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_f50f150/LYONNEURO_2018_ESCm_f50f150_ds8_sm0.eeg
-SM250 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_f50f150/LYONNEURO_2018_ESCm_f50f150_ds8_sm250.eeg
-SM500 : 
-SM1000 : 
-SM2500 : 
-SM5000 : 
-POS : 
-PROV : 
-VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_BenTV.AVI
-[----------]
-LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Lhemi.tri
-RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Rhemi.tri
-PTS_MNI : 
-LH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/PAT/LYONNEURO_2018_ESCm_Lhemi.gii
-RH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/PAT/LYONNEURO_2018_ESCm_Rhemi.gii
-PTS_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/PAT/LYONNEURO_2018_ESCm.pts
-ATLAS_PAT : 
-SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_f50f150/LYONNEURO_2018_ESCm_f50f150_ds8_sm0.eeg
-SM250 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_f50f150/LYONNEURO_2018_ESCm_f50f150_ds8_sm250.eeg
-SM500 : 
-SM1000 : 
-SM2500 : 
-SM5000 : 
-POS : 
-PROV : 
-VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_BenTV.AVI
-[----------]
-LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Lhemi.tri
-RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Rhemi.tri
-PTS_MNI : 
-LH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/PAT/LYONNEURO_2018_ESCm_Lhemi.gii
-RH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/PAT/LYONNEURO_2018_ESCm_Rhemi.gii
-PTS_PAT : 
-ATLAS_PAT : 
-SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_f50f150/LYONNEURO_2018_ESCm_f50f150_ds8_sm0.eeg
-SM250 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_f50f150/LYONNEURO_2018_ESCm_f50f150_ds8_sm250.eeg
-SM500 : 
-SM1000 : 
-SM2500 : 
-SM5000 : 
-POS : 
-PROV : 
-VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2018_ESCm/LYONNEURO_2018_ESCm_BenTV/LYONNEURO_2018_ESCm_BenTV.AVI
-[----------]
-LH_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Lhemi.tri
+LH_MNI : D:/Users/Florian/Desktop/iskull_2562.surf.gii
 RH_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Rhemi.tri
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_EEG.pts
-LH_PAT : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/oskull_2562.surf.gii
-RH_PAT : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/scalp_2562.surf.gii
-PTS_PAT : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_EEG.pts
+LH_PAT : 
+RH_PAT : 
+PTS_PAT : 
 ATLAS_PAT : 
 SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/Scalp Vania/Vania stabilo/Cognit-AIC_003LO151217_TRC.eeg
 SM250 : 
