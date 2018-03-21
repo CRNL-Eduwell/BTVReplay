@@ -31,7 +31,7 @@ public class BTVMedia : MonoBehaviour
     #region UIMembers
     private Button showAddPanel = null;
     private Image showAddPic = null;
-    private Transform addPatientPanel = null;
+    private PatientGUIManager addPatientPanel = null; // private Transform addPatientPanel = null;
     private Button addPatient = null;           
     //===
     private Transform patientContent = null;    /*||*/
@@ -57,7 +57,7 @@ public class BTVMedia : MonoBehaviour
         #region getObjectFromScene
         showAddPanel = gameObject.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Button>();
         showAddPic = showAddPanel.gameObject.GetComponent<Image>();
-        addPatientPanel = gameObject.transform.GetChild(0).GetChild(1).GetChild(0);
+        addPatientPanel = gameObject.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<PatientGUIManager>();
         addPatient = gameObject.transform.GetChild(0).GetChild(1).GetChild(0).GetChild(3).GetChild(0).GetComponent<Button>(); // 0 1 0
 
         patientContent = gameObject.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetChild(0);
@@ -136,7 +136,7 @@ public class BTVMedia : MonoBehaviour
         if (gameObject.activeSelf)
         {
             gameObject.SetActive(false);
-            setPatientGUI(gameObject.transform.GetChild(0).GetChild(1).GetChild(0).gameObject, new Patient());
+            addPatientPanel.setPatientGUI(new Patient());
         }
         else
         {
@@ -146,7 +146,7 @@ public class BTVMedia : MonoBehaviour
 
     void addPatientToDB()
     {
-        pm.addPat(getPatientGUI(gameObject.transform.GetChild(0).GetChild(1).GetChild(0).gameObject));
+        pm.addPat(addPatientPanel.getPatientGUI());
         if (patientContent.childCount == 0)
             InstantiateDB();
         else
@@ -155,7 +155,7 @@ public class BTVMedia : MonoBehaviour
 
     void loadPatientGUI()
     {
-        loadMedia(getPatientGUI(gameObject.transform.GetChild(0).GetChild(1).GetChild(0).gameObject));
+        loadMedia(addPatientPanel.getPatientGUI());
     }
 
     void SaveDB()
@@ -164,8 +164,8 @@ public class BTVMedia : MonoBehaviour
         {
             for (int i = 0; i < patientContent.childCount; i += 2)
             {
-                Patient currentPat = getPatientGUI(patientContent.transform.GetChild(i + 1).gameObject);
-                pm.currentPatients[i / 2] = currentPat;
+                PatientGUIManager guiPat = patientContent.transform.GetChild(i + 1).GetComponent<PatientGUIManager>();
+                pm.currentPatients[i / 2] = guiPat.getPatientGUI();
             }
 
             string bddFilePath = QtGUI_dll.Instance.getSaveFileName(new string[] { "txt" }, "Save to a bdd File", Application.dataPath + @"/Config/PatientBase");
@@ -253,55 +253,7 @@ public class BTVMedia : MonoBehaviour
         });
         #endregion
 
-        setPatientGUI(patientDetails, pm.currentPatients[idPat]);
-    }
-
-    void setPatientGUI(GameObject patientDetails, Patient myPat)
-    {
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text = myPat.mni.lhemi;
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.mni.rhemi;
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.mni.pts;
-
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text = myPat.pat.lhemi;
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.pat.rhemi;
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.pat.pts;
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.pat.atlasCSV;
-
-        for (int i = 0; i < 3; i++)
-        {
-            patientDetails.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(i).GetComponent<browseButton>().inputfield.text = myPat.smFiles[i];
-            patientDetails.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(i).GetComponent<browseButton>().inputfield.text = myPat.smFiles[3 + i];
-        }
-
-        patientDetails.transform.GetChild(2).GetChild(0).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text = myPat.pos;
-        patientDetails.transform.GetChild(2).GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.prov;
-        patientDetails.transform.GetChild(2).GetChild(1).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text = myPat.video;
-    }
-
-    public Patient getPatientGUI(GameObject rootUI)
-    {
-        Patient myPat = new Patient();
-
-        myPat.mni.lhemi = rootUI.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text;
-        myPat.mni.rhemi = rootUI.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.mni.pts = rootUI.transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text;
-
-        myPat.pat.lhemi = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text;
-        myPat.pat.rhemi = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.pat.pts = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.pat.atlasCSV = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text;
-
-        for (int i = 0; i < 3; i++)
-        {
-            myPat.smFiles[i] = rootUI.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(i).GetComponent<browseButton>().inputfield.text;
-            myPat.smFiles[3 + i] = rootUI.transform.GetChild(1).GetChild(1).GetChild(1).GetChild(i).GetComponent<browseButton>().inputfield.text;
-        }
-
-        myPat.pos = rootUI.transform.GetChild(2).GetChild(0).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text;
-        myPat.prov = rootUI.transform.GetChild(2).GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.video = rootUI.transform.GetChild(2).GetChild(1).GetChild(1).GetChild(0).GetComponent<browseButton>().inputfield.text;
-
-        return myPat;
+        patientDetails.GetComponent<PatientGUIManager>().setPatientGUI(pm.currentPatients[idPat]);
     }
 
     public void loadMedia(Patient myPat)

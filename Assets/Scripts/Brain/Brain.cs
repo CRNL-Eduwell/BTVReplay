@@ -46,20 +46,29 @@ public class Brain : MonoBehaviour {
         for (int i = 0; i < lhemi.brainMeshes.Count; i++)
             lhemi.brainMeshes[i].transform.parent = LHBrain.transform;
 
-        RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
-        RHBrain.transform.parent = Brain3DHandle.transform;
-        RHBrain.layer = Brain3DHandle.layer;
-        Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
-        rhemi.InitializeData(brainToLoad.rhemi);
-        for (int i = 0; i < rhemi.brainMeshes.Count; i++)
-            rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
+        if (brainToLoad.GetMeshNb == mesh_Configuration.leftright)
+        {
+            RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
+            RHBrain.transform.parent = Brain3DHandle.transform;
+            RHBrain.layer = Brain3DHandle.layer;
+            Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
+            rhemi.InitializeData(brainToLoad.rhemi);
+            for (int i = 0; i < rhemi.brainMeshes.Count; i++)
+                rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
+        }
+        else
+        {
+            RHBrain = new GameObject("RightHemi");
+            RHBrain.transform.parent = Brain3DHandle.transform;
+            RHBrain.layer = Brain3DHandle.layer;
+        }
 
         Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
         Electrodes.transform.parent = Brain3DHandle.transform;
         ElectrodesScript = Electrodes.GetComponent<Electrodes>();
         ElectrodesScript.loadPtsFile(brainToLoad.pts);
 
-        if(brainToLoad.atlasCSV != null)
+        if(brainToLoad.atlasCSV != "")
             ElectrodesScript.loadAtlasData(brainToLoad.atlasCSV);
 
         ElectrodesScript.loadElecOnBrain();
@@ -179,24 +188,34 @@ public class Brain : MonoBehaviour {
             lhemi.brainMeshes[i].transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
         }
 
-        Destroy(GameObject.Find("RightHemi"));
-        RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
-        RHBrain.transform.parent = Brain3DHandle.transform;
-        RHBrain.transform.SetSiblingIndex(1);
-        RHBrain.transform.localPosition = new Vector3(0, 0, 0);
-        RHBrain.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
-        RHBrain.layer = Brain3DHandle.layer;
-        Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
-        rhemi.InitializeData(brainToLoad.rhemi);
-        for (int i = 0; i < rhemi.brainMeshes.Count; i++)
+        if (brainToLoad.GetMeshNb == mesh_Configuration.leftright)
         {
-            rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
-            rhemi.brainMeshes[i].transform.localPosition = new Vector3(0, 0, 0);
-            rhemi.brainMeshes[i].transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+            Destroy(GameObject.Find("RightHemi"));
+            RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
+            RHBrain.transform.parent = Brain3DHandle.transform;
+            RHBrain.transform.SetSiblingIndex(1);
+            RHBrain.transform.localPosition = new Vector3(0, 0, 0);
+            RHBrain.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+            RHBrain.layer = Brain3DHandle.layer;
+            Hemisphere rhemi = RHBrain.GetComponent<Hemisphere>();
+            rhemi.InitializeData(brainToLoad.rhemi);
+            for (int i = 0; i < rhemi.brainMeshes.Count; i++)
+            {
+                rhemi.brainMeshes[i].transform.parent = RHBrain.transform;
+                rhemi.brainMeshes[i].transform.localPosition = new Vector3(0, 0, 0);
+                rhemi.brainMeshes[i].transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+            }
         }
+        else
+        {
+            RHBrain = new GameObject("RightHemi");
+            RHBrain.transform.parent = Brain3DHandle.transform;
+            RHBrain.layer = Brain3DHandle.layer;
+        }
+
         ElectrodesScript.loadPtsFile(brainToLoad.pts);
 
-        if (brainToLoad.atlasCSV != null)
+        if (brainToLoad.atlasCSV != "")
             ElectrodesScript.loadAtlasData(brainToLoad.atlasCSV);
 
         ElectrodesScript.updateElecPosition();

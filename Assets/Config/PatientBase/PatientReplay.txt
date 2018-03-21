@@ -1,10 +1,14 @@
 LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/MNI/MNI_single_hight_Lhemi.tri
 RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/MNI/MNI_single_hight_Rhemi.tri
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/MNI/LYONNEURO_2017_DAMa_MNI.pts
+MESH_MNI : Left/Right Mesh
+EEG_MNI : Intracranial EEG
 LH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa_Lhemi.gii
 RH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa_Rhemi.gii
 PTS_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa.pts
 ATLAS_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/LYONNEURO_2017_DAMa.csv
+MESH_PAT : Left/Right Mesh
+EEG_PAT : Intracranial EEG
 SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm0.eeg
 SM250 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm250.eeg
 SM500 : 
@@ -18,10 +22,14 @@ VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV
 LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Lhemi.tri
 RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Rhemi.tri
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/Gre_2014_LESs_MNI.pts
+MESH_MNI : Left/Right Mesh
+EEG_MNI : Intracranial EEG
 LH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/Gre_2014_LESs_Lhemi.gii
 RH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/Gre_2014_LESs_Rhemi.gii
 PTS_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/Gre_2014_LESs.pts
 ATLAS_PAT : 
+MESH_PAT : Left/Right Mesh
+EEG_PAT : Intracranial EEG
 SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/GRE_2014_LESs_MARD_f50f150_ds16_sm0.eeg
 SM250 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/GRE_2014_LESs_MARD_f50f150_ds16_sm250.eeg
 SM500 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/GRE_2014_LESs_MARD_f50f150_ds16_sm500.eeg
@@ -35,10 +43,14 @@ VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LESs_MARD/GRE_2014_LESs
 LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/MNI/MNI_single_hight_Lhemi.tri
 RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/MNI/MNI_single_hight_Rhemi.tri
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/MNI/GRE_2015_PATa_MNI.pts
+MESH_MNI : Left/Right Mesh
+EEG_MNI : Intracranial EEG
 LH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/PAT_fucked_up/Gre_2015_PATa_Lhemi.gii
 RH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/PAT_fucked_up/Gre_2015_PETa_Rhemi.gii
 PTS_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/PAT_fucked_up/Gre_2015_PATa.pts
 ATLAS_PAT : 
+MESH_PAT : Left/Right Mesh
+EEG_PAT : Intracranial EEG
 SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/GRE_2015_PATa_MARA_f50f150_ds16_sm0.eeg
 SM250 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/GRE_2015_PATa_MARA_f50f150_ds16_sm250.eeg
 SM500 : 
@@ -52,10 +64,14 @@ VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/GRE_2015_PATa/GRE_2015_
 LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Lhemi.tri
 RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MNI_single_hight_Rhemi.tri
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MM_15SEP09G/Gre_2009_MWAm_MNI.pts
+MESH_MNI : Left/Right Mesh
+EEG_MNI : Intracranial EEG
 LH_PAT : 
 RH_PAT : 
 PTS_PAT : 
 ATLAS_PAT : 
+MESH_PAT : Left/Right Mesh
+EEG_PAT : Intracranial EEG
 SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MM_15SEP09G/MM_15SEP09G_BTV_V15_f50f150_ds8_sm0.eeg
 SM250 : 
 SM500 : 
@@ -67,13 +83,17 @@ PROV :
 VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MM_15SEP09G/MM_15SEP09G_BTV_V15.mp4
 [----------]
 LH_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Lhemi.tri
-RH_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Rhemi.tri
+RH_MNI : 
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_EEG.pts
+MESH_MNI : Single Mesh
+EEG_MNI : Scalp EEG
 LH_PAT : 
 RH_PAT : 
 PTS_PAT : 
 ATLAS_PAT : 
-SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/Scalp Vania/Vania stabilo/Cognit-AIC_003LO151217_TRC.eeg
+MESH_PAT : Left/Right Mesh
+EEG_PAT : Intracranial EEG
+SM0 : D:/Users/Florian/Documents/Arbeit/Data Patient/ScalpVania/Vania_stabilo/Cognit-AIC_003LO151217_TRC.eeg
 SM250 : 
 SM500 : 
 SM1000 : 
