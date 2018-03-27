@@ -1,7 +1,7 @@
 LH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/MNI/MNI_single_hight_Lhemi.tri
 RH_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/MNI/MNI_single_hight_Rhemi.tri
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/MNI/LYONNEURO_2017_DAMa_MNI.pts
-MESH_MNI : Single Mesh
+MESH_MNI : Left/Right Mesh
 EEG_MNI : Intracranial EEG
 LH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa_Lhemi.gii
 RH_PAT : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/LYONNEURO_2017_DAMa_BTV/PAT/LYONNEURO_2017_DAMa_Rhemi.gii
@@ -83,9 +83,9 @@ PROV :
 VID : D:/Users/Florian/Documents/Arbeit/Data Patient/BTV/MM_15SEP09G/MM_15SEP09G_BTV_V15.mp4
 [----------]
 LH_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Lhemi.tri
-RH_MNI : 
+RH_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Rhemi.tri
 PTS_MNI : D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_EEG.pts
-MESH_MNI : Single Mesh
+MESH_MNI : Left/Right Mesh
 EEG_MNI : Scalp EEG
 LH_PAT : 
 RH_PAT : 

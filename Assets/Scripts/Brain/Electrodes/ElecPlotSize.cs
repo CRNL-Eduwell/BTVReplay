@@ -1,10 +1,5 @@
 ﻿using UnityEngine;
-using System;
-using System.IO;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using VLCSharp;
 
 public class ElecPlotSize : MonoBehaviour
 {
@@ -24,8 +19,14 @@ public class ElecPlotSize : MonoBehaviour
     {
         get
         {
-            if (m_plot.atlas.nameFull != null)
-                return m_plot.atlas.nameFull;
+            if (m_plot is Intra_Plot)
+            {
+                Intra_Plot currentPlot = (Intra_Plot)m_plot;
+                if (currentPlot.Atlas.nameFull != "")
+                    return currentPlot.Atlas.nameFull;
+                else
+                    return "";
+            }
             else
                 return "";
         }
@@ -34,8 +35,14 @@ public class ElecPlotSize : MonoBehaviour
     {
         get
         {
-            if (m_plot.atlas.broadman != null)
-                return m_plot.atlas.broadman;
+            if (m_plot is Intra_Plot)
+            {
+                Intra_Plot currentPlot = (Intra_Plot)m_plot;
+                if (currentPlot.Atlas.broadman != "")
+                    return currentPlot.Atlas.broadman;
+                else
+                    return "";
+            }
             else
                 return "";
         }
@@ -54,7 +61,7 @@ public class ElecPlotSize : MonoBehaviour
     optionsHub hub = null;
     VideoPlayer video = null;
     BrainWarden warden = null;
-    ElectrodePlot m_plot = null;
+    object m_plot = null;
     ELAN eHandle = null;
     int bipID = 0;
     int mostRecentSample = 0;
@@ -64,7 +71,7 @@ public class ElecPlotSize : MonoBehaviour
 
     MeshRenderer mySphereRenderer = null;
 
-    public void init(string goName, ElectrodePlot plot)
+    public void init(string goName, object plot)
     {
         hub = GameObject.Find("Canvas").transform.GetChild(0).GetChild(0).GetComponent<optionsHub>();
         warden = GameObject.Find("Canvas").transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<BrainWarden>();
@@ -144,7 +151,7 @@ public class ElecPlotSize : MonoBehaviour
         plotObject.transform.localScale = new Vector3(1, 1, 1);
     }
 
-    public void setPlot(ElectrodePlot plot)
+    public void setPlot(object plot)
     {
         m_plot = plot;
     }

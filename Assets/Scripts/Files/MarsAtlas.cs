@@ -65,28 +65,17 @@ public class MarsAtlas : CppDLLImportBase
         get_electrodes_Atlas(_handle, out electrodes_Atlas, electrodes_Atlas.Length);
     }
 
-    public void findElectrodesWithAtlas(List<Electrode> elecs)
+    public void findElectrodesWithAtlas(List<object> elecs)
     {
         for (int i = 0; i < elecs.Count; i++)
         {
-            for (int j = 0; j < elecs[i].plots.Count; j++)
-            {
-                List<int> idFound = electrodes_Atlas.Select((item, index) => new { Item = item, Index = index })
-                                                 .Where(x => (x.Item.plotName.ToLower() == elecs[i].plots[j].label))
-                                                 .Select(x => x.Index)
-                                                 .ToList();
-                if (idFound.Count > 0)
-                {
-                    elecs[i].plots[j].atlas.plotName = electrodes_Atlas[idFound[0]].plotName;
-                    elecs[i].plots[j].atlas.nameCSV = electrodes_Atlas[idFound[0]].nameCSV;
-                    elecs[i].plots[j].atlas.labelID = electrodes_Atlas[idFound[0]].labelID;
-                    elecs[i].plots[j].atlas.hemi = electrodes_Atlas[idFound[0]].hemi;
-                    elecs[i].plots[j].atlas.lobe = electrodes_Atlas[idFound[0]].lobe;
-                    elecs[i].plots[j].atlas.nameFS = electrodes_Atlas[idFound[0]].nameFS;
-                    elecs[i].plots[j].atlas.nameFull = electrodes_Atlas[idFound[0]].nameFull;
-                    elecs[i].plots[j].atlas.broadman = electrodes_Atlas[idFound[0]].broadman;
-                }
-            }
+            Intra_Plot currentPlot = (Intra_Plot)elecs[i];
+            List<int> idFound = electrodes_Atlas.Select((item, index) => new { Item = item, Index = index })
+                                                .Where(x => (x.Item.plotName.ToLower() == currentPlot.AtlasLabel))
+                                                .Select(x => x.Index)
+                                                .ToList();
+            if (idFound.Count > 0)
+                currentPlot.Atlas = electrodes_Atlas[idFound[0]];
         }
     }
 

@@ -66,7 +66,7 @@ public class Brain : MonoBehaviour {
         Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
         Electrodes.transform.parent = Brain3DHandle.transform;
         ElectrodesScript = Electrodes.GetComponent<Electrodes>();
-        ElectrodesScript.loadPtsFile(brainToLoad.pts);
+        ElectrodesScript.loadPtsFile(brainToLoad.pts, brainToLoad.GetEegTech);
 
         if(brainToLoad.atlasCSV != "")
             ElectrodesScript.loadAtlasData(brainToLoad.atlasCSV);
@@ -85,7 +85,7 @@ public class Brain : MonoBehaviour {
 
     }
 
-    public void loadElectrodesDefault()
+    public void loadElectrodesDefault(eeg_Technology eeg)
     {
         Brain3DHandle = GameObject.Find("BrainGameObject");
 
@@ -99,7 +99,7 @@ public class Brain : MonoBehaviour {
         Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
         Electrodes.transform.parent = Brain3DHandle.transform;
         ElectrodesScript = Electrodes.GetComponent<Electrodes>();
-        ElectrodesScript.loadDefaultPearl(media.elanFiles);
+        ElectrodesScript.loadDefaultPearl(media.elanFiles, eeg);
         ElectrodesScript.loadElecOnBrain();
 
         CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
@@ -213,7 +213,7 @@ public class Brain : MonoBehaviour {
             RHBrain.layer = Brain3DHandle.layer;
         }
 
-        ElectrodesScript.loadPtsFile(brainToLoad.pts);
+        ElectrodesScript.loadPtsFile(brainToLoad.pts, brainToLoad.GetEegTech);
 
         if (brainToLoad.atlasCSV != "")
             ElectrodesScript.loadAtlasData(brainToLoad.atlasCSV);
