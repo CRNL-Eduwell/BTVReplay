@@ -1,9 +1,7 @@
 .vs/
 Library/
-ProjectSettings/
 Temp/
 *.csproj
 *.sln
-*.meta
 *.VC.db
 BTVReplay.csproj.user
