@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EventItem : Tools.Item<TraceEvent>
+public class EventItem : Tools.SelectableItem<TraceEvent>
 {
     #region Properties
     [SerializeField] private Button m_time = null;
     [SerializeField] private Text m_comment = null;
     [SerializeField] private Text m_code = null;
+    private VideoPlayer m_video = null;
 
     public override TraceEvent Object
     {
@@ -24,12 +25,10 @@ public class EventItem : Tools.Item<TraceEvent>
     }
     #endregion
 
-    private VideoPlayer v = null;
-
     #region Private Methods
-    private void Awake()
+    private void Start()
     {
-        v = GameObject.Find("PanelR").GetComponent<VideoPlayer>();
+        m_video = GameObject.Find("PanelR").GetComponent<VideoPlayer>();
     }
 
     private void OnDestroy()
@@ -51,7 +50,7 @@ public class EventItem : Tools.Item<TraceEvent>
         else
             m_time.transform.GetChild(0).GetComponent<Text>().text = "00:" + m + ":" + s;
 
-        m_time.onClick.AddListener(() => v.setTime(timeInSec * 1000));
+        m_time.onClick.AddListener(() => m_video.setTime(timeInSec * 1000));
 
         m_comment.text = base.Object.comment;
         m_code.text = base.Object.code.ToString();

@@ -43,7 +43,7 @@ public class eventsOptions : MonoBehaviour
 
     Image activateEventPic = null, showEventPic = null;
     Transform panelContent = null;
-    Button saveEvents = null, loadEvents = null, activateEventsButton = null, showEventsButton = null;
+    Button saveEvents = null, loadEvents = null, activateEventsButton = null, showEventsButton = null, deleteEventsButton = null;
     Sprite startEventPic = null, stopEventPic = null;
     Sprite showEventSprite = null, hideEventSprite = null;
 
@@ -79,6 +79,7 @@ public class eventsOptions : MonoBehaviour
         saveEvents = button.optionsPanel.transform.GetChild(0).GetChild(1).GetComponent<Button>();
         activateEventsButton = button.optionsPanel.transform.GetChild(0).GetChild(2).GetComponent<Button>();
         showEventsButton = button.optionsPanel.transform.GetChild(0).GetChild(3).GetComponent<Button>();
+        deleteEventsButton = button.optionsPanel.transform.GetChild(0).GetChild(4).GetComponent<Button>();
 
         activateEventPic = activateEventsButton.transform.GetComponent<Image>();
         showEventPic = showEventsButton.transform.GetComponent<Image>();
@@ -88,6 +89,17 @@ public class eventsOptions : MonoBehaviour
         showEventsButton.onClick.AddListener(showEventsMode);
         saveEvents.onClick.AddListener(saveEventsList);
         loadEvents.onClick.AddListener(loadEventList);
+        deleteEventsButton.onClick.AddListener(() =>
+        {
+            ApplicationState.displayConfirmation("Deleting Notes", "You are going to delete " + list.ObjectsSelected.Length + " Notes, are you sure ? ",
+            () =>
+            {
+                for (int i = list.ObjectsSelected.Length - 1; i >= 0; i--)
+                    deleteEvents(list.ObjectsSelected[i], 0);
+            },
+            () => { });
+        });
+
         win1.eventWasClicked += new eventsClickedHandler(openEventAddUI);
         win1.EventsEeg.eventsToDisplay += new eventsToDisplay(openEventDisplayUI);
         win1.EventsEeg.eventsToDelete += new eventsToDelete(deleteEvents);
@@ -96,6 +108,7 @@ public class eventsOptions : MonoBehaviour
         win2.EventsEeg.eventsToDelete += new eventsToDelete(deleteEvents);
 
         dataTexScroll = scrollTex.GetPixels();
+        list.Initialize();
     }
 
     void Update()
@@ -113,6 +126,8 @@ public class eventsOptions : MonoBehaviour
         showEventsButton.onClick.RemoveAllListeners();
         saveEvents.onClick.RemoveAllListeners();
         loadEvents.onClick.RemoveAllListeners();
+        deleteEventsButton.onClick.RemoveAllListeners();
+
         win1.eventWasClicked += new eventsClickedHandler(openEventAddUI);
         win1.EventsEeg.eventsToDisplay += new eventsToDisplay(openEventDisplayUI);
         win1.EventsEeg.eventsToDelete += new eventsToDelete(deleteEvents);
