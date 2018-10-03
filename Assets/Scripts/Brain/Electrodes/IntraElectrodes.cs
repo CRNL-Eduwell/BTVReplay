@@ -133,9 +133,9 @@ public class IntraElectrodes : MonoBehaviour, IElectrodes
             for (int j = 0; j < electrodes[i].Plots.Count; j++)
             {
                 /********************** /!\Axe x de unity inversé /!\ **********************/
-                electrodes[i].Plots[j].Coordinates.Set(-electrodes[i].Plots[j].Coordinates.x,
-                                                        electrodes[i].Plots[j].Coordinates.y,
-                                                        electrodes[i].Plots[j].Coordinates.z);
+                electrodes[i].Plots[j].Coordinates = new Vector3(-electrodes[i].Plots[j].Coordinates.x,
+                                                                  electrodes[i].Plots[j].Coordinates.y,
+                                                                  electrodes[i].Plots[j].Coordinates.z);
                 /***************************************************************************/
 
                 GameObject currentElecPlot = Instantiate(ElecPlot, electrodes[i].Plots[j].Coordinates, Quaternion.identity);
