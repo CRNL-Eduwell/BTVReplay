@@ -177,9 +177,9 @@ public class VideoPlayer : MonoBehaviour
                 if (m_slaved && !m_forceMove)
                 {
                     if (_Iplayer.currentTime > m_timeClick + 2000)
-                        setTime((int)m_timeClick - 2000);
+                        setTime((int)Math.Max(0, m_timeClick - 2000));
                     if (_Iplayer.currentTime < m_timeClick - 2000)
-                        setTime((int)m_timeClick + 2000);
+                        setTime((int)Math.Min(_Iplayer.totalVideoTime, m_timeClick + 2000));
                 }
                 updateScrollBarPosition();
                 updateTimeText();
