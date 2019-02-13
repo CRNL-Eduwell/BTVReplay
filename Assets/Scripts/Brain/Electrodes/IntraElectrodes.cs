@@ -157,7 +157,7 @@ public class IntraElectrodes : MonoBehaviour, IElectrodes
             Transform currentElecTransform = childTransform.Find(currentPlot.Label);
             if (currentElecTransform != null)
             {
-                currentElecTransform.localPosition = new Vector3(currentPlot.Coordinates.x, currentPlot.Coordinates.y, currentPlot.Coordinates.z);
+                currentElecTransform.localPosition = new Vector3(-currentPlot.Coordinates.x, currentPlot.Coordinates.y, currentPlot.Coordinates.z);
                 currentElecTransform.GetComponent<ElecPlotSize>().setPlot(electrodes[i]);
             }
         }
