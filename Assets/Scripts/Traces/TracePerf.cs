@@ -156,7 +156,7 @@ public class TracePerf : MonoBehaviour
 
     void UpdateSpawn(int milliSecToLook)
     {
-        int leftTime = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - curveTrace1.TraceEeg.numberOfPoint;
+        int leftTime = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - numberPoint;
         int rightTime = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
 
         List<int> currentIndex = media.posFile.Triggers.Select((item, index) => new { Item = item, Index = index })
@@ -178,7 +178,7 @@ public class TracePerf : MonoBehaviour
                     perfLine[currentIndex[i]].transform.GetComponent<LineRenderer>().SetPosition(0, new Vector3(positionInsideRect, 5, -2));
 
                     float value = verticalScale * (media.posFile.Triggers[currentIndex[i]].rtMs() - 750);
-                    perfLine[currentIndex[i]].transform.GetComponent<LineRenderer>().SetPosition(1, new Vector3(positionInsideRect, value, -2));
+                    perfLine[currentIndex[i]].transform.GetComponent<LineRenderer>().SetPosition(1, new Vector3(positionInsideRect, Mathf.Abs(value), -2));
                 }
             }
         }

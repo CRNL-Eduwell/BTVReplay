@@ -150,7 +150,7 @@ public class trigg
     #region Public Methods
     public int rtMs(int samplingFreq)
     {
-        return m_rtMs = ((rtSample / samplingFreq) * 1000);
+        return m_rtMs = (int)(((float)rtSample / samplingFreq) * 1000);
     }
 
     public int rtMs()
