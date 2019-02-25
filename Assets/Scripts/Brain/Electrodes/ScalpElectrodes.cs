@@ -1,9 +1,8 @@
 ﻿using System.IO;                    //Stream/BinaryReader
-using UnityEngine;
-using System.Collections.Generic;   //List<T>
-using System.Text.RegularExpressions;
 using System.Linq;
-using System.Text;
+using System.Collections.Generic;   //List<T>
+using UnityEngine;
+using BrainTV.Tools.NumberExtensions;
 
 public class ScalpElectrodes : MonoBehaviour, IElectrodes
 {
@@ -53,9 +52,9 @@ public class ScalpElectrodes : MonoBehaviour, IElectrodes
                 if (split.Length >= 3)
                 {
                     string plot = split.GetValue(0).ToString().ToLower();
-                    float x = float.Parse(split.GetValue(1).ToString());
-                    float y = float.Parse(split.GetValue(2).ToString());
-                    float z = float.Parse(split.GetValue(3).ToString());
+                    split.GetValue(1).ToString().TryParseFloat(out float x);
+                    split.GetValue(2).ToString().TryParseFloat(out float y);
+                    split.GetValue(3).ToString().TryParseFloat(out float z);
 
                     electrodes.Add(new EEG_Plot(plot, new Vector3(x, y, z)));
                 }
