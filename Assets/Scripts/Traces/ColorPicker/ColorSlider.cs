@@ -22,6 +22,7 @@ public class ColorSlider : MonoBehaviour
         inputfield = transform.GetChild(2).GetComponent<InputField>();
 
         scrollbar.value = ((float)int.Parse(inputfield.text) / 255);
+        memoryScrollBar = (int)(scrollbar.value * 255);
 
         scrollbar.onValueChanged.AddListener(checkValueScrollBar);
         inputfield.onEndEdit.AddListener(checkValueInputField);

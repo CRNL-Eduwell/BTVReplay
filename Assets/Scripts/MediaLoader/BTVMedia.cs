@@ -1,223 +1,24 @@
 ﻿using System;
-using System.IO;
-using System.Collections.Generic;
+using System.Collections; //IEnumerator
+
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-using System.Collections; //IEnumerator
 using CielaSpike;
-using System.Diagnostics; //stopwatch
-
-public class Patient
-{
-    #region members
-    public string lhemi_MNI = "";
-    public string rhemi_MNI = "";
-    public string pts_MNI = "";
-
-    public string lhemi_PAT = "";
-    public string rhemi_PAT = "";
-    public string pts_PAT = "";
-
-    public string sm0 = "";
-    public string sm250 = "";
-    public string sm500 = "";
-    public string sm1000 = "";
-    public string sm2500 = "";
-    public string sm5000 = "";
-
-    public string pos = "";
-    public string prov = "";
-    public string video = "";
-
-    public string patientName = "";
-    #endregion
-
-    public Patient()
-    {
-
-    }
-
-    public Patient(Patient thisPat)
-    {
-        lhemi_MNI = thisPat.lhemi_MNI;
-        rhemi_MNI = thisPat.rhemi_MNI;
-        pts_MNI = thisPat.pts_MNI;
-
-        lhemi_PAT = thisPat.lhemi_PAT;
-        rhemi_PAT = thisPat.rhemi_PAT;
-        pts_PAT = thisPat.pts_PAT;
-
-        sm0 = thisPat.sm0;
-        sm250 = thisPat.sm250;
-        sm500 = thisPat.sm500;
-        sm1000 = thisPat.sm1000;
-        sm2500 = thisPat.sm2500;
-        sm5000 = thisPat.sm5000;
-
-        pos = thisPat.pos;
-        prov = thisPat.prov;
-        video = thisPat.video;
-    }
-
-    public void loadValue(int val, string[] data)
-    {
-        switch (val)
-        {
-            case 0: if (data.Length > 1) lhemi_MNI = data[1]; break;
-            case 1: if (data.Length > 1) rhemi_MNI = data[1]; break;
-            case 2: if (data.Length > 1) pts_MNI = data[1]; break;
-            case 3: if (data.Length > 1) lhemi_PAT = data[1]; break;
-            case 4: if (data.Length > 1) rhemi_PAT = data[1]; break;
-            case 5: if (data.Length > 1) pts_PAT = data[1]; break;
-            case 6: if (data.Length > 1) sm0 = data[1]; break;
-            case 7: if (data.Length > 1) sm250 = data[1]; break;
-            case 8: if (data.Length > 1) sm500 = data[1]; break;
-            case 9: if (data.Length > 1) sm1000 = data[1]; break;
-            case 10: if (data.Length > 1) sm2500 = data[1]; break;
-            case 11: if (data.Length > 1) sm5000 = data[1]; break;
-            case 12: if (data.Length > 1) pos = data[1]; break;
-            case 13: if (data.Length > 1) prov = data[1]; break;
-            case 14: if (data.Length > 1) video = data[1]; break;
-            default: UnityEngine.Debug.LogError("Problem with patients file"); break;
-        }
-    }
-
-    public void CopyValues(Patient thisPat)
-    {
-        lhemi_MNI = thisPat.lhemi_MNI;
-        rhemi_MNI = thisPat.rhemi_MNI;
-        pts_MNI = thisPat.pts_MNI;
-
-        lhemi_PAT = thisPat.lhemi_PAT;
-        rhemi_PAT = thisPat.rhemi_PAT;
-        pts_PAT = thisPat.pts_PAT;
-
-        sm0 = thisPat.sm0;
-        sm250 = thisPat.sm250;
-        sm500 = thisPat.sm500;
-        sm1000 = thisPat.sm1000;
-        sm2500 = thisPat.sm2500;
-        sm5000 = thisPat.sm5000;
-
-        pos = thisPat.pos;
-        prov = thisPat.prov;
-        video = thisPat.video;
-    }
-}
-
-public class PatientManager
-{
-    public List<Patient> currentPatients = new List<Patient>();
-    public int idCurrentPatientLoaded = 0;
-    string pathFile { get { return Application.dataPath + @"/Config/PatientBase/PatientReplay.txt"; } }
-    string pathBUFile { get { return Application.dataPath + @"/Config/PatientBase/PatientReplayBU.txt"; } }
-
-    public void SaveList()
-    {
-        File.Copy(pathFile, pathBUFile, true);
-
-        try
-        {
-            using (StreamWriter sw = new StreamWriter(pathFile))
-            {
-                for (int i = 0; i < currentPatients.Count; i++)
-                {
-                    sw.WriteLine("LH_MNI : " + currentPatients[i].lhemi_MNI);
-                    sw.WriteLine("RH_MNI : " + currentPatients[i].rhemi_MNI);
-                    sw.WriteLine("PTS_MNI : " + currentPatients[i].pts_MNI);
-                    sw.WriteLine("LH_PAT : " + currentPatients[i].lhemi_MNI);
-                    sw.WriteLine("RH_PAT : " + currentPatients[i].rhemi_MNI);
-                    sw.WriteLine("PTS_PAT : " + currentPatients[i].pts_MNI);
-                    sw.WriteLine("SM0 : " + currentPatients[i].sm0);
-                    sw.WriteLine("SM250 : " + currentPatients[i].sm250);
-                    sw.WriteLine("SM500 : " + currentPatients[i].sm500);
-                    sw.WriteLine("SM1000 : " + currentPatients[i].sm1000);
-                    sw.WriteLine("SM2500 : " + currentPatients[i].sm2500);
-                    sw.WriteLine("SM5000 : " + currentPatients[i].sm5000);
-                    sw.WriteLine("POS : " + currentPatients[i].pos);
-                    sw.WriteLine("PROV : " + currentPatients[i].prov);
-                    sw.WriteLine("VID : " + currentPatients[i].video);
-                    sw.WriteLine("[----------]");
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Error writing file", e.ToString());
-        }
-    }
-
-    public void LoadList(bool backUp)
-    {
-        List<int> indexToLook = new List<int> { 6, 7, 8, 9, 10, 11 };
-        bool nameFound = false;
-
-        string fileToLoad = pathFile;
-
-        try
-        {
-            if (currentPatients.Count > 0)
-                currentPatients = new List<Patient>();
-
-            if (backUp)
-                fileToLoad = pathBUFile;
-
-            using (StreamReader sr = new StreamReader(fileToLoad))
-            {
-                string[] fileSplited = sr.ReadToEnd().Split(new string[] { "[----------]" }, StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < fileSplited.Length - 1; i++)   // -1 because of last line jump
-                {
-                    Patient currentPat = new Patient();
-                    string[] currentPatSplit = fileSplited[i].Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    for (int j = 0; j < currentPatSplit.Length; j++)
-                    {
-                        string[] splitPath = currentPatSplit[j].Split(new string[] { " : " }, StringSplitOptions.RemoveEmptyEntries);
-                        if (indexToLook.IndexOf(j) != -1 && splitPath.Length > 1 && splitPath[1] != "" && nameFound == false)
-                        {
-                            string[] namesplit = splitPath[1].Split(new string[] { @"\", "/" }, StringSplitOptions.RemoveEmptyEntries);
-                            currentPat.patientName = namesplit[namesplit.Length - 2];
-                            nameFound = true;
-                        }
-                        currentPat.loadValue(j, splitPath);
-                    }
-
-                    currentPatients.Add(currentPat);
-                    nameFound = false;
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Error Reading file", e.ToString());
-        }
-    }
-
-    public void addPat(Patient thisPatient)
-    {
-        currentPatients.Add(new Patient(thisPatient));
-    }
-
-    public void removePatientAt(int index)
-    {
-        if (currentPatients.Count > 0)
-        {
-            currentPatients.Remove(currentPatients[index]);
-        }
-    }
-}
 
 public delegate void mediaLoadedEventHandler();
-public delegate void mniBrainLoadEventHandler(string lhemi, string rhemi, string pts);
+public delegate void BrainLoadEventHandler(brain_anat brainToLoad, int otherBrain);
+public delegate void BrainNotPresentLoadEventHandler(eeg_Technology eeg);
 public delegate void initTrace();
-public delegate void initVideo(string videoPath, int sampFreq, int totalFileDuration);
+public delegate void initVideo(string videoPath, int totalFileDuration);
 public delegate void initPerf(bool init);
 
 public class BTVMedia : MonoBehaviour
 {
     public event mediaLoadedEventHandler mediaLoaded;
-    public event mniBrainLoadEventHandler loadMniBrain;
+    public event BrainLoadEventHandler loadBrain;
+    public event BrainNotPresentLoadEventHandler loadDefault;
     public event initTrace loadTrace;
     public event initVideo loadVideo;
     public event initPerf loadPerf;
@@ -228,7 +29,10 @@ public class BTVMedia : MonoBehaviour
     #endregion
 
     #region UIMembers
-    private Button addPatient = null;           /*||*/     private Button loadThisPat = null;
+    private Button showAddPanel = null;
+    private Image showAddPic = null;
+    private PatientGUIManager addPatientPanel = null; // private Transform addPatientPanel = null;
+    private Button addPatient = null;           
     //===
     private Transform patientContent = null;    /*||*/
     private GameObject patientTemplate = null;  /*||*/
@@ -238,13 +42,11 @@ public class BTVMedia : MonoBehaviour
     #endregion
 
     #region members
-    public PatientManager pm = new PatientManager();
+    public DBManager pm = new DBManager();
     public POS posFile = null;
     public ELAN[] elanFiles = new ELAN[6];
     public PROV provFile = null;
-    public WawReader audioReader = null;
     public bool loaded = false;
-
     #endregion
 
     void Awake()
@@ -253,28 +55,57 @@ public class BTVMedia : MonoBehaviour
         patDetailTemplate = Resources.Load("Prefabs/Media-InfoPatient", typeof(GameObject)) as GameObject;
 
         #region getObjectFromScene
-        addPatient = gameObject.transform.GetChild(0).GetChild(3).GetChild(0).GetComponent<Button>();
-        loadThisPat = gameObject.transform.GetChild(0).GetChild(3).GetChild(1).GetComponent<Button>();
+        showAddPanel = gameObject.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<Button>();
+        showAddPic = showAddPanel.gameObject.GetComponent<Image>();
+        addPatientPanel = gameObject.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<PatientGUIManager>();
+        addPatient = gameObject.transform.GetChild(0).GetChild(1).GetChild(0).GetChild(3).GetChild(0).GetComponent<Button>(); // 0 1 0
 
-        patientContent = gameObject.transform.GetChild(0).GetChild(4).GetChild(1).GetChild(0).GetChild(0).GetChild(0);
-        saveBase = gameObject.transform.GetChild(0).GetChild(4).GetChild(2).GetComponent<Button>();
-        loadBase = gameObject.transform.GetChild(0).GetChild(4).GetChild(3).GetComponent<Button>();
-        loadBUBase = gameObject.transform.GetChild(0).GetChild(4).GetChild(4).GetComponent<Button>();
+        patientContent = gameObject.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetChild(0);
+        saveBase = gameObject.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(2).GetChild(0).GetComponent<Button>();
+        loadBase = gameObject.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(2).GetChild(1).GetComponent<Button>();
+        loadBUBase = gameObject.transform.GetChild(0).GetChild(1).GetChild(1).GetChild(2).GetChild(2).GetComponent<Button>();
         #endregion
 
         #region addListener
+        showAddPanel.onClick.AddListener(() => 
+        {
+            addPatientPanel.transform.gameObject.SetActive(!addPatientPanel.transform.gameObject.activeSelf);
+            if (addPatientPanel.transform.gameObject.activeSelf)
+            {
+                showAddPic.transform.Rotate(new Vector3(0, 0, -90));
+            }
+            else
+            {
+                showAddPic.transform.Rotate(new Vector3(0, 0, 90));
+            }
+        });
         addPatient.onClick.AddListener(() => { addPatientToDB(); });
-        loadThisPat.onClick.AddListener(() => { loadPatientGUI(); });
         saveBase.onClick.AddListener(() => { SaveDB(); });
-        loadBase.onClick.AddListener(() => { pm.LoadList(false); InstantiateDB(); });
-        loadBUBase.onClick.AddListener(() => { pm.LoadList(true); InstantiateDB(); });
+        loadBase.onClick.AddListener(() => 
+        {
+            string bddFilePath = QtGUI_dll.Instance.getOpenFileName(new string[] { "txt" }, "Select a bdd file", Application.dataPath + @"/Config/PatientBase");
+            if (bddFilePath != "")
+            {
+                pm.LoadList(false, bddFilePath);
+                InstantiateDB();
+            }
+        });
+        loadBUBase.onClick.AddListener(() => 
+        {
+            string bddFilePath = QtGUI_dll.Instance.getOpenFileName(new string[] { "txt" }, "Select a bdd backup file", Application.dataPath + @"/Config/PatientBase");
+            if (bddFilePath != "")
+            {
+                pm.LoadList(true, bddFilePath);
+                InstantiateDB();
+            }
+        });
         #endregion
     }
 
     void OnDestroy()
     {
+        showAddPanel.onClick.RemoveAllListeners();
         addPatient.onClick.RemoveAllListeners();
-        loadThisPat.onClick.RemoveAllListeners();
         saveBase.onClick.RemoveAllListeners();
         loadBase.onClick.RemoveAllListeners();
         loadBUBase.onClick.RemoveAllListeners();
@@ -305,7 +136,7 @@ public class BTVMedia : MonoBehaviour
         if (gameObject.activeSelf)
         {
             gameObject.SetActive(false);
-            setPatientGUI(gameObject.transform.GetChild(0).gameObject, new Patient());
+            addPatientPanel.setPatientGUI(new Patient());
         }
         else
         {
@@ -315,28 +146,36 @@ public class BTVMedia : MonoBehaviour
 
     void addPatientToDB()
     {
-        pm.addPat(getPatientGUI(gameObject.transform.GetChild(0).gameObject));
-        pm.SaveList();
-        pm.LoadList(false);
-        InstantiateDB();
+        pm.addPat(addPatientPanel.getPatientGUI());
+        if (patientContent.childCount == 0)
+            InstantiateDB();
+        else
+            loadOnePatient(pm.currentPatients.Count - 1); 
     }
 
     void loadPatientGUI()
     {
-        loadMedia(getPatientGUI(gameObject.transform.GetChild(0).gameObject));
+        loadMedia(addPatientPanel.getPatientGUI());
     }
 
     void SaveDB()
     {
-        for (int i = 0; i < patientContent.childCount; i += 2)
+        if (patientContent.childCount > 0)
         {
-            Patient currentPat = getPatientGUI(patientContent.transform.GetChild(i + 1).gameObject);
-            pm.currentPatients[i / 2] = currentPat;
-        }
+            for (int i = 0; i < patientContent.childCount; i += 2)
+            {
+                PatientGUIManager guiPat = patientContent.transform.GetChild(i + 1).GetComponent<PatientGUIManager>();
+                pm.currentPatients[i / 2] = guiPat.getPatientGUI();
+            }
 
-        pm.SaveList();
-        pm.LoadList(false);
-        InstantiateDB();
+            string bddFilePath = QtGUI_dll.Instance.getSaveFileName(new string[] { "txt" }, "Save to a bdd File", Application.dataPath + @"/Config/PatientBase");
+            if (bddFilePath != "")
+            {
+                pm.SaveList(bddFilePath);
+                pm.LoadList(false, bddFilePath);
+                InstantiateDB();
+            }
+        }
     }
 
     void InstantiateDB()
@@ -348,20 +187,23 @@ public class BTVMedia : MonoBehaviour
         }
 
         for (int i = 0; i < pm.currentPatients.Count; i++)
-        {
-            GameObject currentPat = Instantiate(patientTemplate);
-            GameObject currentDetails = Instantiate(patDetailTemplate);
-            currentPat.name = "pat" + i;
-            currentPat.transform.SetParent(patientContent);
-            currentPat.transform.localScale = new Vector3(1, 1, 1);
-            currentDetails.name = "patDetails" + i;
-            currentDetails.transform.SetParent(patientContent);
-            currentDetails.transform.localScale = new Vector3(1, 1, 1);
-            currentDetails.SetActive(true);
-            currentDetails.SetActive(false);
+            loadOnePatient(i);
+    }
 
-            loadDataOnePatient(currentPat, currentDetails, i);
-        }
+    void loadOnePatient(int currentID)
+    {
+        GameObject currentPat = Instantiate(patientTemplate);
+        GameObject currentDetails = Instantiate(patDetailTemplate);
+        currentPat.name = "pat" + currentID;
+        currentPat.transform.SetParent(patientContent);
+        currentPat.transform.localScale = new Vector3(1, 1, 1);
+        currentDetails.name = "patDetails" + currentID;
+        currentDetails.transform.SetParent(patientContent);
+        currentDetails.transform.localScale = new Vector3(1, 1, 1);
+        currentDetails.SetActive(true);
+        currentDetails.SetActive(false);
+
+        loadDataOnePatient(currentPat, currentDetails, currentID);
     }
 
     void loadDataOnePatient(GameObject patientBar, GameObject patientDetails, int idPat)
@@ -405,61 +247,13 @@ public class BTVMedia : MonoBehaviour
 
         deleteMe.onClick.AddListener(() =>
         {
-            pm.removePatientAt(idPat);
-            pm.SaveList();
-            InstantiateDB();
+            ApplicationState.displayConfirmation("Deleting Patient", "Are You Sure You Want To Delete This Patient From The Base ?",
+                () => { pm.removePatientAt(idPat); InstantiateDB(); },
+                () => { });
         });
         #endregion
 
-        setPatientGUI(patientDetails, pm.currentPatients[idPat]);
-    }
-
-    void setPatientGUI(GameObject patientDetails, Patient myPat)
-    {
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.lhemi_MNI;
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.rhemi_MNI;
-        patientDetails.transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.pts_MNI;
-
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.lhemi_PAT;
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.rhemi_PAT;
-        patientDetails.transform.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.pts_PAT;
-
-        patientDetails.transform.GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.sm0;
-        patientDetails.transform.GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.sm250;
-        patientDetails.transform.GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text = myPat.sm500;
-        patientDetails.transform.GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text = myPat.sm1000;
-        patientDetails.transform.GetChild(1).GetChild(5).GetComponent<browseButton>().inputfield.text = myPat.sm2500;
-        patientDetails.transform.GetChild(1).GetChild(6).GetComponent<browseButton>().inputfield.text = myPat.sm5000;
-
-        patientDetails.transform.GetChild(2).GetChild(1).GetComponent<browseButton>().inputfield.text = myPat.pos;
-        patientDetails.transform.GetChild(2).GetChild(2).GetComponent<browseButton>().inputfield.text = myPat.prov;
-        patientDetails.transform.GetChild(2).GetChild(4).GetComponent<browseButton>().inputfield.text = myPat.video;
-    }
-
-    public Patient getPatientGUI(GameObject rootUI)
-    {
-        Patient myPat = new Patient();
-
-        myPat.lhemi_MNI = rootUI.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.rhemi_MNI = rootUI.transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.pts_MNI = rootUI.transform.GetChild(0).GetChild(0).GetChild(3).GetComponent<browseButton>().inputfield.text;
-
-        myPat.lhemi_PAT = rootUI.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.rhemi_PAT = rootUI.transform.GetChild(0).GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.pts_PAT = rootUI.transform.GetChild(0).GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text;
-
-        myPat.sm0 = rootUI.transform.GetChild(1).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.sm250 = rootUI.transform.GetChild(1).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.sm500 = rootUI.transform.GetChild(1).GetChild(3).GetComponent<browseButton>().inputfield.text;
-        myPat.sm1000 = rootUI.transform.GetChild(1).GetChild(4).GetComponent<browseButton>().inputfield.text;
-        myPat.sm2500 = rootUI.transform.GetChild(1).GetChild(5).GetComponent<browseButton>().inputfield.text;
-        myPat.sm5000 = rootUI.transform.GetChild(1).GetChild(6).GetComponent<browseButton>().inputfield.text;
-
-        myPat.pos = rootUI.transform.GetChild(2).GetChild(1).GetComponent<browseButton>().inputfield.text;
-        myPat.prov = rootUI.transform.GetChild(2).GetChild(2).GetComponent<browseButton>().inputfield.text;
-        myPat.video = rootUI.transform.GetChild(2).GetChild(4).GetComponent<browseButton>().inputfield.text;
-
-        return myPat;
+        patientDetails.GetComponent<PatientGUIManager>().setPatientGUI(pm.currentPatients[idPat]);
     }
 
     public void loadMedia(Patient myPat)
@@ -476,13 +270,29 @@ public class BTVMedia : MonoBehaviour
         //So we jump back to unity just in case
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadEEGFile(myPat));
-
         mediaLoaded();
 
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadVideo(myPat.video));
 
-        loadMniBrain(myPat.lhemi_MNI, myPat.rhemi_MNI, myPat.pts_MNI);
+
+        if (myPat.hasMNI && !myPat.hasPAT)
+        {
+            loadBrain(myPat.mni, 0);
+        }
+        else if (myPat.hasMNI && myPat.hasPAT)
+        {
+            loadBrain(myPat.mni, 1);
+        }
+        else if (!myPat.hasMNI && myPat.hasPAT)
+        {
+            loadBrain(myPat.pat, 2);
+        }
+        else if (!myPat.hasMNI && !myPat.hasPAT)
+        {
+            loadDefault(myPat.mni.GetEegTech);
+        }
+
         loadTrace();
 
         yield return Ninja.JumpToUnity;
@@ -492,6 +302,9 @@ public class BTVMedia : MonoBehaviour
         loadingCircle.Close();
         gameObject.SetActive(false);
         loaded = true;
+        Text PatientNameHeader = GameObject.Find("HeaderDisplay").transform.GetChild(0).GetComponent<Text>();
+        PatientNameHeader.text = myPat.patientName;
+        ApplicationState.init();
         yield return new WaitForSeconds(0.1f);
     }
 
@@ -504,32 +317,32 @@ public class BTVMedia : MonoBehaviour
         loadingCircle.Set(0, "Finding files");
         loadingCircle.Set(0.1f, "Loading File 1");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm0, r => elanFiles[0] = r);
+        yield return Process(myPat.smFiles[0], r => elanFiles[0] = r);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.2f, "Loading File 2");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm250, r => elanFiles[1] = r);
+        yield return Process(myPat.smFiles[1], r => elanFiles[1] = r);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.4f, "Loading File 3");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm500, r => elanFiles[2] = r);
+        yield return Process(myPat.smFiles[2], r => elanFiles[2] = r);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.6f, "Loading File 4");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm1000, r => elanFiles[3] = r);
+        yield return Process(myPat.smFiles[3], r => elanFiles[3] = r);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.8f, "Loading File 5");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm2500, r => elanFiles[4] = r);
+        yield return Process(myPat.smFiles[4], r => elanFiles[4] = r);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(1.0f, "Loading File 6");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.sm5000, r => elanFiles[5] = r);
+        yield return Process(myPat.smFiles[5], r => elanFiles[5] = r);
         yield return Ninja.JumpToUnity;
     }
 
@@ -546,36 +359,9 @@ public class BTVMedia : MonoBehaviour
         float sampFreq = ELAN.getSamplingFreq(elanFiles);
         int id = ELAN.returnFirstValidHandleId(elanFiles);
         long totalDuration = ELAN.getTotalFileDuration(elanFiles[id]);
-        loadVideo(videoPath, (int)sampFreq, (int)totalDuration);
+        loadVideo(videoPath, (int)totalDuration);
 
-        //load audio
-        string[] videoPathSplit = videoPath.Split('.');
-        string audioPath = videoPath.Replace("." + videoPathSplit[videoPathSplit.Length - 1], ".wav");
-
-        if (new FileInfo(audioPath).Exists == false)
-        {
-            yield return Ninja.JumpBack;
-            yield return PrepareAudio(audioPath, videoPath);
-            yield return Ninja.JumpToUnity;
-        }
-        yield return Ninja.JumpBack;
-        yield return ProcessAudio(audioPath, sampFreq, rr => audioReader = rr);
-        yield return Ninja.JumpToUnity; //recomm si jamais
         yield return null;
-    }
-
-    YieldInstruction PrepareAudio(string audioPath, string videoPath)
-    {
-        // I give my callback to the process
-        // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(WawReader.c_extractAudio(audioPath, videoPath));
-    }
-
-    YieldInstruction ProcessAudio(string filePath, float sampFreq, Action<WawReader> resultCB)
-    {
-        // I give my callback to the process
-        // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(WawReader.c_loadAudioFile(filePath, sampFreq, resultCB));
     }
 
     IEnumerator c_loadPOSandPROV(Patient myPat)
@@ -614,25 +400,27 @@ public class BTVMedia : MonoBehaviour
 
         ReloadMedia r = reloadGameObject.GetComponent<ReloadMedia>();
 
-        r.lhemi_MNI = myPat.lhemi_MNI;
-        r.rhemi_MNI = myPat.rhemi_MNI;
-        r.pts_MNI = myPat.pts_MNI;
+        r.lhemi_MNI = myPat.mni.lhemi;
+        r.rhemi_MNI = myPat.mni.rhemi;
+        r.pts_MNI = myPat.mni.pts;
 
-        r.lhemi_PAT = myPat.lhemi_PAT;
-        r.rhemi_PAT = myPat.rhemi_PAT;
-        r.pts_PAT = myPat.pts_PAT;
+        r.lhemi_PAT = myPat.pat.lhemi;
+        r.rhemi_PAT = myPat.pat.rhemi;
+        r.pts_PAT = myPat.pat.pts;
+        r.atlas_PAT = myPat.pat.atlasCSV;
 
-        r.sm0 = myPat.sm0;
-        r.sm250 = myPat.sm250;
-        r.sm500 = myPat.sm500;
-        r.sm1000 = myPat.sm1000;
-        r.sm2500 = myPat.sm2500;
-        r.sm5000 = myPat.sm5000;
+        r.sm0 = myPat.smFiles[0];
+        r.sm250 = myPat.smFiles[1];
+        r.sm500 = myPat.smFiles[2];
+        r.sm1000 = myPat.smFiles[3];
+        r.sm2500 = myPat.smFiles[4];
+        r.sm5000 = myPat.smFiles[5];
 
         r.pos = myPat.pos;
         r.prov = myPat.prov;
         r.video = myPat.video;
         r.id = pm.idCurrentPatientLoaded;
+        r.path = pm.pathFile;
 
         SceneManager.LoadScene("_main");
     }

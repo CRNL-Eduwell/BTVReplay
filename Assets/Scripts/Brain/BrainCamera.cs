@@ -5,9 +5,9 @@ using UnityEngine;
 public class BrainCamera : MonoBehaviour
 {
     GameObject Brain3DHandle = null;
+    BrainWarden warden = null;
     Vector3 target, originalTarget;
-    Material BaseMaterialTransparency = null;
-    MeshRenderer[] brainRenderer = null;
+
     //=====================
     public float distance = 250.0f;
     public float speed = 5.0f;
@@ -20,10 +20,7 @@ public class BrainCamera : MonoBehaviour
     public void initCameraPosition()
     {
         Brain3DHandle = GameObject.Find("BrainGameObject");
-        BaseMaterialTransparency = Resources.Load("Materials/Brain-TransparencyStencil", typeof(Material)) as Material;
-        brainRenderer = Brain3DHandle.transform.GetComponentsInChildren<MeshRenderer>();
-        brainRenderer[0].GetComponent<Renderer>().material = Instantiate(BaseMaterialTransparency);
-        brainRenderer[1].GetComponent<Renderer>().material = Instantiate(BaseMaterialTransparency);
+        warden = GameObject.Find("BrainWindow").GetComponent<BrainWarden>();
 
         //== Check parameters integrity
         if (distance < minDistance)
@@ -52,7 +49,7 @@ public class BrainCamera : MonoBehaviour
             distance = maxDistance;
 
         Brain3DHandle.transform.position += new Vector3(-1000, 0, 0);        // degage le cerveau du canvas et est uniquement rendu par la cam 
-        //Brain3DHandle.transform.Rotate(new Vector3(270, 0, 0));
+        Brain3DHandle.transform.Rotate(new Vector3(270, 0, 0));
         target = Brain3DHandle.transform.position;
         originalTarget = target;
 
@@ -79,14 +76,17 @@ public class BrainCamera : MonoBehaviour
     /// </summary>
     protected void OnGUI()
     {
-        // zoom scroll mouse
-        Vector2 scrollDelta = Input.mouseScrollDelta;
-        if (scrollDelta.y != 0)
+        if (warden != null && warden.isOver(Input.mousePosition))
         {
-            if (scrollDelta.y < 0)
-                moveBackward(zoomSpeed);
-            else
-                moveForward(zoomSpeed);
+            // zoom scroll mouse
+            Vector2 scrollDelta = Input.mouseScrollDelta;
+            if (scrollDelta.y != 0)
+            {
+                if (scrollDelta.y < 0)
+                    moveBackward(zoomSpeed);
+                else
+                    moveForward(zoomSpeed);
+            }
         }
     }
 
@@ -139,13 +139,13 @@ public class BrainCamera : MonoBehaviour
 
     protected void keyboardAction()
     {
-        if (Input.GetKey(KeyCode.Q))
+        if (Input.GetKey(KeyCode.LeftArrow))
             moveLeft(speed);
-        if (Input.GetKey(KeyCode.D))
+        if (Input.GetKey(KeyCode.RightArrow))
             moveRight(speed);
-        if (Input.GetKey(KeyCode.Z))
+        if (Input.GetKey(KeyCode.UpArrow))
             moveUp(speed);
-        if (Input.GetKey(KeyCode.S))
+        if (Input.GetKey(KeyCode.DownArrow))
             moveDown(speed);
         if (Input.GetKey(KeyCode.KeypadPlus))
             moveForward(zoomSpeed);

@@ -12,14 +12,8 @@ public class QtGUI_dll : CppDLLImportBase
     /// <returns> return an empty path if no directory has been choosen or if an error occurs </returns>
     public string getExistingDirectory(string message = "Select a directory", string defaultDir = "")
     {
-        int length = 1024;
-        StringBuilder str = new StringBuilder("");
-        str.Insert(0, "?", length);
-        bool success = getExistingDirectory_QtApp(message, defaultDir, str, length);
-        if (success)
-            return str.ToString();
-
-        return "";
+        IntPtr ptrUnmanagedStr = getExistingDirectory_QtApp(message, defaultDir, m_bufferSize);
+        return Marshal.PtrToStringAnsi(ptrUnmanagedStr);
     }
 
     /// <summary>
@@ -33,24 +27,15 @@ public class QtGUI_dll : CppDLLImportBase
     {
         filtersArray = filtersArray ?? new string[] { "txt" };
 
-        int bufferSize = 1024;
-        StringBuilder str = new StringBuilder("");
-        str.Insert(0, "?", bufferSize);
-
         string filters = "";
         for (int ii = 0; ii < filtersArray.Length - 1; ++ii)
         {
             filters += filtersArray[ii] + "*";
-
         }
         filters += filtersArray[filtersArray.Length - 1];
 
-        bool success = getOpenFileName_QtApp(message, defaultDir, filters, str, bufferSize);
-
-        if (success)
-            return str.ToString();
-
-        return "";
+        IntPtr ptrUnmanagedStr = getOpenFileName_QtApp(message, defaultDir, filters, m_bufferSize);
+        return Marshal.PtrToStringAnsi(ptrUnmanagedStr);
     }
 
     /// <summary>
@@ -64,10 +49,6 @@ public class QtGUI_dll : CppDLLImportBase
     {
         filtersArray = filtersArray ?? new string[] { "txt" };
 
-        int bufferSize = 10000;
-        StringBuilder str = new StringBuilder("");
-        str.Insert(0, "?", bufferSize);
-
         string filters = "";
         for (int ii = 0; ii < filtersArray.Length - 1; ++ii)
         {
@@ -75,16 +56,10 @@ public class QtGUI_dll : CppDLLImportBase
         }
         filters += filtersArray[filtersArray.Length - 1];
 
-        bool success = getOpenFilesName_QtApp(message, defaultDir, filters, str, bufferSize);
+        IntPtr ptrUnmanagedStr = getOpenFilesName_QtApp(message, defaultDir, filters, m_bufferSize);
 
-        if (success)
-        {
-            string filesDirRes = str.ToString();
-            string[] splits = filesDirRes.Split(new char[] { '*' });
-            return splits;
-        }
-
-        return new string[0];
+        string filesDirRes = Marshal.PtrToStringAnsi(ptrUnmanagedStr);
+        return filesDirRes.Split(new char[] { '*' });
     }
 
     /// <summary>
@@ -98,37 +73,23 @@ public class QtGUI_dll : CppDLLImportBase
     {
         filtersArray = filtersArray ?? new string[] { "txt" };
 
-        int bufferSize = 1024;
-        StringBuilder str = new StringBuilder("");
-        str.Insert(0, "?", bufferSize);
-
         string filters = "";
         for (int ii = 0; ii < filtersArray.Length - 1; ++ii)
         {
             filters += filtersArray[ii] + "*";
         }
         filters += filtersArray[filtersArray.Length - 1];
-
-        bool success = getSaveFileName_QtApp(message, defaultDir, filters, str, bufferSize);
-        if (success)
-            return str.ToString();
-        return "";
+        
+        IntPtr ptrUnmanagedStr = getSaveFileName_QtApp(message, defaultDir, filters, m_bufferSize);
+        return Marshal.PtrToStringAnsi(ptrUnmanagedStr);
     }
 
-    /// <summary>
-    /// Allocate ourselves.
-    /// We have a private constructor, so no one else can.
-    /// </summary>
-    static readonly QtGUI_dll _instance = new QtGUI_dll();
-
+    private int m_bufferSize = 1024;
     /// <summary>
     /// Access SiteStructure.Instance to get the singleton object.
     /// Then call methods on that instance.
     /// </summary>
-    public static QtGUI_dll Instance
-    {
-        get { return _instance; }
-    }
+    public static QtGUI_dll Instance { get; } = new QtGUI_dll();
 
     /// <summary>
     /// Private default constructor of QtGUi, singleton design
@@ -176,14 +137,14 @@ public class QtGUI_dll : CppDLLImportBase
 
     // actions
     [DllImport("GUIExport", EntryPoint = "getExistingDirectory_QtApp", CallingConvention = CallingConvention.Cdecl)]
-    static private extern bool getExistingDirectory_QtApp(string message, string defaultDir, StringBuilder dirPathRes, int bufferSize);
+    static private extern IntPtr getExistingDirectory_QtApp(string message, string defaultDir, int bufferSize);
 
     [DllImport("GUIExport", EntryPoint = "getOpenFileName_QtApp", CallingConvention = CallingConvention.Cdecl)]
-    static private extern bool getOpenFileName_QtApp(string message, string defaultDir, string filters, StringBuilder filePathRes, int bufferSize);
+    static private extern IntPtr getOpenFileName_QtApp(string message, string defaultDir, string filters, int bufferSize);
 
     [DllImport("GUIExport", EntryPoint = "getOpenFilesName_QtApp", CallingConvention = CallingConvention.Cdecl)]
-    static private extern bool getOpenFilesName_QtApp(string message, string defaultDir, string filters, StringBuilder filesPathRes, int bufferSize);
+    static private extern IntPtr getOpenFilesName_QtApp(string message, string defaultDir, string filters, int bufferSize);
 
     [DllImport("GUIExport", EntryPoint = "getSaveFileName_QtApp", CallingConvention = CallingConvention.Cdecl)]
-    static private extern bool getSaveFileName_QtApp(string message, string defaultDir, string filters, StringBuilder savedfilePathRes, int bufferSize);
+    static private extern IntPtr getSaveFileName_QtApp(string message, string defaultDir, string filters, int bufferSize);
 }

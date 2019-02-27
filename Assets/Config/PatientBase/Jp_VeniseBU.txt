@@ -1,0 +1,21 @@
+LH_MNI : 
+RH_MNI : 
+PTS_MNI : 
+MESH_MNI : Left/Right Mesh
+EEG_MNI : Intracranial EEG
+LH_PAT : 
+RH_PAT : 
+PTS_PAT : 
+ATLAS_PAT : 
+MESH_PAT : Left/Right Mesh
+EEG_PAT : Intracranial EEG
+SM0 : C:/Users/micromed/Desktop/JP Venise/GRE_2018_BONj/GRE_2018_BONj_MCSE/GRE_2018_BONj_MCSE_f50f150/GRE_2018_BONj_MCSE_f50f150_ds16_sm0.eeg
+SM250 : C:/Users/micromed/Desktop/JP Venise/GRE_2018_BONj/GRE_2018_BONj_MCSE/GRE_2018_BONj_MCSE_f50f150/GRE_2018_BONj_MCSE_f50f150_ds16_sm250.eeg
+SM500 : C:/Users/micromed/Desktop/JP Venise/GRE_2018_BONj/GRE_2018_BONj_MCSE/GRE_2018_BONj_MCSE_f50f150/GRE_2018_BONj_MCSE_f50f150_ds16_sm500.eeg
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : C:/Users/micromed/Desktop/JP Venise/GRE_2018_BONj/GRE_2018_BONj_MCSE/GRE_2018_BONj_MCSE_ds16.pos
+PROV : C:/Users/micromed/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Prov/MCSE.prov
+VID : C:/Users/micromed/Desktop/JP Venise/GRE_2018_BONj/GRE_2018_BONj_MCSE/GRE_2018_BONj_MCSE.avi
+[----------]

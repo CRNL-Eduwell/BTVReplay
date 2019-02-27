@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
-public delegate void eventValidated(eventEeg validEvent);
-public delegate void eventModifValidated(eventEeg validEvent);
+public delegate void eventValidated(TraceEvent validEvent);
+public delegate void eventModifValidated(TraceEvent validEvent);
 public delegate void imDying();
 
 public class EventInfoEdit : MonoBehaviour
@@ -22,22 +23,22 @@ public class EventInfoEdit : MonoBehaviour
     Button delButton = null;
     Button closeButton = null;
 
-    eventEeg myCurrentEvent = null;
+    TraceEvent myCurrentEvent = null;
 
-	public void init(eventEeg clickedEvent, eventEeg memoryEvent, bool isModif)
+    public void init(TraceEvent clickedEvent, TraceEvent memoryEvent, bool isModif)
     {
-        myCurrentEvent = new eventEeg(clickedEvent);
+        myCurrentEvent = new TraceEvent(clickedEvent);
 
         timeText = transform.GetChild(0).GetChild(1).GetComponent<Text>();
-        codeInputField = transform.GetChild(0).GetChild(3).GetComponent<InputField>();
-        durationInputField = transform.GetChild(0).GetChild(5).GetComponent<InputField>();
-        commentInputField = transform.GetChild(0).GetChild(7).GetComponent<InputField>();
-        saveButton = transform.GetChild(0).GetChild(8).GetComponent<Button>();
-        delButton = transform.GetChild(0).GetChild(9).GetComponent<Button>();
-        closeButton = transform.GetChild(0).GetChild(10).GetComponent<Button>();
+        codeInputField = transform.GetChild(2).GetChild(1).GetComponent<InputField>();
+        durationInputField = transform.GetChild(2).GetChild(3).GetComponent<InputField>();
+        commentInputField = transform.GetChild(4).GetChild(1).GetComponent<InputField>();
+        saveButton = transform.GetChild(6).GetChild(0).GetComponent<Button>();
+        delButton = transform.GetChild(6).GetChild(1).GetComponent<Button>();
+        closeButton = transform.GetChild(6).GetChild(2).GetComponent<Button>();
 
         //int timeInSec = myCurrentEvent.sample / 64;
-        int timeInSec = (int)myCurrentEvent.getTimeSec();
+        int timeInSec = (int)myCurrentEvent.timeSeconds();
         int h = timeInSec / 3600;
         int m = (timeInSec / 60) % 60;
         int s = timeInSec % 60;
@@ -49,7 +50,7 @@ public class EventInfoEdit : MonoBehaviour
 
         if (memoryEvent != null && !isModif)
             initValueUI(memoryEvent);
-        else
+        else if(memoryEvent != null)
             initValueUI(myCurrentEvent);
 
         saveButton.onClick.AddListener(() => 
@@ -69,8 +70,7 @@ public class EventInfoEdit : MonoBehaviour
 
         delButton.onClick.AddListener(() => 
         {
-            eventsToDelete(myCurrentEvent, 0);
-            Destroy(gameObject);
+            ApplicationState.displayConfirmation("Event Deletion", "Are You Sure You Want To Delete This Event ?", deleteAction, cancelAction);
         });
 
         closeButton.onClick.AddListener(() =>
@@ -87,7 +87,7 @@ public class EventInfoEdit : MonoBehaviour
         closeButton.onClick.RemoveAllListeners();
     }
 
-    void initValueUI(eventEeg currentEvent)
+    void initValueUI(TraceEvent currentEvent)
     {
         codeInputField.text = currentEvent.code.ToString();
         durationInputField.text = currentEvent.duration.ToString();
@@ -116,5 +116,16 @@ public class EventInfoEdit : MonoBehaviour
 
         myCurrentEvent.comment = commentInputField.text;
         myCurrentEvent.duration = int.Parse(durationInputField.text);
+    }
+
+    void deleteAction()
+    {
+        eventsToDelete(myCurrentEvent, 0);
+        Destroy(gameObject);
+    }
+
+    void cancelAction()
+    {
+        Destroy(gameObject);
     }
 }

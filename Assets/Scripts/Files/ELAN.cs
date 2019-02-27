@@ -7,26 +7,56 @@ using System.Collections.Generic;
 using System.Collections; //IEnumerator
 using UnityEngine;
 
+[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+public struct elecFile
+{
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 10)]
+    public string name;
+    [MarshalAs(UnmanagedType.I4)]
+    public int index;
+}
+
 public class ELAN : CppDLLImportBase
 {
+    public string fileFolder
+    {
+        get
+        {
+            return Path.GetDirectoryName(filePath);
+        }
+    }
+    public string filePath
+    {
+        get;
+        set;
+    }
+
     #region members
     public int nbSam = 0;
     public int nbChan = 0;
     public int nbMeas = 0;
     public float sampFreq = 0;
-    public string filePath = "";
-    public List<string> electList = null;
+    public elecFile[] electrodes = null;
     public float[] maxValues = null;
     public float[] eegData = null;
+    public int idFileHandle
+    {
+        get; set;
+    }
     #endregion
 
     #region functions
     public static ELAN changeHandle(ELAN currentFile, ELAN[] elanFiles, int newID)
     {
         if (elanFiles[newID] != null)
+        {
+            elanFiles[newID].idFileHandle = newID;
             return elanFiles[newID];
+        }
         else
+        {
             return currentFile;
+        }
     }
 
     public static bool checkHandle(ELAN[] elanFiles, int newID)
@@ -121,11 +151,12 @@ public class ELAN : CppDLLImportBase
     /// <param name="p_pathfile"></param>
     public ELAN(string pathEEGFile) : base(pathEEGFile)
     {
+        filePath = pathEEGFile;
         sampFreq = samplingFrequency(_handle);
         nbSam = nbSample(_handle);
         nbChan = nbChannels(_handle);
         nbMeas = nbMeasure(_handle);
-        getElectrodeList();
+        getElectrodes();
     }
 
     void releaseCppHandle()
@@ -133,15 +164,13 @@ public class ELAN : CppDLLImportBase
         delete_ELAN(_handle);
     }
 
-    void getElectrodeList()
+    void getElectrodes()
     {
-        int size = electrodeListSizeBuilder(_handle);
-        StringBuilder sb = new StringBuilder(size);
+        electrodes = new elecFile[nbChan];
+        for (int i = 0; i < nbChan; i++)
+            electrodes[i] = new elecFile();
 
-        getElectrodeList(_handle, sb);
-
-        electList = sb.ToString().Split(new char[] { '!' },
-                    StringSplitOptions.RemoveEmptyEntries).ToList();
+        getElectrodes(_handle, out electrodes);
     }
 
     /// <summary>
@@ -166,8 +195,9 @@ public class ELAN : CppDLLImportBase
     protected override void deleteDLLClass()
     {
         //UnityEngine.Debug.Log("I'm deleting elan");
-        electList.Clear();
-        electList = null;
+        //electList.Clear();
+        //electList = null;
+        electrodes = null;
         eegData = null;
         //delete_ELAN(_handle);
     }
@@ -181,11 +211,8 @@ public class ELAN : CppDLLImportBase
     [DllImport("BTVReplayLibraryC++", EntryPoint = "delete_ELAN", CallingConvention = CallingConvention.Cdecl)]
     static private extern void delete_ELAN(HandleRef handle);
 
-    [DllImport("BTVReplayLibraryC++", EntryPoint = "electrodeListSizeBuilder", CallingConvention = CallingConvention.Cdecl)]
-    static private extern int electrodeListSizeBuilder(HandleRef handle);
-
-    [DllImport("BTVReplayLibraryC++", EntryPoint = "getElectrodeList", CallingConvention = CallingConvention.Cdecl)]
-    static private extern void getElectrodeList(HandleRef handle, StringBuilder sb);
+    [DllImport("BTVReplayLibraryC++", EntryPoint = "getElectrodes", CallingConvention = CallingConvention.Cdecl)]
+    static private extern void getElectrodes(HandleRef handle, out elecFile[] elec);
 
     [DllImport("BTVReplayLibraryC++", EntryPoint = "readDataAllChannels", CallingConvention = CallingConvention.Cdecl)]
     static private extern void readDataAllChannels(HandleRef handle, float[] eegData);

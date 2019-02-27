@@ -8,6 +8,10 @@ using UnityEngine.UI;
 
 public class TracePerf : MonoBehaviour
 {
+    public bool isUsed
+    {
+        get;set;
+    }
     [SerializeField] optionsHub hub = null;
     [SerializeField] BTVMedia media = null;
     [SerializeField] VideoPlayer video = null;
@@ -26,8 +30,8 @@ public class TracePerf : MonoBehaviour
     int periodSec = 10;
     int numberPoint = 64 * 10;
     bool initDone = false;
-    bool isUsed = false;
-    TraceCurve curveTrace1 = null;
+    //bool isUsed = false;
+    Trace curveTrace1 = null;
      
     void Awake()
     {
@@ -44,10 +48,10 @@ public class TracePerf : MonoBehaviour
             {
                 video.sendTime -= new timeVideo(UpdateSpawn);
                 video.sendTime -= new timeVideo(UpdatePicEvent);
-                hub.perfRemote.iAmHiden -= new hideMe((isHidden) =>
-                {
-                    gameObject.SetActive(isHidden);
-                });
+                //hub.perfRemote.iAmHiden -= new hideMe((isHidden) =>
+                //{
+                //    gameObject.SetActive(isHidden);
+                //});
                 hub.perfRemote.timeHasChanged -= new timePeriodChangedEventHandler(updateTimeResolution);
             }
             else
@@ -71,18 +75,18 @@ public class TracePerf : MonoBehaviour
         isUsed = initMe;
         perfLRPrefab = Resources.Load("Prefabs/PerfTrace", typeof(GameObject)) as GameObject;
         defaultEventPic = Resources.Load("Pictures/EventDefault", typeof(Texture2D)) as Texture2D;
-        curveTrace1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
-        numberPoint = curveTrace1.samplingFrequency * periodSec;
+        curveTrace1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
+        numberPoint = curveTrace1.TraceEeg.SamplingFrequency * periodSec;
 
         m_rectTransform = gameObject.GetComponent<RectTransform>();
         m_perfHolder = m_rectTransform.GetChild(10).GetComponent<RectTransform>();
         eventPicHolder = m_rectTransform.GetChild(11).GetChild(0).gameObject;
         eventImage = eventPicHolder.transform.GetChild(0).GetComponent<RawImage>();
 
-        hub.perfRemote.iAmHiden += new hideMe((isHidden) =>
-        {
-            gameObject.SetActive(isHidden);
-        });
+        //hub.perfRemote.iAmHiden += new hideMe((isHidden) =>
+        //{
+        //    gameObject.SetActive(isHidden);
+        //});
 
         if(isUsed)
         {
@@ -130,7 +134,7 @@ public class TracePerf : MonoBehaviour
         else
         {
             gameObject.SetActive(false);
-            hub.perfRemote.hideTog.isOn = false;
+            //hub.perfRemote.hideTog.isOn = false;
             hub.perfRemote.timeHasChanged += new timePeriodChangedEventHandler((int newPeriod) => { });
         }
 
@@ -139,72 +143,64 @@ public class TracePerf : MonoBehaviour
 
     void updateScales()
     {
-        horizontalScale = m_rectTransform.rect.width / numberPoint;
-        verticalScale = m_rectTransform.rect.height / media.posFile.rtMsMax;
+        horizontalScale = (m_perfHolder.rect.width) / numberPoint;
+        verticalScale = m_perfHolder.rect.height / media.posFile.rtMsMax;
     }
 
     void updateTimeResolution(int newPeriod)
     {
         periodSec = newPeriod;
-        numberPoint = curveTrace1.samplingFrequency * periodSec;
+        numberPoint = curveTrace1.TraceEeg.SamplingFrequency * periodSec;
         updateScales();
     }
 
-    void UpdateSpawn(int sampleToLook)
+    void UpdateSpawn(int milliSecToLook)
     {
-        int leftTime = (sampleToLook - numberPoint);
-        int rightTime = sampleToLook;
+        int leftTime = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - numberPoint;
+        int rightTime = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
 
         List<int> currentIndex = media.posFile.Triggers.Select((item, index) => new { Item = item, Index = index })
-                                                         .Where(x => x.Item.trigger.sample > leftTime && x.Item.trigger.sample < rightTime)
+                                                         .Where(x => x.Item.response.sample > leftTime && x.Item.response.sample < rightTime)
                                                          .Select(x => x.Index)
                                                          .ToList();
 
         if (currentIndex.Count != 0)
         {
-            for (int i = currentIndex[0] - 1; i >= 0; i--)
-            {
-                if (perfLine[i].activeSelf == true)
-                    perfLine[i].SetActive(false);
-            }
-
-
-            for (int i = currentIndex[currentIndex.Count - 1] + 1; i < perfLine.Count; i++)
-            {
-                if (perfLine[i].activeSelf == true)
-                    perfLine[i].SetActive(false);
-            }
-
+            deactivateSpawn();
             for (int i = 0; i < currentIndex.Count; i++)
             {
-                float sampleEventPlusResp = (media.posFile.Triggers[currentIndex[i]].trigger.sample + media.posFile.Triggers[currentIndex[i]].rtSample);
-                float positionInsideRect = (leftTime - sampleEventPlusResp) * -horizontalScale;
+                float posiionSample = (leftTime - media.posFile.Triggers[currentIndex[i]].response.sample);
+                float positionInsideRect = posiionSample * -horizontalScale;
 
-                if (sampleEventPlusResp <= rightTime)
+                if (media.posFile.Triggers[currentIndex[i]].response.sample <= rightTime)
                 {
                     perfLine[currentIndex[i]].SetActive(true);
                     perfLine[currentIndex[i]].transform.GetComponent<LineRenderer>().SetPosition(0, new Vector3(positionInsideRect, 5, -2));
 
-                    float value = verticalScale * (media.posFile.Triggers[currentIndex[i]].rtMs - 750);
-                    perfLine[currentIndex[i]].transform.GetComponent<LineRenderer>().SetPosition(1, new Vector3(positionInsideRect, value, -2));
+                    float value = verticalScale * (media.posFile.Triggers[currentIndex[i]].rtMs() - 750);
+                    perfLine[currentIndex[i]].transform.GetComponent<LineRenderer>().SetPosition(1, new Vector3(positionInsideRect, Mathf.Abs(value), -2));
                 }
             }
         }
         else //No New obj, we clean if there is some left
         {
-            List<GameObject> activeObj = perfLine.FindAll(x => x.activeSelf == true);
-            if (activeObj.Count > 0)
-            {
-                for (int i = 0; i < activeObj.Count; i++)
-                {
-                    activeObj[i].SetActive(false);
-                }
-            }
+            deactivateSpawn();
         }
     }
 
-    void UpdatePicEvent(int sampleToLook)
+    void deactivateSpawn()
     {
+        List<GameObject> activeObj = perfLine.FindAll(x => x.activeSelf == true);
+        if (activeObj.Count > 0)
+        {
+            for (int i = 0; i < activeObj.Count; i++)
+                activeObj[i].SetActive(false);
+        }
+    }
+
+    void UpdatePicEvent(int milliSecToLook)
+    {
+        int sampleToLook = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
         int found = media.posFile.Triggers.FindIndex(x => x.trigger.sample >= sampleToLook - 8 && x.trigger.sample < sampleToLook + 8);
 
         if (found != -1 && mainCodes.Contains(media.posFile.Triggers[found].trigger.code))

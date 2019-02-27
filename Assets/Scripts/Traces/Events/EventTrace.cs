@@ -10,7 +10,7 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
     public event eventsToDelete eventsToDelete;
 
     GameObject actionEventClick = null;
-    eventEeg myEvent = null;
+    TraceEvent myEvent = null;
     int parentWinID = -2;
 
     GameObject choiceWin = null;
@@ -18,11 +18,11 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
     Button deleteButton = null;
     Button closeButton = null;
 
-    public void init(eventEeg currentEvent, int winID)
+    public void init(TraceEvent currentEvent, int winID)
     {
         actionEventClick = Resources.Load("Prefabs/EventOptions", typeof(GameObject)) as GameObject;
 
-        myEvent = new eventEeg(currentEvent);
+        myEvent = new TraceEvent(currentEvent);
         parentWinID = winID;
     }
 
@@ -39,9 +39,9 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    public void UpdateEvent(eventEeg modifyedEvent)
+    public void UpdateEvent(TraceEvent modifyedEvent)
     {
-        myEvent = new eventEeg(modifyedEvent);
+        myEvent = new TraceEvent(modifyedEvent);
     }
 
     public void openChoiceOption()
@@ -56,7 +56,10 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
         closeButton = choiceWin.transform.GetChild(0).GetChild(2).GetComponent<Button>();
 
         editButton.onClick.AddListener(choiceEdit);
-        deleteButton.onClick.AddListener(choiceDelete);
+        deleteButton.onClick.AddListener(()=> 
+        {
+            ApplicationState.displayConfirmation("Event Deletion", "Are You Sure You Want To Delete This Event ?", choiceDelete, choiceClose);
+        });
         closeButton.onClick.AddListener(choiceClose);
     }
 

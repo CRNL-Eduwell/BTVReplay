@@ -12,7 +12,7 @@ namespace VLCSharp.VLCMemory
 {
     internal unsafe class MemoryHeap
     {
-        static int ph = GetProcessHeap();
+        static IntPtr ph = GetProcessHeap();
 
         private MemoryHeap() { }
 
@@ -85,19 +85,19 @@ namespace VLCSharp.VLCMemory
 
         // Heap API functions
         [DllImport("kernel32")]
-        static extern int GetProcessHeap();
+        static extern IntPtr GetProcessHeap();
 
         [DllImport("kernel32")]
-        static extern void* HeapAlloc(int hHeap, int flags, int size);
+        static extern void* HeapAlloc(IntPtr hHeap, int flags, int size);
 
         [DllImport("kernel32")]
-        static extern bool HeapFree(int hHeap, int flags, void* block);
+        static extern bool HeapFree(IntPtr hHeap, int flags, void* block);
 
         [DllImport("kernel32")]
-        static extern void* HeapReAlloc(int hHeap, int flags, void* block, int size);
+        static extern void* HeapReAlloc(IntPtr hHeap, int flags, void* block, int size);
 
         [DllImport("kernel32")]
-        static extern int HeapSize(int hHeap, int flags, void* block);
+        static extern int HeapSize(IntPtr hHeap, int flags, void* block);
 
         [DllImport("Kernel32.dll", EntryPoint = "RtlMoveMemory", SetLastError = true)]
         public static unsafe extern void CopyMemory(void* dest, void* src, int size);

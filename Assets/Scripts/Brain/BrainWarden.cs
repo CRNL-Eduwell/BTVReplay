@@ -24,12 +24,13 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     Vector3[] worldCornerOfBrainPanel = new Vector3[4];
     Window winTrace1 = null;
     Window winTrace2 = null;
-    TraceCurve curveTrace1 = null;
+    Trace curveTrace1 = null;
     GameObject plot = null;
     GameObject elecPointer = null;
     GameObject elecPointerPic = null;
     Text elecPointerText = null;
 
+    ElecPointer el = null;
     GameObject elecOptionPanel = null;
     GameObject ElecOption = null;
 
@@ -49,9 +50,10 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
         winTrace1 = GameObject.Find("Trace1Window").GetComponent<Window>();
         winTrace2 = GameObject.Find("Trace2Window").GetComponent<Window>();
-        curveTrace1 = GameObject.Find("Trace1Window").GetComponent<TraceCurve>();
+        curveTrace1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
 
-        elecPointer = GameObject.Find("Canvas").transform.GetChild(4).gameObject;
+        el = GameObject.Find("Canvas").transform.GetChild(5).GetChild(0).GetComponent<ElecPointer>();
+        elecPointer = GameObject.Find("Canvas").transform.GetChild(5).gameObject;
         elecPointerPic = elecPointer.transform.GetChild(0).gameObject;
         elecPointerText = elecPointerPic.transform.GetChild(0).GetComponent<Text>();
     }
@@ -64,7 +66,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             video.sendTime += new timeVideo(updateEventsOnBrain);
         });
 
-        if(initDone)
+        if (initDone)
             video.sendTime -= new timeVideo(updateEventsOnBrain);
     }
 
@@ -176,7 +178,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    bool isOver(Vector3 mousePos)
+    public bool isOver(Vector3 mousePos)
     {
         m_rectTransform.GetWorldCorners(worldCornerOfBrainPanel);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -202,46 +204,92 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
         if (Physics.Raycast(ray2, out hit))
         {
-            elecPointer.transform.position = new Vector3(worldClick.x, worldClick.y, 0);
-            elecPointerPic.SetActive(true);
-            elecPointerText.text = hit.collider.name.ToUpper();
+            ElecPlotSize hitPlot = GameObject.Find(hit.collider.name).GetComponent<ElecPlotSize>();
+            el.moveTo(worldClick.x, worldClick.y, 0);
+            el.show(true);
+            el.setElecLabel(hit.collider.name.ToUpper());
+            el.setMarsAtlasLabel(hitPlot.MarsAtlasName);
+            el.setBroadmanLabel(hitPlot.BroadmanName);
+            el.setCorrdinatesLabel(hitPlot.Coordinates);
         }
         else
         {
-            elecPointerPic.SetActive(false);
+            el.show(false);
         }
     }
 
-    void updateEventsOnBrain(int sampleToLook)
+    void updateEventsOnBrain(int milliSecToLook)
     {
-        if (hub.eventRemote.userEvents.Count > 0)
+        if (hub.eventRemote.userEvents.Length > 0)
         {
-            int left = sampleToLook - curveTrace1.numberOfPoint;
-            int right = sampleToLook;
+            int left =(int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - curveTrace1.TraceEeg.numberOfPoint;
+            int right = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
 
-            var keys = new List<int>(hub.eventRemote.userEvents.Keys);
-            var values = new List<eventEeg>(hub.eventRemote.userEvents.Values);
-            List<int> currentIndex = keys.Select((item, index) => new { Item = item, Index = index })
-                                                         .Where(x => x.Item > left && x.Item < right)
-                                                         .Select(x => x.Index)
-                                                         .ToList();
+            float factor = ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000);
+            List<int> idOverFlow = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
+                                         .Where(x => (x.Item.sample <= left && (x.Item.sample + (x.Item.duration * factor) >= right)))
+                                         .Select(x => x.Index)
+                                         .ToList();
 
-            if (currentIndex.Count > 0)
+            List<int> idRightEnter = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
+                                           .Where(x => (x.Item.sample < right && x.Item.sample > left && (x.Item.sample + (x.Item.duration * factor) >= right)))
+                                           .Select(x => x.Index)
+                                           .ToList();
+
+            //Union joins and delete duplicates
+            List<int> indexes = idOverFlow.Union(idRightEnter).ToList();
+
+            changeColorEvent("", Color.white);
+            for (int i = 0; i < indexes.Count; i++)
             {
-                changeColorEvent("", Color.white);
-                for (int i = 0; i < currentIndex.Count; i++)
+                if (hub.eventRemote.userEvents[indexes[i]].correlation2DArray != null)
                 {
-                    if(keys[currentIndex[i]] < right && right < keys[currentIndex[i]] + values[currentIndex[i]].duration * ((float)curveTrace1.samplingFrequency / 1000))
+                    int id = curveTrace1.TraceEeg.IdElectrode;
+                    for (int j = 0; j < curveTrace1.TraceEeg.fileHandle.electrodes.Length; j++)
                     {
-                        changeColorEvent(values[currentIndex[i]].elecOfInterest, Color.red);
-                        changeColorEvent(values[currentIndex[i]].secondElecOfInterest, Color.blue);
+                        changeColorEvent(curveTrace1.TraceEeg.fileHandle.electrodes[j].name, correlationColor(hub.eventRemote.userEvents[indexes[i]].correlation2DArray[id][j]));
                     }
                 }
+                else if (hub.eventRemote.userEvents[indexes[i]].correlationArray != null)
+                {
+                    for (int j = 0; j < curveTrace1.TraceEeg.fileHandle.electrodes.Length; j++)
+                    {
+                        changeColorEvent(curveTrace1.TraceEeg.fileHandle.electrodes[j].name, correlationColor(hub.eventRemote.userEvents[indexes[i]].correlationArray[j]));
+                    }
+                }
+                else
+                {
+                    changeColorEvent(hub.eventRemote.userEvents[indexes[i]].elecOfInterest, Color.red);
+                    changeColorEvent(hub.eventRemote.userEvents[indexes[i]].secondElecOfInterest, Color.blue);
+                }
             }
-            else
-            {
-                changeColorEvent("", Color.white);
-            }
+        }
+        else
+        {
+            changeColorEvent("", Color.white);
+        }
+    }
+
+    Color correlationColor(float value)
+    {
+        if (value > 0)
+        {
+            float r = Color.white.r * (1 - value) + Color.red.r * value;
+            float g = Color.white.g * (1 - value) + Color.red.g * value;
+            float b = Color.white.b * (1 - value) + Color.red.b * value;
+            return new Color(r, g, b, 1);
+        }
+        else if (value < 0)
+        {
+            float absVal = Mathf.Abs(value);
+            float r = Color.white.r * (1 - absVal) + Color.blue.r * absVal;
+            float g = Color.white.g * (1 - absVal) + Color.blue.g * absVal;
+            float b = Color.white.b * (1 - absVal) + Color.blue.b * absVal;
+            return new Color(r, g, b, 1);
+        }
+        else
+        {
+            return Color.green;
         }
     }
 }

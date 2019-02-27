@@ -14,7 +14,7 @@ public class ColorPicker : MonoBehaviour
     ColorSlider blueSlider = null;
     ColorSlider alphaSlider = null;
     Texture2D colorPicker = null;
-    Image colorPreview = null;
+    Button[] ColorPresets = new Button[5];
     Color[] dataColorPicker;
 
     void Awake()
@@ -24,7 +24,12 @@ public class ColorPicker : MonoBehaviour
         blueSlider = transform.GetChild(2).GetComponent<ColorSlider>();
         alphaSlider = transform.GetChild(3).GetComponent<ColorSlider>();
         colorPicker = (Texture2D)transform.GetChild(4).GetComponent<RawImage>().texture;
-        colorPreview = transform.GetChild(5).GetComponent<Image>();
+
+        for (int i = 0; i < 5; i++)
+        {
+            ColorPresets[i] = transform.GetChild(5).GetChild(i).GetComponent<Button>();
+            connectColorButton(i);
+        }
 
         redSlider.sliderColorChange += new colorSliderChanged(changeColorPreview);
         greenSlider.sliderColorChange += new colorSliderChanged(changeColorPreview);
@@ -41,13 +46,13 @@ public class ColorPicker : MonoBehaviour
         greenSlider.sliderColorChange -= new colorSliderChanged(changeColorPreview);
         blueSlider.sliderColorChange -= new colorSliderChanged(changeColorPreview);
         alphaSlider.sliderColorChange -= new colorSliderChanged(changeColorPreview);
+        for (int i = 0; i < 5; i++)
+            ColorPresets[i].onClick.RemoveAllListeners();
     }
 
     void changeColorPreview()
     {
         Color colorToChange = getSliderColor();
-
-        colorPreview.color = colorToChange;
         changeColor(colorToChange);
     }
 
@@ -59,7 +64,6 @@ public class ColorPicker : MonoBehaviour
         colorToChange.b = dataColorPicker[pixelID].b;
         colorToChange.a = dataColorPicker[pixelID].a;
 
-        colorPreview.color = colorToChange;
         changeColor(colorToChange);
         return colorToChange;
     }
@@ -84,6 +88,14 @@ public class ColorPicker : MonoBehaviour
         alphaSlider.scrollbar.value = colorToChange.a;
     }
 
+    void connectColorButton(int id)
+    {
+        ColorPresets[id].onClick.AddListener(() =>
+        {
+            Color currentColor = ColorPresets[id].gameObject.GetComponent<Image>().color;
+            setSliderColor(currentColor);
+        });
+    }
     //1--2
     //|  |
     //0--3
