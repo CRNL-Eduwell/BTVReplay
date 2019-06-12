@@ -346,7 +346,7 @@ public class eventsOptions : MonoBehaviour
 
     void saveEventsList()
     {
-        string btvPosFile = QtGUI_dll.Instance.getSaveFileName(new string[] { "pos" }, "Save Event File", win1.TraceEeg.fileHandle.fileFolder);
+        string btvPosFile = FileBrowser.getSaveFileName(new string[] { "pos" }, "Save Event File", win1.TraceEeg.fileHandle.fileFolder);
         btvPosFile = btvPosFile.Replace(".pos", "_btv.pos");
 
         try
@@ -420,7 +420,7 @@ public class eventsOptions : MonoBehaviour
 
     void loadEventList()
     {
-        string pathFile = QtGUI_dll.Instance.getOpenFileName(new string[] { "btv", "pos" }, "Select an Event File", win1.TraceEeg.fileHandle.fileFolder);
+        string pathFile = FileBrowser.getOpenFileName(new string[] { "btv", "pos" }, "Select an Event File", win1.TraceEeg.fileHandle.fileFolder);
         if (File.Exists(pathFile))
         {
             string[] pathSplit = pathFile.Split(new char[] { '.' });

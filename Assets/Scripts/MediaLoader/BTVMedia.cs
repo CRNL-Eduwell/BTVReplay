@@ -83,7 +83,7 @@ public class BTVMedia : MonoBehaviour
         saveBase.onClick.AddListener(() => { SaveDB(); });
         loadBase.onClick.AddListener(() => 
         {
-            string bddFilePath = QtGUI_dll.Instance.getOpenFileName(new string[] { "txt" }, "Select a bdd file", Application.dataPath + @"/Config/PatientBase");
+            string bddFilePath = FileBrowser.getOpenFileName(new string[] { "txt" }, "Select a bdd file", Application.dataPath + @"/Config/PatientBase");
             if (bddFilePath != "")
             {
                 pm.LoadList(false, bddFilePath);
@@ -92,7 +92,7 @@ public class BTVMedia : MonoBehaviour
         });
         loadBUBase.onClick.AddListener(() => 
         {
-            string bddFilePath = QtGUI_dll.Instance.getOpenFileName(new string[] { "txt" }, "Select a bdd backup file", Application.dataPath + @"/Config/PatientBase");
+            string bddFilePath = FileBrowser.getOpenFileName(new string[] { "txt" }, "Select a bdd backup file", Application.dataPath + @"/Config/PatientBase");
             if (bddFilePath != "")
             {
                 pm.LoadList(true, bddFilePath);
@@ -168,7 +168,7 @@ public class BTVMedia : MonoBehaviour
                 pm.currentPatients[i / 2] = guiPat.getPatientGUI();
             }
 
-            string bddFilePath = QtGUI_dll.Instance.getSaveFileName(new string[] { "txt" }, "Save to a bdd File", Application.dataPath + @"/Config/PatientBase");
+            string bddFilePath = FileBrowser.getSaveFileName(new string[] { "txt" }, "Save to a bdd File", Application.dataPath + @"/Config/PatientBase");
             if (bddFilePath != "")
             {
                 pm.SaveList(bddFilePath);

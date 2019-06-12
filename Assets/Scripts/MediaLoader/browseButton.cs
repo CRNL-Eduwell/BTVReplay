@@ -25,8 +25,8 @@ public class browseButton : MonoBehaviour
     void loadFile()
     {
         if(open)
-            inputfield.text = QtGUI_dll.Instance.getOpenFileName(new string[] { "tri", "gii", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni", "csv" });
+            inputfield.text = FileBrowser.getOpenFileName(new string[] { "tri", "gii", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni", "csv" });
         else
-            inputfield.text = QtGUI_dll.Instance.getSaveFileName(new string[] { "mp4" }, "Save Video To");
+            inputfield.text = FileBrowser.getSaveFileName(new string[] { "mp4" }, "Save Video To");
     }
 }
