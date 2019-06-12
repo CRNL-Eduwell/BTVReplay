@@ -2,6 +2,7 @@
 using System.Text;
 using System.Timers;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 

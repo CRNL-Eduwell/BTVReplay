@@ -20,10 +20,17 @@ public class EegSignal : SignalDisp
     {
         get
         {
-            if (m_gain >= 0)
-                return eHandle.electrodes[idCurrentElec].name;
+            if (eHandle != null)
+            {
+                if (m_gain >= 0)
+                    return eHandle.electrodes[idCurrentElec].name;
+                else
+                    return " - " + eHandle.electrodes[idCurrentElec].name;
+            }
             else
-                return " - " + eHandle.electrodes[idCurrentElec].name;
+            {
+                return "";
+            }
         }
     }
     public string nameElectrode
@@ -61,6 +68,7 @@ public class EegSignal : SignalDisp
         eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
         m_samplingFreq = (int)eHandle.sampFreq;
         m_numberPoint = m_samplingFreq * m_periodSec;
+
         base.init();
     }
 
