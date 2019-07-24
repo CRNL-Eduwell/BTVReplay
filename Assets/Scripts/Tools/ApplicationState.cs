@@ -23,7 +23,7 @@ public static class ApplicationState
         if (coroutineManager == null)
             coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(7).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = GameObject.Find("Canvas").transform.GetChild(6).GetChild(0).GetComponent<MessageWindow>();
     }
 
     // If in coroutine, need to be as such, otherwise it trigger error : "StartCoroutine_Auto_Internal can only be called from the main thread"
@@ -33,7 +33,7 @@ public static class ApplicationState
     public static void displayMessage(string HeaderMessage, string TypeMessage, string DetailledMessage)
     {
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(7).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = GameObject.Find("Canvas").transform.GetChild(6).GetChild(0).GetComponent<MessageWindow>();
         messageWindow.display(HeaderMessage, TypeMessage, DetailledMessage);
     }
 
