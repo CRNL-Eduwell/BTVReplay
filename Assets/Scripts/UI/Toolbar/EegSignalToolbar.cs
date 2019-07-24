@@ -68,54 +68,54 @@ namespace BTV.UI.Module3D
         }
         #endregion
 
-        public EegSignalToolbar(ButtonUI_show buttonOpt, BTVMedia p_media)
-        {
-            media = p_media;
-            elecPlot = Resources.Load("Prefabs/Hub-Elec", typeof(GameObject)) as GameObject;
-            electrodeContentPanel = buttonOpt.optionsPanel2.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
-        }
+        //public EegSignalToolbar(ButtonUI_show buttonOpt, BTVMedia p_media)
+        //{
+        //    media = p_media;
+        //    elecPlot = Resources.Load("Prefabs/Hub-Elec", typeof(GameObject)) as GameObject;
+        //    electrodeContentPanel = buttonOpt.optionsPanel2.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
+        //}
 
-        public void loadElectrodeInPanel(elecFile[] electrodeList)
-        {
-            deleteElectrodeInPanel();
-            for (int i = 0; i < electrodeList.Length; i++)
-            {
-                GameObject currentElectrode = GameObject.Instantiate(elecPlot);
-                Button currentElecButton = currentElectrode.GetComponent<Button>();
-                currentElecButton.onClick.AddListener(() =>
-                {
-                    for (int j = 0; j < electrodeContentPanel.transform.childCount; j++)
-                    {
-                        if (electrodeContentPanel.transform.GetChild(j).name == currentElecButton.name)
-                        {
-                        //if (sphereColor.isValidForChange(currentElecButton.name))
-                        //{
-                        idElecHasChanged(j);
-                        //    changeColorElec();
-                        break;
-                        //}
-                    }
-                    }
-                });
+        //public void loadElectrodeInPanel(elecFile[] electrodeList)
+        //{
+        //    deleteElectrodeInPanel();
+        //    for (int i = 0; i < electrodeList.Length; i++)
+        //    {
+        //        GameObject currentElectrode = GameObject.Instantiate(elecPlot);
+        //        Button currentElecButton = currentElectrode.GetComponent<Button>();
+        //        currentElecButton.onClick.AddListener(() =>
+        //        {
+        //            for (int j = 0; j < electrodeContentPanel.transform.childCount; j++)
+        //            {
+        //                if (electrodeContentPanel.transform.GetChild(j).name == currentElecButton.name)
+        //                {
+        //                //if (sphereColor.isValidForChange(currentElecButton.name))
+        //                //{
+        //                idElecHasChanged(j);
+        //                //    changeColorElec();
+        //                break;
+        //                //}
+        //            }
+        //            }
+        //        });
 
-                Text currentElecText = currentElectrode.transform.GetChild(0).GetComponent<Text>();
-                currentElecText.text = electrodeList[i].name;
-                currentElectrode.name = electrodeList[i].name;
-                currentElectrode.transform.SetParent(electrodeContentPanel.transform);
-                currentElectrode.transform.localScale = new Vector3(1, 1, 1);
-            }
-        }
+        //        Text currentElecText = currentElectrode.transform.GetChild(0).GetComponent<Text>();
+        //        currentElecText.text = electrodeList[i].name;
+        //        currentElectrode.name = electrodeList[i].name;
+        //        currentElectrode.transform.SetParent(electrodeContentPanel.transform);
+        //        currentElectrode.transform.localScale = new Vector3(1, 1, 1);
+        //    }
+        //}
 
-        public void deleteElectrodeInPanel()
-        {
-            if (electrodeContentPanel.transform.childCount > 0)
-            {
-                for (int i = 0; i < electrodeContentPanel.transform.childCount; i++)
-                {
-                    electrodeContentPanel.transform.GetChild(i).GetComponent<Button>().onClick.RemoveAllListeners();
-                    GameObject.Destroy(electrodeContentPanel.transform.GetChild(i).gameObject);
-                }
-            }
-        }
+        //public void deleteElectrodeInPanel()
+        //{
+        //    if (electrodeContentPanel.transform.childCount > 0)
+        //    {
+        //        for (int i = 0; i < electrodeContentPanel.transform.childCount; i++)
+        //        {
+        //            electrodeContentPanel.transform.GetChild(i).GetComponent<Button>().onClick.RemoveAllListeners();
+        //            GameObject.Destroy(electrodeContentPanel.transform.GetChild(i).gameObject);
+        //        }
+        //    }
+        //}
     }
 }

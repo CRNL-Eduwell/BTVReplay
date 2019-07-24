@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
-    class BrainGain : Tool
+    public class BrainGain : Tool
     {
         public event gainChangedEventHandler gainHasChanged;
 

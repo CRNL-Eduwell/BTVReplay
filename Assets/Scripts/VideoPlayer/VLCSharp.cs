@@ -438,7 +438,7 @@ namespace VLCSharp
         VlcMediaPlayer m_player = null;
         VlcInstance m_instance = null;
         RawImage m_Tex2Draw = null;
-        optionsHub m_hub = null;
+        //optionsHub m_hub = null;
         Bitmap m_picCopy = null;
         byte[] m_textureByteArray;
         bool m_newPic = false;
@@ -448,8 +448,10 @@ namespace VLCSharp
         int m_offsetVideoMilliSec = 0;
         #endregion
 
-        public void init(string videoPath, int eegFileDurationInSec)
+        public void init(string videoPath, int eegFileDurationInSec, RawImage tex)
         {
+            m_Tex2Draw = tex;
+
             m_videoPath = videoPath;
             m_eegFileDurationInSec = eegFileDurationInSec;
             m_stopwatch = new Stopwatch();
@@ -493,29 +495,28 @@ namespace VLCSharp
                 }
             }
 
-            m_hub.videoRemote.offsetVideoHasChanged += new offsetVideoChangedEventHandler(
-                delegate (float newVal)
-                {
-                    m_offsetVideoMilliSec = (int)newVal;
-                });
+            //m_hub.videoRemote.offsetVideoHasChanged += new offsetVideoChangedEventHandler(
+            //    delegate (float newVal)
+            //    {
+            //        m_offsetVideoMilliSec = (int)newVal;
+            //    });
 
             setVolume(0.5f);
         }
 
-        public void getVideoReference(RawImage tex, optionsHub hubOpt)
+        public void UpdateVideoOffset(float newOffset)
         {
-            m_Tex2Draw = tex;
-            m_hub = hubOpt;
+            m_offsetVideoMilliSec = (int)newOffset;
         }
 
         public void cleanup()
         {
             //remove offset video event
-            m_hub.videoRemote.offsetVideoHasChanged -= new offsetVideoChangedEventHandler(
-                delegate (float newVal)
-                {
-                    m_offsetVideoMilliSec = (int)newVal;
-                });
+            //m_hub.videoRemote.offsetVideoHasChanged -= new offsetVideoChangedEventHandler(
+            //    delegate (float newVal)
+            //    {
+            //        m_offsetVideoMilliSec = (int)newVal;
+            //    });
 
             //to release resources
             if (m_player != null)

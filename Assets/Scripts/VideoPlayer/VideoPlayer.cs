@@ -210,10 +210,12 @@ public class VideoPlayer : MonoBehaviour
     void init(string videoPath, int eegFileDurationInSec)
     {
         VideoPath = videoPath;
-        if (needAudioProcess)
-            hub.videoRemote.setButtonsInteractable(true);
-        else
-            hub.videoRemote.setButtonsInteractable(false);
+        
+        //TODO : rebrancher proprement 
+        //if (needAudioProcess)
+        //    hub.videoRemote.setButtonsInteractable(true);
+        //else
+        //    hub.videoRemote.setButtonsInteractable(false);
 
         if (videoPath == "")
             _Iplayer = gameObject.AddComponent<VLCLess>();
@@ -222,8 +224,7 @@ public class VideoPlayer : MonoBehaviour
 
         TextureToDraw.texture = (Texture2D)Instantiate(m_texLogo);
 
-        _Iplayer.getVideoReference(TextureToDraw, hub);
-        _Iplayer.init(videoPath, eegFileDurationInSec);
+        _Iplayer.init(videoPath, eegFileDurationInSec, TextureToDraw);
         initListeners();
     }
 

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
-    class BrainVisualisation : Tool
+    public class BrainVisualisation : Tool
     {
         /// <summary>
         /// </summary>
