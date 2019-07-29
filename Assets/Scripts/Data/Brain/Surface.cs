@@ -10,11 +10,12 @@ using UnityEngine;
 
 public class Surface : CppDLLImportBase
 {
-    public List<Vector3> verticesObj = new List<Vector3>();          //List of X-Y-Z Coordinates : each element is one vetice (point)
-    public int[] idTri;                                              //List of Index number : three vertices used to make one triangle
-    private string surfaceFilePath = "";
+    public List<Vector3> Vertices = new List<Vector3>();          //List of X-Y-Z Coordinates : each element is one vetice (point)
+    public int[] TriangleIds;                                     //List of Index number : three vertices used to make one triangle
+    //===
+    private string m_filePath = "";
 
-    public Surface[] split_to_surfaces(int nbSubSurfaces)
+    public Surface[] SplitToSurfaces(int nbSubSurfaces)
     {
         HandleRef pSubSurfaces = new HandleRef(this, split_to_surfaces_Surface(_handle, nbSubSurfaces));
         int nbMultiSurface = nb_multiSurface(pSubSurfaces);
@@ -22,28 +23,28 @@ public class Surface : CppDLLImportBase
         for (int ii = 0; ii < nbMultiSurface; ++ii)
         {
             splits[ii] = new Surface(move_MultiSurface(pSubSurfaces, ii));
-            copyVerticesAndTriangles(splits[ii]);
+            CopyVerticesAndTriangles(splits[ii]);
         }
         delete_MultiSurface(pSubSurfaces);
         return splits;
     }
 
-    void copyVerticesAndTriangles(Surface surf)
+    void CopyVerticesAndTriangles(Surface surface)
     {
-        float[] verticesArray = new float[3 * get_number_vertices(surf._handle)];
-        copy_vertices(surf._handle, verticesArray);
+        float[] verticesArray = new float[3 * get_number_vertices(surface._handle)];
+        copy_vertices(surface._handle, verticesArray);
         for (int i = 0; i < verticesArray.Length / 3; i++)
-            surf.verticesObj.Add(new Vector3(verticesArray[3 * i], verticesArray[(3 * i) + 1], verticesArray[(3 * i) + 2]));
+            surface.Vertices.Add(new Vector3(verticesArray[3 * i], verticesArray[(3 * i) + 1], verticesArray[(3 * i) + 2]));
 
-        surf.idTri = new int[3 * get_number_triangles(surf._handle)];
-        copy_triangles(surf._handle, surf.idTri);
+        surface.TriangleIds = new int[3 * get_number_triangles(surface._handle)];
+        copy_triangles(surface._handle, surface.TriangleIds);
     }
 
     #region memory_management
 
     public Surface(string pathSurfaceFile) : base(pathSurfaceFile)
     {
-        copyVerticesAndTriangles(this);
+        CopyVerticesAndTriangles(this);
     }
 
     public Surface(IntPtr surfaceHandle) : base(surfaceHandle) { }
@@ -55,12 +56,12 @@ public class Surface : CppDLLImportBase
 
     protected override void createDLLClass(string str)
     {
-        surfaceFilePath = str;
+        m_filePath = str;
         //==
-        string[] pathSurfaceFileSplit = surfaceFilePath.Split(new char[] { '.' });
+        string[] pathSurfaceFileSplit = m_filePath.Split(new char[] { '.' });
         string fileExtention = pathSurfaceFileSplit[pathSurfaceFileSplit.Length - 1].ToUpper();
         //==
-        string workingdir = Path.GetDirectoryName(surfaceFilePath);
+        string workingdir = Path.GetDirectoryName(m_filePath);
 
         string[] files;
         if (fileExtention == "TRI")
@@ -73,11 +74,11 @@ public class Surface : CppDLLImportBase
         if (files.Length > 0)
         {
             files[0].Replace('\\', '/');
-            _handle = new HandleRef(this, read_file_to_surface(surfaceFilePath, files[0], fileExtention));
+            _handle = new HandleRef(this, read_file_to_surface(m_filePath, files[0], fileExtention));
         }
         else
         {
-            _handle = new HandleRef(this, read_file_to_surface(surfaceFilePath, "", fileExtention));
+            _handle = new HandleRef(this, read_file_to_surface(m_filePath, "", fileExtention));
         }
         //==
     }
@@ -85,9 +86,9 @@ public class Surface : CppDLLImportBase
     protected override void deleteDLLClass()
     {
         delete_Surface(_handle);
-        verticesObj.Clear();
-        verticesObj = null;
-        idTri = null;
+        Vertices.Clear();
+        Vertices = null;
+        TriangleIds = null;
     }
 
     #endregion memory_management

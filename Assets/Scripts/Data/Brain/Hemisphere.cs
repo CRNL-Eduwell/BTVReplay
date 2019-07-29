@@ -3,21 +3,16 @@ using System.Collections.Generic;
 
 public class Hemisphere : MonoBehaviour
 {
-    Material BaseMaterialDepth = null;
-    Material BaseMaterialTransparency = null;
-    public List<Surface> surfaceData = new List<Surface>();
-    List<MeshFilter> MeshFilter = new List<MeshFilter>();
-    List<Mesh> Mesh = new List<Mesh>();
-    List<MeshRenderer> MeshRenderer = new List<MeshRenderer>();
-    List<Renderer> Renderer = new List<Renderer>();
-    List<Material[]> materials = new List<Material[]>();
-    public List<GameObject> brainMeshes = new List<GameObject>();
-
-    private void OnDestroy()
-    {
-        for (int i = 0; i < surfaceData.Count; i++)
-            surfaceData[i].Dispose();
-    }
+    public List<GameObject> MeshesGameObjects = new List<GameObject>();
+    public List<Surface> SurfacesGameObjects = new List<Surface>();
+    //===
+    private List<MeshFilter> MeshFilter = new List<MeshFilter>();
+    private List<Mesh> Mesh = new List<Mesh>();
+    private List<MeshRenderer> MeshRenderer = new List<MeshRenderer>();
+    private List<Renderer> Renderer = new List<Renderer>();
+    private List<Material[]> materials = new List<Material[]>();
+    private Material BaseMaterialDepth = null;
+    private Material BaseMaterialTransparency = null;
 
     public void InitializeData(string triFilePath)
     {
@@ -25,16 +20,16 @@ public class Hemisphere : MonoBehaviour
         BaseMaterialTransparency = Resources.Load("Materials/Brain-TransparencyStencil", typeof(Material)) as Material;
         Surface baseSurface = new Surface(triFilePath);
 
-        int nbSurface = ((baseSurface.verticesObj.Count * 3) / 65000) + 1;
+        int nbSurface = ((baseSurface.Vertices.Count * 3) / 65000) + 1;
         if (nbSurface > 1)
         {
-            Surface[] array = baseSurface.split_to_surfaces(nbSurface);
+            Surface[] array = baseSurface.SplitToSurfaces(nbSurface);
             for (int i = 0; i < array.Length; i++)
-                surfaceData.Add(array[i]);
+                SurfacesGameObjects.Add(array[i]);
         }
         else
         {
-            surfaceData.Add(baseSurface);
+            SurfacesGameObjects.Add(baseSurface);
         }
 
         for (int i = 0; i < nbSurface; i++)
@@ -43,8 +38,8 @@ public class Hemisphere : MonoBehaviour
             //== Get Mesh vertices and tri inside Meshfilter
             MeshFilter.Add(current.AddComponent<MeshFilter>());
             Mesh.Add(MeshFilter[i].mesh);
-            Mesh[i].vertices = surfaceData[i].verticesObj.ToArray();
-            Mesh[i].triangles = surfaceData[i].idTri;
+            Mesh[i].vertices = SurfacesGameObjects[i].Vertices.ToArray();
+            Mesh[i].triangles = SurfacesGameObjects[i].TriangleIds;
 
             //== Create MeshRenderer : Must Do to see the object
             MeshRenderer.Add(current.AddComponent<MeshRenderer>());
@@ -58,7 +53,13 @@ public class Hemisphere : MonoBehaviour
 
             Mesh[i].RecalculateNormals();
             current.name = "Brain " + i;
-            brainMeshes.Add(current);
+            MeshesGameObjects.Add(current);
         }
+    }
+
+    private void OnDestroy()
+    {
+        for (int i = 0; i < SurfacesGameObjects.Count; i++)
+            SurfacesGameObjects[i].Dispose();
     }
 }

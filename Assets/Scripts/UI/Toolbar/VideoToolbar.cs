@@ -249,5 +249,10 @@ namespace BTV.UI.Module3D
         {
             throw new System.NotImplementedException();
         }
+
+        protected override void AddListeners()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

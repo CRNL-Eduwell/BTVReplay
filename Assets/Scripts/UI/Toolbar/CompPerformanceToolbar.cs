@@ -43,6 +43,11 @@ namespace BTV.UI.Module3D
         {
             m_Tools.Add(m_ComportementWindow);
         }
+
+        protected override void AddListeners()
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

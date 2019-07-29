@@ -85,8 +85,8 @@ public class ScalpElectrodes : MonoBehaviour, IElectrodes
             currentElecPlot.name = currentPlot.Label;
             currentElecPlot.transform.parent = currentElec.transform;
 
-            ElecPlotSize sphereSizeScript = currentElecPlot.AddComponent<ElecPlotSize>();
-            sphereSizeScript.init(currentElecPlot.name, electrodes[i]);
+            //ElecPlotSize sphereSizeScript = currentElecPlot.AddComponent<ElecPlotSize>();
+            //sphereSizeScript.init(currentElecPlot.name, electrodes[i]);
         }
     }
 
@@ -100,7 +100,7 @@ public class ScalpElectrodes : MonoBehaviour, IElectrodes
             if (currentElecTransform != null)
             {
                 currentElecTransform.localPosition = new Vector3(-currentPlot.Coordinates.x, currentPlot.Coordinates.y, currentPlot.Coordinates.z);
-                currentElecTransform.GetComponent<ElecPlotSize>().setPlot(electrodes[i]);
+                //currentElecTransform.GetComponent<ElecPlotSize>().setPlot(electrodes[i]);
             }
         }
     }

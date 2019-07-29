@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace BTV.UI.Module3D
 {
@@ -12,7 +14,7 @@ namespace BTV.UI.Module3D
         /// Toolbar menu
         /// </summary>
         [SerializeField]
-        private ToolbarMenu m_ToolbarMenu;
+        private ToolbarMenu m_ToolbarMenu = null;
 
         /// <summary>
         /// </summary>
@@ -44,45 +46,30 @@ namespace BTV.UI.Module3D
         {
             m_BrainToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                if (UiOptionIndex > 0) //isOn
-                {
-                    ChangeToolbar(m_BrainToggle);
-                }
+                UnityEngine.Debug.Log("Update Brain Opt : " + UiOptionIndex);
+                ChangeToolbar(m_BrainToggle, UiOptionIndex);
             });
             m_Eeg1Toggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                if (UiOptionIndex > 0) //isOn
-                {
-                    ChangeToolbar(m_Eeg1Toggle);
-                }
+
             });
             m_Eeg2Toggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                if (UiOptionIndex > 0) //isOn
-                {
-                    ChangeToolbar(m_Eeg2Toggle);
-                }
+
             });
             m_PerformanceToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                if (UiOptionIndex > 0) //isOn
-                {
-                    ChangeToolbar(m_PerformanceToggle);
-                }
+
             });
             m_VideoToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                if (UiOptionIndex > 0) //isOn
-                {
-                    ChangeToolbar(m_VideoToggle);
-                }
+                UnityEngine.Debug.Log("Update Video Opt : " + UiOptionIndex);
+                ChangeToolbar(m_VideoToggle, UiOptionIndex);
             });
             m_EventsToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                if (UiOptionIndex > 0) //isOn
-                {
-                    ChangeToolbar(m_EventsToggle);
-                }
+                UnityEngine.Debug.Log("Update Events Opt : " + UiOptionIndex);
+                ChangeToolbar(m_EventsToggle, UiOptionIndex);
             });
         }
 
@@ -90,28 +77,18 @@ namespace BTV.UI.Module3D
         /// Method to be called when changing the state of a toggle
         /// </summary>
         /// <param name="triggeredToggle">Toggle which value changed</param>
-        private void ChangeToolbar(ExtendedToggle triggeredToggle)
+        private void ChangeToolbar(ExtendedToggle triggeredToggle, int UiOptionModule)
         {
-            //m_ToolbarMenu.CurrentToolbar.HideToolbarCallback();
-            m_ToolbarMenu.CurrentToolbar.gameObject.SetActive(false);
-            m_ToolbarMenu.CurrentToolbar = m_Toolbars[triggeredToggle];
-            m_ToolbarMenu.CurrentToolbar.gameObject.SetActive(true);
-            //m_ToolbarMenu.CurrentToolbar.ShowToolbarCallback();
-        }
+            if (m_ToolbarMenu.CurrentToolbar == null)
+                m_ToolbarMenu.CurrentToolbar = m_Toolbars[triggeredToggle];
 
-        private void UpdateUiModule(int UiOptionModule)
-        {
-            switch (UiOptionModule)
-            {
-                case 0:
-                    break;
-                case 1:
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    break;
-            }
+            m_ToolbarMenu.CurrentToolbar.gameObject.SetActive(false);
+            KeyValuePair<ExtendedToggle, Toolbar> previousKeyValuePair = m_Toolbars.First(x => x.Value == m_ToolbarMenu.CurrentToolbar);
+            previousKeyValuePair.Key.ResetToggle();
+
+            bool showTriggeredToolbar = UiOptionModule > 1 ? true : false;
+            m_ToolbarMenu.CurrentToolbar = m_Toolbars[triggeredToggle];
+            m_ToolbarMenu.CurrentToolbar.gameObject.SetActive(showTriggeredToolbar);
         }
     }
 }

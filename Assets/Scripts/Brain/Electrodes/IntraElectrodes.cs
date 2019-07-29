@@ -143,8 +143,8 @@ public class IntraElectrodes : MonoBehaviour, IElectrodes
                 currentElecPlot.name = electrodes[i].Plots[j].Label;
                 currentElecPlot.transform.parent = currentElec.transform;
 
-                ElecPlotSize sphereSizeScript = currentElecPlot.AddComponent<ElecPlotSize>();
-                sphereSizeScript.init(currentElecPlot.name, electrodes[i].Plots[j]);
+                //ElecPlotSize sphereSizeScript = currentElecPlot.AddComponent<ElecPlotSize>();
+                //sphereSizeScript.init(currentElecPlot.name, electrodes[i].Plots[j]);
             }
         }
     }
@@ -159,7 +159,7 @@ public class IntraElectrodes : MonoBehaviour, IElectrodes
             if (currentElecTransform != null)
             {
                 currentElecTransform.localPosition = new Vector3(-currentPlot.Coordinates.x, currentPlot.Coordinates.y, currentPlot.Coordinates.z);
-                currentElecTransform.GetComponent<ElecPlotSize>().setPlot(electrodes[i]);
+                //currentElecTransform.GetComponent<ElecPlotSize>().setPlot(electrodes[i]);
             }
         }
     }

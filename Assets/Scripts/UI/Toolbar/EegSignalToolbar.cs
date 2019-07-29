@@ -66,6 +66,11 @@ namespace BTV.UI.Module3D
             m_Tools.Add(m_ColorPicker);
             m_Tools.Add(m_FileSwitcher);
         }
+
+        protected override void AddListeners()
+        {
+
+        }
         #endregion
 
         //public EegSignalToolbar(ButtonUI_show buttonOpt, BTVMedia p_media)

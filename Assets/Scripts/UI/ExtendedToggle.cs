@@ -18,33 +18,72 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
 {
     /// <summary>
     /// Send the UpdateUiAndModuleLayout currently clicked index
-    /// </summary>
     /// 0 : Cache courbes et options
     /// 1 : juste l'objet 3d , mais pas les options
     /// 2 : objet 3D et options correspondantes
     /// 3 : Possiblité de changer la courbe selectionné en cliquant sur le cerveau
+    /// </summary>
     public GenericEvent<int> UpdateUiAndModuleLayout = new GenericEvent<int>();
 
     [SerializeField]
-    private int m_MaxValue = 0;
+    private bool m_LeftRightClick = false;
     [SerializeField]
     private int m_MinValue = 0;
+    [SerializeField]
+    private int m_MaxValue = 0;
+
     private int m_OptionsCounter = 1;
 
+    public void ResetToggle()
+    {
+        m_OptionsCounter = 1;
+    }
+
     public void OnPointerClick(PointerEventData eventData)
+    {
+        if (m_LeftRightClick)
+            OnLeftRightPointerClick(eventData);
+        else
+            OnLeftPointerClick(eventData);
+    }
+
+    private void OnLeftPointerClick(PointerEventData eventData)
+    {
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                if (m_OptionsCounter + 1 <= m_MaxValue)
+                {
+                    m_OptionsCounter += 1;
+                    UnityEngine.Debug.Log("Increasing counter " + m_OptionsCounter);
+                }
+                else
+                {
+                    if (m_OptionsCounter - 1 >= m_MinValue)
+                    {
+                        m_OptionsCounter -= 1;
+                        UnityEngine.Debug.Log("Decreasing counter " + m_OptionsCounter);
+                    }
+                }
+                UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
+                break;
+        }
+    }
+
+    private void OnLeftRightPointerClick(PointerEventData eventData)
     {
         switch (eventData.button)
         {
             case PointerEventData.InputButton.Right:
                 if (m_OptionsCounter - 1 >= m_MinValue)
                     m_OptionsCounter -= 1;
+                UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
                 break;
             case PointerEventData.InputButton.Left:
                 if (m_OptionsCounter + 1 <= m_MaxValue)
                     m_OptionsCounter += 1;
+                UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
                 break;
         }
-
-        UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
     }
 }

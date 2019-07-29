@@ -22,6 +22,7 @@ namespace BTV.UI.Module3D
         public void Initialize()
         {
             AddTools();
+            AddListeners();
         }
 
         /// <summary>
@@ -29,5 +30,13 @@ namespace BTV.UI.Module3D
         /// </summary>
         /// <param name="parent">Transform of the toolbar</param>
         protected abstract void AddTools();
+
+        protected virtual void AddListeners()
+        {
+            foreach (Tools.Tool tool in m_Tools)
+            {
+                tool.Initialize();
+            }
+        }
     }
 }

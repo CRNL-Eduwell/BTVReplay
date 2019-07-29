@@ -31,6 +31,39 @@ namespace BTV.UI.Module3D
             m_Tools.Add(m_BrainVisualisation);
             m_Tools.Add(m_BrainGain);
         }
+        protected override void AddListeners()
+        {
+            base.AddListeners();
+
+            m_BrainReferentials.needToChangeBrain += new brainChangeEventHandler((BrainId) =>
+            {
+                UnityEngine.Debug.Log("change brain");
+                BrainParametersMessage message = new BrainParametersMessage
+                {
+                    TaskToExecute = 0,
+                    ModelId = BrainId
+                };
+                Messenger.Default.Send(message);
+            });
+            m_BrainVisualisation.UpdateBrainMeshes.AddListener((VisuID) =>
+             {
+                 BrainParametersMessage message = new BrainParametersMessage
+                 {
+                     TaskToExecute = 1,
+                     MeshesToDisplay = VisuID
+                 };
+                 Messenger.Default.Send(message);
+             });
+            m_BrainGain.gainHasChanged += new gainChangedEventHandler((NewGain) =>
+            {
+                BrainParametersMessage message = new BrainParametersMessage
+                {
+                    TaskToExecute = 3,
+                    Gain = NewGain
+                };
+                Messenger.Default.Send(message);
+            });
+        }
         #endregion
     }
 }

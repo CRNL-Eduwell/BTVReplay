@@ -148,6 +148,16 @@ namespace BTV.UI.Module3D
             scrollTex = Instantiate(scrollOrig);
         }
 
+        protected override void AddTools()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void AddListeners()
+        {
+            throw new NotImplementedException();
+        }
+
         void activateEventsMode()
         {
             addEvent = !addEvent;
@@ -734,11 +744,6 @@ namespace BTV.UI.Module3D
 
         [DllImport("BTVReplayLibraryC++", EntryPoint = "pearsonCoefficientsCorrelation2", CallingConvention = CallingConvention.Cdecl)]
         static private extern void pearsonCoefficientsCorrelation2(float[] coeffs, float[] baseArray, float[] eegData, int[] sizes);
-
-        protected override void AddTools()
-        {
-            throw new NotImplementedException();
-        }
         #endregion
     }
 }

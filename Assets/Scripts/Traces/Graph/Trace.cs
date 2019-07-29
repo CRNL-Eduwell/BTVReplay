@@ -78,23 +78,23 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             video.sendTime -= new timeVideo(graphSonif.updateSonif);
             video.stopTimeVideo -= new stopVideo(graphSonif.muteSonficiation);
 
-            hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(changeFileID);
-            hub.traceRemotes[traceID].gainHasChanged -= new gainChangedEventHandler(UpdateTraceGain);
-            hub.traceRemotes[traceID].offsetHasChanged -= new offsetChangedEventHandler(eegSignal.updateOffset);
-            hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeById);
-            hub.traceRemotes[traceID].timeHasChanged -= new timePeriodChangedEventHandler(updateTimeResolution);
-            hub.traceRemotes[traceID].gridToggled -= new toggleGridDisplay(graphGrid.displayTimeGrid);
-            hub.traceRemotes[traceID].sonifToggled -= new toggleSonification(graphSonif.toggleSonification);
-            hub.traceRemotes[traceID].soundChanged -= new newSoundSonif(graphSonif.changeAudioSonification);
-            hub.eventRemote.newEventToShow -= new newEventToShowHandler(graphEvent.addEventToTrace);
-            hub.eventRemote.showEvents -= new showAllEventsHandler(graphEvent.showEvents);
-            hub.videoRemote.audioToggled -= new toggleAudioTraceEventHandler(audioSignal.Show);
-            hub.videoRemote.gainAudioHasChanged -= new gainAudioChangedEventHandler(audioSignal.updateGain);
-            hub.videoRemote.smAudioHasChanged -= new idAudioSmChangedEventHandler(audioSignal.changeAudioId);
+            //hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(changeFileID);
+            //hub.traceRemotes[traceID].gainHasChanged -= new gainChangedEventHandler(UpdateTraceGain);
+            //hub.traceRemotes[traceID].offsetHasChanged -= new offsetChangedEventHandler(eegSignal.updateOffset);
+            //hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeById);
+            //hub.traceRemotes[traceID].timeHasChanged -= new timePeriodChangedEventHandler(updateTimeResolution);
+            //hub.traceRemotes[traceID].gridToggled -= new toggleGridDisplay(graphGrid.displayTimeGrid);
+            //hub.traceRemotes[traceID].sonifToggled -= new toggleSonification(graphSonif.toggleSonification);
+            //hub.traceRemotes[traceID].soundChanged -= new newSoundSonif(graphSonif.changeAudioSonification);
+            //hub.eventRemote.newEventToShow -= new newEventToShowHandler(graphEvent.addEventToTrace);
+            //hub.eventRemote.showEvents -= new showAllEventsHandler(graphEvent.showEvents);
+            //hub.videoRemote.audioToggled -= new toggleAudioTraceEventHandler(audioSignal.Show);
+            //hub.videoRemote.gainAudioHasChanged -= new gainAudioChangedEventHandler(audioSignal.updateGain);
+            //hub.videoRemote.smAudioHasChanged -= new idAudioSmChangedEventHandler(audioSignal.changeAudioId);
             warden.plotWasClicked -= new newPlotClicked(plotClicked);
             colorpicker.changeColor -= new colorChanged(updateColors);
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
-            hub.traceRemotes[traceID].deleteElectrodeInPanel();
+            //hub.traceRemotes[traceID].deleteElectrodeInPanel();
         }
     }
 
@@ -131,23 +131,23 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         video.sendTime += new timeVideo(graphSonif.updateSonif);
         video.stopTimeVideo += new stopVideo(graphSonif.muteSonficiation);
 
-        hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(changeFileID);
-        hub.traceRemotes[traceID].gainHasChanged += new gainChangedEventHandler(UpdateTraceGain);
-        hub.traceRemotes[traceID].offsetHasChanged += new offsetChangedEventHandler(eegSignal.updateOffset);
-        hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeById);
-        hub.traceRemotes[traceID].timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
-        hub.traceRemotes[traceID].gridToggled += new toggleGridDisplay(graphGrid.displayTimeGrid);
-        hub.traceRemotes[traceID].sonifToggled += new toggleSonification(graphSonif.toggleSonification);
-        hub.traceRemotes[traceID].soundChanged += new newSoundSonif(graphSonif.changeAudioSonification);
-        hub.eventRemote.newEventToShow += new newEventToShowHandler(graphEvent.addEventToTrace);
-        hub.eventRemote.showEvents += new showAllEventsHandler(graphEvent.showEvents);
-        hub.videoRemote.audioToggled += new toggleAudioTraceEventHandler(audioSignal.Show);
-        hub.videoRemote.gainAudioHasChanged += new gainAudioChangedEventHandler(audioSignal.updateGain);
-        hub.videoRemote.smAudioHasChanged += new idAudioSmChangedEventHandler(audioSignal.changeAudioId);
+        //hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(changeFileID);
+        //hub.traceRemotes[traceID].gainHasChanged += new gainChangedEventHandler(UpdateTraceGain);
+        //hub.traceRemotes[traceID].offsetHasChanged += new offsetChangedEventHandler(eegSignal.updateOffset);
+        //hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeById);
+        //hub.traceRemotes[traceID].timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
+        //hub.traceRemotes[traceID].gridToggled += new toggleGridDisplay(graphGrid.displayTimeGrid);
+        //hub.traceRemotes[traceID].sonifToggled += new toggleSonification(graphSonif.toggleSonification);
+        //hub.traceRemotes[traceID].soundChanged += new newSoundSonif(graphSonif.changeAudioSonification);
+        //hub.eventRemote.newEventToShow += new newEventToShowHandler(graphEvent.addEventToTrace);
+        //hub.eventRemote.showEvents += new showAllEventsHandler(graphEvent.showEvents);
+        //hub.videoRemote.audioToggled += new toggleAudioTraceEventHandler(audioSignal.Show);
+        //hub.videoRemote.gainAudioHasChanged += new gainAudioChangedEventHandler(audioSignal.updateGain);
+        //hub.videoRemote.smAudioHasChanged += new idAudioSmChangedEventHandler(audioSignal.changeAudioId);
         warden.plotWasClicked += new newPlotClicked(plotClicked);
         colorpicker.changeColor += new colorChanged(updateColors);
         graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
-        hub.traceRemotes[traceID].loadElectrodeInPanel(eegSignal.fileHandle.electrodes);
+        //hub.traceRemotes[traceID].loadElectrodeInPanel(eegSignal.fileHandle.electrodes);
         #endregion
 
         m_initDone = true;

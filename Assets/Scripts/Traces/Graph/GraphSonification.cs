@@ -14,6 +14,10 @@ public class GraphSonification : MonoBehaviour
 
     void Awake()
     {
+        //Debug while getting rid of hub
+        if (hub == null)
+            gameObject.SetActive(false);
+
         audioSourceScript.Play();
         audioSourceScript.Pause();
     }
@@ -29,7 +33,7 @@ public class GraphSonification : MonoBehaviour
     public void init(Trace parentWin)
     {
         m_curve = parentWin;
-        StartCoroutine(StartAudio());
+        //StartCoroutine(StartAudio());
     }
 
     public void toggleSonification(bool isOn)
