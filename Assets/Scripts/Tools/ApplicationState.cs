@@ -8,6 +8,18 @@ using BTV.UI.Module3D;
 
 public static class ApplicationState
 {
+    public static Patient Patient
+    {
+        get;
+        set;
+    }
+
+    public static ELAN[] EegFiles
+    {
+        get;
+        set;
+    }
+
     #region public members
     public static MessageWindow messageWindow
     {

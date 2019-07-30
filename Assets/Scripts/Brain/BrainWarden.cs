@@ -70,10 +70,13 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             video.sendTime -= new timeVideo(updateEventsOnBrain);
     }
 
-    void Update()
+    void OnGUI()
     {
         if (initDone && isOver(Input.mousePosition))
-                checkIfPointElectrode();
+        {
+            brainCam.GetComponent<BrainCamera>().IsMouseOver = true;
+            checkIfPointElectrode();
+        }
     }
 
     public void OnPointerClick(PointerEventData eventData)

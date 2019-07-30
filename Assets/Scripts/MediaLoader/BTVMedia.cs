@@ -266,32 +266,53 @@ public class BTVMedia : MonoBehaviour
 
     IEnumerator c_load(Patient myPat)
     {
+        ApplicationState.Patient = myPat;
+
         //When you start a coroutine there is an implicit jumpback
         //So we jump back to unity just in case
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadEEGFile(myPat));
+        ApplicationState.EegFiles = elanFiles;
         mediaLoaded();
 
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadVideo(myPat.video));
 
-
-        if (myPat.hasMNI && !myPat.hasPAT)
+        //====
+        bool ShouldLoadMniFirst = (myPat.hasMNI && !myPat.hasPAT) || (myPat.hasMNI && myPat.hasPAT);
+        bool ShouldLoadPatFirst = !myPat.hasMNI && myPat.hasPAT;
+        if (ShouldLoadMniFirst)
         {
-            loadBrain(myPat.mni, 0);
+            LoaderToBrainMessage message = new LoaderToBrainMessage
+            {
+                HasAnatomy = true,
+                Anatomy = myPat.mni
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderToBrain);
         }
-        else if (myPat.hasMNI && myPat.hasPAT)
+        else if (ShouldLoadPatFirst)
         {
-            loadBrain(myPat.mni, 1);
+            LoaderToBrainMessage message = new LoaderToBrainMessage
+            {
+                HasAnatomy = true,
+                Anatomy = myPat.pat
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderToBrain);
         }
-        else if (!myPat.hasMNI && myPat.hasPAT)
+        else
         {
-            loadBrain(myPat.pat, 2);
+            //TODO
+            //When there is no 3D model , we take the value of the mni dropdown for eegtech
+            //if this is not filled this might be wrong, need to find another way to know
+            //if it's intra or scalp
+            LoaderToBrainMessage message = new LoaderToBrainMessage
+            {
+                HasAnatomy = false,
+                Techno = myPat.mni.GetEegTech
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderToBrain);
         }
-        else if (!myPat.hasMNI && !myPat.hasPAT)
-        {
-            loadDefault(myPat.mni.GetEegTech);
-        }
+        //====
 
         loadTrace();
 

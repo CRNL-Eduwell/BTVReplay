@@ -3,10 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Brain : MonoBehaviour {
-
-    [SerializeField] BTVMedia media = null;
-
+public class Brain : MonoBehaviour
+{
     BrainCamera CameraScript = null;
 
     //Handle to corresponding game objects
@@ -19,19 +17,30 @@ public class Brain : MonoBehaviour {
 
     void Awake()
     {
-        media.loadBrain += new BrainLoadEventHandler(loadBrainAndElectrodes);
-        media.loadDefault += new BrainNotPresentLoadEventHandler(loadElectrodesDefault);
-        Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage);
+        Messenger.Default.Register<LoaderToBrainMessage>(this, OnBrainLoaderMessage, MessageContext.LoaderToBrain);
+        Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
     }
 
     void OnDestroy()
     {
-        media.loadBrain -= new BrainLoadEventHandler(loadBrainAndElectrodes);
-        media.loadDefault -= new BrainNotPresentLoadEventHandler(loadElectrodesDefault);
-        Messenger.Default.Unregister(this);
+        Messenger.Default.Unregister(this, MessageContext.LoaderToBrain);
+        Messenger.Default.Unregister(this, MessageContext.UiToBrain);
     }
 
-    public void loadBrainAndElectrodes(brain_anat brainToLoad, int otherBrain)
+    private void OnBrainLoaderMessage(LoaderToBrainMessage message)
+    {
+        UnityEngine.Debug.Log("Onbrainloadermessage");
+        if (message.HasAnatomy)
+        {
+            LoadBrainAndElectrodes(message.Anatomy);
+        }
+        else
+        {
+            LoadElectrodesDefault(message.Techno);
+        }
+    }
+
+    private void LoadBrainAndElectrodes(brain_anat brainToLoad)
     {
         LHBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.lhemi);
 
@@ -54,10 +63,10 @@ public class Brain : MonoBehaviour {
         m_ElectrodesContext.LoadElectrodesOnBrain(Electrodes);
 
         CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
-        CameraScript.initCameraPosition();
+        CameraScript.InitCameraPosition();
     }
 
-    public void loadElectrodesDefault(eeg_Technology eeg)
+    private void LoadElectrodesDefault(eeg_Technology eeg)
     {
         LHBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
         LHBrain.transform.parent = gameObject.transform;
@@ -65,15 +74,15 @@ public class Brain : MonoBehaviour {
         RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
         RHBrain.transform.parent = gameObject.transform;
         RHBrain.layer = gameObject.layer;
-        
+
         Electrodes = new GameObject("Electrodes");
         Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(eeg);
-        m_ElectrodesContext.LoadDefaultPearl(media.elanFiles);
+        m_ElectrodesContext.LoadDefaultPearl(ApplicationState.EegFiles);
         m_ElectrodesContext.LoadElectrodesOnBrain(Electrodes);
 
         CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
-        CameraScript.initCameraPosition();
+        CameraScript.InitCameraPosition();
     }
 
     private void OnBrainParametersMessage(UiToBrainMessage message)
@@ -105,12 +114,12 @@ public class Brain : MonoBehaviour {
             case 0:
                 LHBrain.gameObject.SetActive(true);
                 RHBrain.gameObject.SetActive(true);
-                updateBrainMesh(media.pm.currentPatients[media.pm.idCurrentPatientLoaded].mni);
+                UpdateBrainMesh(ApplicationState.Patient.mni);
                 break;
             case 1:
                 LHBrain.gameObject.SetActive(true);
                 RHBrain.gameObject.SetActive(true);
-                updateBrainMesh(media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pat);
+                UpdateBrainMesh(ApplicationState.Patient.pat);
                 break;
             case 2:
                 LHBrain.gameObject.SetActive(false);
@@ -123,7 +132,7 @@ public class Brain : MonoBehaviour {
         }
     }
 
-    private void updateBrainMesh(brain_anat brainToLoad)
+    private void UpdateBrainMesh(brain_anat brainToLoad)
     {
         Destroy(GameObject.Find("LeftHemi"));
         LHBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.lhemi);

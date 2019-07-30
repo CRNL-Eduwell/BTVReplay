@@ -4,24 +4,27 @@ using UnityEngine;
 
 public class BrainCamera : MonoBehaviour
 {
-    GameObject Brain3DHandle = null;
-    BrainWarden warden = null;
-    Vector3 target, originalTarget;
-
-    //=====================
+    #region Public Members
+    public bool IsMouseOver
+    {
+        get;
+        set;
+    }
     public float distance = 250.0f;
     public float speed = 5.0f;
-    //=====================
     public float minDistance = 50.0f;
     public float maxDistance = 750.0f;
-    //=====================
     public float zoomSpeed = 2;
+    #endregion
 
-    public void initCameraPosition()
+    #region Private Members
+    [SerializeField]
+    private GameObject m_BrainHandle = null;
+    private Vector3 m_Target, m_OriginalTarget;
+    #endregion
+
+    public void InitCameraPosition()
     {
-        Brain3DHandle = GameObject.Find("BrainGameObject");
-        warden = GameObject.Find("BrainWindow").GetComponent<BrainWarden>();
-
         //== Check parameters integrity
         if (distance < minDistance)
             distance = minDistance;
@@ -29,46 +32,27 @@ public class BrainCamera : MonoBehaviour
         if (distance > maxDistance)
             distance = maxDistance;
 
-        Brain3DHandle.transform.position += new Vector3(-1000, 0, 0);        // degage le cerveau du canvas et est uniquement rendu par la cam 
-        Brain3DHandle.transform.Rotate(new Vector3(270, 0, 0));
-        target = Brain3DHandle.transform.position;
-        originalTarget = target;
+        m_BrainHandle.transform.position += new Vector3(-1000, 0, 0);        // degage le cerveau du canvas et est uniquement rendu par la cam 
+        m_BrainHandle.transform.Rotate(new Vector3(270, 0, 0));
+        m_Target = m_BrainHandle.transform.position;
+        m_OriginalTarget = m_Target;
 
-        transform.position = target - (transform.forward * distance);
+        transform.position = m_Target - (transform.forward * distance);
     }
 
-    public void initElecCameraPosition()
-    {
-        distance = 150;
-
-        //== Check parameters integrity
-        if (distance < minDistance)
-            distance = minDistance;
-
-        if (distance > maxDistance)
-            distance = maxDistance;
-
-        Brain3DHandle.transform.position += new Vector3(-1000, 0, 0);        // degage le cerveau du canvas et est uniquement rendu par la cam 
-        Brain3DHandle.transform.Rotate(new Vector3(270, 0, 0));
-        target = Brain3DHandle.transform.position;
-        originalTarget = target;
-
-        transform.position = target - (transform.forward * distance);
-    }
-
-    void Update()
+    private void Update()
     {
         if (Input.GetMouseButton(1)) // Mouse Right click
         {
-            rotateBrainByMouse();
+            RotateBrainByMouse();
         }
 
         if (Input.GetMouseButton(2)) // Mouse wheel click
         {
-            translateBrainByMouse();
+            TranslateBrainByMouse();
         }
 
-        keyboardAction();
+        KeyboardAction();
     }
 
     /// <summary>
@@ -76,21 +60,22 @@ public class BrainCamera : MonoBehaviour
     /// </summary>
     protected void OnGUI()
     {
-        if (warden != null && warden.isOver(Input.mousePosition))
+        if (IsMouseOver)
         {
             // zoom scroll mouse
             Vector2 scrollDelta = Input.mouseScrollDelta;
             if (scrollDelta.y != 0)
             {
                 if (scrollDelta.y < 0)
-                    moveBackward(zoomSpeed);
+                    MoveBackward(zoomSpeed);
                 else
-                    moveForward(zoomSpeed);
+                    MoveForward(zoomSpeed);
             }
+            IsMouseOver = false;
         }
     }
 
-    protected void translateBrainByMouse()
+    protected void TranslateBrainByMouse()
     {
         float nx = 0;
         float ny = 0;
@@ -101,20 +86,20 @@ public class BrainCamera : MonoBehaviour
         // check horizontal right click mouse drag movement
         if (nx != 0)
             if (nx < 0)
-                horizontalStrafe(true, nx * speed);
+                HorizontalStrafe(true, nx * speed);
             else
-                horizontalStrafe(false, -nx * speed);
+                HorizontalStrafe(false, -nx * speed);
 
 
         //check vertical right click mouse drag movement
         if (ny != 0)
             if (ny < 0)
-                verticalStrafe(true, -ny * speed);
+                VerticalStrafe(true, -ny * speed);
             else
-                verticalStrafe(false, ny * speed);
+                VerticalStrafe(false, ny * speed);
     }
 
-    protected void rotateBrainByMouse()
+    protected void RotateBrainByMouse()
     {
         float nx = 0;
         float ny = 0;
@@ -125,69 +110,69 @@ public class BrainCamera : MonoBehaviour
         // check horizontal right click mouse drag movement
         if (nx != 0)
             if (nx < 0)
-                moveLeft(-nx * speed);
+                MoveLeft(-nx * speed);
             else
-                moveRight(nx * speed);
+                MoveRight(nx * speed);
 
         // check vertical right click mouse drag movement
         if (ny != 0)
             if (ny < 0)
-                moveUp((ny) * speed);
+                MoveUp((ny) * speed);
             else
-                moveDown((-ny) * speed);
+                MoveDown((-ny) * speed);
     }
 
-    protected void keyboardAction()
+    protected void KeyboardAction()
     {
         if (Input.GetKey(KeyCode.LeftArrow))
-            moveLeft(speed);
+            MoveLeft(speed);
         if (Input.GetKey(KeyCode.RightArrow))
-            moveRight(speed);
+            MoveRight(speed);
         if (Input.GetKey(KeyCode.UpArrow))
-            moveUp(speed);
+            MoveUp(speed);
         if (Input.GetKey(KeyCode.DownArrow))
-            moveDown(speed);
+            MoveDown(speed);
         if (Input.GetKey(KeyCode.KeypadPlus))
-            moveForward(zoomSpeed);
+            MoveForward(zoomSpeed);
         if (Input.GetKey(KeyCode.KeypadMinus))
-            moveBackward(zoomSpeed);
+            MoveBackward(zoomSpeed);
     }
 
-    protected void moveRight(float amount)
+    protected void MoveRight(float amount)
     {
-        Vector3 vecTargetPos_EyePos = transform.position - target;
+        Vector3 vecTargetPos_EyePos = transform.position - m_Target;
         Quaternion rotation = Quaternion.AngleAxis(amount, transform.up);
-        transform.position = rotation * vecTargetPos_EyePos + target;
-        transform.LookAt(target, transform.up);
+        transform.position = rotation * vecTargetPos_EyePos + m_Target;
+        transform.LookAt(m_Target, transform.up);
     }
 
-    protected void moveLeft(float amout)
+    protected void MoveLeft(float amout)
     {
-        Vector3 vecTargetPos_EyePos = transform.position - target;
+        Vector3 vecTargetPos_EyePos = transform.position - m_Target;
         Quaternion rotation = Quaternion.AngleAxis(-amout, transform.up);
-        transform.position = rotation * vecTargetPos_EyePos + target;
-        transform.LookAt(target, transform.up);
+        transform.position = rotation * vecTargetPos_EyePos + m_Target;
+        transform.LookAt(m_Target, transform.up);
     }
 
-    protected void moveUp(float amout)
+    protected void MoveUp(float amout)
     {
-        Vector3 vecTargetPos_EyePos = transform.position - target;
+        Vector3 vecTargetPos_EyePos = transform.position - m_Target;
         Quaternion rotation = Quaternion.AngleAxis(-amout, transform.right);
-        transform.position = rotation * vecTargetPos_EyePos + target;
-        transform.LookAt(target, Vector3.Cross(target - transform.position, transform.right));
+        transform.position = rotation * vecTargetPos_EyePos + m_Target;
+        transform.LookAt(m_Target, Vector3.Cross(m_Target - transform.position, transform.right));
     }
 
-    protected void moveDown(float amout)
+    protected void MoveDown(float amout)
     {
-        Vector3 vecTargetPos_EyePos = transform.position - target;
+        Vector3 vecTargetPos_EyePos = transform.position - m_Target;
         Quaternion rotation = Quaternion.AngleAxis(amout, transform.right);
-        transform.position = rotation * vecTargetPos_EyePos + target;
-        transform.LookAt(target, Vector3.Cross(target - transform.position, transform.right));
+        transform.position = rotation * vecTargetPos_EyePos + m_Target;
+        transform.LookAt(m_Target, Vector3.Cross(m_Target - transform.position, transform.right));
     }
 
-    protected void moveForward(float amount)
+    protected void MoveForward(float amount)
     {
-        float length = Vector3.Distance(transform.position, target);
+        float length = Vector3.Distance(transform.position, m_Target);
 
         if (length - amount > minDistance)
         {
@@ -195,9 +180,9 @@ public class BrainCamera : MonoBehaviour
         }
     }
 
-    protected void moveBackward(float amount)
+    protected void MoveBackward(float amount)
     {
-        float length = Vector3.Distance(transform.position, target);
+        float length = Vector3.Distance(transform.position, m_Target);
 
         if (length + amount < maxDistance)
         {
@@ -205,7 +190,7 @@ public class BrainCamera : MonoBehaviour
         }
     }
 
-    protected void horizontalStrafe(bool left, float amount)
+    protected void HorizontalStrafe(bool left, float amount)
     {
         Vector3 strafe;
         if (left)
@@ -214,10 +199,10 @@ public class BrainCamera : MonoBehaviour
             strafe = transform.right * amount;
 
         transform.position = transform.position + strafe;
-        target = target + strafe;
+        m_Target = m_Target + strafe;
     }
 
-    protected void verticalStrafe(bool up, float amount)
+    protected void VerticalStrafe(bool up, float amount)
     {
         Vector3 strafe;
         if (up)
@@ -226,6 +211,6 @@ public class BrainCamera : MonoBehaviour
             strafe = -transform.up * amount;
 
         transform.position = transform.position + strafe;
-        target = target + strafe;
+        m_Target = m_Target + strafe;
     }
 }

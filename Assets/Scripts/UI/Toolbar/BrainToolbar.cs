@@ -43,16 +43,18 @@ namespace BTV.UI.Module3D
                     TaskToExecute = 0,
                     ModelId = BrainId
                 };
-                Messenger.Default.Send(message);
+                Messenger.Default.Send(message, MessageContext.UiToBrain);
             });
             m_BrainVisualisation.UpdateBrainMeshes.AddListener((VisuID) =>
              {
+                 UnityEngine.Debug.Log("change visu");
                  UiToBrainMessage message = new UiToBrainMessage
                  {
                      TaskToExecute = 1,
                      MeshesToDisplay = VisuID
                  };
-                 Messenger.Default.Send(message);
+                 Messenger.Default.Send(message, MessageContext.UiToBrain);
+                 UnityEngine.Debug.Log("message to brain");
              });
             m_BrainGain.gainHasChanged += new gainChangedEventHandler((NewGain) =>
             {
@@ -61,7 +63,7 @@ namespace BTV.UI.Module3D
                     TaskToExecute = 3,
                     Gain = NewGain
                 };
-                Messenger.Default.Send(message);
+                Messenger.Default.Send(message, MessageContext.UiToBrain);
             });
         }
         #endregion
