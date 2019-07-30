@@ -1403,7 +1403,7 @@ public class brainOptions
             }
             else
             {
-                Brain.changeVisuBrain(0);
+                //Brain.changeVisuBrain(0);
                 setButtonsVisible(brainButtons, true, false, false);
                 setButtonsVisible(visBrainButtons, true, false, false);
                 visu_choicePending = false;
@@ -1419,7 +1419,7 @@ public class brainOptions
             }
             else
             {
-                Brain.changeVisuBrain(-1);
+                //Brain.changeVisuBrain(-1);
                 setButtonsVisible(brainButtons, true, false, false);
                 setButtonsVisible(visBrainButtons, false, true, false);
                 visu_choicePending = false;
@@ -1435,7 +1435,7 @@ public class brainOptions
             }
             else
             {
-                Brain.changeVisuBrain(1);
+                //Brain.changeVisuBrain(1);
                 setButtonsVisible(brainButtons, true, false, false);
                 setButtonsVisible(visBrainButtons, false, false, true);
                 visu_choicePending = false;

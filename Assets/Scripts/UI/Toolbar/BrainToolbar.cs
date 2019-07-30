@@ -38,7 +38,7 @@ namespace BTV.UI.Module3D
             m_BrainReferentials.needToChangeBrain += new brainChangeEventHandler((BrainId) =>
             {
                 UnityEngine.Debug.Log("change brain");
-                BrainParametersMessage message = new BrainParametersMessage
+                UiToBrainMessage message = new UiToBrainMessage
                 {
                     TaskToExecute = 0,
                     ModelId = BrainId
@@ -47,7 +47,7 @@ namespace BTV.UI.Module3D
             });
             m_BrainVisualisation.UpdateBrainMeshes.AddListener((VisuID) =>
              {
-                 BrainParametersMessage message = new BrainParametersMessage
+                 UiToBrainMessage message = new UiToBrainMessage
                  {
                      TaskToExecute = 1,
                      MeshesToDisplay = VisuID
@@ -56,7 +56,7 @@ namespace BTV.UI.Module3D
              });
             m_BrainGain.gainHasChanged += new gainChangedEventHandler((NewGain) =>
             {
-                BrainParametersMessage message = new BrainParametersMessage
+                UiToBrainMessage message = new UiToBrainMessage
                 {
                     TaskToExecute = 3,
                     Gain = NewGain

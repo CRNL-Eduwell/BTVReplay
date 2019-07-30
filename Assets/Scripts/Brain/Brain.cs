@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.Data.Factory;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,17 +8,20 @@ public class Brain : MonoBehaviour {
     [SerializeField] BTVMedia media = null;
 
     BrainCamera CameraScript = null;
-    Electrodes ElectrodesScript = null;
 
+    //Handle to corresponding game objects
     GameObject LHBrain = null;
     GameObject RHBrain = null;
     GameObject Electrodes = null;
+
+    //Script dealing with electrodes, whether those are intra, or scalp
+    IElectrodesContext m_ElectrodesContext = null;
 
     void Awake()
     {
         media.loadBrain += new BrainLoadEventHandler(loadBrainAndElectrodes);
         media.loadDefault += new BrainNotPresentLoadEventHandler(loadElectrodesDefault);
-        Messenger.Default.Register<BrainParametersMessage>(this, OnBrainParametersMessage);
+        Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage);
     }
 
     void OnDestroy()
@@ -42,15 +46,12 @@ public class Brain : MonoBehaviour {
             RHBrain.layer = gameObject.layer;
         }
 
-        Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
+        Electrodes = new GameObject("Electrodes");
         Electrodes.transform.parent = gameObject.transform;
-        ElectrodesScript = Electrodes.GetComponent<Electrodes>();
-        ElectrodesScript.loadPtsFile(brainToLoad.pts, brainToLoad.GetEegTech);
-
-        if(brainToLoad.atlasCSV != "")
-            ElectrodesScript.loadAtlasData(brainToLoad.atlasCSV);
-
-        ElectrodesScript.loadElecOnBrain();
+        m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.GetEegTech);
+        m_ElectrodesContext.LoadElectrodes(brainToLoad.pts);
+        m_ElectrodesContext.LoadAtlasData(brainToLoad.atlasCSV);
+        m_ElectrodesContext.LoadElectrodesOnBrain(Electrodes);
 
         CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         CameraScript.initCameraPosition();
@@ -64,55 +65,18 @@ public class Brain : MonoBehaviour {
         RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
         RHBrain.transform.parent = gameObject.transform;
         RHBrain.layer = gameObject.layer;
-
-        Electrodes = new GameObject("Electrodes", new System.Type[] { typeof(Electrodes) });
+        
+        Electrodes = new GameObject("Electrodes");
         Electrodes.transform.parent = gameObject.transform;
-        ElectrodesScript = Electrodes.GetComponent<Electrodes>();
-        ElectrodesScript.loadDefaultPearl(media.elanFiles, eeg);
-        ElectrodesScript.loadElecOnBrain();
+        m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(eeg);
+        m_ElectrodesContext.LoadDefaultPearl(media.elanFiles);
+        m_ElectrodesContext.LoadElectrodesOnBrain(Electrodes);
 
         CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         CameraScript.initCameraPosition();
-
-        //hub.brainRemote.initBrainInteract(false, false, true);
     }
 
-    //== Obsolete
-    public static void changeVisuBrain(int codeSide)
-    {
-        UnityEngine.Debug.Log("static void changeVisuBrain(int codeSide) is obsolete, only used by optionHub.cs that osuld not be there anymore");
-
-        //GameObject brainHandle = GameObject.Find("BrainGameObject");
-        //if (brainHandle != null && brainHandle.transform.childCount > 0)
-        //{
-        //    switch (codeSide)
-        //    {
-        //        case -1:
-        //            brainHandle.transform.GetChild(0).gameObject.SetActive(true);
-        //            brainHandle.transform.GetChild(1).gameObject.SetActive(false);
-        //            break;
-        //        case 0:
-        //            brainHandle.transform.GetChild(0).gameObject.SetActive(true);
-        //            brainHandle.transform.GetChild(1).gameObject.SetActive(true);
-        //            break;
-        //        case 1:
-        //            brainHandle.transform.GetChild(0).gameObject.SetActive(false);
-        //            brainHandle.transform.GetChild(1).gameObject.SetActive(true);
-        //            break;
-        //        default:
-        //            Debug.LogError("Problem switching brain view");
-        //            break;
-        //    }
-        //}
-        //else
-        //{
-        //    Debug.LogError("Brain wasn't loaded or there was a problem");
-        //}
-
-    }
-    //== Obsolete
-
-    private void OnBrainParametersMessage(BrainParametersMessage message)
+    private void OnBrainParametersMessage(UiToBrainMessage message)
     {
         UnityEngine.Debug.Log("Brain Message, yata");
         switch (message.TaskToExecute)
@@ -141,20 +105,17 @@ public class Brain : MonoBehaviour {
             case 0:
                 LHBrain.gameObject.SetActive(true);
                 RHBrain.gameObject.SetActive(true);
-                //hub.brainRemote.setBrainInteract(true);
                 updateBrainMesh(media.pm.currentPatients[media.pm.idCurrentPatientLoaded].mni);
                 break;
             case 1:
                 LHBrain.gameObject.SetActive(true);
                 RHBrain.gameObject.SetActive(true);
-                //hub.brainRemote.setBrainInteract(true);
                 updateBrainMesh(media.pm.currentPatients[media.pm.idCurrentPatientLoaded].pat);
                 break;
             case 2:
                 LHBrain.gameObject.SetActive(false);
                 RHBrain.gameObject.SetActive(false);
-                //hub.brainRemote.setBrainInteract(false);
-                ElectrodesScript.updateElecPearl();
+                m_ElectrodesContext.UpdateElectrodesPearl(Electrodes);
                 break;
             default:
                 Debug.LogError("UpdateBrainModel => ModelId value is unknown : " + ModelId);
@@ -179,19 +140,17 @@ public class Brain : MonoBehaviour {
             RHBrain.layer = gameObject.layer;
         }
 
-        ElectrodesScript.loadPtsFile(brainToLoad.pts, brainToLoad.GetEegTech);
-
-        if (brainToLoad.atlasCSV != "")
-            ElectrodesScript.loadAtlasData(brainToLoad.atlasCSV);
-
-        ElectrodesScript.updateElecPosition();
+        //TODO : in case of a change beetween ieeg and scalp eeg it will probably not work
+        m_ElectrodesContext.LoadElectrodes(brainToLoad.pts);
+        m_ElectrodesContext.LoadAtlasData(brainToLoad.atlasCSV);
+        m_ElectrodesContext.UpdateElectrodesPosition(Electrodes);
     }
 
     //Left : sibling 0
     //Right : sibling 1
     private GameObject UpdateOneHemisphere(string HemisphereName, int SiblingIndex, string FilePath)
     {
-        GameObject newHemisphere = new GameObject("HemisphereName", new System.Type[] { typeof(Hemisphere) });
+        GameObject newHemisphere = new GameObject(HemisphereName, new System.Type[] { typeof(Hemisphere) });
         newHemisphere.transform.parent = gameObject.transform;
         newHemisphere.transform.SetSiblingIndex(SiblingIndex);
         newHemisphere.transform.localPosition = new Vector3(0, 0, 0);

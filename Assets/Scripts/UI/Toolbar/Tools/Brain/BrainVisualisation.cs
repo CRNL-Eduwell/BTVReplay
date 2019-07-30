@@ -20,11 +20,25 @@ namespace BTV.UI.Module3D.Tools
         {
             m_leftToggle.onValueChanged.AddListener((isOn) => 
             {
-                UpdateBrainVisualisation(m_leftToggle.isOn, m_rightToggle.isOn);
+                if (m_leftToggle.isOn || m_rightToggle.isOn)
+                {
+                    UpdateBrainVisualisation(m_leftToggle.isOn, m_rightToggle.isOn);
+                }
+                else
+                {
+                    m_rightToggle.isOn = true;
+                }
             });
             m_rightToggle.onValueChanged.AddListener((isOn) => 
             {
-                UpdateBrainVisualisation(m_leftToggle.isOn, m_rightToggle.isOn);
+                if (m_leftToggle.isOn || m_rightToggle.isOn)
+                {
+                    UpdateBrainVisualisation(m_leftToggle.isOn, m_rightToggle.isOn);
+                }
+                else
+                {
+                    m_leftToggle.isOn = true;
+                }
             });
         }
         #endregion

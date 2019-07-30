@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-class BrainParametersMessage
+class UiToBrainMessage
 {
     // 0 : CHange Brain Referential => mni to pat to just electrodes
     // 1 : Change what part of the brain is shown
