@@ -62,9 +62,7 @@ namespace Assets.Scripts.Data.Factory
                     GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, electrodes[i].Plots[j].Coordinates, Quaternion.identity);
                     NewPlot.name = electrodes[i].Plots[j].Label;
                     NewPlot.transform.parent = Electrode.transform;
-
-                    //ElecPlotSize sphereSizeScript = currentElecPlot.AddComponent<ElecPlotSize>();
-                    //sphereSizeScript.init(currentElecPlot.name, electrodes[i].Plots[j]);
+                    NewPlot.GetComponent<Site>().Init(electrodes[i].Plots[j]);
                 }
             }
         }
@@ -110,6 +108,8 @@ namespace Assets.Scripts.Data.Factory
                 if (CurrentElectrodeTransform != null)
                 {
                     CurrentElectrodeTransform.localPosition = new Vector3(-CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y, CurrentPlot.Coordinates.z);
+                    //??WTF??
+                    //seems we only update position, no need to update underlying electrode object (ieeg or scalp)
                     //currentElecTransform.GetComponent<ElecPlotSize>().setPlot(electrodes[i]);
                 }
             }

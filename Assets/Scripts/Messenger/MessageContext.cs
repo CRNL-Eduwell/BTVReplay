@@ -7,5 +7,5 @@ using System.Threading.Tasks;
 enum MessageContext
 {
     LoaderToBrain,
-    UiToBrain
+    UiToBrain,
 }

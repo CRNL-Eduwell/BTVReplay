@@ -20,6 +20,12 @@ public static class ApplicationState
         set;
     }
 
+    public static ELAN CurrentSelectedFile
+    {
+        get;
+        set;
+    }
+
     #region public members
     public static MessageWindow messageWindow
     {

@@ -60,7 +60,7 @@ public class GraphEvents : MonoBehaviour
 
     public void updateEventsDraw(int milliSecToLook)
     {
-        if (hub.eventRemote.userEvents.Length > 0)
+        if (false)//(hub.eventRemote.userEvents.Length > 0)
         {
             float samplingFreq = m_parent.TraceEeg.fileHandle.sampFreq;
             int numberPoint = m_parent.TraceEeg.numberOfPoint;

@@ -1,18 +1,14 @@
 ﻿using Assets.Scripts.Data.Factory;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Brain : MonoBehaviour
 {
-    BrainCamera CameraScript = null;
-
-    //Handle to corresponding game objects
-    GameObject LHBrain = null;
-    GameObject RHBrain = null;
-    GameObject Electrodes = null;
-
-    //Script dealing with electrodes, whether those are intra, or scalp
+    #region Unity Scene Elements
+    private BrainCamera m_BrainCamera = null;
+    private GameObject m_LeftHemiBrain = null;
+    private GameObject m_RightHemiBrain = null;
+    private GameObject m_Electrodes = null;
+    #endregion
     IElectrodesContext m_ElectrodesContext = null;
 
     void Awake()
@@ -42,47 +38,47 @@ public class Brain : MonoBehaviour
 
     private void LoadBrainAndElectrodes(brain_anat brainToLoad)
     {
-        LHBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.lhemi);
+        m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.lhemi);
 
         if (brainToLoad.GetMeshNb == mesh_Configuration.leftright)
         {
-            RHBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.rhemi);
+            m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.rhemi);
         }
         else
         {
-            RHBrain = new GameObject("RightHemi");
-            RHBrain.transform.parent = gameObject.transform;
-            RHBrain.layer = gameObject.layer;
+            m_RightHemiBrain = new GameObject("RightHemi");
+            m_RightHemiBrain.transform.parent = gameObject.transform;
+            m_RightHemiBrain.layer = gameObject.layer;
         }
 
-        Electrodes = new GameObject("Electrodes");
-        Electrodes.transform.parent = gameObject.transform;
+        m_Electrodes = new GameObject("Electrodes");
+        m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.GetEegTech);
         m_ElectrodesContext.LoadElectrodes(brainToLoad.pts);
         m_ElectrodesContext.LoadAtlasData(brainToLoad.atlasCSV);
-        m_ElectrodesContext.LoadElectrodesOnBrain(Electrodes);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes);
 
-        CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
-        CameraScript.InitCameraPosition();
+        m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
+        m_BrainCamera.InitCameraPosition();
     }
 
     private void LoadElectrodesDefault(eeg_Technology eeg)
     {
-        LHBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
-        LHBrain.transform.parent = gameObject.transform;
-        LHBrain.layer = gameObject.layer;
-        RHBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
-        RHBrain.transform.parent = gameObject.transform;
-        RHBrain.layer = gameObject.layer;
+        m_LeftHemiBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
+        m_LeftHemiBrain.transform.parent = gameObject.transform;
+        m_LeftHemiBrain.layer = gameObject.layer;
+        m_RightHemiBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
+        m_RightHemiBrain.transform.parent = gameObject.transform;
+        m_RightHemiBrain.layer = gameObject.layer;
 
-        Electrodes = new GameObject("Electrodes");
-        Electrodes.transform.parent = gameObject.transform;
+        m_Electrodes = new GameObject("Electrodes");
+        m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(eeg);
         m_ElectrodesContext.LoadDefaultPearl(ApplicationState.EegFiles);
-        m_ElectrodesContext.LoadElectrodesOnBrain(Electrodes);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes);
 
-        CameraScript = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
-        CameraScript.InitCameraPosition();
+        m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
+        m_BrainCamera.InitCameraPosition();
     }
 
     private void OnBrainParametersMessage(UiToBrainMessage message)
@@ -102,7 +98,7 @@ public class Brain : MonoBehaviour
                 Debug.Log("Update BrainGain, not done yet");
                 break;
             default:
-                Debug.LogError("Id of action to execute does not exist : " + message.TaskToExecute);
+                Debug.LogError("Brain.cs : Id of action to execute does not exist : " + message.TaskToExecute);
                 break;
         }
     }
@@ -112,19 +108,19 @@ public class Brain : MonoBehaviour
         switch (ModelId)
         {
             case 0:
-                LHBrain.gameObject.SetActive(true);
-                RHBrain.gameObject.SetActive(true);
+                m_LeftHemiBrain.gameObject.SetActive(true);
+                m_RightHemiBrain.gameObject.SetActive(true);
                 UpdateBrainMesh(ApplicationState.Patient.mni);
                 break;
             case 1:
-                LHBrain.gameObject.SetActive(true);
-                RHBrain.gameObject.SetActive(true);
+                m_LeftHemiBrain.gameObject.SetActive(true);
+                m_RightHemiBrain.gameObject.SetActive(true);
                 UpdateBrainMesh(ApplicationState.Patient.pat);
                 break;
             case 2:
-                LHBrain.gameObject.SetActive(false);
-                RHBrain.gameObject.SetActive(false);
-                m_ElectrodesContext.UpdateElectrodesPearl(Electrodes);
+                m_LeftHemiBrain.gameObject.SetActive(false);
+                m_RightHemiBrain.gameObject.SetActive(false);
+                m_ElectrodesContext.UpdateElectrodesPearl(m_Electrodes);
                 break;
             default:
                 Debug.LogError("UpdateBrainModel => ModelId value is unknown : " + ModelId);
@@ -135,24 +131,24 @@ public class Brain : MonoBehaviour
     private void UpdateBrainMesh(brain_anat brainToLoad)
     {
         Destroy(GameObject.Find("LeftHemi"));
-        LHBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.lhemi);
+        m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.lhemi);
 
         if (brainToLoad.GetMeshNb == mesh_Configuration.leftright)
         {
             Destroy(GameObject.Find("RightHemi"));
-            RHBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.rhemi);
+            m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.rhemi);
         }
         else
         {
-            RHBrain = new GameObject("RightHemi");
-            RHBrain.transform.parent = gameObject.transform;
-            RHBrain.layer = gameObject.layer;
+            m_RightHemiBrain = new GameObject("RightHemi");
+            m_RightHemiBrain.transform.parent = gameObject.transform;
+            m_RightHemiBrain.layer = gameObject.layer;
         }
 
         //TODO : in case of a change beetween ieeg and scalp eeg it will probably not work
         m_ElectrodesContext.LoadElectrodes(brainToLoad.pts);
         m_ElectrodesContext.LoadAtlasData(brainToLoad.atlasCSV);
-        m_ElectrodesContext.UpdateElectrodesPosition(Electrodes);
+        m_ElectrodesContext.UpdateElectrodesPosition(m_Electrodes);
     }
 
     //Left : sibling 0
@@ -183,16 +179,16 @@ public class Brain : MonoBehaviour
         switch (MeshesId)
         {
             case -1:
-                LHBrain.gameObject.SetActive(true);
-                RHBrain.gameObject.SetActive(false);
+                m_LeftHemiBrain.gameObject.SetActive(true);
+                m_RightHemiBrain.gameObject.SetActive(false);
                 break;
             case 0:
-                LHBrain.gameObject.SetActive(true);
-                RHBrain.gameObject.SetActive(true);
+                m_LeftHemiBrain.gameObject.SetActive(true);
+                m_RightHemiBrain.gameObject.SetActive(true);
                 break;
             case 1:
-                LHBrain.gameObject.SetActive(false);
-                RHBrain.gameObject.SetActive(true);
+                m_LeftHemiBrain.gameObject.SetActive(false);
+                m_RightHemiBrain.gameObject.SetActive(true);
                 break;
             default:
                 Debug.LogError("UpdateDisplayedMeshes => MeshesId value is unknown : " + MeshesId);

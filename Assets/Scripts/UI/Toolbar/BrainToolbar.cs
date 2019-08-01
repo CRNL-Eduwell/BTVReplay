@@ -54,13 +54,13 @@ namespace BTV.UI.Module3D
                      MeshesToDisplay = VisuID
                  };
                  Messenger.Default.Send(message, MessageContext.UiToBrain);
-                 UnityEngine.Debug.Log("message to brain");
              });
             m_BrainGain.gainHasChanged += new gainChangedEventHandler((NewGain) =>
             {
+                UnityEngine.Debug.Log("update gain");
                 UiToBrainMessage message = new UiToBrainMessage
                 {
-                    TaskToExecute = 3,
+                    TaskToExecute = 2,
                     Gain = NewGain
                 };
                 Messenger.Default.Send(message, MessageContext.UiToBrain);

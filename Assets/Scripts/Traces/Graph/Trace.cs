@@ -199,7 +199,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         {
             if (plot != null)
             {
-                int hitID = plot.GetComponent<ElecPlotSize>().ID;
+                int hitID = plot.GetComponent<Site>().ID;
                 updateElectrodeById(hitID);
             }
             ring.setSelectedPlot(plot);

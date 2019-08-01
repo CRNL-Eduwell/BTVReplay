@@ -66,6 +66,7 @@ public class EegSignal : SignalDisp
     public override void init()
     {
         eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
+        ApplicationState.CurrentSelectedFile = eHandle; // In prevision of detangling eveything
         m_samplingFreq = (int)eHandle.sampFreq;
         m_numberPoint = m_samplingFreq * m_periodSec;
 
@@ -75,6 +76,7 @@ public class EegSignal : SignalDisp
     public void updateFileId(int newId)
     {
         eHandle = ELAN.changeHandle(eHandle, media.elanFiles, newId);
+        ApplicationState.CurrentSelectedFile = eHandle; // In prevision of detangling eveything
         m_samplingFreq = (int)eHandle.sampFreq;
     }
 

@@ -1,6 +1,6 @@
-LH_MNI : D:\Users\Florian\Documents\Arbeit\Repository\Unity\BTVReplay\Assets\Config\Data\MNI\MNI_single_hight_Lhemi.tri
-RH_MNI : D:\Users\Florian\Documents\Arbeit\Repository\Unity\BTVReplay\Assets\Config\Data\MNI\MNI_single_hight_Rhemi.tri
-PTS_MNI : D:\Users\Florian\Documents\Arbeit\Data Patient\BTV\LYONNEURO_2017_DAMa_BTV\MNI\LYONNEURO_2017_DAMa_MNI.pts
+LH_MNI : C:\Users\micromed\Documents\Arbeit\Repository\Unity\BTVReplay\Assets\Config\Data\MNI\MNI_single_hight_Lhemi.tri
+RH_MNI : C:\Users\micromed\Documents\Arbeit\Repository\Unity\BTVReplay\Assets\Config\Data\MNI\MNI_single_hight_Rhemi.tri
+PTS_MNI : C:/Users/micromed/Desktop/LYONNEURO_2019_VINt_HIPP/LYONNEURO_2019_VINt.pts
 MESH_MNI : Left/Right Mesh
 EEG_MNI : Intracranial EEG
 LH_PAT : 
@@ -9,13 +9,13 @@ PTS_PAT :
 ATLAS_PAT : 
 MESH_PAT : Left/Right Mesh
 EEG_PAT : Intracranial EEG
-SM0 : D:\Users\Florian\Documents\Arbeit\Data Patient\BTV\LYONNEURO_2017_DAMa_BTV\LYONNEURO_2017_DAMa_BTV_f50f150\LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm0.eeg
-SM250 : 
-SM500 : 
+SM0 : C:\Users\micromed\Desktop\LYONNEURO_2019_VINt_HIPP\LYONNEURO_2019_VINt_HIPP2a_f50f150\LYONNEURO_2019_VINt_HIPP2a_f50f150_ds8_sm0.eeg
+SM250 : C:/Users/micromed/Desktop/LYONNEURO_2019_VINt_HIPP/LYONNEURO_2019_VINt_HIPP2a_f50f150/LYONNEURO_2019_VINt_HIPP2a_f50f150_ds8_sm250.eeg
+SM500 : C:/Users/micromed/Desktop/LYONNEURO_2019_VINt_HIPP/LYONNEURO_2019_VINt_HIPP2a_f50f150/LYONNEURO_2019_VINt_HIPP2a_f50f150_ds8_sm500.eeg
 SM1000 : 
 SM2500 : 
 SM5000 : 
 POS : 
 PROV : 
-VID : D:\Users\Florian\Documents\Arbeit\Data Patient\BTV\LYONNEURO_2017_DAMa_BTV\LYONNEURO_2017_DAMa_BTV.AVI
+VID : C:\Users\micromed\Desktop\LYONNEURO_2019_VINt_HIPP\LYONNEURO_2019_VINt_HIPP2a.mp4
 [----------]

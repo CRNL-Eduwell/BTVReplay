@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 public delegate void newPlotClicked(GameObject plot);
 public delegate void changeColorPlotEvent(string namePlot, Color color);
@@ -34,7 +35,9 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     GameObject elecOptionPanel = null;
     GameObject ElecOption = null;
 
-    void Start ()
+    GameObject m_Electrodes = null;
+
+    void Start()
     {
         elecOptionPanel = Resources.Load("Prefabs/Brain-ElecOptions", typeof(GameObject)) as GameObject;
 
@@ -52,8 +55,8 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         winTrace2 = GameObject.Find("Trace2Window").GetComponent<Window>();
         curveTrace1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
 
-        el = GameObject.Find("Canvas").transform.GetChild(5).GetChild(0).GetComponent<ElecPointer>();
-        elecPointer = GameObject.Find("Canvas").transform.GetChild(5).gameObject;
+        el = GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<ElecPointer>();
+        elecPointer = GameObject.Find("Canvas").transform.GetChild(4).gameObject;
         elecPointerPic = elecPointer.transform.GetChild(0).gameObject;
         elecPointerText = elecPointerPic.transform.GetChild(0).GetComponent<Text>();
     }
@@ -207,13 +210,16 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
         if (Physics.Raycast(ray2, out hit))
         {
-            ElecPlotSize hitPlot = GameObject.Find(hit.collider.name).GetComponent<ElecPlotSize>();
             el.moveTo(worldClick.x, worldClick.y, 0);
             el.show(true);
             el.setElecLabel(hit.collider.name.ToUpper());
-            el.setMarsAtlasLabel(hitPlot.MarsAtlasName);
-            el.setBroadmanLabel(hitPlot.BroadmanName);
-            el.setCorrdinatesLabel(hitPlot.Coordinates);
+            Site hitPlot = GameObject.Find(hit.collider.name).GetComponent<Site>();
+            if (hitPlot != null)
+            {
+                el.setMarsAtlasLabel(hitPlot.MarsAtlasName);
+                el.setBroadmanLabel(hitPlot.BroadmanName);
+                el.setCorrdinatesLabel(hitPlot.Coordinates);
+            }
         }
         else
         {
@@ -223,9 +229,9 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     void updateEventsOnBrain(int milliSecToLook)
     {
-        if (hub.eventRemote.userEvents.Length > 0)
+        if (false)//(hub.eventRemote.userEvents.Length > 0)
         {
-            int left =(int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - curveTrace1.TraceEeg.numberOfPoint;
+            int left = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - curveTrace1.TraceEeg.numberOfPoint;
             int right = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
 
             float factor = ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000);
@@ -242,7 +248,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             //Union joins and delete duplicates
             List<int> indexes = idOverFlow.Union(idRightEnter).ToList();
 
-            changeColorEvent("", Color.white);
+            ChangeElectrodesColor("", Color.white);
             for (int i = 0; i < indexes.Count; i++)
             {
                 if (hub.eventRemote.userEvents[indexes[i]].correlation2DArray != null)
@@ -250,26 +256,52 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
                     int id = curveTrace1.TraceEeg.IdElectrode;
                     for (int j = 0; j < curveTrace1.TraceEeg.fileHandle.electrodes.Length; j++)
                     {
-                        changeColorEvent(curveTrace1.TraceEeg.fileHandle.electrodes[j].name, correlationColor(hub.eventRemote.userEvents[indexes[i]].correlation2DArray[id][j]));
+                        string ElectrodeName = curveTrace1.TraceEeg.fileHandle.electrodes[j].name;
+                        Color NewColor = correlationColor(hub.eventRemote.userEvents[indexes[i]].correlation2DArray[id][j]);
+                        ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
                 else if (hub.eventRemote.userEvents[indexes[i]].correlationArray != null)
                 {
                     for (int j = 0; j < curveTrace1.TraceEeg.fileHandle.electrodes.Length; j++)
                     {
-                        changeColorEvent(curveTrace1.TraceEeg.fileHandle.electrodes[j].name, correlationColor(hub.eventRemote.userEvents[indexes[i]].correlationArray[j]));
+                        string ElectrodeName = curveTrace1.TraceEeg.fileHandle.electrodes[j].name;
+                        Color NewColor = correlationColor(hub.eventRemote.userEvents[indexes[i]].correlationArray[j]);
+                        ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
                 else
                 {
-                    changeColorEvent(hub.eventRemote.userEvents[indexes[i]].elecOfInterest, Color.red);
-                    changeColorEvent(hub.eventRemote.userEvents[indexes[i]].secondElecOfInterest, Color.blue);
+                    string FirstElectrodeName = hub.eventRemote.userEvents[indexes[i]].elecOfInterest;
+                    ChangeElectrodesColor(FirstElectrodeName, Color.red);
+                    string SecondElectrodeName = hub.eventRemote.userEvents[indexes[i]].secondElecOfInterest;
+                    ChangeElectrodesColor(SecondElectrodeName, Color.blue);
                 }
             }
         }
         else
         {
-            changeColorEvent("", Color.white);
+            ChangeElectrodesColor("", Color.white);
+        }
+    }
+
+    void ChangeElectrodesColor(string Name, Color NewColor)
+    {
+        Site[] Electrodes = GameObject.Find("Electrodes").gameObject.GetComponentsInChildren<Site>();
+        if (Name == "")
+        {
+            foreach (Site electrode in Electrodes)
+            {
+                electrode.Color = NewColor;
+            }
+        }
+        else
+        {
+            Site Electrode = Array.Find(Electrodes, x => x.gameObject.name == Name);
+            if (Electrode != null)
+            {
+                Electrode.Color = NewColor;
+            }
         }
     }
 

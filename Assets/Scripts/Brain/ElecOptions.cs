@@ -11,7 +11,7 @@ public class ElecOptions : MonoBehaviour
 
     GameObject parentElec = null;
     GameObject plotOfInterest = null;
-    ElecPlotSize plotScript = null;
+    Site plotScript = null;
     bool isFrozen = true;
 
     public void init(GameObject clickedPlot)
@@ -21,9 +21,9 @@ public class ElecOptions : MonoBehaviour
         freezePlotButton = transform.GetChild(0).GetChild(0).GetComponent<Button>();
         freezeElecButton = transform.GetChild(0).GetChild(1).GetComponent<Button>();
         closeButton = transform.GetChild(0).GetChild(2).GetComponent<Button>();
-        plotScript = plotOfInterest.GetComponent<ElecPlotSize>();
+        plotScript = plotOfInterest.GetComponent<Site>();
 
-        if (plotScript.isFrozen)
+        if (plotScript.IsFrozen)
             freezePlotButton.transform.GetChild(0).GetComponent<Text>().text = "Unfreeze Plot";
         else
             freezePlotButton.transform.GetChild(0).GetComponent<Text>().text = "Freeze Plot";
@@ -44,15 +44,10 @@ public class ElecOptions : MonoBehaviour
 
     void freezePlot()
     {
-        if (plotScript.isFrozen)
-        {
-            plotScript.isFrozen = false;
-        }
+        if (plotScript.IsFrozen)
+            plotScript.IsFrozen = false;
         else
-        {
-            plotScript.isFrozen = true;
-            plotScript.fixSize();
-        }
+            plotScript.IsFrozen = true;
 
         choiceClose();
     }
@@ -61,10 +56,8 @@ public class ElecOptions : MonoBehaviour
     {
         for (int i = 0; i < parentElec.transform.childCount; i++)
         {
-            ElecPlotSize currentPlot = parentElec.transform.GetChild(i).GetComponent<ElecPlotSize>();
-            currentPlot.isFrozen = !isFrozen;
-            if(currentPlot.isFrozen)
-                currentPlot.fixSize();
+            Site currentPlot = parentElec.transform.GetChild(i).GetComponent<Site>();
+            currentPlot.IsFrozen = !isFrozen;
         }
 
         choiceClose();
@@ -75,8 +68,8 @@ public class ElecOptions : MonoBehaviour
         bool isTotalyFrozen = true;
         for (int i = 0; i < parentElec.transform.childCount; i++)
         {
-            ElecPlotSize currentPlot = parentElec.transform.GetChild(i).GetComponent<ElecPlotSize>();
-            isTotalyFrozen = isTotalyFrozen && currentPlot.isFrozen;
+            Site currentPlot = parentElec.transform.GetChild(i).GetComponent<Site>();
+            isTotalyFrozen = isTotalyFrozen && currentPlot.IsFrozen;
         }
         return isTotalyFrozen;
     }
