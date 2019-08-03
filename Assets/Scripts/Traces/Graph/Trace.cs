@@ -44,7 +44,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     [SerializeField] EegSignal eegSignal = null;
     [SerializeField] AudioSignal audioSignal = null;
     [SerializeField] GraphLabel graphLabel = null;
-    [SerializeField] ColorPicker colorpicker = null;
     [SerializeField] selectRing ring = null;
     [SerializeField] BrainWarden warden = null;
     [SerializeField] GraphGrid graphGrid = null;
@@ -65,6 +64,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     void Awake()
     {
         media.loadTrace += new initTrace(init);
+        Messenger.Default.Register<UiToTraceMessage>(this, OnTraceParametersMessage, MessageContext.UiToTrace);
     }
 
     void OnDestroy()
@@ -79,22 +79,59 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             video.stopTimeVideo -= new stopVideo(graphSonif.muteSonficiation);
 
             //hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(changeFileID);
-            //hub.traceRemotes[traceID].gainHasChanged -= new gainChangedEventHandler(UpdateTraceGain);
-            //hub.traceRemotes[traceID].offsetHasChanged -= new offsetChangedEventHandler(eegSignal.updateOffset);
             //hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeById);
-            //hub.traceRemotes[traceID].timeHasChanged -= new timePeriodChangedEventHandler(updateTimeResolution);
-            //hub.traceRemotes[traceID].gridToggled -= new toggleGridDisplay(graphGrid.displayTimeGrid);
-            //hub.traceRemotes[traceID].sonifToggled -= new toggleSonification(graphSonif.toggleSonification);
-            //hub.traceRemotes[traceID].soundChanged -= new newSoundSonif(graphSonif.changeAudioSonification);
             //hub.eventRemote.newEventToShow -= new newEventToShowHandler(graphEvent.addEventToTrace);
             //hub.eventRemote.showEvents -= new showAllEventsHandler(graphEvent.showEvents);
             //hub.videoRemote.audioToggled -= new toggleAudioTraceEventHandler(audioSignal.Show);
             //hub.videoRemote.gainAudioHasChanged -= new gainAudioChangedEventHandler(audioSignal.updateGain);
             //hub.videoRemote.smAudioHasChanged -= new idAudioSmChangedEventHandler(audioSignal.changeAudioId);
             warden.plotWasClicked -= new newPlotClicked(plotClicked);
-            colorpicker.changeColor -= new colorChanged(updateColors);
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
             //hub.traceRemotes[traceID].deleteElectrodeInPanel();
+        }
+    }
+
+    void OnTraceParametersMessage(UiToTraceMessage message)
+    {
+        if (message.TraceID != traceID)
+            return;
+
+        switch (message.TaskToExecute)
+        {
+            case 0:
+                Debug.Log("Update Trace Gain");
+                UpdateTraceGain(message.Gain);
+                break;
+            case 1:
+                Debug.Log("Update Trace Offset");
+                eegSignal.updateOffset(message.Gain);
+                break;
+            case 2:
+                Debug.Log("Toggle Grid");
+                graphGrid.displayTimeGrid(message.IsGridOn);
+                break;
+            case 3:
+                Debug.Log("Update WIndow Period");
+                updateTimeResolution(message.TimeWindow);
+                break;
+            case 4:
+                Debug.Log("Toggle Sonification");
+                graphSonif.toggleSonification(message.IsSonificationOn);
+                break;
+            case 5:
+                Debug.Log("Update Sonification Sound");
+                graphSonif.changeAudioSonification(message.NewSonificationId);
+                break;
+            case 6:
+                Debug.Log("Update ColorPicker");
+                updateColors(message.Color);
+                break;
+            case 7:
+                Debug.Log("Update File Switcher");
+                break;
+            default:
+                Debug.LogError("Trace.cs : Id of action to execute does not exist : " + message.TaskToExecute);
+                break;
         }
     }
 
@@ -132,20 +169,13 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         video.stopTimeVideo += new stopVideo(graphSonif.muteSonficiation);
 
         //hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(changeFileID);
-        //hub.traceRemotes[traceID].gainHasChanged += new gainChangedEventHandler(UpdateTraceGain);
-        //hub.traceRemotes[traceID].offsetHasChanged += new offsetChangedEventHandler(eegSignal.updateOffset);
         //hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeById);
-        //hub.traceRemotes[traceID].timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
-        //hub.traceRemotes[traceID].gridToggled += new toggleGridDisplay(graphGrid.displayTimeGrid);
-        //hub.traceRemotes[traceID].sonifToggled += new toggleSonification(graphSonif.toggleSonification);
-        //hub.traceRemotes[traceID].soundChanged += new newSoundSonif(graphSonif.changeAudioSonification);
         //hub.eventRemote.newEventToShow += new newEventToShowHandler(graphEvent.addEventToTrace);
         //hub.eventRemote.showEvents += new showAllEventsHandler(graphEvent.showEvents);
         //hub.videoRemote.audioToggled += new toggleAudioTraceEventHandler(audioSignal.Show);
         //hub.videoRemote.gainAudioHasChanged += new gainAudioChangedEventHandler(audioSignal.updateGain);
         //hub.videoRemote.smAudioHasChanged += new idAudioSmChangedEventHandler(audioSignal.changeAudioId);
         warden.plotWasClicked += new newPlotClicked(plotClicked);
-        colorpicker.changeColor += new colorChanged(updateColors);
         graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
         //hub.traceRemotes[traceID].loadElectrodeInPanel(eegSignal.fileHandle.electrodes);
         #endregion

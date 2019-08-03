@@ -8,4 +8,5 @@ enum MessageContext
 {
     LoaderToBrain,
     UiToBrain,
+    UiToTrace
 }

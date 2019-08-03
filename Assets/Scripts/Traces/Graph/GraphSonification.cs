@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class GraphSonification : MonoBehaviour
 {
-    [SerializeField] optionsHub hub = null;
     [SerializeField] VideoPlayer video = null;
     [SerializeField] AudioSource audioSourceScript = null;
 
@@ -14,10 +13,6 @@ public class GraphSonification : MonoBehaviour
 
     void Awake()
     {
-        //Debug while getting rid of hub
-        if (hub == null)
-            gameObject.SetActive(false);
-
         audioSourceScript.Play();
         audioSourceScript.Pause();
     }
@@ -33,7 +28,7 @@ public class GraphSonification : MonoBehaviour
     public void init(Trace parentWin)
     {
         m_curve = parentWin;
-        //StartCoroutine(StartAudio());
+        StartCoroutine(StartAudio());
     }
 
     public void toggleSonification(bool isOn)
@@ -88,14 +83,13 @@ public class GraphSonification : MonoBehaviour
     IEnumerator StartAudio()
     {
         AudioClip clip = null;
-        for (int i = 0; i < hub.traceRemotes[m_curve.TraceId].soundFilesAbsPath.Count; i++)
+        for (int i = 0; i < ApplicationState.SoundFilePaths.Count; i++)
         {
-            WWW audioLoader = new WWW("file://" + hub.traceRemotes[m_curve.TraceId].soundFilesAbsPath[i]);
+            WWW audioLoader = new WWW("file://" + ApplicationState.SoundFilePaths[i]);
             while (!audioLoader.isDone)
                 yield return null;
-
             clip = audioLoader.GetAudioClip(false);
-            clip.name = hub.traceRemotes[m_curve.TraceId].soundFileShort[i];
+            clip.name = "Audio Clip number " + i.ToString();
             m_clips.Add(clip);
         }
         audioSourceScript.clip = m_clips[0];

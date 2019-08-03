@@ -26,6 +26,15 @@ public static class ApplicationState
         set;
     }
 
+    //For the moment , only the file paths
+    //later , will load the audio clips only once
+    //and then distribute a pointer to it
+    public static List<string> SoundFilePaths
+    {
+        get;
+        set;
+    }
+
     #region public members
     public static MessageWindow messageWindow
     {

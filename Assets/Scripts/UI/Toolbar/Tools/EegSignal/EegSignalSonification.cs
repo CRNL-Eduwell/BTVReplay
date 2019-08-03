@@ -12,12 +12,6 @@ namespace BTV.UI.Module3D.Tools
         public event toggleSonification sonifToggled;
         public event newSoundSonif soundChanged;
 
-        public List<string> SoundFilePaths
-        {
-            get;
-            private set;
-        }
-
         #region UI members
         /// <summary>
         /// </summary>
@@ -43,14 +37,14 @@ namespace BTV.UI.Module3D.Tools
 
         private void LoadAudioData()
         {
-            SoundFilePaths = Directory.GetFiles(Application.dataPath + @"/Config/Sounds/", "*.*")
+            ApplicationState.SoundFilePaths = Directory.GetFiles(Application.dataPath + @"/Config/Sounds/", "*.*")
                 .Where(n => m_audioFileExtention.Contains(System.IO.Path.GetExtension(n), StringComparer.OrdinalIgnoreCase))
                 .ToList();
 
             m_SoundChoice.options.Clear();
-            for (int i = 0; i < SoundFilePaths.Count(); i++)
+            for (int i = 0; i < ApplicationState.SoundFilePaths.Count(); i++)
             {
-                string[] splitPath = SoundFilePaths[i].Split(new char[] { '/', '.' });
+                string[] splitPath = ApplicationState.SoundFilePaths[i].Split(new char[] { '/', '.' });
                 string shortName = splitPath[splitPath.Count() - 2];
                 m_SoundChoice.options.Add(new Dropdown.OptionData(shortName));
             }

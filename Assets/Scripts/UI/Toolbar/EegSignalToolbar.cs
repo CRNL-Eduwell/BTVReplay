@@ -1,34 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.UI;
-
-//Uncomment when deleting optionHub.cs
-//
-//public delegate void gainChangedEventHandler(float newVal);
-//public delegate void offsetChangedEventHandler(float newVal);
-//public delegate void idFileChangedEventHandler(int newIdHandle);
-//public delegate void idElecChangedEventHandler(int newIDElec);
-//public delegate void timePeriodChangedEventHandler(int newPeriod);
-//public delegate void toggleGridDisplay(bool isGridOn);
-//public delegate void toggleSonification(bool isSonifOn);
-//public delegate void newSoundSonif(int newIDSound);
+﻿using UnityEngine;
 
 namespace BTV.UI.Module3D
 {
     public class EegSignalToolbar : Toolbar
     {
-        public event gainChangedEventHandler gainHasChanged;
-        public event offsetChangedEventHandler offsetHasChanged;
-        public event idFileChangedEventHandler idFileHasChanged;
-        public event idElecChangedEventHandler idElecHasChanged;
-        public event timePeriodChangedEventHandler timeHasChanged;
-        public event toggleGridDisplay gridToggled;
-        public event toggleSonification sonifToggled;
-        public event newSoundSonif soundChanged;
+        [SerializeField]
+        private int m_TraceID = 0;
 
         [SerializeField]
         private Tools.EegSignalGain m_Gain = null;
@@ -43,7 +20,7 @@ namespace BTV.UI.Module3D
         private Tools.EegSignalSonification m_Sonifier = null;
 
         [SerializeField]
-        private Tools.EegSignalColorPicker m_ColorPicker = null;
+        private Tools.ColorPicker m_ColorPicker = null;
 
         [SerializeField]
         private Tools.EegSignalFileSwitcher m_FileSwitcher = null;
@@ -64,12 +41,104 @@ namespace BTV.UI.Module3D
             m_Tools.Add(m_Window);
             m_Tools.Add(m_Sonifier);
             m_Tools.Add(m_ColorPicker);
-            m_Tools.Add(m_FileSwitcher);
+            //m_Tools.Add(m_FileSwitcher);
         }
 
         protected override void AddListeners()
         {
+            base.AddListeners();
 
+            m_Gain.gainHasChanged += UpdateTraceGain;
+            m_Offset.offsetHasChanged += UpdateTraceOffset;
+            m_Window.gridToggled += ToggleTraceGrid;
+            m_Window.timeHasChanged += UpdateTracePeriod;
+            m_Sonifier.sonifToggled += ToggleSonification;
+            m_Sonifier.soundChanged += UpdateSonificationSound;
+            m_ColorPicker.UpdateColor += UpdateTraceColor;
+        }
+
+        private void UpdateTraceGain(float NewGain)
+        {
+            UnityEngine.Debug.Log("Update Trace gain");
+            UiToTraceMessage message = new UiToTraceMessage
+            {
+                TaskToExecute = 0,
+                TraceID = m_TraceID,
+                Gain = NewGain
+            };
+            Messenger.Default.Send(message, MessageContext.UiToTrace);
+        }
+
+        private void UpdateTraceOffset(float NewOffset)
+        {
+            UnityEngine.Debug.Log("Update Trace offset");
+            UiToTraceMessage message = new UiToTraceMessage
+            {
+                TaskToExecute = 1,
+                TraceID = m_TraceID,
+                Offset = NewOffset
+            };
+            Messenger.Default.Send(message, MessageContext.UiToTrace);
+        }
+
+        private void ToggleTraceGrid(bool isGridOn)
+        {
+            UnityEngine.Debug.Log("Update Grid Toggle");
+            UiToTraceMessage message = new UiToTraceMessage
+            {
+                TaskToExecute = 2,
+                TraceID = m_TraceID,
+                IsGridOn = isGridOn
+            };
+            Messenger.Default.Send(message, MessageContext.UiToTrace);
+        }
+
+        private void UpdateTracePeriod(int NewPeriod)
+        {
+            UnityEngine.Debug.Log("Update Trace period");
+            UiToTraceMessage message = new UiToTraceMessage
+            {
+                TaskToExecute = 3,
+                TraceID = m_TraceID,
+                TimeWindow = NewPeriod
+            };
+            Messenger.Default.Send(message, MessageContext.UiToTrace);
+        }
+
+        private void ToggleSonification(bool IsSonificationOn)
+        {
+            UnityEngine.Debug.Log("Toggle sonification");
+            UiToTraceMessage message = new UiToTraceMessage
+            {
+                TaskToExecute = 4,
+                TraceID = m_TraceID,
+                IsSonificationOn = IsSonificationOn
+            };
+            Messenger.Default.Send(message, MessageContext.UiToTrace);
+        }
+
+        private void UpdateSonificationSound(int NewIdSound)
+        {
+            UnityEngine.Debug.Log("Update sonification sound");
+            UiToTraceMessage message = new UiToTraceMessage
+            {
+                TaskToExecute = 5,
+                TraceID = m_TraceID,
+                NewSonificationId = NewIdSound
+            };
+            Messenger.Default.Send(message, MessageContext.UiToTrace);
+        }
+
+        private void UpdateTraceColor(Color NewColor)
+        {
+            UnityEngine.Debug.Log("Update Trace Color");
+            UiToTraceMessage message = new UiToTraceMessage
+            {
+                TaskToExecute = 6,
+                TraceID = m_TraceID,
+                Color = NewColor
+            };
+            Messenger.Default.Send(message, MessageContext.UiToTrace);
         }
         #endregion
 

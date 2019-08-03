@@ -51,11 +51,13 @@ namespace BTV.UI.Module3D
             });
             m_Eeg1Toggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-
+                UnityEngine.Debug.Log("Update EEG1 : " + UiOptionIndex);
+                ChangeToolbar(m_Eeg1Toggle, UiOptionIndex);
             });
             m_Eeg2Toggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-
+                UnityEngine.Debug.Log("Update EEG2 : " + UiOptionIndex);
+                ChangeToolbar(m_Eeg2Toggle, UiOptionIndex);
             });
             m_PerformanceToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
@@ -63,13 +65,13 @@ namespace BTV.UI.Module3D
             });
             m_VideoToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update Video Opt : " + UiOptionIndex);
-                ChangeToolbar(m_VideoToggle, UiOptionIndex);
+                //UnityEngine.Debug.Log("Update Video Opt : " + UiOptionIndex);
+                //ChangeToolbar(m_VideoToggle, UiOptionIndex);
             });
             m_EventsToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update Events Opt : " + UiOptionIndex);
-                ChangeToolbar(m_EventsToggle, UiOptionIndex);
+                //UnityEngine.Debug.Log("Update Events Opt : " + UiOptionIndex);
+                //ChangeToolbar(m_EventsToggle, UiOptionIndex);
             });
         }
 
@@ -84,7 +86,8 @@ namespace BTV.UI.Module3D
 
             m_ToolbarMenu.CurrentToolbar.gameObject.SetActive(false);
             KeyValuePair<ExtendedToggle, Toolbar> previousKeyValuePair = m_Toolbars.First(x => x.Value == m_ToolbarMenu.CurrentToolbar);
-            previousKeyValuePair.Key.ResetToggle();
+            if(previousKeyValuePair.Key != triggeredToggle)
+                previousKeyValuePair.Key.ResetToggle();
 
             bool showTriggeredToolbar = UiOptionModule > 1 ? true : false;
             m_ToolbarMenu.CurrentToolbar = m_Toolbars[triggeredToggle];
