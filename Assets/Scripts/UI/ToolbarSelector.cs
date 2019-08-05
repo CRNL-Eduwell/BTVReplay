@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace BTV.UI.Module3D
 {
@@ -65,8 +63,8 @@ namespace BTV.UI.Module3D
             });
             m_VideoToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                //UnityEngine.Debug.Log("Update Video Opt : " + UiOptionIndex);
-                //ChangeToolbar(m_VideoToggle, UiOptionIndex);
+                UnityEngine.Debug.Log("Update Video Opt : " + UiOptionIndex);
+                ChangeToolbar(m_VideoToggle, UiOptionIndex);
             });
             m_EventsToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {

@@ -25,9 +25,13 @@ namespace BTV.UI.Module3D
         [SerializeField]
         private Tools.EegSignalFileSwitcher m_FileSwitcher = null;
 
-        GameObject elecPlot = null;
-        GameObject electrodeContentPanel = null;
-        BTVMedia media = null;
+        //TODO
+        //Formerly used to load electrode in a panel on the right 
+        //see if still usefull
+        //
+        //GameObject elecPlot = null;
+        //GameObject electrodeContentPanel = null;
+        //BTVMedia media = null;
 
         Color hardBlue = new Color(0.6117f, 0.7058f, 0.7960f, 1f);
         Color softBlue = new Color(0.6117f, 0.7058f, 0.7960f, 0.392156f);
@@ -41,7 +45,7 @@ namespace BTV.UI.Module3D
             m_Tools.Add(m_Window);
             m_Tools.Add(m_Sonifier);
             m_Tools.Add(m_ColorPicker);
-            //m_Tools.Add(m_FileSwitcher);
+            m_Tools.Add(m_FileSwitcher);
         }
 
         protected override void AddListeners()
@@ -55,6 +59,7 @@ namespace BTV.UI.Module3D
             m_Sonifier.sonifToggled += ToggleSonification;
             m_Sonifier.soundChanged += UpdateSonificationSound;
             m_ColorPicker.UpdateColor += UpdateTraceColor;
+            m_FileSwitcher.idFileHasChanged += UpdateTraceCurrentFile;
         }
 
         private void UpdateTraceGain(float NewGain)
@@ -139,6 +144,11 @@ namespace BTV.UI.Module3D
                 Color = NewColor
             };
             Messenger.Default.Send(message, MessageContext.UiToTrace);
+        }
+
+        private void UpdateTraceCurrentFile(int NewFileId)
+        {
+            throw new System.NotImplementedException();
         }
         #endregion
 

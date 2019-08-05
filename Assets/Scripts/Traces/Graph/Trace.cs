@@ -38,7 +38,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    [SerializeField] optionsHub hub = null;
     [SerializeField] BTVMedia media = null;
     [SerializeField] VideoPlayer video = null;
     [SerializeField] EegSignal eegSignal = null;
@@ -65,6 +64,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         media.loadTrace += new initTrace(init);
         Messenger.Default.Register<UiToTraceMessage>(this, OnTraceParametersMessage, MessageContext.UiToTrace);
+        Messenger.Default.Register<UiToVideoMessage>(this, OnVideoParametersMessage, MessageContext.UiToVideo);
     }
 
     void OnDestroy()
@@ -82,12 +82,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             //hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeById);
             //hub.eventRemote.newEventToShow -= new newEventToShowHandler(graphEvent.addEventToTrace);
             //hub.eventRemote.showEvents -= new showAllEventsHandler(graphEvent.showEvents);
-            //hub.videoRemote.audioToggled -= new toggleAudioTraceEventHandler(audioSignal.Show);
-            //hub.videoRemote.gainAudioHasChanged -= new gainAudioChangedEventHandler(audioSignal.updateGain);
-            //hub.videoRemote.smAudioHasChanged -= new idAudioSmChangedEventHandler(audioSignal.changeAudioId);
             warden.plotWasClicked -= new newPlotClicked(plotClicked);
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
             //hub.traceRemotes[traceID].deleteElectrodeInPanel();
+
+            Messenger.Default.Unregister(this, MessageContext.UiToTrace);
+            Messenger.Default.Unregister(this, MessageContext.UiToVideo);
         }
     }
 
@@ -135,6 +135,31 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    void OnVideoParametersMessage(UiToVideoMessage message)
+    {
+        switch (message.TaskToExecute)
+        {
+            case 0:
+                Debug.Log("Update Trace Gain");
+                audioSignal.updateGain(message.Gain);
+                break;
+            case 1:
+                Debug.Log("Update Trace Offset");
+                //At the moment offset is just used to calculate video time
+                //by reading scrollbar value, maybe need to separate that
+                //better
+                break;
+            case 2:
+                Debug.Log("Toggle Audio Trace");
+                audioSignal.Show(message.IsTraceOn);
+                break;
+            case 3:
+                Debug.Log("Update Trace Audio File");
+                audioSignal.changeAudioId(message.TraceID);
+                break;
+        }
+    }
+
     void Update()
     {
         if (m_initDone && isOver(Input.mousePosition) && m_window.hasFocus)
@@ -172,9 +197,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         //hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeById);
         //hub.eventRemote.newEventToShow += new newEventToShowHandler(graphEvent.addEventToTrace);
         //hub.eventRemote.showEvents += new showAllEventsHandler(graphEvent.showEvents);
-        //hub.videoRemote.audioToggled += new toggleAudioTraceEventHandler(audioSignal.Show);
-        //hub.videoRemote.gainAudioHasChanged += new gainAudioChangedEventHandler(audioSignal.updateGain);
-        //hub.videoRemote.smAudioHasChanged += new idAudioSmChangedEventHandler(audioSignal.changeAudioId);
         warden.plotWasClicked += new newPlotClicked(plotClicked);
         graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
         //hub.traceRemotes[traceID].loadElectrodeInPanel(eegSignal.fileHandle.electrodes);
