@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.EventSystems;
 
 public delegate void eventsToDisplay(TraceEvent newVal, int idWin);
 public delegate void eventsToDelete(TraceEvent newVal, int idWin);

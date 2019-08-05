@@ -9,5 +9,7 @@ enum MessageContext
     LoaderToBrain,
     UiToBrain,
     UiToTrace,
-    UiToVideo
+    UiToVideo,
+    UiToEvents,
+    EventsToTraceMessage
 }

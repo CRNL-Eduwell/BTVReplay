@@ -65,6 +65,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         media.loadTrace += new initTrace(init);
         Messenger.Default.Register<UiToTraceMessage>(this, OnTraceParametersMessage, MessageContext.UiToTrace);
         Messenger.Default.Register<UiToVideoMessage>(this, OnVideoParametersMessage, MessageContext.UiToVideo);
+        Messenger.Default.Register<EventsToTraceMessage>(this, OnEventsToTraceMessage, MessageContext.EventsToTraceMessage);
+
     }
 
     void OnDestroy()
@@ -156,6 +158,18 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             case 3:
                 Debug.Log("Update Trace Audio File");
                 audioSignal.changeAudioId(message.TraceID);
+                break;
+        }
+    }
+
+    void OnEventsToTraceMessage(EventsToTraceMessage message)
+    {
+        switch (message.TaskToExecute)
+        {
+            case 0: //add toggle
+                break;
+            case 1://show toggle
+                graphEvent.showEvents(message.IsShowEventsOn);
                 break;
         }
     }
@@ -272,6 +286,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        UnityEngine.Debug.Log("pointerclick trace");
+
         if (eventData.clickCount == 2)
             manageFocusClick();
 
