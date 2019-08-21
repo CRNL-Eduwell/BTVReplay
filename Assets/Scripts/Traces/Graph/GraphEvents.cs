@@ -1,16 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-using UnityEngine.EventSystems;
-
-public delegate void eventsToDisplay(TraceEvent newVal, int idWin);
-public delegate void eventsToDelete(TraceEvent newVal, int idWin);
 
 public class GraphEvents : MonoBehaviour
 {
-    public event eventsToDisplay eventsToDisplay;
-    public event eventsToDelete eventsToDelete;
-
     public List<GameObject> eventsAdded = new List<GameObject>();
 
     [SerializeField] optionsHub hub = null;
@@ -36,6 +29,7 @@ public class GraphEvents : MonoBehaviour
 
     public void addEventToTrace(TraceEvent currentEvent, int id)
     {
+        UnityEngine.Debug.Log("Add event to trace");
         GameObject currentEventToAdd = null;
         if (currentEvent.duration == 0)
             currentEventToAdd = Instantiate(m_traceEventClick);
@@ -49,14 +43,12 @@ public class GraphEvents : MonoBehaviour
         eventsAdded.Insert(id, currentEventToAdd);
 
         currentEventToAdd.GetComponent<EventTrace>().init(currentEvent, m_parent.TraceId);
-        currentEventToAdd.GetComponent<EventTrace>().eventsToDisplay += new eventsToDisplay((eventToDisp, winID) =>
-        {
-            eventsToDisplay(eventToDisp, winID);
-        });
-        currentEventToAdd.GetComponent<EventTrace>().eventsToDelete += new eventsToDelete((eventToDisp, winID) =>
-        {
-            eventsToDelete(eventToDisp, winID);
-        });
+    }
+
+    public void DeleteEventFromTrace(int IndexToDelete)
+    {
+        if(IndexToDelete < eventsAdded.Count)
+            Destroy(eventsAdded[IndexToDelete].gameObject);
     }
 
     public void updateEventsDraw(int milliSecToLook)
@@ -170,17 +162,5 @@ public class GraphEvents : MonoBehaviour
                 activeObj[i].SetActive(false);
             }
         }
-    }
-
-    public void removeEventConnections(GameObject objToDel)
-    {
-        objToDel.GetComponent<EventTrace>().eventsToDisplay -= new eventsToDisplay((eventToDisp, winID) =>
-        {
-            eventsToDisplay(eventToDisp, winID);
-        });
-        objToDel.GetComponent<EventTrace>().eventsToDelete -= new eventsToDelete((eventToDisp, winID) =>
-        {
-            eventsToDelete(eventToDisp, winID);
-        });
     }
 }

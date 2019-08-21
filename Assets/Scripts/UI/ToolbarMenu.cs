@@ -69,7 +69,7 @@ namespace BTV.UI.Module3D
             m_EegSignal2Toolbar.Initialize();
             //m_PerformanceToolbar.Initialize();
             m_VideoToolbar.Initialize();
-            //m_EventsToolbar.Initialize();
+            m_EventsToolbar.Initialize();
 
             CurrentToolbar = null;
 

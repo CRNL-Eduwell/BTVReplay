@@ -6,91 +6,99 @@ using UnityEngine.EventSystems;
 
 public class EventTrace : MonoBehaviour, IPointerClickHandler
 {
-    public event eventsToDisplay eventsToDisplay;
-    public event eventsToDelete eventsToDelete;
-
-    GameObject actionEventClick = null;
-    TraceEvent myEvent = null;
+    GameObject m_ContextualWindowPrefabs = null;
+    TraceEvent m_Event = null;
     int parentWinID = -2;
 
-    GameObject choiceWin = null;
-    Button editButton = null;
-    Button deleteButton = null;
-    Button closeButton = null;
+    GameObject ContextualMenuWindow = null;
+    Button m_EditEvent = null;
+    Button m_DeleteEvent = null;
+    Button m_CloseWindow = null;
 
     public void init(TraceEvent currentEvent, int winID)
     {
-        actionEventClick = Resources.Load("Prefabs/EventOptions", typeof(GameObject)) as GameObject;
+        m_ContextualWindowPrefabs = Resources.Load("Prefabs/EventOptions", typeof(GameObject)) as GameObject;
 
-        myEvent = new TraceEvent(currentEvent);
+        m_Event = new TraceEvent(currentEvent);
         parentWinID = winID;
-    }
-
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        switch (eventData.button)
-        {
-            case PointerEventData.InputButton.Left:
-                eventsToDisplay(myEvent, parentWinID);
-                break;
-            case PointerEventData.InputButton.Right:
-                openChoiceOption();
-                break;
-        }
     }
 
     public void UpdateEvent(TraceEvent modifyedEvent)
     {
-        myEvent = new TraceEvent(modifyedEvent);
+        m_Event = new TraceEvent(modifyedEvent);
     }
 
-    public void openChoiceOption()
+    public void DeleteMe()
     {
-        choiceWin = Instantiate(actionEventClick);
-        choiceWin.transform.SetParent(GameObject.Find("Trace" + (parentWinID + 1) + "Window").transform);
-        choiceWin.transform.localScale = new Vector3(1, 1, 1);
-        choiceWin.transform.localPosition = new Vector3(0, 0, -402);
-
-        editButton = choiceWin.transform.GetChild(0).GetChild(0).GetComponent<Button>();
-        deleteButton = choiceWin.transform.GetChild(0).GetChild(1).GetComponent<Button>();
-        closeButton = choiceWin.transform.GetChild(0).GetChild(2).GetComponent<Button>();
-
-        editButton.onClick.AddListener(choiceEdit);
-        deleteButton.onClick.AddListener(()=> 
+        EventsModificationMessage message = new EventsModificationMessage
         {
-            ApplicationState.displayConfirmation("Event Deletion", "Are You Sure You Want To Delete This Event ?", choiceDelete, choiceClose);
-        });
-        closeButton.onClick.AddListener(choiceClose);
+            TaskToExecute = 2,
+            Event = m_Event
+        };
+        Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
     }
 
-    void choiceEdit()
+    void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
     {
-        eventsToDisplay(myEvent, parentWinID);
-        editButton.onClick.RemoveAllListeners();
-        deleteButton.onClick.RemoveAllListeners();
-        closeButton.onClick.RemoveAllListeners();
-        Destroy(choiceWin);
+        switch (eventData.button)
+        {
+            case PointerEventData.InputButton.Left:
+                //eventsToDisplay(m_Event, parentWinID);//send message 
+                break;
+            case PointerEventData.InputButton.Right:
+                OpenContextualMenu();
+                break;
+        }
     }
 
-    void choiceDelete()
+    private void OpenContextualMenu()
     {
-        eventsToDelete(myEvent, parentWinID);
-        editButton.onClick.RemoveAllListeners();
-        deleteButton.onClick.RemoveAllListeners();
-        closeButton.onClick.RemoveAllListeners();
-        Destroy(choiceWin);
+        ContextualMenuWindow = Instantiate(m_ContextualWindowPrefabs);
+        ContextualMenuWindow.transform.SetParent(GameObject.Find("Trace" + (parentWinID + 1) + "Window").transform);
+        ContextualMenuWindow.transform.localScale = new Vector3(1, 1, 1);
+        ContextualMenuWindow.transform.localPosition = new Vector3(0, 0, -402);
+
+        m_EditEvent = ContextualMenuWindow.transform.GetChild(0).GetChild(0).GetComponent<Button>();
+        m_DeleteEvent = ContextualMenuWindow.transform.GetChild(0).GetChild(1).GetComponent<Button>();
+        m_CloseWindow = ContextualMenuWindow.transform.GetChild(0).GetChild(2).GetComponent<Button>();
+
+        m_EditEvent.onClick.AddListener(EditEvent);
+        m_DeleteEvent.onClick.AddListener(DeleteEvent);
+        m_CloseWindow.onClick.AddListener(CloseContextualMenu);
     }
 
-    void choiceClose()
+    private void EditEvent()
     {
-        editButton.onClick.RemoveAllListeners();
-        deleteButton.onClick.RemoveAllListeners();
-        closeButton.onClick.RemoveAllListeners();
-        Destroy(choiceWin);
+        EventsModificationMessage message = new EventsModificationMessage
+        {
+            TaskToExecute = 3,
+            Event = m_Event
+        };
+        Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
+        CloseContextualMenu();
     }
 
-    public void deleteMe()
+    private void DeleteEvent()
     {
-        eventsToDelete(myEvent, parentWinID);
+        ApplicationState.displayConfirmation("Event Deletion", "Are You Sure You Want To Delete This Event ?", DeleteEventAndCloseContextualMenu, CloseContextualMenu);
+    }
+
+    private void DeleteEventAndCloseContextualMenu()
+    {
+        EventsModificationMessage message = new EventsModificationMessage
+        {
+            TaskToExecute = 2,
+            Event = m_Event
+        };
+        Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
+        CloseContextualMenu();
+    }
+
+    private void CloseContextualMenu()
+    {
+        m_EditEvent.onClick.RemoveAllListeners();
+        m_DeleteEvent.onClick.RemoveAllListeners();
+        m_CloseWindow.onClick.RemoveAllListeners();
+        Destroy(ContextualMenuWindow);
     }
 }

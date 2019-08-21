@@ -22,7 +22,7 @@ public class WindowOpt : MonoBehaviour
         m_rectTransformL = m_rectTransformView.GetChild(0).GetComponent<RectTransform>();
         m_rectTransformR = m_rectTransformView.GetChild(1).GetComponent<RectTransform>();
         m_rectTransform = gameObject.GetComponent<RectTransform>();
-        gameObject.SetActive(false);
+        //gameObject.SetActive(false);
     }
 
     #region MouseEnterEvents
@@ -45,6 +45,9 @@ public class WindowOpt : MonoBehaviour
 
     public void OnHorizontalDrag()
     {
+        if(m_initialWidth == 0)
+            m_initialWidth = m_rectTransformView.gameObject.GetComponent<RectTransform>().rect.width;
+
         float delta = Input.mousePosition.x - m_initialMousePosition.x;
         float newSize = ((m_rectTransformL.rect.width + m_rectTransformR.rect.width + delta) / m_initialWidth);
 

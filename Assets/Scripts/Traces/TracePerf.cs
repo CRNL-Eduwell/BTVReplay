@@ -52,11 +52,11 @@ public class TracePerf : MonoBehaviour
                 //{
                 //    gameObject.SetActive(isHidden);
                 //});
-                hub.perfRemote.timeHasChanged -= new timePeriodChangedEventHandler(updateTimeResolution);
+                //hub.perfRemote.timeHasChanged -= new timePeriodChangedEventHandler(updateTimeResolution);
             }
             else
             {
-                hub.perfRemote.timeHasChanged -= new timePeriodChangedEventHandler((int newPeriod) => { });
+                //hub.perfRemote.timeHasChanged -= new timePeriodChangedEventHandler((int newPeriod) => { });
             }
         }
 
@@ -135,7 +135,7 @@ public class TracePerf : MonoBehaviour
         {
             gameObject.SetActive(false);
             //hub.perfRemote.hideTog.isOn = false;
-            hub.perfRemote.timeHasChanged += new timePeriodChangedEventHandler((int newPeriod) => { });
+            //hub.perfRemote.timeHasChanged += new timePeriodChangedEventHandler((int newPeriod) => { });
         }
 
         initDone = true;

@@ -142,9 +142,9 @@ public class Site : MonoBehaviour
     {
         if (!IsFrozen)
         {
-            int MostRecentSample = (int)(milliSecToLook * (ApplicationState.CurrentSelectedFile.sampFreq / 1000));
-            int PositionOfSampleInArray = (ID * ApplicationState.CurrentSelectedFile.nbSam) + MostRecentSample;
-            float currentValue = ApplicationState.CurrentSelectedFile.eegData[PositionOfSampleInArray] / 100;
+            int MostRecentSample = (int)(milliSecToLook * (ApplicationState.Window1.TraceEeg.fileHandle.sampFreq / 1000));
+            int PositionOfSampleInArray = (ID * ApplicationState.Window1.TraceEeg.fileHandle.nbSam) + MostRecentSample;
+            float currentValue = ApplicationState.Window1.TraceEeg.fileHandle.eegData[PositionOfSampleInArray] / 100;
             float scale = 2 + (m_Gain * currentValue);
 
             if (scale >= 7)

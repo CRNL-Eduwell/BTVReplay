@@ -53,6 +53,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     [SerializeField] int traceID = 0;
 
     bool m_initDone = false;
+    bool m_AddEvents = false;
     RectTransform m_rectTransform = null;
     Vector3[] m_worldCornerOfBrainPanel = new Vector3[4];
     Vector3[] m_worldCorners = new Vector3[4];
@@ -60,8 +61,20 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
     Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
 
+    Trace m_signalWindow1 = null;
+    Trace m_signalWindow2 = null;
+
+    GameObject m_AddEventWindowPrefabs = null;
+    GameObject m_DisplayEventWindowPrefabs = null;
+
     void Awake()
     {
+        m_AddEventWindowPrefabs = Resources.Load("Prefabs/EventInfoEdit", typeof(GameObject)) as GameObject;
+        m_DisplayEventWindowPrefabs = Resources.Load("Prefabs/EventInfoDisplay", typeof(GameObject)) as GameObject;
+
+        m_signalWindow1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
+        m_signalWindow2 = GameObject.Find("Trace2Window").GetComponent<Trace>();
+
         media.loadTrace += new initTrace(init);
         Messenger.Default.Register<UiToTraceMessage>(this, OnTraceParametersMessage, MessageContext.UiToTrace);
         Messenger.Default.Register<UiToVideoMessage>(this, OnVideoParametersMessage, MessageContext.UiToVideo);
@@ -82,15 +95,57 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
             //hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(changeFileID);
             //hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeById);
-            //hub.eventRemote.newEventToShow -= new newEventToShowHandler(graphEvent.addEventToTrace);
-            //hub.eventRemote.showEvents -= new showAllEventsHandler(graphEvent.showEvents);
             warden.plotWasClicked -= new newPlotClicked(plotClicked);
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
             //hub.traceRemotes[traceID].deleteElectrodeInPanel();
 
             Messenger.Default.Unregister(this, MessageContext.UiToTrace);
             Messenger.Default.Unregister(this, MessageContext.UiToVideo);
+            Messenger.Default.Unregister(this, MessageContext.EventsToTraceMessage);
         }
+    }
+
+    void Update()
+    {
+        if (m_initDone && isOver(Input.mousePosition) && m_window.hasFocus)
+        {
+            Vector2 scrollDelta = Input.mouseScrollDelta;
+            if (scrollDelta.y != 0)
+            {
+                if (scrollDelta.y < 0)
+                    updateElectrodeById(eegSignal.IdElectrode - 1);
+                else
+                    updateElectrodeById(eegSignal.IdElectrode + 1);
+            }
+        }
+    }
+
+    void init()
+    {
+        m_rectTransform = gameObject.GetComponent<RectTransform>();
+
+        eegSignal.init();
+        audioSignal.init();
+        graphLabel.init(eegSignal.LabelElectrode);
+        graphGrid.init(eegSignal.PeriodInSeconds);
+        graphEvent.init(this);
+        graphSonif.init(this);
+
+        #region plugEvents
+        video.sendTime += new timeVideo(eegSignal.updateDraw);
+        video.sendTimeVideo += new timeVideoSync(audioSignal.updateDraw);
+        video.sendTime += new timeVideo(graphEvent.updateEventsDraw);
+        video.sendTime += new timeVideo(graphSonif.updateSonif);
+        video.stopTimeVideo += new stopVideo(graphSonif.muteSonficiation);
+
+        //hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(changeFileID);
+        //hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeById);
+        warden.plotWasClicked += new newPlotClicked(plotClicked);
+        graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
+        //hub.traceRemotes[traceID].loadElectrodeInPanel(eegSignal.fileHandle.electrodes);
+        #endregion
+
+        m_initDone = true;
     }
 
     void OnTraceParametersMessage(UiToTraceMessage message)
@@ -167,56 +222,21 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         switch (message.TaskToExecute)
         {
             case 0: //add toggle
+                m_AddEvents = message.IsAddEventsOn;
                 break;
             case 1://show toggle
                 graphEvent.showEvents(message.IsShowEventsOn);
                 break;
+            case 2://Edit Events
+                OpenEventModify(message.Event);
+                break;
+            case 3://Add Event
+                graphEvent.addEventToTrace(message.Event, message.EventIndex);
+                break;
+            case 4://Delete Event
+                graphEvent.DeleteEventFromTrace(message.EventIndex);
+                break;
         }
-    }
-
-    void Update()
-    {
-        if (m_initDone && isOver(Input.mousePosition) && m_window.hasFocus)
-        {
-            Vector2 scrollDelta = Input.mouseScrollDelta;
-            if (scrollDelta.y != 0)
-            {
-                if (scrollDelta.y < 0)
-                    updateElectrodeById(eegSignal.IdElectrode - 1);
-                else
-                    updateElectrodeById(eegSignal.IdElectrode + 1);
-            }
-        }
-    }
-
-    void init()
-    {
-        m_rectTransform = gameObject.GetComponent<RectTransform>();
-
-        eegSignal.init();
-        audioSignal.init();
-        graphLabel.init(eegSignal.LabelElectrode);
-        graphGrid.init(eegSignal.PeriodInSeconds);
-        graphEvent.init(this);
-        graphSonif.init(this);
-
-        #region plugEvents
-        video.sendTime += new timeVideo(eegSignal.updateDraw);
-        video.sendTimeVideo += new timeVideoSync(audioSignal.updateDraw);
-        video.sendTime += new timeVideo(graphEvent.updateEventsDraw);
-        video.sendTime += new timeVideo(graphSonif.updateSonif);
-        video.stopTimeVideo += new stopVideo(graphSonif.muteSonficiation);
-
-        //hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(changeFileID);
-        //hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeById);
-        //hub.eventRemote.newEventToShow += new newEventToShowHandler(graphEvent.addEventToTrace);
-        //hub.eventRemote.showEvents += new showAllEventsHandler(graphEvent.showEvents);
-        warden.plotWasClicked += new newPlotClicked(plotClicked);
-        graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
-        //hub.traceRemotes[traceID].loadElectrodeInPanel(eegSignal.fileHandle.electrodes);
-        #endregion
-
-        m_initDone = true;
     }
 
     void changeFileID(int newId)
@@ -286,8 +306,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        UnityEngine.Debug.Log("pointerclick trace");
-
         if (eventData.clickCount == 2)
             manageFocusClick();
 
@@ -300,7 +318,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         if (sampleClicked >= 0)
         {
             TraceEvent currentEvent = new TraceEvent(new eventEeg(0, (int)sampleClicked, eegSignal.SamplingFrequency), elecOfInterest:eegSignal.LabelElectrode);
-            eventWasClicked(currentEvent, traceID);
+            //eventWasClicked(currentEvent, traceID);
+            OpenEventAdd(currentEvent);
         }
     }
 
@@ -352,5 +371,63 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 }
             }
         }
+    }
+
+    //===
+    //Those 3 needs to be connected via reception of a message from messenger
+    private void OpenEventAdd(TraceEvent Event)
+    {
+        if (m_AddEvents)
+        {
+            GameObject AddEventWindow = Instantiate(m_AddEventWindowPrefabs);
+
+            if (traceID == 0)
+            {
+                AddEventWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
+                Event.secondElecOfInterest = m_signalWindow2.TraceEeg.LabelElectrode;
+            }
+            else
+            {
+                AddEventWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
+                Event.secondElecOfInterest = m_signalWindow1.TraceEeg.LabelElectrode;
+            }
+            AddEventWindow.transform.localScale = new Vector3(1, 1, 1);
+            AddEventWindow.transform.localPosition = new Vector3(0, 0, -402);
+
+            EventInfoEdit infoEdit = AddEventWindow.GetComponent<EventInfoEdit>();
+            infoEdit.init(Event, false);
+        }
+    }
+
+    private void OpenEventDisplay(TraceEvent Event)
+    {
+        GameObject DisplayEventWindow = Instantiate(m_DisplayEventWindowPrefabs);
+
+        if (traceID == 0)
+            DisplayEventWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
+        else
+            DisplayEventWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
+        DisplayEventWindow.transform.localScale = new Vector3(1, 1, 1);
+        DisplayEventWindow.transform.localPosition = new Vector3(0, 0, -402);
+
+        EventInfoDisplay infoDisp = DisplayEventWindow.GetComponent<EventInfoDisplay>();
+        infoDisp.init(Event);
+    }
+
+    private void OpenEventModify(TraceEvent Event)
+    {
+        ApplicationState.MemoryEvent = null;
+
+        GameObject AddEventWindow = Instantiate(m_AddEventWindowPrefabs);
+
+        if (traceID == 0)
+            AddEventWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
+        else
+            AddEventWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
+        AddEventWindow.transform.localScale = new Vector3(1, 1, 1);
+        AddEventWindow.transform.localPosition = new Vector3(0, 0, -402);
+
+        EventInfoEdit infoEdit = AddEventWindow.GetComponent<EventInfoEdit>();
+        infoEdit.init(Event, true);
     }
 }

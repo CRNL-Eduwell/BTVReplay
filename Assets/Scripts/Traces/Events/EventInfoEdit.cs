@@ -1,130 +1,132 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
-
-public delegate void eventValidated(TraceEvent validEvent);
-public delegate void eventModifValidated(TraceEvent validEvent);
-public delegate void imDying();
+using BrainTV.Tools.NumberExtensions;
 
 public class EventInfoEdit : MonoBehaviour
 {
-    public event eventValidated eventValid;
-    public event eventsToDelete eventsToDelete;
-    public event eventModifValidated eventModifed;
-    public event imDying aaaagh;
+    [SerializeField]
+    private Text m_Time = null;
+    [SerializeField]
+    private InputField m_Code = null;
+    [SerializeField]
+    private InputField m_Duration = null;
+    [SerializeField]
+    private InputField m_Comment = null;
+    [SerializeField]
+    private Button m_SaveEvent = null;
+    [SerializeField]
+    private Button m_DeleteEvent = null;
+    [SerializeField]
+    private Button m_CloseWindow = null;
 
-    Text timeText = null;
-    InputField codeInputField = null;
-    InputField durationInputField = null;
-    InputField commentInputField = null;
-    Button saveButton = null;
-    Button delButton = null;
-    Button closeButton = null;
+    private TraceEvent m_Event = null;
+    private TraceEvent m_OriginalEvent = null;
+    private bool m_IsModif = false;
 
-    TraceEvent myCurrentEvent = null;
-
-    public void init(TraceEvent clickedEvent, TraceEvent memoryEvent, bool isModif)
+    public void init(TraceEvent clickedEvent, bool isModif)
     {
-        myCurrentEvent = new TraceEvent(clickedEvent);
+        m_Event = new TraceEvent(clickedEvent);
+        m_OriginalEvent = new TraceEvent(clickedEvent);
+        m_IsModif = isModif;
 
-        timeText = transform.GetChild(0).GetChild(1).GetComponent<Text>();
-        codeInputField = transform.GetChild(2).GetChild(1).GetComponent<InputField>();
-        durationInputField = transform.GetChild(2).GetChild(3).GetComponent<InputField>();
-        commentInputField = transform.GetChild(4).GetChild(1).GetComponent<InputField>();
-        saveButton = transform.GetChild(6).GetChild(0).GetComponent<Button>();
-        delButton = transform.GetChild(6).GetChild(1).GetComponent<Button>();
-        closeButton = transform.GetChild(6).GetChild(2).GetComponent<Button>();
+        InitTimeDisplay((int)m_Event.timeSeconds());
 
-        //int timeInSec = myCurrentEvent.sample / 64;
-        int timeInSec = (int)myCurrentEvent.timeSeconds();
-        int h = timeInSec / 3600;
-        int m = (timeInSec / 60) % 60;
-        int s = timeInSec % 60;
+        if (isModif && ApplicationState.MemoryEvent != null)
+            InitUiValues(ApplicationState.MemoryEvent);
+        else
+            InitUiValues(m_Event);
+
+        m_SaveEvent.onClick.AddListener(SaveEvent);
+        m_DeleteEvent.onClick.AddListener(DeleteEvent);
+        m_CloseWindow.onClick.AddListener(CloseWindow);
+    }
+
+    private void OnDestroy()
+    {
+        m_SaveEvent.onClick.RemoveAllListeners();
+        m_DeleteEvent.onClick.RemoveAllListeners();
+        m_CloseWindow.onClick.RemoveAllListeners();
+    }
+
+    private void InitTimeDisplay(int TimeInSeconds)
+    {
+        int h = TimeInSeconds / 3600;
+        int m = (TimeInSeconds / 60) % 60;
+        int s = TimeInSeconds % 60;
 
         if (h > 0)
-            timeText.text = returnTimeString(h) + ":" + returnTimeString(m) + ":" + returnTimeString(s);
+            m_Time.text = h.FormatToTimeString() + ":" + m.FormatToTimeString() + ":" + s.FormatToTimeString();
         else
-            timeText.text = "00:" + returnTimeString(m) + ":" + returnTimeString(s);
+            m_Time.text = "00:" + m.FormatToTimeString() + ":" + s.FormatToTimeString();
+    }
 
-        if (memoryEvent != null && !isModif)
-            initValueUI(memoryEvent);
-        else if(memoryEvent != null)
-            initValueUI(myCurrentEvent);
+    private void InitUiValues(TraceEvent currentEvent)
+    {
+        m_Code.text = currentEvent.code.ToString();
+        m_Duration.text = currentEvent.duration.ToString();
+        m_Comment.text = currentEvent.comment;
+    }
 
-        saveButton.onClick.AddListener(() => 
+    private void SaveEvent()
+    {
+        CheckEventIntegrity();
+        if (!m_IsModif)
         {
-            checkEventIntegrity();
-            if (!isModif)
+            EventsModificationMessage message = new EventsModificationMessage
             {
-                eventValid(myCurrentEvent);
-            }
-            else
-            {
-                eventModifed(myCurrentEvent);
-            }
-
-            Destroy(gameObject);
-        });
-
-        delButton.onClick.AddListener(() => 
-        {
-            ApplicationState.displayConfirmation("Event Deletion", "Are You Sure You Want To Delete This Event ?", deleteAction, cancelAction);
-        });
-
-        closeButton.onClick.AddListener(() =>
-        {
-            Destroy(gameObject);
-        });
-    }
-
-    void OnDestroy()
-    {
-        aaaagh();
-        saveButton.onClick.RemoveAllListeners();
-        delButton.onClick.RemoveAllListeners();
-        closeButton.onClick.RemoveAllListeners();
-    }
-
-    void initValueUI(TraceEvent currentEvent)
-    {
-        codeInputField.text = currentEvent.code.ToString();
-        durationInputField.text = currentEvent.duration.ToString();
-        commentInputField.text = currentEvent.comment;
-    }
-
-    string returnTimeString(int time)
-    {
-        if (time < 10)
-        {
-            return "0" + time;
+                TaskToExecute = 0,
+                Event = m_Event
+            };
+            Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
         }
         else
         {
-            return time.ToString();
+            EventsModificationMessage message = new EventsModificationMessage
+            {
+                TaskToExecute = 1,
+                Event = m_Event,
+                EventMemory = m_OriginalEvent
+            };
+            Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
         }
+
+        CloseWindow();
     }
 
-    void checkEventIntegrity()
+    private void CheckEventIntegrity()
     {
-        int codeValue = 0;
-        if (int.TryParse(codeInputField.text, out codeValue))
-            myCurrentEvent.code = codeValue;
+        if (int.TryParse(m_Code.text, out int codeValue))
+            m_Event.code = codeValue;
         else
-            myCurrentEvent.code = 0;
+            m_Event.code = 0;
 
-        myCurrentEvent.comment = commentInputField.text;
-        myCurrentEvent.duration = int.Parse(durationInputField.text);
+        m_Event.comment = m_Comment.text;
+        m_Event.duration = int.Parse(m_Duration.text);
     }
 
-    void deleteAction()
+    private void DeleteEvent()
     {
-        eventsToDelete(myCurrentEvent, 0);
+        ApplicationState.displayConfirmation("Event Deletion", "Are You Sure You Want To Delete This Event ?", DeleteAction, CancelAction);
+    }
+
+    private void CloseWindow()
+    {
         Destroy(gameObject);
     }
 
-    void cancelAction()
+    private void DeleteAction()
+    {
+        EventsModificationMessage message = new EventsModificationMessage
+        {
+            TaskToExecute = 2,
+            Event = m_Event
+        };
+        Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
+
+        CloseWindow();
+    }
+
+    private void CancelAction()
     {
         Destroy(gameObject);
     }

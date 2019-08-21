@@ -11,5 +11,6 @@ enum MessageContext
     UiToTrace,
     UiToVideo,
     UiToEvents,
-    EventsToTraceMessage
+    EventsToTraceMessage,
+    EventsModificationMessage
 }

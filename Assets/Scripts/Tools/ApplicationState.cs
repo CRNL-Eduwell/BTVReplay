@@ -8,6 +8,18 @@ using BTV.UI.Module3D;
 
 public static class ApplicationState
 {
+    public static Trace Window1
+    {
+        get;
+        set;
+    }
+
+    public static Trace Window2
+    {
+        get;
+        set;
+    }
+
     public static Patient Patient
     {
         get;
@@ -20,7 +32,7 @@ public static class ApplicationState
         set;
     }
 
-    public static ELAN CurrentSelectedFile
+    public static TraceEvent MemoryEvent
     {
         get;
         set;
@@ -51,7 +63,10 @@ public static class ApplicationState
         if (coroutineManager == null)
             coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(6).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = GameObject.Find("Canvas").transform.GetChild(5).GetChild(0).GetComponent<MessageWindow>();
+
+        Window1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
+        Window2 = GameObject.Find("Trace2Window").GetComponent<Trace>();
     }
 
     // If in coroutine, need to be as such, otherwise it trigger error : "StartCoroutine_Auto_Internal can only be called from the main thread"

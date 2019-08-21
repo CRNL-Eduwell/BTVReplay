@@ -68,8 +68,8 @@ namespace BTV.UI.Module3D
             });
             m_EventsToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                //UnityEngine.Debug.Log("Update Events Opt : " + UiOptionIndex);
-                //ChangeToolbar(m_EventsToggle, UiOptionIndex);
+                UnityEngine.Debug.Log("Update Events Opt : " + UiOptionIndex);
+                ChangeToolbar(m_EventsToggle, UiOptionIndex);
             });
         }
 
