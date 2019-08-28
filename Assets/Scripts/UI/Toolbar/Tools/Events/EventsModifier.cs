@@ -30,7 +30,7 @@ namespace BTV.UI.Module3D.Tools
             });
             m_ShowEvents.onValueChanged.AddListener((IsShowOn) =>
             {
-                AddEvents.Invoke(IsShowOn);
+                ShowEvents.Invoke(IsShowOn);
             });
             m_DeleteEvents.onClick.AddListener(() =>
             {

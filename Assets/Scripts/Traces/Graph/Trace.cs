@@ -89,7 +89,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         {
             video.sendTime -= new timeVideo(eegSignal.updateDraw);
             video.sendTimeVideo -= new timeVideoSync(audioSignal.updateDraw);
-            video.sendTime -= new timeVideo(graphEvent.updateEventsDraw);
+            video.sendTime -= new timeVideo(graphEvent.UpdateEventsOnTrace);
             video.sendTime -= new timeVideo(graphSonif.updateSonif);
             video.stopTimeVideo -= new stopVideo(graphSonif.muteSonficiation);
 
@@ -134,7 +134,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         #region plugEvents
         video.sendTime += new timeVideo(eegSignal.updateDraw);
         video.sendTimeVideo += new timeVideoSync(audioSignal.updateDraw);
-        video.sendTime += new timeVideo(graphEvent.updateEventsDraw);
+        video.sendTime += new timeVideo(graphEvent.UpdateEventsOnTrace);
         video.sendTime += new timeVideo(graphSonif.updateSonif);
         video.stopTimeVideo += new stopVideo(graphSonif.muteSonficiation);
 
@@ -225,13 +225,13 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 m_AddEvents = message.IsAddEventsOn;
                 break;
             case 1://show toggle
-                graphEvent.showEvents(message.IsShowEventsOn);
+                graphEvent.DisplayEvents = message.IsShowEventsOn;
                 break;
             case 2://Edit Events
                 OpenEventModify(message.Event);
                 break;
             case 3://Add Event
-                graphEvent.addEventToTrace(message.Event, message.EventIndex);
+                graphEvent.AddEventToTrace(message.Event, message.EventIndex);
                 break;
             case 4://Delete Event
                 graphEvent.DeleteEventFromTrace(message.EventIndex);
