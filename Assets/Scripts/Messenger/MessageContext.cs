@@ -12,5 +12,6 @@ enum MessageContext
     UiToVideo,
     UiToEvents,
     EventsToTraceMessage,
-    EventsModificationMessage
+    EventsModificationMessage,
+    BrainWardenToElectrodePointerMessage
 }
