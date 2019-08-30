@@ -3,12 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public delegate void eventsClickedHandler(TraceEvent newVal, int idWin);
-
 public class Trace : MonoBehaviour, IPointerClickHandler
 {
-    public event eventsClickedHandler eventWasClicked;
-
     public int TraceId
     {
         get
@@ -44,7 +40,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     [SerializeField] AudioSignal audioSignal = null;
     [SerializeField] GraphLabel graphLabel = null;
     [SerializeField] selectRing ring = null;
-    [SerializeField] BrainWarden warden = null;
     [SerializeField] GraphGrid graphGrid = null;
     [SerializeField] GraphEvents graphEvent = null;
     [SerializeField] GraphSonification graphSonif = null;
@@ -79,7 +74,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         Messenger.Default.Register<UiToTraceMessage>(this, OnTraceParametersMessage, MessageContext.UiToTrace);
         Messenger.Default.Register<UiToVideoMessage>(this, OnVideoParametersMessage, MessageContext.UiToVideo);
         Messenger.Default.Register<EventsToTraceMessage>(this, OnEventsToTraceMessage, MessageContext.EventsToTraceMessage);
-
+        Messenger.Default.Register<BrainWardenToTraceMessage>(this, OnBrainWardenToTraceMessage, MessageContext.BrainWardenToTraceMessage);
     }
 
     void OnDestroy()
@@ -95,13 +90,13 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
             //hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(changeFileID);
             //hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeById);
-            warden.plotWasClicked -= new newPlotClicked(plotClicked);
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
             //hub.traceRemotes[traceID].deleteElectrodeInPanel();
 
             Messenger.Default.Unregister(this, MessageContext.UiToTrace);
             Messenger.Default.Unregister(this, MessageContext.UiToVideo);
             Messenger.Default.Unregister(this, MessageContext.EventsToTraceMessage);
+            Messenger.Default.Unregister(this, MessageContext.BrainWardenToTraceMessage);
         }
     }
 
@@ -140,7 +135,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
         //hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(changeFileID);
         //hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeById);
-        warden.plotWasClicked += new newPlotClicked(plotClicked);
         graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
         //hub.traceRemotes[traceID].loadElectrodeInPanel(eegSignal.fileHandle.electrodes);
         #endregion
@@ -235,6 +229,19 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 4://Delete Event
                 graphEvent.DeleteEventFromTrace(message.EventIndex);
+                break;
+        }
+    }
+
+    void OnBrainWardenToTraceMessage(BrainWardenToTraceMessage message)
+    {
+        switch (message.TaskToExecute)
+        {
+            case 0:
+                plotClicked(message.ClickedElectrode);
+                break;
+            default:
+                Debug.LogError("Trace.cs : Id of action to execute does not exist : " + message.TaskToExecute);
                 break;
         }
     }

@@ -162,12 +162,24 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         RaycastHit[] hits = Physics.RaycastAll(ray2);
         if (hits.Length > 0)
         {
-            plot = GameObject.Find(hits[0].collider.name);
-            plotWasClicked(plot);
+            //plot = GameObject.Find(hits[0].collider.name);
+            //plotWasClicked(plot);
+
+            BrainWardenToTraceMessage message = new BrainWardenToTraceMessage
+            {
+                TaskToExecute = 0,
+                ClickedElectrode = GameObject.Find(hits[0].collider.name)
+            };
+            Messenger.Default.Send(message, MessageContext.BrainWardenToTraceMessage);
         }
         else
         {
-            plotWasClicked(null);
+            BrainWardenToTraceMessage message = new BrainWardenToTraceMessage
+            {
+                TaskToExecute = 0,
+                ClickedElectrode = null
+            };
+            Messenger.Default.Send(message, MessageContext.BrainWardenToTraceMessage);
         }
     }
 
