@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-//Uncomment when deleting optionHub.cs
-//
-//public delegate void brainChangeEventHandler(int idBrain);
+public delegate void brainChangeEventHandler(int idBrain);
 
 namespace BTV.UI.Module3D
 {
@@ -55,7 +53,7 @@ namespace BTV.UI.Module3D
                  };
                  Messenger.Default.Send(message, MessageContext.UiToBrain);
              });
-            m_BrainGain.gainHasChanged += new gainChangedEventHandler((NewGain) =>
+            m_BrainGain.gainHasChanged += new Tools.BrainGainChangedEventHandler((NewGain) =>
             {
                 UnityEngine.Debug.Log("update gain");
                 UiToBrainMessage message = new UiToBrainMessage

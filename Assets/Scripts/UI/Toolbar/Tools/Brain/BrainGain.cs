@@ -5,9 +5,11 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
+    public delegate void BrainGainChangedEventHandler(int UpdatedGain);
+
     public class BrainGain : Tool
     {
-        public event gainChangedEventHandler gainHasChanged;
+        public event BrainGainChangedEventHandler gainHasChanged;
 
         /// <summary>
         /// </summary>

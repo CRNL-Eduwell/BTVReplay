@@ -12,7 +12,7 @@ public class TracePerf : MonoBehaviour
     {
         get;set;
     }
-    [SerializeField] optionsHub hub = null;
+    //[SerializeField] optionsHub hub = null;
     [SerializeField] BTVMedia media = null;
     [SerializeField] VideoPlayer video = null;
 
@@ -90,7 +90,7 @@ public class TracePerf : MonoBehaviour
 
         if(isUsed)
         {
-            hub.perfRemote.timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
+            //hub.perfRemote.timeHasChanged += new timePeriodChangedEventHandler(updateTimeResolution);
             video.sendTime += new timeVideo(UpdateSpawn);
             video.sendTime += new timeVideo(UpdatePicEvent);
 

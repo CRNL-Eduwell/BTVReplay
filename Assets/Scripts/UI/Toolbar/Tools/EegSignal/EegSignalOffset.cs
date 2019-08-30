@@ -3,8 +3,10 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
+    public delegate void offsetChangedEventHandler(float newVal);
+
     class EegSignalOffset : Tool
-    {
+    {  
         public event offsetChangedEventHandler offsetHasChanged;
 
         /// <summary>

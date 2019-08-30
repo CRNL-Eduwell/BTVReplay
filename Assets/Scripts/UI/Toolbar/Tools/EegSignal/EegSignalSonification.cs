@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
+    public delegate void toggleSonification(bool isSonifOn);
+    public delegate void newSoundSonif(int newIDSound);
+
     class EegSignalSonification : Tool
     {
         public event toggleSonification sonifToggled;

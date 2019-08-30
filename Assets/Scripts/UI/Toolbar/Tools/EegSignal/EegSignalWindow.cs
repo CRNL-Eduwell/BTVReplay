@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
+    public delegate void timePeriodChangedEventHandler(int UpdatedTime);
+    public delegate void toggleGridDisplay(bool IsGridToggled);
+
     class EegSignalWindow : Tool
     {
         public event timePeriodChangedEventHandler timeHasChanged;

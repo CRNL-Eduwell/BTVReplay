@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+public delegate void toggleAudioTraceEventHandler(bool IsAudioChecked);
 public delegate void FilterAudio();
 public delegate void LoadAudio();
+public delegate void idAudioSmChangedEventHandler(int UpdatedAudioID);
 
 namespace BTV.UI.Module3D.Tools
 {
+
     public class VideoAudiotrace : Tool
     {
         public event toggleAudioTraceEventHandler audioToggled;

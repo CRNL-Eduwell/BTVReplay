@@ -85,7 +85,7 @@ public class VideoPlayer : MonoBehaviour
     //==
 
     #region scene members
-    [SerializeField] optionsHub hub = null;
+    //[SerializeField] optionsHub hub = null;
     [SerializeField] BTVMedia media = null;
     [SerializeField] RawImage TextureToDraw = null;
     [SerializeField] Text currentTimetext = null;

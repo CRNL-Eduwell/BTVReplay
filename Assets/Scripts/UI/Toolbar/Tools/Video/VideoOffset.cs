@@ -6,8 +6,10 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
+    public delegate void offsetVideoChangedEventHandler(float newVal);
+
     public class VideoOffset : Tool
-    {
+    {  
         public event offsetVideoChangedEventHandler offsetVideoHasChanged;
 
         /// <summary>

@@ -3,6 +3,8 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
+    public delegate void gainChangedEventHandler(float newVal);
+
     class EegSignalGain : Tool
     {
         public event gainChangedEventHandler gainHasChanged;

@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
+    public delegate void gainAudioChangedEventHandler(float UpdatedGain);
+
     public class VideoGain : Tool
     {
         public event gainAudioChangedEventHandler gainAudioHasChanged;

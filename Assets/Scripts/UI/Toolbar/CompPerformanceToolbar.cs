@@ -2,9 +2,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-//Uncomment when deleting optionHub.cs
-//
-//public delegate void hideMe(bool isHidden);
+public delegate void hideMe(bool isHidden);
+
 namespace BTV.UI.Module3D
 {
     public class CompPerformanceToolbar : Toolbar

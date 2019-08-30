@@ -6,6 +6,8 @@ using UnityEngine;
 
 namespace BTV.UI.Module3D.Tools
 {
+    public delegate void idFileChangedEventHandler(int UpdatedEegFileID);
+
     class EegSignalFileSwitcher : Tool
     {
         public event idFileChangedEventHandler idFileHasChanged;
