@@ -8,8 +8,6 @@ using UnityEngine.SceneManagement;
 using CielaSpike;
 
 public delegate void mediaLoadedEventHandler();
-public delegate void BrainLoadEventHandler(brain_anat brainToLoad, int otherBrain);
-public delegate void BrainNotPresentLoadEventHandler(eeg_Technology eeg);
 public delegate void initTrace();
 public delegate void initVideo(string videoPath, int totalFileDuration);
 public delegate void initPerf(bool init);
@@ -17,8 +15,6 @@ public delegate void initPerf(bool init);
 public class BTVMedia : MonoBehaviour
 {
     public event mediaLoadedEventHandler mediaLoaded;
-    public event BrainLoadEventHandler loadBrain;
-    public event BrainNotPresentLoadEventHandler loadDefault;
     public event initTrace loadTrace;
     public event initVideo loadVideo;
     public event initPerf loadPerf;

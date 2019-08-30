@@ -6,8 +6,6 @@ namespace BTV.UI.Module3D
 {
     class ToolbarSelector : MonoBehaviour
     {
-        [SerializeField] BTVMedia media = null;
-
         /// <summary>
         /// Toolbar menu
         /// </summary>

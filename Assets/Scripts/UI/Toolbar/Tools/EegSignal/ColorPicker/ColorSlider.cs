@@ -22,11 +22,9 @@ namespace BTV.UI.Module3D.Tools
         }
 
         [SerializeField]
-        private Text m_Label;
+        private Scrollbar m_Scrollbar = null;
         [SerializeField]
-        public Scrollbar m_Scrollbar;
-        [SerializeField]
-        private InputField m_Inputfield;
+        private InputField m_Inputfield = null;
 
         int memoryScrollBar = 0;
         int memoryInputField = 0;

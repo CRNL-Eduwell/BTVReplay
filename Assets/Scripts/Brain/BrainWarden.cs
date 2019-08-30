@@ -6,12 +6,8 @@ using System.Linq;
 using System;
 using BTV.Services.EventsService;
 
-public delegate void newPlotClicked(GameObject plot);
-
 public class BrainWarden : MonoBehaviour, IPointerClickHandler
 {
-    public event newPlotClicked plotWasClicked;
-
     [SerializeField] Camera brainCam = null;
     [SerializeField] BTVMedia media = null;
     [SerializeField] VideoPlayer video = null;
@@ -24,7 +20,6 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     Window winTrace1 = null;
     Window winTrace2 = null;
     Trace curveTrace1 = null;
-    GameObject plot = null;
 
     GameObject elecOptionPanel = null;
     GameObject ElecOption = null;
@@ -162,9 +157,6 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         RaycastHit[] hits = Physics.RaycastAll(ray2);
         if (hits.Length > 0)
         {
-            //plot = GameObject.Find(hits[0].collider.name);
-            //plotWasClicked(plot);
-
             BrainWardenToTraceMessage message = new BrainWardenToTraceMessage
             {
                 TaskToExecute = 0,
