@@ -26,6 +26,8 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
     public GenericEvent<int> UpdateUiAndModuleLayout = new GenericEvent<int>();
 
     [SerializeField]
+    private Image m_BackgroundImage = null;
+    [SerializeField]
     private bool m_LeftRightClick = false;
     [SerializeField]
     private int m_MinValue = 0;
@@ -33,10 +35,12 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
     private int m_MaxValue = 0;
 
     private int m_OptionsCounter = 1;
+    private Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
 
     public void ResetToggle()
     {
         m_OptionsCounter = 1;
+        m_BackgroundImage.color = Color.black;
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -65,6 +69,7 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
                         UnityEngine.Debug.Log("Decreasing counter " + m_OptionsCounter);
                     }
                 }
+                m_BackgroundImage.color = (m_OptionsCounter <= 1) ? Color.black : blue;
                 UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
                 break;
         }
@@ -77,11 +82,13 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
             case PointerEventData.InputButton.Right:
                 if (m_OptionsCounter - 1 >= m_MinValue)
                     m_OptionsCounter -= 1;
+                m_BackgroundImage.color = (m_OptionsCounter <= 1) ? Color.black : blue;
                 UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
                 break;
             case PointerEventData.InputButton.Left:
                 if (m_OptionsCounter + 1 <= m_MaxValue)
                     m_OptionsCounter += 1;
+                m_BackgroundImage.color = (m_OptionsCounter <= 1) ? Color.black : blue;
                 UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
                 break;
         }

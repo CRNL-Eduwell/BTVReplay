@@ -95,7 +95,7 @@ public class Brain : MonoBehaviour
                 UpdateDisplayedMeshes(message.MeshesToDisplay);
                 break;
             case 2:
-                Debug.Log("Update BrainGain, not done yet");
+                //manage by each site individually
                 break;
             default:
                 Debug.LogError("Brain.cs : Id of action to execute does not exist : " + message.TaskToExecute);
