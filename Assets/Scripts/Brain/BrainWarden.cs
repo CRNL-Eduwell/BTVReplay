@@ -226,7 +226,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             int right = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
 
             List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right, curveTrace1.TraceEeg.SamplingFrequency);
-            List<int> idRightEnter = EventsService.GetEventIdsBiggerThanWindow(left, right, curveTrace1.TraceEeg.SamplingFrequency);
+            List<int> idRightEnter = EventsService.GetEventIdsEnteringWindow(left, right, curveTrace1.TraceEeg.SamplingFrequency);
             //Union joins and delete duplicates
             List<int> indexes = idOverFlow.Union(idRightEnter).ToList();
 
@@ -279,7 +279,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         }
         else
         {
-            Site Electrode = Array.Find(Electrodes, x => x.gameObject.name == Name);
+            Site Electrode = Array.Find(Electrodes, x => x.gameObject.name == Name.ToLower());
             if (Electrode != null)
             {
                 Electrode.Color = NewColor;

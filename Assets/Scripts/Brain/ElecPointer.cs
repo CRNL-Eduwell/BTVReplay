@@ -4,6 +4,8 @@ using UnityEngine.UI;
 public class ElecPointer : MonoBehaviour
 {
     [SerializeField]
+    private GameObject m_RootImageObject = null;
+    [SerializeField]
     private Text m_ElectrodeLabel = null;
     [SerializeField]
     private Text m_MarsAtlasLabel = null;
@@ -15,7 +17,6 @@ public class ElecPointer : MonoBehaviour
     private void Awake()
     {
         Messenger.Default.Register<BrainWardenToElectrodePointerMessage>(this, OnTraceParametersMessage, MessageContext.BrainWardenToElectrodePointerMessage);
-        gameObject.SetActive(false);
     }
 
     private void OnDestroy()
@@ -31,7 +32,7 @@ public class ElecPointer : MonoBehaviour
                 UpdatePointerInformation(message);
                 break;
             case 1:
-                gameObject.SetActive(message.ShowPointer);
+                m_RootImageObject.SetActive(message.ShowPointer);
                 break;
             default:
                 Debug.LogError("ElecPointer.cs : Id of action to execute does not exist : " + message.TaskToExecute);
@@ -41,8 +42,8 @@ public class ElecPointer : MonoBehaviour
 
     private void UpdatePointerInformation(BrainWardenToElectrodePointerMessage message)
     {
-        gameObject.transform.parent.transform.position = message.PointerPosition;
-        gameObject.SetActive(message.ShowPointer);
+        gameObject.transform.position = message.PointerPosition;
+        m_RootImageObject.SetActive(message.ShowPointer);
         SetElectrodeLabel(message.ElectrodeLabel.ToUpper());
         Site hitPlot = GameObject.Find(message.ElectrodeLabel).GetComponent<Site>();
         if (hitPlot != null)
