@@ -40,15 +40,11 @@ public class EventItem : Tools.SelectableItem<TraceEvent>
     {
         gameObject.name = "HubEvent - " + base.Object.sample;
 
-        UnityEngine.Debug.Log(base.Object.sample);
-        UnityEngine.Debug.Log(base.Object.samplingFrequency);
-
         int timeInSec = base.Object.sample / ApplicationState.Window1.TraceEeg.SamplingFrequency;
-
         int h = timeInSec / 3600;
         int m = (timeInSec / 60) % 60;
         int s = timeInSec % 60;
-        UnityEngine.Debug.Log(h + " " + m + " " + s);
+
         if (h > 0)
             m_time.transform.GetChild(0).GetComponent<Text>().text = h + ":" + m + ":" + s;
         else

@@ -48,7 +48,7 @@ namespace BTV.Services.EventsService
         {
             bool UpdateDuration = ModifiedEvent.duration != OriginalEvent.duration;
             bool UpdateElectrodeDefault = ModifiedEvent.elecOfInterest == "";
-            int Id = GetEventId(ModifiedEvent);
+            int Id = GetEventId(OriginalEvent);
             if (Id != -1)
             {
                 Events[Id] = new TraceEvent(ModifiedEvent);

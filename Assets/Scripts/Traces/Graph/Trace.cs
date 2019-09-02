@@ -222,7 +222,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 graphEvent.DisplayEvents = message.IsShowEventsOn;
                 break;
             case 2://Edit Events
-                OpenEventModify(message.Event);
+                if(isOver(Input.mousePosition)) 
+                    OpenEventModify(message.Event);
                 break;
             case 3://Add Event
                 graphEvent.AddEventToTrace(message.Event, message.EventIndex);

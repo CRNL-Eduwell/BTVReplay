@@ -349,60 +349,6 @@ public class EventList2 : Tools.SelectableList<TraceEvent>
         scrollTex.Apply();
     }
 
-    //private void applyChangeToEvent(TraceEvent modifyiedEvent, TraceEvent previousEvent)
-    //{
-    //    var eventToChangeObjects = Resources.FindObjectsOfTypeAll<GameObject>().Where(
-    //                               obj => obj.name == "Event - " + previousEvent.sample);
-
-    //    List<int> ids = Objects.Select((item, index) => new { Item = item, Index = index })
-    //                        .Where(x => x.Item.sample == previousEvent.sample)
-    //                        .Select(x => x.Index)
-    //                        .ToList();
-    //    if (ids.Count > 0)
-    //    {
-    //        TraceEvent eventFound = Objects[ids[0]];
-    //        RemoveEventToTexture(eventFound);
-
-    //        //Modify event in list and reset all needed arrays 
-    //        int memDuration = eventFound.duration;
-    //        eventFound.elecOfInterest = modifyiedEvent.elecOfInterest;
-    //        eventFound.code = modifyiedEvent.code;
-    //        eventFound.comment = modifyiedEvent.comment;
-
-    //        if (modifyiedEvent.duration != eventFound.duration)
-    //        {
-    //            eventFound.correlationArray = null;
-    //            eventFound.correlation2DArray = null;
-    //        }
-
-    //        if (modifyiedEvent.elecOfInterest == "")
-    //        {
-    //            modifyiedEvent.elecOfInterest = ApplicationState.Window1.TraceEeg.LabelElectrode;
-    //            modifyiedEvent.secondElecOfInterest = ApplicationState.Window2.TraceEeg.LabelElectrode;
-    //        }
-
-    //        eventFound.duration = modifyiedEvent.duration;
-    //        AddEventToTexture(eventFound);
-
-    //        //if event goes from no duration to with duration or the other way around we switch it
-    //        if ((modifyiedEvent.duration - memDuration == modifyiedEvent.duration) ||
-    //            (modifyiedEvent.duration - memDuration == -memDuration))
-    //        {
-    //            eventToChangeObjects.ElementAt(0).GetComponent<EventTrace>().DeleteMe();
-    //            eventValidatedForUI(modifyiedEvent);
-    //        }
-
-    //        //Update object on Traces UI
-    //        foreach (var eventToChange in eventToChangeObjects)
-    //        {
-    //            eventToChange.GetComponent<EventTrace>().UpdateEvent(modifyiedEvent);
-    //        }
-
-    //        //Refresh EventList
-    //        Refresh();
-    //    }
-    //}
-
     private void applyChangeToEvent(TraceEvent modifyiedEvent, TraceEvent previousEvent)
     {
         int Id = EventsService.GetEventId(previousEvent);
@@ -412,20 +358,21 @@ public class EventList2 : Tools.SelectableList<TraceEvent>
 
             RemoveEventToTexture(previousEvent);
             EventsService.UpdateEvent(modifyiedEvent, previousEvent);
-            Objects[Id] = EventsService.Events[Id];
-            AddEventToTexture(Objects[Id]);
+            TraceEvent currentObject = Objects[Id];
+            currentObject = new TraceEvent(EventsService.Events[Id]);
+            AddEventToTexture(currentObject);
 
             var eventToChangeObjects = Resources.FindObjectsOfTypeAll<GameObject>().Where(obj => obj.name == "Event - " + previousEvent.sample);
             if (UpdateEventUI)
             {
                 eventToChangeObjects.ElementAt(0).GetComponent<EventTrace>().DeleteMe();
-                AddEventToUi(Objects[Id]);
+                AddEventToUi(currentObject);
             }
 
             //Update object on Traces UI
             foreach (var eventToChange in eventToChangeObjects)
             {
-                eventToChange.GetComponent<EventTrace>().UpdateEvent(Objects[Id]);
+                eventToChange.GetComponent<EventTrace>().UpdateEvent(currentObject);
             }
 
             //Refresh EventList
