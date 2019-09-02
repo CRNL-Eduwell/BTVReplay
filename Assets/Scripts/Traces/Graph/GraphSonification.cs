@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GraphSonification : MonoBehaviour
 {
-    [SerializeField] VideoPlayer video = null;
+    [SerializeField] CustomVideoPlayer video = null;
     [SerializeField] AudioSource audioSourceScript = null;
 
     Trace m_curve = null;

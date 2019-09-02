@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class AudioSignal : SignalDisp
 {
-    [SerializeField] VideoPlayer video = null;
+    [SerializeField] CustomVideoPlayer video = null;
 
     public override void init()
     {

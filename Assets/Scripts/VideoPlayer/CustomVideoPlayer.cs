@@ -15,7 +15,7 @@ public delegate void stopVideo();
 /// Represents an instance of a video, either from a real video
 /// or a simulated video just to view eeg data
 /// </summary>
-public class VideoPlayer : MonoBehaviour
+public class CustomVideoPlayer : MonoBehaviour
 {
     public WavReader audioWav
     {

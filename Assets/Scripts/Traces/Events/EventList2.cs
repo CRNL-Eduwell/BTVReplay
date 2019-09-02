@@ -27,7 +27,7 @@ public class EventList2 : Tools.SelectableList<TraceEvent>
     }
 
     [SerializeField] Toggle m_checkAll = null;
-    [SerializeField] VideoPlayer m_videoPlayer = null;
+    [SerializeField] CustomVideoPlayer m_videoPlayer = null;
     [SerializeField] RawImage m_timeScrollBarImage = null;
 
     Texture2D scrollOrig = null, scrollTex = null;

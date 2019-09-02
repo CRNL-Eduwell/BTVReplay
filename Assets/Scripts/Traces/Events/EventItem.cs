@@ -9,7 +9,7 @@ public class EventItem : Tools.SelectableItem<TraceEvent>
     [SerializeField] private Button m_time = null;
     [SerializeField] private Text m_comment = null;
     [SerializeField] private Text m_code = null;
-    private VideoPlayer m_video = null;
+    private CustomVideoPlayer m_video = null;
 
     public override TraceEvent Object
     {
@@ -28,7 +28,7 @@ public class EventItem : Tools.SelectableItem<TraceEvent>
     #region Private Methods
     private void Start()
     {
-        m_video = GameObject.Find("PanelR").GetComponent<VideoPlayer>();
+        m_video = GameObject.Find("PanelR").GetComponent<CustomVideoPlayer>();
     }
 
     private void OnDestroy()

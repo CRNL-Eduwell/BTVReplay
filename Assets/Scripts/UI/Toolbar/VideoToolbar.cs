@@ -14,7 +14,7 @@ namespace BTV.UI.Module3D
         private Tools.VideoAudiotrace m_AudioTrace = null;
 
         //====
-        VideoPlayer m_videoPlayer = null;
+        CustomVideoPlayer m_videoPlayer = null;
         CoroutineManager m_coroutineManager = null;
         //====
         Color hardBlue = new Color(0.6117f, 0.7058f, 0.7960f, 1f);
@@ -22,7 +22,7 @@ namespace BTV.UI.Module3D
 
         protected override void AddTools()
         {
-            m_videoPlayer = GameObject.Find("Workable Part").transform.GetChild(0).GetChild(1).GetComponent<VideoPlayer>();
+            m_videoPlayer = GameObject.Find("Workable Part").transform.GetChild(0).GetChild(1).GetComponent<CustomVideoPlayer>();
             m_coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
 
             m_Tools.Add(m_Gain);

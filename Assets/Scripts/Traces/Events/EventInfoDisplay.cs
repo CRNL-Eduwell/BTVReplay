@@ -25,11 +25,11 @@ public class EventInfoDisplay : MonoBehaviour
     private Button m_CloseWindow = null;
 
     private TraceEvent m_Event = null;
-    private VideoPlayer m_Video = null;
+    private CustomVideoPlayer m_Video = null;
 
     public void init(TraceEvent clickedEvent)
     {
-        m_Video = GameObject.Find("Canvas").transform.GetChild(1).GetChild(1).GetComponent<VideoPlayer>();
+        m_Video = GameObject.Find("Canvas").transform.GetChild(1).GetChild(1).GetComponent<CustomVideoPlayer>();
         m_Event = new TraceEvent(clickedEvent);
 
         InitTimeDisplay((int)m_Event.timeSeconds());

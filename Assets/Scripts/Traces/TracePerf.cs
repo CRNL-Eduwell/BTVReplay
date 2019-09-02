@@ -14,7 +14,7 @@ public class TracePerf : MonoBehaviour
     }
     //[SerializeField] optionsHub hub = null;
     [SerializeField] BTVMedia media = null;
-    [SerializeField] VideoPlayer video = null;
+    [SerializeField] CustomVideoPlayer video = null;
 
     List<int> mainCodes = new List<int>();
     Texture2D defaultEventPic = null;

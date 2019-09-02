@@ -22,7 +22,7 @@ public class videoRecorder : MonoBehaviour
     [SerializeField] InputField end_sec = null;
     //===
     [SerializeField] Button createVideo = null;
-    [SerializeField] VideoPlayer videoPlayer = null;
+    [SerializeField] CustomVideoPlayer videoPlayer = null;
 
     private void Awake()
     {

@@ -10,7 +10,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField] Camera brainCam = null;
     [SerializeField] BTVMedia media = null;
-    [SerializeField] VideoPlayer video = null;
+    [SerializeField] CustomVideoPlayer video = null;
 
     bool isMaxed = false;
     bool initDone = false;

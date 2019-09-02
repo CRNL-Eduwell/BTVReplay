@@ -89,7 +89,7 @@ public class Site : MonoBehaviour
     private float m_Gain = 1;
     #endregion
 
-    private VideoPlayer m_VideoPlayer = null;
+    private CustomVideoPlayer m_VideoPlayer = null;
 
     public void Init(object Plot)
     {
@@ -101,7 +101,7 @@ public class Site : MonoBehaviour
         //need to be removed from here later
         //will be retrieved using IoCServiceContainer once it's loaded or
         //info will be send via messenger
-        m_VideoPlayer = GameObject.Find("Workable Part").transform.GetChild(0).GetChild(1).GetComponent<VideoPlayer>();
+        m_VideoPlayer = GameObject.Find("Workable Part").transform.GetChild(0).GetChild(1).GetComponent<CustomVideoPlayer>();
         m_VideoPlayer.sendTime += new timeVideo(UpdateSize);
 
         //If we don't find the corresponding name beetween this object and one electrode

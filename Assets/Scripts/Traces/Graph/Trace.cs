@@ -35,7 +35,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     }
 
     [SerializeField] BTVMedia media = null;
-    [SerializeField] VideoPlayer video = null;
+    [SerializeField] CustomVideoPlayer video = null;
     [SerializeField] EegSignal eegSignal = null;
     [SerializeField] AudioSignal audioSignal = null;
     [SerializeField] GraphLabel graphLabel = null;

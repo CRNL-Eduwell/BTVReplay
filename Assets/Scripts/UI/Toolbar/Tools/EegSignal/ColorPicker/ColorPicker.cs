@@ -116,7 +116,6 @@ namespace BTV.UI.Module3D.Tools
             NewColor.g = m_GreenSlider.ColorValue;
             NewColor.b = m_BlueSlider.ColorValue;
             NewColor.a = m_AlphaSlider.ColorValue;
-            UnityEngine.Debug.Log(NewColor);
             return NewColor;
         }
 
