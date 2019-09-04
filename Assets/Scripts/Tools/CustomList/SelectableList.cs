@@ -5,16 +5,17 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace Tools
+namespace Tools.Unity.Lists
 {
-    public class SelectableList<T> : Tools.List<T>
+    public class SelectableList<T> : List<T>, ISelectionCountable
     {
         #region Properties
-        protected GenericEvent<T, bool> m_OnSelectionChanged = new GenericEvent<T, bool>();
-        public virtual GenericEvent<T, bool> OnSelectionChanged
+        protected UnityEvent m_OnSelectionChanged = new UnityEvent();
+        public virtual UnityEvent OnSelectionChanged
         {
             get { return m_OnSelectionChanged; }
         }
+        public BoolEvent OnAllSelected = new BoolEvent();
         public virtual T[] ObjectsSelected
         {
             get
@@ -28,8 +29,7 @@ namespace Tools
             }
         }
         protected Dictionary<T, bool> m_SelectedStateByObject;
-        [SerializeField]
-        protected bool m_MultiSelection;
+        [SerializeField] protected bool m_MultiSelection;
         public virtual bool MultiSelection
         {
             get
@@ -49,6 +49,11 @@ namespace Tools
                 }
             }
         }
+        public int NumberOfItemSelected
+        {
+            get { return ObjectsSelected.Length; }
+        }
+        protected bool m_AllSelected;
         #endregion
 
         #region Public Methods
@@ -57,6 +62,7 @@ namespace Tools
             if (base.Add(obj))
             {
                 m_SelectedStateByObject.Add(obj, false);
+                OnSelectionChangeCallBack();
                 return true;
             }
             return false;
@@ -66,6 +72,7 @@ namespace Tools
             if (base.Remove(obj))
             {
                 m_SelectedStateByObject.Remove(obj);
+                OnSelectionChangeCallBack();
                 return true;
             }
             return false;
@@ -101,6 +108,7 @@ namespace Tools
             {
                 (item as SelectableItem<T>).Select(true, transition);
             }
+            OnSelectionChangeCallBack();
         }
         public virtual void Select(IEnumerable<T> objectsToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
@@ -117,6 +125,7 @@ namespace Tools
             {
                 (item as SelectableItem<T>).Select(false, transition);
             }
+            OnSelectionChangeCallBack();
         }
         public virtual void Deselect(IEnumerable<T> objectsToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
@@ -180,7 +189,17 @@ namespace Tools
             {
                 m_SelectedStateByObject[obj] = selected;
             }
-            OnSelectionChanged.Invoke(obj, selected);
+            OnSelectionChangeCallBack();
+        }
+        protected virtual void OnSelectionChangeCallBack()
+        {
+            OnSelectionChanged.Invoke();
+            bool allSelected = Objects.Length == ObjectsSelected.Length && Objects.Length > 0;
+            if (m_AllSelected != allSelected)
+            {
+                m_AllSelected = allSelected;
+                OnAllSelected.Invoke(allSelected);
+            }
         }
         #endregion
     }

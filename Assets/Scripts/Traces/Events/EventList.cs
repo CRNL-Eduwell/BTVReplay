@@ -9,7 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-public class EventList : Tools.SelectableList<TraceEvent>
+public class EventList : Tools.Unity.Lists.SelectableList<TraceEvent>
 {
     [SerializeField] Toggle m_checkAll = null;
 

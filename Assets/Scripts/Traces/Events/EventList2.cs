@@ -12,7 +12,7 @@ using Assets.Scripts.Data.Factory;
 using CielaSpike;
 using BTV.Services.EventsService;
 
-public class EventList2 : Tools.SelectableList<TraceEvent>
+public class EventList2 : Tools.Unity.Lists.SelectableList<TraceEvent>
 {
     public List<int> sampleValues
     {

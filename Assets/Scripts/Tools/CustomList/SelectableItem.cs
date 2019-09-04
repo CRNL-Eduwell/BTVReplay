@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Tools
+namespace Tools.Unity.Lists
 {
     [RequireComponent(typeof(Toggle))]
     public abstract class SelectableItem<T> : Item<T>

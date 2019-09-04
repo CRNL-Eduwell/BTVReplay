@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EventItem : Tools.SelectableItem<TraceEvent>
+public class EventItem : Tools.Unity.Lists.SelectableItem<TraceEvent>
 {
     #region Properties
     [SerializeField] private Button m_time = null;
