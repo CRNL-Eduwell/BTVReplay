@@ -389,7 +389,7 @@ public class EventList2 : Tools.Unity.Lists.SelectableList<TraceEvent>
 
     IEnumerator c_Correlation(TraceEvent currentEvent)
     {
-        int nbElec = ApplicationState.Window1.TraceEeg.fileHandle.electrodes.Length;
+        int nbElec = ApplicationState.Window1.TraceEeg.FileHandle.NumberOfElectrode;
         List<int> ids = Objects.Select((item, index) => new { Item = item, Index = index })
                                  .Where(x => x.Item.sample == currentEvent.sample)
                                  .Select(x => x.Index)
@@ -401,18 +401,18 @@ public class EventList2 : Tools.Unity.Lists.SelectableList<TraceEvent>
         int beginSample = Objects[ids[0]].sample;
         int durationSample = (Objects[ids[0]].duration / 1000) * Objects[ids[0]].samplingFrequency;
 
-        int idBase = ApplicationState.Window1.TraceEeg.fileHandle.electrodes.ToList().FindIndex(x => x.name == currentEvent.elecOfInterest);
+        int idBase = ApplicationState.Window1.TraceEeg.FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.elecOfInterest);
         if (idBase != -1)
         {
-            int[] sizes = new int[5] { idBase, nbElec, beginSample, durationSample, ApplicationState.Window1.TraceEeg.fileHandle.nbSam };
-            pearsonCoefficientsCorrelation(Objects[ids[0]].correlationArray, ApplicationState.Window1.TraceEeg.fileHandle.eegData, sizes);
+            int[] sizes = new int[5] { idBase, nbElec, beginSample, durationSample, ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample };
+            //pearsonCoefficientsCorrelation(Objects[ids[0]].correlationArray, ApplicationState.Window1.TraceEeg.FileHandle.eegData, sizes);
         }
         else
         {
             if (currentEvent.elecOfInterest.StartsWith("AUD"))
             {
-                int[] sizes = new int[4] { nbElec, beginSample, durationSample, ApplicationState.Window1.TraceEeg.fileHandle.nbSam };
-                pearsonCoefficientsCorrelation2(Objects[ids[0]].correlationArray, m_videoPlayer.audioWav.getAudioHandle(m_videoPlayer.audioWav.idAudioHandle), ApplicationState.Window1.TraceEeg.fileHandle.eegData, sizes);
+                int[] sizes = new int[4] { nbElec, beginSample, durationSample, ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample };
+                //pearsonCoefficientsCorrelation2(Objects[ids[0]].correlationArray, m_videoPlayer.audioWav.getAudioHandle(m_videoPlayer.audioWav.idAudioHandle), ApplicationState.Window1.TraceEeg.FileHandle.eegData, sizes);
             }
         }
         yield return null;
@@ -427,7 +427,7 @@ public class EventList2 : Tools.Unity.Lists.SelectableList<TraceEvent>
 
     IEnumerator c_Correlation2d(TraceEvent currentEvent)
     {
-        int nbElec = ApplicationState.Window1.TraceEeg.fileHandle.electrodes.Length;
+        int nbElec = ApplicationState.Window1.TraceEeg.FileHandle.NumberOfElectrode;
         List<int> ids = Objects.Select((item, index) => new { Item = item, Index = index })
                                  .Where(x => x.Item.sample == currentEvent.sample)
                                  .Select(x => x.Index)
@@ -443,8 +443,8 @@ public class EventList2 : Tools.Unity.Lists.SelectableList<TraceEvent>
 
         for (int i = 0; i < Objects[ids[0]].correlation2DArray.Length; i++)
         {
-            int[] sizes = new int[5] { i, nbElec, beginSample, durationSample, ApplicationState.Window1.TraceEeg.fileHandle.nbSam };
-            pearsonCoefficientsCorrelation(Objects[ids[0]].correlation2DArray[i], ApplicationState.Window1.TraceEeg.fileHandle.eegData, sizes);
+            int[] sizes = new int[5] { i, nbElec, beginSample, durationSample, ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample };
+            //pearsonCoefficientsCorrelation(Objects[ids[0]].correlation2DArray[i], ApplicationState.Window1.TraceEeg.FileHandle.eegData, sizes);
         }
 
         yield return null;

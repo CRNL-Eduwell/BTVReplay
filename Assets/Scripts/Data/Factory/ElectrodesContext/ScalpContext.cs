@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using BTV.Data.DataContainer;
+using BTV.Services.EegFileService;
 
 namespace Assets.Scripts.Data.Factory
 {
@@ -56,16 +58,18 @@ namespace Assets.Scripts.Data.Factory
             }
         }
 
-        public void LoadDefaultPearl(ELAN[] elanFiles)
+        public void LoadDefaultPearl()
         {
-            int idHandle = ELAN.returnFirstValidHandleId(elanFiles);
-            if (idHandle != -1)
+            DataContainer container = EegFileService.ReturnFirstValidContainer();
+            if (container != null)
             {
                 Electrodes = new List<object>();
-                for (int i = 0; i < elanFiles[idHandle].electrodes.Length; i++)
+                int count = 0;
+                foreach (var channel in container.ValuesByChannel)
                 {
-                    string plotName = elanFiles[idHandle].electrodes[i].name.ToLower();
-                    Electrodes.Add(new EEG_Plot(plotName, new Vector3(5 * i, 0, 0)));
+                    string plotName = channel.Key.ToLower();
+                    Electrodes.Add(new EEG_Plot(plotName, new Vector3(5 * count, 0, 0)));
+                    count++;
                 }
             }
             else

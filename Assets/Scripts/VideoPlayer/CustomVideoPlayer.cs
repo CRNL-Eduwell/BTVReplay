@@ -6,6 +6,8 @@ using System.IO;
 using System.Diagnostics;
 using System.Collections; //IEnumerator
 using CielaSpike;
+using BTV.Services.EegFileService;
+using BTV.Data.DataContainer;
 
 public delegate void timeVideo(int currentTime);
 public delegate void timeVideoSync(int currentTime);
@@ -531,8 +533,8 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         yield return Ninja.JumpBack;
         yield return StartCoroutine(c_loadAudio());
-        float sampFreq = ELAN.getSamplingFreq(media.elanFiles);
-        yield return filterAudio(_wavReader, (int)sampFreq);
+        DataContainer container = EegFileService.ReturnFirstValidContainer();
+        yield return filterAudio(_wavReader, container.Frequency.Value);
         yield return Ninja.JumpToUnity;
         yield return null;
     }

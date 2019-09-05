@@ -239,19 +239,19 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             {
                 if (EventsService.Events[indexes[i]].correlation2DArray != null)
                 {
-                    int id = curveTrace1.TraceEeg.IdElectrode;
-                    for (int j = 0; j < curveTrace1.TraceEeg.fileHandle.electrodes.Length; j++)
+                    int id = curveTrace1.TraceEeg.ElectrodeID;
+                    for (int j = 0; j < curveTrace1.TraceEeg.FileHandle.NumberOfElectrode; j++)
                     {
-                        string ElectrodeName = curveTrace1.TraceEeg.fileHandle.electrodes[j].name;
+                        string ElectrodeName = curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
                         Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].correlation2DArray[id][j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
                 else if (EventsService.Events[indexes[i]].correlationArray != null)
                 {
-                    for (int j = 0; j < curveTrace1.TraceEeg.fileHandle.electrodes.Length; j++)
+                    for (int j = 0; j < curveTrace1.TraceEeg.FileHandle.NumberOfElectrode; j++)
                     {
-                        string ElectrodeName = curveTrace1.TraceEeg.fileHandle.electrodes[j].name;
+                        string ElectrodeName = curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
                         Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].correlationArray[j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }

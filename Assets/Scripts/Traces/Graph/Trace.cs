@@ -108,9 +108,9 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             if (scrollDelta.y != 0)
             {
                 if (scrollDelta.y < 0)
-                    updateElectrodeById(eegSignal.IdElectrode - 1);
+                    updateElectrodeById(eegSignal.ElectrodeID - 1);
                 else
-                    updateElectrodeById(eegSignal.IdElectrode + 1);
+                    updateElectrodeById(eegSignal.ElectrodeID + 1);
             }
         }
     }
@@ -121,7 +121,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
         eegSignal.init();
         audioSignal.init();
-        graphLabel.init(eegSignal.LabelElectrode);
+        graphLabel.init(eegSignal.ElectrodeLabel);
         graphGrid.init(eegSignal.PeriodInSeconds);
         graphEvent.init(this);
         graphSonif.init(this);
@@ -265,14 +265,14 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     void UpdateTraceGain(float newGain)
     {
         eegSignal.updateGain(newGain);
-        graphLabel.setName(eegSignal.LabelElectrode);
+        graphLabel.setName(eegSignal.ElectrodeLabel);
     }
 
     void updateElectrodeById(int newId)
     {
-        eegSignal.IdElectrode = newId;
+        eegSignal.ElectrodeID = newId;
         eegSignal.updateOffset();
-        graphLabel.setName(eegSignal.LabelElectrode);
+        graphLabel.setName(eegSignal.ElectrodeLabel);
     }
 
     void updateTracesWidth()
@@ -322,10 +322,10 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         m_rectTransform.GetWorldCorners(m_worldCorners);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         float perCentX = (worldClick.x - m_worldCorners[1].x) / (m_worldCorners[2].x - m_worldCorners[1].x);
-        float sampleClicked = (eegSignal.mostRecentSample - eegSignal.numberOfPoint) + (perCentX * eegSignal.numberOfPoint);
+        float sampleClicked = (eegSignal.MostRecentSample - eegSignal.numberOfPoint) + (perCentX * eegSignal.numberOfPoint);
         if (sampleClicked >= 0)
         {
-            TraceEvent currentEvent = new TraceEvent(new eventEeg(0, (int)sampleClicked, eegSignal.SamplingFrequency), elecOfInterest:eegSignal.LabelElectrode);
+            TraceEvent currentEvent = new TraceEvent(new eventEeg(0, (int)sampleClicked, eegSignal.SamplingFrequency), elecOfInterest:eegSignal.ElectrodeLabel);
             //eventWasClicked(currentEvent, traceID);
             OpenEventAdd(currentEvent);
         }
@@ -344,7 +344,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 m_handleOtherTrace.setBorderColor(blue);
             }
 
-            plotClicked(GameObject.Find(eegSignal.nameElectrode.ToLower()));
+            plotClicked(GameObject.Find(eegSignal.ElectrodeName.ToLower()));
         }
         else
         {
@@ -392,12 +392,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             if (traceID == 0)
             {
                 AddEventWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
-                Event.secondElecOfInterest = m_signalWindow2.TraceEeg.LabelElectrode;
+                Event.secondElecOfInterest = m_signalWindow2.TraceEeg.ElectrodeLabel;
             }
             else
             {
                 AddEventWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
-                Event.secondElecOfInterest = m_signalWindow1.TraceEeg.LabelElectrode;
+                Event.secondElecOfInterest = m_signalWindow1.TraceEeg.ElectrodeLabel;
             }
             AddEventWindow.transform.localScale = new Vector3(1, 1, 1);
             AddEventWindow.transform.localPosition = new Vector3(0, 0, -402);

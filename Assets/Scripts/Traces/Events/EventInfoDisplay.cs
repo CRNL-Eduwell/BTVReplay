@@ -1,4 +1,6 @@
 ﻿using BrainTV.Tools.NumberExtensions;
+using BTV.Data.DataContainer;
+using BTV.Services.EegFileService;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -67,19 +69,18 @@ public class EventInfoDisplay : MonoBehaviour
 
     private void InitElectrodeDropDown()
     {
-        int handleID = ELAN.returnFirstValidHandleId(ApplicationState.EegFiles);
+        DataContainer container = EegFileService.ReturnFirstValidContainer();
+
         m_Electrodes.options.Clear();
-        for (int i = 0; i < ApplicationState.EegFiles[handleID].electrodes.Length; i++)
-            m_Electrodes.options.Add(new Dropdown.OptionData(ApplicationState.EegFiles[handleID].electrodes[i].name));
+        for (int i = 0; i < container.NumberOfElectrode; i++)
+            m_Electrodes.options.Add(new Dropdown.OptionData(container.GetElectrodeNameFromElectrodeID(i)));
 
         if (m_Video.audioWav != null)
         {
             if (m_Video.audioWav.filterFileExist == true)
                 m_Electrodes.options.Add(new Dropdown.OptionData("AUD"));
         }
-
-        m_Electrodes.value = ApplicationState.EegFiles[handleID].electrodes.ToList().FindIndex(x => x.name == m_Event.elecOfInterest);
-        //m_Electrodes.transform.GetChild(0).GetComponent<Text>().text = m_Electrodes.options[m_Electrodes.value].text;
+        m_Electrodes.value = container.GetElectrodeIDFromElectrodeName(m_Event.elecOfInterest);
     }
 
     private void InitUiValues(TraceEvent currentEvent)

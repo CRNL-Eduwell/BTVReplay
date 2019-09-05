@@ -12,7 +12,7 @@ namespace Assets.Scripts.Data.Factory
         void LoadElectrodes(string pathPts);
         void LoadAtlasData(string pathAtlasCsv);
         void LoadElectrodesOnBrain(GameObject parent);
-        void LoadDefaultPearl(ELAN[] elanFiles);
+        void LoadDefaultPearl();
         void UpdateElectrodesPosition(GameObject parent);
         void UpdateElectrodesPearl(GameObject parent);
     }

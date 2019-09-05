@@ -74,7 +74,7 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(eeg);
-        m_ElectrodesContext.LoadDefaultPearl(ApplicationState.EegFiles);
+        m_ElectrodesContext.LoadDefaultPearl();
         m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();

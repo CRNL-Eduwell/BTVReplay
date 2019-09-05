@@ -63,7 +63,7 @@ public class GraphEvents : MonoBehaviour
         int EventCount = EventsService.Events.Count;
         if (EventCount > 0)
         {
-            float samplingFreq = m_parent.TraceEeg.fileHandle.sampFreq;
+            float samplingFreq = m_parent.TraceEeg.FileHandle.Frequency.RawValue;
             int numberPoint = m_parent.TraceEeg.numberOfPoint;
             float horizontalScale = m_parent.TraceEeg.horizontalScale;
             float widthOfGameObject = m_parent.TraceEeg.widthOfGameObject;

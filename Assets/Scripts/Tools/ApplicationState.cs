@@ -27,11 +27,11 @@ public static class ApplicationState
         set;
     }
 
-    public static ELAN[] EegFiles
-    {
-        get;
-        set;
-    }
+    //public static ELAN[] EegFiles
+    //{
+    //    get;
+    //    set;
+    //}
 
     public static TraceEvent MemoryEvent
     {

@@ -1,31 +1,34 @@
-﻿using System.Collections;
+﻿using BTV.Data.DataContainer;
+using BTV.Services.EegFileService;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class EegSignal : SignalDisp
 {
-    public int IdElectrode
+    public int ElectrodeID
     {
         get
         {
-            return idCurrentElec;
+            return m_currentElectrodeID;
         }
         set
         {
-            if (value != -1 && value < eHandle.electrodes.Length)
-                idCurrentElec = value;
+            if (value > -1 && value < FileHandle.NumberOfElectrode)
+            {
+                m_currentElectrodeID = value;
+                m_Data = FileHandle.GetEegDataFromElectrodeID(m_currentElectrodeID);
+            }
         }
     }
-    public string LabelElectrode
+    public string ElectrodeLabel
     {
         get
         {
-            if (eHandle != null)
+            if (FileHandle != null)
             {
-                if (m_gain >= 0)
-                    return eHandle.electrodes[idCurrentElec].name;
-                else
-                    return " - " + eHandle.electrodes[idCurrentElec].name;
+                return m_gain >= 0 ? ElectrodeName : (" - " + ElectrodeName);
             }
             else
             {
@@ -33,74 +36,72 @@ public class EegSignal : SignalDisp
             }
         }
     }
-    public string nameElectrode
+    public string ElectrodeName
     {
         get
         {
-            return eHandle.electrodes[idCurrentElec].name;
+            return FileHandle.GetElectrodeNameFromElectrodeID(m_currentElectrodeID);
         }
     }
-    public ELAN fileHandle
+    public DataContainer FileHandle{ get; private set; } = null;
+    public int MostRecentSample { get; private set; } = 0;
+    public float MostRecentValue
     {
         get
         {
-            return eHandle;
-        }
-    }
-    public int mostRecentSample
-    {
-        get
-        {
-            return m_mostRecentSample;
+            return m_Data[MostRecentSample];
         }
     }
 
-    [SerializeField] BTVMedia media = null;
-    [SerializeField] int idCurrentElec = 0;
+    [SerializeField] int m_currentElectrodeID = 0;
 
-    ELAN eHandle = null;
-    int m_mostRecentSample = 0;
-    float m_offsetCoefficient = 0;
-    float m_offsetPerTen = 0;
+    private float m_offsetCoefficient = 0;
+    private float m_offsetPerTen = 0;
+    private int m_NumberSample = 0;
+    private float[] m_Data = null;
 
     public override void init()
     {
-        eHandle = ELAN.returnFirstValidHandle(media.elanFiles);
-        m_samplingFreq = (int)eHandle.sampFreq;
+        FileHandle = EegFileService.ReturnFirstValidContainer();
+        m_samplingFreq = FileHandle.Frequency.Value;
+        m_NumberSample = FileHandle.NumberOfSample;
         m_numberPoint = m_samplingFreq * m_periodSec;
+        m_Data = FileHandle.GetEegDataFromElectrodeID(m_currentElectrodeID);
 
         base.init();
     }
 
     public void updateFileId(int newId)
     {
-        eHandle = ELAN.changeHandle(eHandle, media.elanFiles, newId);
-        m_samplingFreq = (int)eHandle.sampFreq;
+        FileHandle = EegFileService.ChangeContainerHandle(FileHandle, newId);
+        m_samplingFreq = FileHandle.Frequency.Value;
+        m_NumberSample = FileHandle.NumberOfSample;
+        m_numberPoint = m_samplingFreq * m_periodSec;
+        m_Data = FileHandle.GetEegDataFromElectrodeID(m_currentElectrodeID);
     }
 
     public void updateOffset(float newOffset)
     {
         m_offsetPerTen = newOffset;
-        m_offsetCoefficient = (m_offsetPerTen / 10) * eHandle.maxValues[idCurrentElec];
+        //m_offsetCoefficient = (m_offsetPerTen / 10) * eHandle.maxValues[idCurrentElec];
     }
 
     public void updateOffset()
     {
-        m_offsetCoefficient = (m_offsetPerTen / 10) * eHandle.maxValues[idCurrentElec];
+        //m_offsetCoefficient = (m_offsetPerTen / 10) * eHandle.maxValues[idCurrentElec];
     }
 
     public override void updateDraw(int milliSecToLook)
     {
-        m_mostRecentSample = (int)(milliSecToLook * ((float)m_samplingFreq / 1000));
-        int elecPosOffset = idCurrentElec * eHandle.nbSam;
-        int posInArray = m_mostRecentSample - m_numberPoint + elecPosOffset;
+        MostRecentSample = (int)(milliSecToLook * ((float)m_samplingFreq / 1000));
+        int posInArray = MostRecentSample - m_numberPoint;
         float limitVal = (m_parentRectTransform.rect.height - 6.5f) / 2;
 
         for (int i = 0; i < m_numberPoint; i++)
         {
-            if (i + posInArray >= elecPosOffset)
+            if (i + posInArray >= 0)
             {
-                float value = m_gain * eHandle.eegData[i + posInArray] + m_offsetCoefficient;
+                float value = m_gain * m_Data[i + posInArray] + m_offsetCoefficient;
                 if (value >= -limitVal && value <= limitVal)
                 {
                     m_dataArray[i].y = value;

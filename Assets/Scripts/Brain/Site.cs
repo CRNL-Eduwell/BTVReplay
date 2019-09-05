@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BTV.Data.DataContainer;
+using BTV.Services.EegFileService;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -106,8 +108,8 @@ public class Site : MonoBehaviour
 
         //If we don't find the corresponding name beetween this object and one electrode
         //in an eeg file , we don't show the site on the 3D brain
-        ELAN FileHandle = ELAN.returnFirstValidHandle(ApplicationState.EegFiles);
-        ID = FileHandle.electrodes.ToList().FindIndex(x => x.name.ToLower().Equals(gameObject.name));
+        DataContainer container = EegFileService.ReturnFirstValidContainer();
+        ID = container.GetElectrodeIDFromElectrodeName(gameObject.name, true);
         if (ID == -1)
             gameObject.SetActive(false);
 
@@ -142,9 +144,11 @@ public class Site : MonoBehaviour
     {
         if (!IsFrozen)
         {
-            int MostRecentSample = (int)(milliSecToLook * (ApplicationState.Window1.TraceEeg.fileHandle.sampFreq / 1000));
-            int PositionOfSampleInArray = (ID * ApplicationState.Window1.TraceEeg.fileHandle.nbSam) + MostRecentSample;
-            float currentValue = ApplicationState.Window1.TraceEeg.fileHandle.eegData[PositionOfSampleInArray] / 100;
+            //Might put that back when there is a service with base info like sampling freq and stuff
+            int MostRecentSample = ApplicationState.Window1.TraceEeg.FileHandle.Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
+            //int PositionOfSampleInArray = (ID * ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample) + MostRecentSample;
+            float[] data = ApplicationState.Window1.TraceEeg.FileHandle.GetEegDataFromElectrodeID(ID);
+            float currentValue = data[ApplicationState.Window1.TraceEeg.MostRecentSample] / 100;
             float scale = 2 + (m_Gain * currentValue);
 
             if (scale >= 7)

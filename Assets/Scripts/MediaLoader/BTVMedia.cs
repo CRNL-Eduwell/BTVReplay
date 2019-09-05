@@ -6,6 +6,10 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 using CielaSpike;
+using BTV.Services.EegFileService;
+using BTV.Data.DataContainer;
+using System.Linq;
+using System.Collections.Generic;
 
 public delegate void mediaLoadedEventHandler();
 public delegate void initTrace();
@@ -40,7 +44,7 @@ public class BTVMedia : MonoBehaviour
     #region members
     public DBManager pm = new DBManager();
     public POS posFile = null;
-    public ELAN[] elanFiles = new ELAN[6];
+    //public ELAN[] elanFiles = new ELAN[6];
     public PROV provFile = null;
     public bool loaded = false;
     #endregion
@@ -106,11 +110,11 @@ public class BTVMedia : MonoBehaviour
         loadBase.onClick.RemoveAllListeners();
         loadBUBase.onClick.RemoveAllListeners();
 
-        for (int i = 0; i < elanFiles.Length; i++)
-        {
-            if (elanFiles[i] != null)
-                elanFiles[i].Dispose();
-        }
+        //for (int i = 0; i < elanFiles.Length; i++)
+        //{
+        //    if (elanFiles[i] != null)
+        //        elanFiles[i].Dispose();
+        //}
 
         for (int i = 0; i < patientContent.childCount; i += 2)
         {
@@ -268,7 +272,7 @@ public class BTVMedia : MonoBehaviour
         //So we jump back to unity just in case
         yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadEEGFile(myPat));
-        ApplicationState.EegFiles = elanFiles;
+        //ApplicationState.EegFiles = elanFiles;
         mediaLoaded();
 
         yield return Ninja.JumpToUnity;
@@ -334,49 +338,48 @@ public class BTVMedia : MonoBehaviour
         loadingCircle.Set(0, "Finding files");
         loadingCircle.Set(0.1f, "Loading File 1");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[0], r => elanFiles[0] = r);
+        yield return Process(myPat.smFiles[0], 0);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.2f, "Loading File 2");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[1], r => elanFiles[1] = r);
+        yield return Process(myPat.smFiles[1], 1);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.4f, "Loading File 3");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[2], r => elanFiles[2] = r);
+        yield return Process(myPat.smFiles[2], 2);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.6f, "Loading File 4");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[3], r => elanFiles[3] = r);
+        yield return Process(myPat.smFiles[3], 3);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.8f, "Loading File 5");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[4], r => elanFiles[4] = r);
+        yield return Process(myPat.smFiles[4], 4);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(1.0f, "Loading File 6");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[5], r => elanFiles[5] = r);
+        yield return Process(myPat.smFiles[5], 5);
         yield return Ninja.JumpToUnity;
     }
 
-    YieldInstruction Process(string filePath, Action<ELAN> resultCB)
+    YieldInstruction Process(string filePath, int FileID)
     {
         // I give my callback to the process
         // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(ELAN.c_loadIfExist(filePath, resultCB));
+        return this.StartCoroutineAsync(EegFileService.c_Load(filePath, Tools.CSharp.EEG.File.FileType.ELAN, FileID));
     }
 
     IEnumerator c_loadVideo(string videoPath)
     {
         //load video
-        float sampFreq = ELAN.getSamplingFreq(elanFiles);
-        int id = ELAN.returnFirstValidHandleId(elanFiles);
-        long totalDuration = ELAN.getTotalFileDuration(elanFiles[id]);
-        loadVideo(videoPath, (int)totalDuration);
+        DataContainer container = EegFileService.ReturnFirstValidContainer();
+        int totalDuration = container.NumberOfSample / container.Frequency.Value;
+        loadVideo(videoPath, totalDuration);
 
         yield return null;
     }
@@ -387,7 +390,8 @@ public class BTVMedia : MonoBehaviour
         {
             if (myPat.pos != "")
             {
-                posFile = new POS(myPat.pos, (int)ELAN.getSamplingFreq(elanFiles));
+                DataContainer container = EegFileService.ReturnFirstValidContainer();
+                posFile = new POS(myPat.pos, container.Frequency.Value);
                 posFile.readPosData();
             }
 

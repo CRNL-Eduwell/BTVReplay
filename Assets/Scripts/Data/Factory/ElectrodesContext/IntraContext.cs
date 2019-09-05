@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
+using BTV.Services.EegFileService;
+using BTV.Data.DataContainer;
 
 namespace Assets.Scripts.Data.Factory
 {
@@ -67,18 +69,19 @@ namespace Assets.Scripts.Data.Factory
             }
         }
 
-        public void LoadDefaultPearl(ELAN[] elanFiles)
+        public void LoadDefaultPearl()
         {
-            int idHandle = ELAN.returnFirstValidHandleId(elanFiles);
-            if (idHandle != -1)
+            DataContainer container = EegFileService.ReturnFirstValidContainer();
+            if (container != null)
             {
                 Electrodes = new List<object>();
 
                 string memPlot = "";
                 int nbIntraElec = 0, nbIntraPlot = 0;
-                foreach (elecFile Electrode in elanFiles[idHandle].electrodes)
+                
+                foreach (var channel in container.ValuesByChannel)
                 {
-                    Tuple<string, int> NameAndId = GetIntraPlotInformation(Electrode.name);
+                    Tuple<string, int> NameAndId = GetIntraPlotInformation(channel.Key);
                     if (memPlot != NameAndId.Item1)
                     {
                         nbIntraElec += 5;
