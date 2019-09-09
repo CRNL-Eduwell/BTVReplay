@@ -1,4 +1,4 @@
-﻿using BTV.Data.DataContainer;
+﻿using BTV.Data;
 using BTV.Services.EegFileService;
 using System;
 using System.Collections.Generic;
@@ -108,7 +108,7 @@ public class Site : MonoBehaviour
 
         //If we don't find the corresponding name beetween this object and one electrode
         //in an eeg file , we don't show the site on the 3D brain
-        DataContainer container = EegFileService.ReturnFirstValidContainer();
+        BtvProgram container = EegFileService.ReturnFirstValidContainer();
         ID = container.GetElectrodeIDFromElectrodeName(gameObject.name, true);
         if (ID == -1)
             gameObject.SetActive(false);
@@ -147,8 +147,8 @@ public class Site : MonoBehaviour
             //Might put that back when there is a service with base info like sampling freq and stuff
             int MostRecentSample = ApplicationState.Window1.TraceEeg.FileHandle.Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
             //int PositionOfSampleInArray = (ID * ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample) + MostRecentSample;
-            float[] data = ApplicationState.Window1.TraceEeg.FileHandle.GetEegDataFromElectrodeID(ID);
-            float currentValue = data[ApplicationState.Window1.TraceEeg.MostRecentSample] / 100;
+            float[] data = ApplicationState.Window1.TraceEeg.FileHandle.Channels[ID].Data;
+            float currentValue = data[MostRecentSample] / 100;
             float scale = 2 + (m_Gain * currentValue);
 
             if (scale >= 7)

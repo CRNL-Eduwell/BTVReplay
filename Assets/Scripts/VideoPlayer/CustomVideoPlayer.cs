@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Collections; //IEnumerator
 using CielaSpike;
 using BTV.Services.EegFileService;
-using BTV.Data.DataContainer;
+using BTV.Data;
 
 public delegate void timeVideo(int currentTime);
 public delegate void timeVideoSync(int currentTime);
@@ -533,7 +533,7 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         yield return Ninja.JumpBack;
         yield return StartCoroutine(c_loadAudio());
-        DataContainer container = EegFileService.ReturnFirstValidContainer();
+        BtvProgram container = EegFileService.ReturnFirstValidContainer();
         yield return filterAudio(_wavReader, container.Frequency.Value);
         yield return Ninja.JumpToUnity;
         yield return null;

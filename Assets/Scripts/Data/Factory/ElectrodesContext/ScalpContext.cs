@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using BTV.Data.DataContainer;
+using BTV.Data;
 using BTV.Services.EegFileService;
 
 namespace Assets.Scripts.Data.Factory
@@ -60,14 +60,14 @@ namespace Assets.Scripts.Data.Factory
 
         public void LoadDefaultPearl()
         {
-            DataContainer container = EegFileService.ReturnFirstValidContainer();
+            BtvProgram container = EegFileService.ReturnFirstValidContainer();
             if (container != null)
             {
                 Electrodes = new List<object>();
                 int count = 0;
-                foreach (var channel in container.ValuesByChannel)
+                foreach (var channel in container.Channels)
                 {
-                    string plotName = channel.Key.ToLower();
+                    string plotName = channel.Label.ToLower();
                     Electrodes.Add(new EEG_Plot(plotName, new Vector3(5 * count, 0, 0)));
                     count++;
                 }

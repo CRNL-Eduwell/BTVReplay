@@ -1,5 +1,5 @@
 ﻿using BrainTV.Tools.NumberExtensions;
-using BTV.Data.DataContainer;
+using BTV.Data;
 using BTV.Services.EegFileService;
 using System.Linq;
 using UnityEngine;
@@ -69,10 +69,10 @@ public class EventInfoDisplay : MonoBehaviour
 
     private void InitElectrodeDropDown()
     {
-        DataContainer container = EegFileService.ReturnFirstValidContainer();
+        BtvProgram container = EegFileService.ReturnFirstValidContainer();
 
         m_Electrodes.options.Clear();
-        for (int i = 0; i < container.NumberOfElectrode; i++)
+        for (int i = 0; i < container.NumberOfElectrodes; i++)
             m_Electrodes.options.Add(new Dropdown.OptionData(container.GetElectrodeNameFromElectrodeID(i)));
 
         if (m_Video.audioWav != null)

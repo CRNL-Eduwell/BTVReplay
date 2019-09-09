@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
 using BTV.Services.EegFileService;
-using BTV.Data.DataContainer;
+using BTV.Data;
 
 namespace Assets.Scripts.Data.Factory
 {
@@ -71,7 +71,7 @@ namespace Assets.Scripts.Data.Factory
 
         public void LoadDefaultPearl()
         {
-            DataContainer container = EegFileService.ReturnFirstValidContainer();
+            BtvProgram container = EegFileService.ReturnFirstValidContainer();
             if (container != null)
             {
                 Electrodes = new List<object>();
@@ -79,9 +79,9 @@ namespace Assets.Scripts.Data.Factory
                 string memPlot = "";
                 int nbIntraElec = 0, nbIntraPlot = 0;
                 
-                foreach (var channel in container.ValuesByChannel)
+                foreach (var channel in container.Channels)
                 {
-                    Tuple<string, int> NameAndId = GetIntraPlotInformation(channel.Key);
+                    Tuple<string, int> NameAndId = GetIntraPlotInformation(channel.Label);
                     if (memPlot != NameAndId.Item1)
                     {
                         nbIntraElec += 5;

@@ -1,4 +1,4 @@
-﻿using BTV.Data.DataContainer;
+﻿using BTV.Data;
 using BTV.Services.EegFileService;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,10 +15,10 @@ public class EegSignal : SignalDisp
         }
         set
         {
-            if (value > -1 && value < FileHandle.NumberOfElectrode)
+            if (value > -1 && value < FileHandle.NumberOfElectrodes)
             {
                 m_currentElectrodeID = value;
-                m_Data = FileHandle.GetEegDataFromElectrodeID(m_currentElectrodeID);
+                m_Data = FileHandle.Channels[m_currentElectrodeID].Data;
             }
         }
     }
@@ -43,7 +43,7 @@ public class EegSignal : SignalDisp
             return FileHandle.GetElectrodeNameFromElectrodeID(m_currentElectrodeID);
         }
     }
-    public DataContainer FileHandle{ get; private set; } = null;
+    public BtvProgram FileHandle{ get; private set; } = null;
     public int MostRecentSample { get; private set; } = 0;
     public float MostRecentValue
     {
@@ -64,9 +64,9 @@ public class EegSignal : SignalDisp
     {
         FileHandle = EegFileService.ReturnFirstValidContainer();
         m_samplingFreq = FileHandle.Frequency.Value;
-        m_NumberSample = FileHandle.NumberOfSample;
+        m_NumberSample = FileHandle.Channels[m_currentElectrodeID].NumberOfSample;
         m_numberPoint = m_samplingFreq * m_periodSec;
-        m_Data = FileHandle.GetEegDataFromElectrodeID(m_currentElectrodeID);
+        m_Data = FileHandle.Channels[m_currentElectrodeID].Data;
 
         base.init();
     }
@@ -75,9 +75,9 @@ public class EegSignal : SignalDisp
     {
         FileHandle = EegFileService.ChangeContainerHandle(FileHandle, newId);
         m_samplingFreq = FileHandle.Frequency.Value;
-        m_NumberSample = FileHandle.NumberOfSample;
+        m_NumberSample = FileHandle.Channels[m_currentElectrodeID].NumberOfSample;
         m_numberPoint = m_samplingFreq * m_periodSec;
-        m_Data = FileHandle.GetEegDataFromElectrodeID(m_currentElectrodeID);
+        m_Data = FileHandle.Channels[m_currentElectrodeID].Data;
     }
 
     public void updateOffset(float newOffset)

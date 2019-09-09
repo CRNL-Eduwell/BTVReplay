@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 using CielaSpike;
 using BTV.Services.EegFileService;
-using BTV.Data.DataContainer;
+using BTV.Data;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -377,9 +377,8 @@ public class BTVMedia : MonoBehaviour
     IEnumerator c_loadVideo(string videoPath)
     {
         //load video
-        DataContainer container = EegFileService.ReturnFirstValidContainer();
-        int totalDuration = container.NumberOfSample / container.Frequency.Value;
-        loadVideo(videoPath, totalDuration);
+        BtvProgram container = EegFileService.ReturnFirstValidContainer();
+        loadVideo(videoPath, container.TotalDurationInSeconds);
 
         yield return null;
     }
@@ -390,7 +389,7 @@ public class BTVMedia : MonoBehaviour
         {
             if (myPat.pos != "")
             {
-                DataContainer container = EegFileService.ReturnFirstValidContainer();
+                BtvProgram container = EegFileService.ReturnFirstValidContainer();
                 posFile = new POS(myPat.pos, container.Frequency.Value);
                 posFile.readPosData();
             }

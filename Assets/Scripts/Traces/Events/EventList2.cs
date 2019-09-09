@@ -389,7 +389,7 @@ public class EventList2 : Tools.Unity.Lists.SelectableList<TraceEvent>
 
     IEnumerator c_Correlation(TraceEvent currentEvent)
     {
-        int nbElec = ApplicationState.Window1.TraceEeg.FileHandle.NumberOfElectrode;
+        int nbElec = ApplicationState.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
         List<int> ids = Objects.Select((item, index) => new { Item = item, Index = index })
                                  .Where(x => x.Item.sample == currentEvent.sample)
                                  .Select(x => x.Index)
@@ -427,7 +427,7 @@ public class EventList2 : Tools.Unity.Lists.SelectableList<TraceEvent>
 
     IEnumerator c_Correlation2d(TraceEvent currentEvent)
     {
-        int nbElec = ApplicationState.Window1.TraceEeg.FileHandle.NumberOfElectrode;
+        int nbElec = ApplicationState.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
         List<int> ids = Objects.Select((item, index) => new { Item = item, Index = index })
                                  .Where(x => x.Item.sample == currentEvent.sample)
                                  .Select(x => x.Index)

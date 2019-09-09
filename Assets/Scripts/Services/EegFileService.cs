@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using Tools.CSharp.EEG;
-using BTV.Data.DataContainer;
+using BTV.Data;
 
 //If need destructor https://stackoverflow.com/questions/4364665/static-destructor
 
@@ -9,7 +9,7 @@ namespace BTV.Services.EegFileService
 {
     public static class EegFileService
     {
-        private static DataContainer[] m_EegFiles = new DataContainer[6];
+        private static BtvProgram[] m_EegFiles = new BtvProgram[6];
 
         public static IEnumerator c_Load(string FilePath, File.FileType Type, int FileID)
         {
@@ -18,7 +18,8 @@ namespace BTV.Services.EegFileService
 
             if (System.IO.File.Exists(FilePath))
             {
-                m_EegFiles[FileID] = new DataContainer(FilePath, Type);
+                DataContainer container = new DataContainer(FilePath, Type);
+                m_EegFiles[FileID] = new BtvProgram(container);
             }
 
             yield return null;
@@ -31,16 +32,17 @@ namespace BTV.Services.EegFileService
 
             if (System.IO.File.Exists(FilePath))
             {
-                m_EegFiles[FileID] = new DataContainer(FilePath, Type);
+                DataContainer container = new DataContainer(FilePath, Type);
+                m_EegFiles[FileID] = new BtvProgram(container);
             }
         }
 
-        public static DataContainer ChangeContainerHandle(DataContainer currentFile, int newID)
+        public static BtvProgram ChangeContainerHandle(BtvProgram currentFile, int newID)
         {
             return m_EegFiles[newID] != null ? m_EegFiles[newID] : currentFile;
         }
 
-        public static DataContainer ReturnFirstValidContainer()
+        public static BtvProgram ReturnFirstValidContainer()
         {
             for (int i = 0; i < m_EegFiles.Length; i++)
             {
