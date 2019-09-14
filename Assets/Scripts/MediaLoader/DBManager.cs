@@ -245,7 +245,7 @@ public class DBManager
                 for (int i = 0; i < fileSplited.Length - 1; i++)   // -1 because of last line jump
                 {
                     Patient currentPat = new Patient();
-                    string[] currentPatSplit = fileSplited[i].Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] currentPatSplit = fileSplited[i].Split(new string[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                     for (int j = 0; j < currentPatSplit.Length; j++)
                     {
                         string[] splitPath = currentPatSplit[j].Split(new string[] { " : " }, StringSplitOptions.RemoveEmptyEntries);
