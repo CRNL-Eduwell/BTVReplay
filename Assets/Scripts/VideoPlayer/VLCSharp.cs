@@ -18,36 +18,36 @@ namespace VLCSharp
     static class LibVlc
     {
         #region core
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr libvlc_new(int argc, 
             [MarshalAs(UnmanagedType.LPArray,ArraySubType = UnmanagedType.LPStr)] string[] argv);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_release(IntPtr instance);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern int libvlc_video_get_track(IntPtr instance);
         #endregion
 
         #region media
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr libvlc_media_new_location(IntPtr p_instance,
           [MarshalAs(UnmanagedType.LPStr)] string psz_mrl);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr libvlc_media_new_path(IntPtr p_instance,
           [MarshalAs(UnmanagedType.LPStr)] string path);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_media_release(IntPtr p_meta_desc);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_media_add_option(IntPtr media,
             [MarshalAs(UnmanagedType.LPStr)] string psz_options);
         #endregion
 
         #region video
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_video_set_callbacks(
             IntPtr player,
             IntPtr @lock,
@@ -55,13 +55,13 @@ namespace VLCSharp
             IntPtr display,
             IntPtr opaque);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_video_set_format(IntPtr player,
             [MarshalAs(UnmanagedType.LPArray)] byte[] chroma,
             int width,
             int height,
             int pitch);
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern int libvlc_video_get_size(IntPtr player,
             int num,
             out uint px,
@@ -69,57 +69,57 @@ namespace VLCSharp
         #endregion
 
         #region audio
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern int libvlc_audio_set_volume(IntPtr p_mi, int volume);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern int libvlc_audio_get_volume(IntPtr p_mi);
         #endregion
 
         #region media player
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr libvlc_media_player_new_from_media(IntPtr media);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_media_player_release(IntPtr player);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_media_player_set_hwnd(IntPtr player, IntPtr drawable);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr libvlc_media_player_get_media(IntPtr player);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_media_player_set_media(IntPtr player, IntPtr media);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern int libvlc_media_player_play(IntPtr player);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_media_player_pause(IntPtr player);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_media_player_stop(IntPtr player);
         #endregion
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_video_set_format_callbacks(IntPtr p_mi, IntPtr setup, IntPtr cleanup);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern long libvlc_media_player_get_time(IntPtr p_mi);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_media_player_set_time(IntPtr p_mi, long time);
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern long libvlc_media_player_get_length(IntPtr p_mi);
 
 
         #region exception
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_clearerr();
 
-        [DllImport("VLC", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr libvlc_errmsg();
     #endregion
 }
