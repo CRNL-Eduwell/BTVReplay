@@ -18,12 +18,12 @@ public class GraphEvents : MonoBehaviour
             m_DisplayEvents = value;
         }
     }
-    public List<GameObject> EventsAdded = new List<GameObject>();
 
     [SerializeField] Transform m_eventHolder = null;
     private GameObject m_EventZeroDurationPrefab = null, m_EventNonZeroDurationPrefab = null;
     private RectTransform m_parentRectTransform = null;
     private Trace m_parent = null;
+    private List<GameObject> m_EventsAdded = new List<GameObject>();
     private bool m_DisplayEvents = true;
 
     public void init(Trace parentWin)
@@ -47,15 +47,19 @@ public class GraphEvents : MonoBehaviour
         currentEventToAdd.transform.SetParent(m_eventHolder);
         currentEventToAdd.transform.localScale = new Vector3(1, 1, 1);
         currentEventToAdd.transform.SetSiblingIndex(id);
-        EventsAdded.Insert(id, currentEventToAdd);
+        m_EventsAdded.Insert(id, currentEventToAdd);
 
         currentEventToAdd.GetComponent<EventTrace>().init(currentEvent, m_parent.TraceId);
     }
 
     public void DeleteEventFromTrace(int IndexToDelete)
     {
-        if(IndexToDelete < EventsAdded.Count)
-            Destroy(EventsAdded[IndexToDelete].gameObject);
+        if (IndexToDelete < m_EventsAdded.Count)
+        {
+            GameObject ToRemove = m_EventsAdded[IndexToDelete].gameObject;
+            m_EventsAdded.RemoveAt(IndexToDelete);
+            Destroy(ToRemove);
+        }
     }
 
     public void UpdateEventsOnTrace(int milliSecToLook)
@@ -89,10 +93,10 @@ public class GraphEvents : MonoBehaviour
                     float rightevent = right - EventsService.Events[idRightEnter[i]].sample;
                     float size = (rightevent / (right - left)) * widthOfGameObject;
 
-                    EventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                    EventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                    EventsAdded[idRightEnter[i]].SetActive(true);
-                    EventsAdded[idRightEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
+                    m_EventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                    m_EventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                    m_EventsAdded[idRightEnter[i]].SetActive(true);
+                    m_EventsAdded[idRightEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
                 }
 
                 for (int i = 0; i < idInside.Count; i++)
@@ -102,15 +106,15 @@ public class GraphEvents : MonoBehaviour
 
                     if (EventsService.Events[idInside[i]].duration > 0)
                     {
-                        EventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                        EventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                        EventsAdded[idInside[i]].SetActive(true);
-                        EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
+                        m_EventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                        m_EventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                        m_EventsAdded[idInside[i]].SetActive(true);
+                        m_EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
                     }
                     else
                     {
-                        EventsAdded[idInside[i]].SetActive(true);
-                        EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, m_parent.TraceEeg.dataArray[EventsService.Events[idInside[i]].sample - left].y, -201);
+                        m_EventsAdded[idInside[i]].SetActive(true);
+                        m_EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, m_parent.TraceEeg.dataArray[EventsService.Events[idInside[i]].sample - left].y, -201);
                     }
                 }
 
@@ -120,20 +124,20 @@ public class GraphEvents : MonoBehaviour
                     float leftevent = (EventsService.Events[idLeftEnter[i]].sample + (EventsService.Events[idLeftEnter[i]].duration * ((float)samplingFreq / 1000)) - left);
                     float size = (leftevent / (right - left)) * widthOfGameObject;
 
-                    EventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                    EventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                    EventsAdded[idLeftEnter[i]].SetActive(true);
-                    EventsAdded[idLeftEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
+                    m_EventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                    m_EventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                    m_EventsAdded[idLeftEnter[i]].SetActive(true);
+                    m_EventsAdded[idLeftEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
                 }
 
                 for (int i = 0; i < idOverFlow.Count; i++)
                 {
                     float positionInsideRect = ((-widthOfGameObject / 2) + 1);
                     float size = widthOfGameObject;
-                    EventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-                    EventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
-                    EventsAdded[idOverFlow[i]].SetActive(true);
-                    EventsAdded[idOverFlow[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
+                    m_EventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
+                    m_EventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
+                    m_EventsAdded[idOverFlow[i]].SetActive(true);
+                    m_EventsAdded[idOverFlow[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -2);
                 }
             }
         }
@@ -141,7 +145,7 @@ public class GraphEvents : MonoBehaviour
 
     private void HideActiveEvents()
     {
-        List<GameObject> activeObj = EventsAdded.FindAll(x => x.activeSelf == true);
+        List<GameObject> activeObj = m_EventsAdded.FindAll(x => x.activeSelf == true);
         if (activeObj.Count > 0)
         {
             for (int i = 0; i < activeObj.Count; i++)

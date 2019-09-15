@@ -231,6 +231,10 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             case 4://Delete Event
                 graphEvent.DeleteEventFromTrace(message.EventIndex);
                 break;
+            case 5:
+                if (isOver(Input.mousePosition))
+                    OpenEventDisplay(message.Event);
+                break;
         }
     }
 

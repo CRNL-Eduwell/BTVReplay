@@ -31,7 +31,7 @@ public class EventInfoDisplay : MonoBehaviour
 
     public void init(TraceEvent clickedEvent)
     {
-        m_Video = GameObject.Find("Canvas").transform.GetChild(1).GetChild(1).GetComponent<CustomVideoPlayer>();
+        m_Video = GameObject.Find("View").transform.GetChild(1).GetComponent<CustomVideoPlayer>();
         m_Event = new TraceEvent(clickedEvent);
 
         InitTimeDisplay((int)m_Event.timeSeconds());

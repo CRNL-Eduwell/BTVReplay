@@ -11,6 +11,7 @@ class EventsToTraceMessage
     // 2 : Edit Event
     // 3 : Add Event
     // 4 : Remove Event
+    // 5 : Display Event
 
     public int TaskToExecute
     {
