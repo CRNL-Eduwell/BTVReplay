@@ -76,6 +76,15 @@ namespace BTV.Services.EventsService
             }
         }
 
+        public static void RemoveEventAt(int ID)
+        {
+            if (ID < Events.Count)
+            {
+                Events.RemoveAt(ID);
+                UnityEngine.Debug.Log("Event has been removed");
+            }
+        }
+
         public static int GetEventId(TraceEvent Event)
         {
             return Events.Select((item, index) => new { Item = item, Index = index })
