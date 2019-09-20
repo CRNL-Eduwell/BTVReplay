@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public delegate void brainChangeEventHandler(int idBrain);
-
 namespace BTV.UI.Module3D
 {
     public class BrainToolbar : Toolbar
@@ -33,7 +31,7 @@ namespace BTV.UI.Module3D
         {
             base.AddListeners();
 
-            m_BrainReferentials.needToChangeBrain += new brainChangeEventHandler((BrainId) =>
+            m_BrainReferentials.needToChangeBrain.AddListener((BrainId) =>
             {
                 UnityEngine.Debug.Log("change brain");
                 UiToBrainMessage message = new UiToBrainMessage
@@ -53,7 +51,7 @@ namespace BTV.UI.Module3D
                  };
                  Messenger.Default.Send(message, MessageContext.UiToBrain);
              });
-            m_BrainGain.gainHasChanged += new Tools.BrainGainChangedEventHandler((NewGain) =>
+            m_BrainGain.gainHasChanged.AddListener((NewGain) =>
             {
                 UnityEngine.Debug.Log("update gain");
                 UiToBrainMessage message = new UiToBrainMessage

@@ -1,15 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
-    public delegate void BrainGainChangedEventHandler(int UpdatedGain);
-
     public class BrainGain : Tool
     {
-        public event BrainGainChangedEventHandler gainHasChanged;
+        public GenericEvent<int> gainHasChanged = new GenericEvent<int>();
 
         /// <summary>
         /// </summary>
@@ -36,7 +35,7 @@ namespace BTV.UI.Module3D.Tools
             {
                 m_Gain += 1;
                 m_Label.text = "Gain : " + m_Gain;
-                gainHasChanged(m_Gain);
+                gainHasChanged.Invoke(m_Gain);
 
             });
             m_RemoveGain.onClick.AddListener(() =>
@@ -45,7 +44,7 @@ namespace BTV.UI.Module3D.Tools
                 {
                     m_Gain -= 1;
                     m_Label.text = "Gain : " + m_Gain;
-                    gainHasChanged(m_Gain);
+                    gainHasChanged.Invoke(m_Gain);
                 }
             });
         }

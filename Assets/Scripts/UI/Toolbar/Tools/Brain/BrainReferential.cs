@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
     public class BrainReferential : Tool
     {
-        public event brainChangeEventHandler needToChangeBrain;
+        public GenericEvent<int> needToChangeBrain = new GenericEvent<int>();
 
         #region Properties
         [SerializeField]
@@ -31,7 +32,34 @@ namespace BTV.UI.Module3D.Tools
         //2 : ELEC
         private void UpdateBrainReferential(int VisuID)
         {
-            needToChangeBrain(VisuID);
+            switch (VisuID)
+            {
+                case 0:
+                    ChangeReferentialSafely(ApplicationState.Patient.hasMNI, VisuID);
+                    break;
+                case 1:
+                    ChangeReferentialSafely(ApplicationState.Patient.hasPAT, VisuID);
+                    break;
+                case 2:
+                    needToChangeBrain.Invoke(VisuID);
+                    break;
+                default:
+                    Debug.LogError("BrainReferential.cs => Id of Brain Referential does not exist");
+                    break;
+            }
+        }
+
+        private void ChangeReferentialSafely(bool HasData, int VisuID)
+        {
+            if (HasData)
+            {
+                needToChangeBrain.Invoke(VisuID);
+            }
+            else
+            {
+                m_Dropdown.value = VisuID + 1;
+                m_Dropdown.RefreshShownValue();
+            }
         }
     }
 }
