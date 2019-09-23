@@ -40,7 +40,7 @@ public class ReloadMedia : MonoBehaviour
     {
         if (lhemi_MNI != "")
         {
-            mediaGameObject = GameObject.Find("Canvas").transform.GetChild(3).gameObject;
+            mediaGameObject = GameObject.Find("Canvas").transform.GetChild(1).gameObject;
             mediaGameObject.SetActive(true);
             mediaGameObject.SetActive(false);
             BTVMedia media = mediaGameObject.GetComponent<BTVMedia>();

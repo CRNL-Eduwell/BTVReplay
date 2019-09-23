@@ -8,6 +8,7 @@ using System.Collections; //IEnumerator
 using CielaSpike;
 using BTV.Services.EegFileService;
 using BTV.Data;
+using BTV.Services.VideoService;
 
 public delegate void timeVideo(int currentTime);
 public delegate void timeVideoSync(int currentTime);
@@ -100,7 +101,6 @@ public class CustomVideoPlayer : MonoBehaviour
     [SerializeField] Scrollbar scrollBar = null;
     [SerializeField] Scrollbar volumeScrollBar = null;
     [SerializeField] Scrollbar loopScroll = null;
-    [SerializeField] videoRecorder VideoRecorder = null;
     [SerializeField] Button recordVideo = null;
     #endregion
 
@@ -111,6 +111,7 @@ public class CustomVideoPlayer : MonoBehaviour
     private EventTrigger m_trigger = null;
     private Texture2D m_texPlay = null, m_texPause = null, m_texLogo = null;
     private Sprite m_texHandle = null, m_texHandleSlave = null;
+    private GameObject m_RecorderPrefab = null;
 
     private bool m_slaved = false, m_keyForceMove = false;
     private EventTrigger m_triggerSlaved = null;
@@ -124,13 +125,11 @@ public class CustomVideoPlayer : MonoBehaviour
     private void Awake()
     {
         media.loadVideo += new initVideo(init);
-        VideoRecorder.recordVideo += new launchRecordVideo(record);
     }
 
     private void OnDestroy()
     {
         media.loadVideo -= new initVideo(init);
-        VideoRecorder.recordVideo -= new launchRecordVideo(record);
         if (m_initDone)
         {
             _Iplayer.cleanup();
@@ -159,6 +158,7 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void Start()
     {
+        m_RecorderPrefab = Resources.Load("Prefabs/VideoRecorder", typeof(GameObject)) as GameObject;
         m_texPause = Resources.Load("Pictures/playIcone", typeof(Texture2D)) as Texture2D;
         m_texPlay = Resources.Load("Pictures/pauseIcone", typeof(Texture2D)) as Texture2D;
         m_texLogo = Resources.Load("Pictures/BTVLogo", typeof(Texture2D)) as Texture2D;
@@ -242,9 +242,15 @@ public class CustomVideoPlayer : MonoBehaviour
 
         recordVideo.onClick.AddListener(()=> 
         {
-            GameObject recordPanel = GameObject.Find("Canvas").transform.GetChild(6).gameObject;
-            recordPanel.SetActive(!recordPanel.activeSelf);
-            //StartCoroutine(record());
+            if (GameObject.Find("VideoRecorder") == null)
+            {
+                Instantiate(m_RecorderPrefab, GameObject.Find("Canvas").transform);
+            }
+            else
+            {
+                UnityEngine.Debug.Log("There is already a videorecorder isntance ");
+            }
+
         });
 
         m_trigger = scrollBar.gameObject.AddComponent<EventTrigger>();
@@ -579,42 +585,4 @@ public class CustomVideoPlayer : MonoBehaviour
         return this.StartCoroutineAsync(wav.c_ToHilbert("300:100:1300", samplingFreq));
     }
     #endregion
-
-    public void record(string outVideoPath, string durationInSeconds)
-    {
-        StartCoroutine(record2(outVideoPath, durationInSeconds));
-    }
-
-    public IEnumerator record2(string outVideoPath, string durationInSeconds)
-    {
-        yield return Ninja.JumpBack;
-        yield return recordVideo2(outVideoPath, durationInSeconds);
-        yield return Ninja.JumpToUnity;
-    }
-
-    YieldInstruction recordVideo2(string outVideoPath, string durationInSeconds)
-    {
-        return this.StartCoroutineAsync(c_startRecording(outVideoPath, durationInSeconds));
-    }
-
-    IEnumerator c_startRecording(string outVideoPath, string durationInSeconds)
-    {
-        Process m_recordProcess = new Process();
-        ProcessStartInfo startInfo = new ProcessStartInfo();
-        startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-        startInfo.FileName = "cmd.exe";
-
-        string cmd = "VLC -I dummy-quiet screen:// --screen-fps 25 --sout ^\"#transcode{vcodec=h264,venc=x264, vb=1500,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + outVideoPath + "}\" --stop-time " + durationInSeconds.ToString() + " vlc://quit";
-
-        startInfo.Arguments = "/c " + cmd;
-        m_recordProcess.StartInfo = startInfo;
-        m_recordProcess.Start();
-        m_recordProcess.WaitForExit();
-
-        yield return Ninja.JumpToUnity;
-        ApplicationState.displayMessage("Video Record", "OK", "Video as been correctly recorded. \n Please Check the output path you have provided.");
-        yield return Ninja.JumpBack;
-
-        yield return null;
-    }
 }

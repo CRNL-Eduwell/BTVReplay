@@ -49,35 +49,61 @@ public class WavReader : CppDLLImportBase
     {
         if (p_wavFilePath != "")
         {
+            UnityEngine.Debug.Log("a");
             string[] videoPathSplit = p_wavFilePath.Split('.');
             string filteredDataPath = p_wavFilePath.Replace("." + videoPathSplit[videoPathSplit.Length - 1], "_audio.csv");
+            UnityEngine.Debug.Log("a");
 
             WavReader reader = new WavReader(p_wavFilePath);
             if (new FileInfo(filteredDataPath).Exists)
             {
+                UnityEngine.Debug.Log("aaa");
                 reader.loadAudioFreq(filteredDataPath);
                 reader.filterFileExist = true;
+                UnityEngine.Debug.Log("aaa");
             }
             resultReader(reader);
             yield return null;
         }
         else
         {
+            UnityEngine.Debug.Log("nop");
             resultReader(null);
         }
     }
 
+    //public static IEnumerator c_extractAudio(string audioPath, string videoPath)
+    //{
+    //    Process process = new Process();
+    //    ProcessStartInfo startInfo = new ProcessStartInfo();
+    //    startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+    //    startInfo.FileName = "cmd.exe";
+
+    //    string cmd = "c:\\Program^ Files^ ^(x86^)\\VideoLAN\\VLC\\vlc.exe";
+    //    string cmd2 = " -I dummy-quiet --sout ^\"#transcode{acodec=s16l,channels=2,ab=128,samplerate=11025}:std{access=file,mux=wav,dst=" + audioPath.Replace("/", "\\") + "}\" " + "\"" + videoPath.Replace("/", "\\") + "\" vlc://quit";
+
+    //    startInfo.Arguments = "/c " + "^\"" + cmd + "^\"" + cmd2;
+    //    process.StartInfo = startInfo;
+    //    process.Start();
+
+    //    process.WaitForExit();
+    //    yield return null;
+    //}
+
+    //cmdline working for mac : /Applications/VLC.app/Contents/MacOS/VLC -I dummy --sout "#transcode{acodec=s16l,channels=2}:std{access=file,mux=wav,dst=/Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV.wav}" /Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV.AVI vlc://quit
     public static IEnumerator c_extractAudio(string audioPath, string videoPath)
     {
         Process process = new Process();
         ProcessStartInfo startInfo = new ProcessStartInfo();
         startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-        startInfo.FileName = "cmd.exe";
+        startInfo.FileName = "/Applications/VLC.app/Contents/MacOS/VLC";
 
-        string cmd = "c:\\Program^ Files^ ^(x86^)\\VideoLAN\\VLC\\vlc.exe";
-        string cmd2 = " -I dummy-quiet --sout ^\"#transcode{acodec=s16l,channels=2,ab=128,samplerate=11025}:std{access=file,mux=wav,dst=" + audioPath.Replace("/", "\\") + "}\" " + "\"" + videoPath.Replace("/", "\\") + "\" vlc://quit";
+        string cmd = "/Applications/VLC.app/Contents/MacOS/VLC";
+        string cmd2 = "-I dummy --sout \"#transcode{acodec=s16l,channels=2,samplerate=11025}:std{access=file,mux=wav,dst=" + audioPath + "}\" " + "\"" + videoPath + "\" vlc://quit";
 
-        startInfo.Arguments = "/c " + "^\"" + cmd + "^\"" + cmd2;
+        //startInfo.Arguments = "-c " + "\"" + cmd + "\"" + cmd2;
+        startInfo.Arguments = cmd2;
+        UnityEngine.Debug.Log(startInfo.Arguments);
         process.StartInfo = startInfo;
         process.Start();
 
@@ -87,11 +113,13 @@ public class WavReader : CppDLLImportBase
 
     public IEnumerator c_ToHilbert(string freqBand, int downFreq)
     {
+        UnityEngine.Debug.Log("hilbert " + freqBand + " et " + downFreq);
         yield return Ninja.JumpBack;
         filtData2D = new float[6][];
         for (int i = 0; i < 6; i++)
             filtData2D[i] = new float[filteredNumSample(downFreq)];
 
+        UnityEngine.Debug.Log(filteredNumSample(downFreq));
         ToHilbert(_handle, freqBand, downFreq, filtData2D[0]);
         for (int i = 1; i < 6; i++)
             convolution(filtData2D[0], filtData2D[i].Length, filtData2D[i], (downFreq * winMs[i]) / 1000); 
