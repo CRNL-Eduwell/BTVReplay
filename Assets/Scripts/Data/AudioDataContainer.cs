@@ -30,7 +30,7 @@ namespace BTV.Data
                         float[] Smoothing = { 0, 250, 500, 1000, 2500, 5000 };
                         for (int i = 0; i < 6; i++)
                         {
-                            ValuesByChannel.Add("AUD-" + Smoothing, Data[i]);
+                            ValuesByChannel.Add("AUD-" + Smoothing[i], Data[i]);
                             Frequency = new Frequency(64);
                         }
                     }
