@@ -13,21 +13,27 @@ namespace BTV.UI.Module3D
         [SerializeField]
         private Tools.VideoAudiotrace m_AudioTrace = null;
 
-        //====
-        CustomVideoPlayer m_videoPlayer = null;
-        CoroutineManager m_coroutineManager = null;
+        [SerializeField]
+        private Tools.VideoAudioExtract m_AudioExtract = null;
+
+        [SerializeField]
+        private Tools.VideoAudioFilter m_AudioFilter = null;
+
+        [SerializeField]
+        private Tools.VideoAudioFile m_AudioFile = null;
+
         //====
         Color hardBlue = new Color(0.6117f, 0.7058f, 0.7960f, 1f);
         Color softBlue = new Color(0.6117f, 0.7058f, 0.7960f, 0.627450f);
 
         protected override void AddTools()
         {
-            m_videoPlayer = GameObject.Find("Workable Part").transform.GetChild(0).GetChild(1).GetComponent<CustomVideoPlayer>();
-            m_coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
-
             m_Tools.Add(m_Gain);
             m_Tools.Add(m_Offset);
             m_Tools.Add(m_AudioTrace);
+            m_Tools.Add(m_AudioExtract);
+            m_Tools.Add(m_AudioFilter);
+            m_Tools.Add(m_AudioFile);
         }
 
         protected override void AddListeners()
@@ -36,10 +42,8 @@ namespace BTV.UI.Module3D
 
             m_Gain.gainAudioHasChanged += UpdateAudioTraceGain;
             m_Offset.offsetVideoHasChanged += UpdateAudioTraceOffset;
-            m_AudioTrace.audioToggled += ToggleAudioTrace;
-            m_AudioTrace.StartAudioFilter += StartAudioFiltering;
-            m_AudioTrace.StartAudioLoad += LoadAudioTrace;
-            m_AudioTrace.smAudioHasChanged += UpdateAudioTraceFile;
+            m_AudioTrace.ToggleTraceAudio += ToggleAudioTrace;
+            m_AudioTrace.UpdateAudioFileID += UpdateAudioTraceFile;
         }
 
         private void UpdateAudioTraceGain(float NewGain)
@@ -73,17 +77,6 @@ namespace BTV.UI.Module3D
                 IsTraceOn = IsOn
             };
             Messenger.Default.Send(message, MessageContext.UiToVideo);
-        }
-
-        private void StartAudioFiltering()
-        {
-            m_coroutineManager.StartCoroutine(m_videoPlayer.c_filterAudio());
-        }
-
-        private void LoadAudioTrace()
-        {
-            m_coroutineManager.StartCoroutine(m_videoPlayer.c_loadAudio());
-            ToggleAudioTrace(true);
         }
 
         private void UpdateAudioTraceFile(int NewIdSm)

@@ -31,7 +31,7 @@ namespace BTV.Data
                 return Channels.Count > 0 ? Channels[0].NumberOfSample : 0;
             }
         }
-        public List<BtvChannel> Channels { get; set; } = new List<BtvChannel>();
+        public List<BtvChannel> Channels { get; private set; } = new List<BtvChannel>();
         public Frequency Frequency { get; set; } = new Frequency();
         public string Directory
         {
@@ -65,6 +65,11 @@ namespace BTV.Data
         public string GetElectrodeNameFromElectrodeID(int ID)
         {
             return ((ID >= 0) && (ID < Channels.Count)) ? Channels[ID].Label : "";
+        }
+
+        public void AddData(float[] Data, string Name)
+        {
+            Channels.Add(new BtvChannel(Name, Channels.Count, Frequency.Value, Data));
         }
     }
 }

@@ -91,25 +91,25 @@ public class WavReader : CppDLLImportBase
     //}
 
     //cmdline working for mac : /Applications/VLC.app/Contents/MacOS/VLC -I dummy --sout "#transcode{acodec=s16l,channels=2}:std{access=file,mux=wav,dst=/Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV.wav}" /Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV.AVI vlc://quit
-    public static IEnumerator c_extractAudio(string audioPath, string videoPath)
-    {
-        Process process = new Process();
-        ProcessStartInfo startInfo = new ProcessStartInfo();
-        startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-        startInfo.FileName = "/Applications/VLC.app/Contents/MacOS/VLC";
+    //public static IEnumerator c_extractAudio(string audioPath, string videoPath)
+    //{
+    //    Process process = new Process();
+    //    ProcessStartInfo startInfo = new ProcessStartInfo();
+    //    startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+    //    startInfo.FileName = "/Applications/VLC.app/Contents/MacOS/VLC";
 
-        string cmd = "/Applications/VLC.app/Contents/MacOS/VLC";
-        string cmd2 = "-I dummy --sout \"#transcode{acodec=s16l,channels=2,samplerate=11025}:std{access=file,mux=wav,dst=" + audioPath + "}\" " + "\"" + videoPath + "\" vlc://quit";
+    //    string cmd = "/Applications/VLC.app/Contents/MacOS/VLC";
+    //    string cmd2 = "-I dummy --sout \"#transcode{acodec=s16l,channels=2,samplerate=11025}:std{access=file,mux=wav,dst=" + audioPath + "}\" " + "\"" + videoPath + "\" vlc://quit";
 
-        //startInfo.Arguments = "-c " + "\"" + cmd + "\"" + cmd2;
-        startInfo.Arguments = cmd2;
-        UnityEngine.Debug.Log(startInfo.Arguments);
-        process.StartInfo = startInfo;
-        process.Start();
+    //    //startInfo.Arguments = "-c " + "\"" + cmd + "\"" + cmd2;
+    //    startInfo.Arguments = cmd2;
+    //    UnityEngine.Debug.Log(startInfo.Arguments);
+    //    process.StartInfo = startInfo;
+    //    process.Start();
 
-        process.WaitForExit();
-        yield return null;
-    }
+    //    process.WaitForExit();
+    //    yield return null;
+    //}
 
     public IEnumerator c_ToHilbert(string freqBand, int downFreq)
     {

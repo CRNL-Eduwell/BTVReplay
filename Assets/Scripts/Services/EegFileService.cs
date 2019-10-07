@@ -18,7 +18,7 @@ namespace BTV.Services.EegFileService
 
             if (System.IO.File.Exists(FilePath))
             {
-                DataContainer container = new DataContainer(FilePath, Type);
+                IEegDataContainer container = new IEegDataContainer(FilePath, Type);
                 m_EegFiles[FileID] = new BtvProgram(container);
             }
 
@@ -32,7 +32,7 @@ namespace BTV.Services.EegFileService
 
             if (System.IO.File.Exists(FilePath))
             {
-                DataContainer container = new DataContainer(FilePath, Type);
+                IEegDataContainer container = new IEegDataContainer(FilePath, Type);
                 m_EegFiles[FileID] = new BtvProgram(container);
             }
         }
@@ -51,6 +51,17 @@ namespace BTV.Services.EegFileService
             }
 
             return null;
+        }
+
+        public static void AddNewChannel(float[] Data, string Name, int SamplingFrequency, int ProgramID)
+        {
+            if (m_EegFiles[ProgramID] == null)
+                throw new Exception("Error : Attempting to add data to an empty program");
+
+            if (m_EegFiles[ProgramID].Frequency.Value != SamplingFrequency)
+                throw new Exception("Error : Sampling Frequency from new data is different from the program");
+
+            m_EegFiles[ProgramID].AddData(Data, Name);
         }
     }
 }

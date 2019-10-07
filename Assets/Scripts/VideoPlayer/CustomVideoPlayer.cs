@@ -565,7 +565,8 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         // I give my callback to the process
         // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(WavReader.c_extractAudio(audioPath, videoPath));
+        //return this.StartCoroutineAsync(WavReader.c_extractAudio(audioPath, videoPath));
+        return null;
     }
 
     YieldInstruction loadAudio(string audioPath, Action<WavReader> resWav)
