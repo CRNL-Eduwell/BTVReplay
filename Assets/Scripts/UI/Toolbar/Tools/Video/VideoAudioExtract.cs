@@ -11,24 +11,41 @@ namespace BTV.UI.Module3D.Tools
 	{
         //Event that shows that you have now some audio
 
-		/// <summary>
-		/// </summary>
+        /// <summary>
+        /// Ui Button to extract audio from the video
+        /// </summary>
 		[SerializeField]
 		private Button m_ExtractAudio = null;
 
         public override void Initialize()
         {
-            m_ExtractAudio.onClick.AddListener(CheckIfAudioOfVideoExist);
+            m_ExtractAudio.onClick.AddListener(TryToExtractAudioFromVideo);
         }
 
-        //TODO : Proposer de supprimer les données existantes
-        private void CheckIfAudioOfVideoExist()
+        private void TryToExtractAudioFromVideo()
         {
             if (!VideoService.AudioFileExist)
             {
-                UnityEngine.Debug.Log("Go extract");
                 StartCoroutine(c_LaunchAudioExtraction(VideoService.AudioFromVideoPath, VideoService.OriginalVideoPath));
             }
+            else
+            {
+                ApplicationState.displayConfirmation("Audio File already exists", "Do you want to delete the existing file and extract the audio again ?", DeleteAndExtract, () => { });
+            }
+        }
+
+        private void DeleteAndExtract()
+        {
+            try
+            {
+                File.Delete(VideoService.AudioFromVideoPath);
+            }
+            catch (IOException ioExp)
+            {
+                UnityEngine.Debug.LogError(ioExp.Message);
+            }
+
+            StartCoroutine(c_LaunchAudioExtraction(VideoService.AudioFromVideoPath, VideoService.OriginalVideoPath));
         }
 
         private IEnumerator c_LaunchAudioExtraction(string AudioPath, string VideoPath)

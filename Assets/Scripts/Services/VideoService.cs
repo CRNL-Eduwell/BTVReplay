@@ -156,7 +156,10 @@ namespace BTV.Services.VideoService
             AudioDataContainer container = new AudioDataContainer(FilteredAudioPath, AudioFile.AudioFileType.Processed);
             m_ProcessedAudio = new BtvProgram(container);
 
+            yield return Ninja.JumpToUnity;
             AudioDataLoaded.Invoke();
+            yield return Ninja.JumpBack;
+
             yield return null;
         }
 
