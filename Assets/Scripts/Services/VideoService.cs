@@ -11,13 +11,14 @@ using System;
 using UnityEngine.Events;
 using CielaSpike;
 using UnityEngine;
+using System.Runtime.InteropServices;
 
 namespace BTV.Services.VideoService
 {
     public delegate void AudioDataLoaded();
 
     public static class VideoService
-	{
+    {
         public static event AudioDataLoaded AudioDataLoaded;
 
         public static string OriginalVideoPath
@@ -45,7 +46,7 @@ namespace BTV.Services.VideoService
         {
             get
             {
-                return Path.ChangeExtension(OriginalVideoPath, "_audio.csv");
+                return AudioFromVideoPath.Replace(".wav", "_audio.csv");
             }
         }
         public static bool FilteredAudioFileExist
@@ -58,6 +59,28 @@ namespace BTV.Services.VideoService
 
         private static BtvProgram m_ProcessedAudio = null;
         private static AudioDataContainer m_RawAudioData = null;
+        private static string m_VlcPath
+        {
+            get
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    return "C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe";
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    return "";
+                }
+                else if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    return "/Applications/VLC.app/Contents/MacOS/VLC";
+                }
+                else
+                {
+                    return "";
+                }
+            }
+        }
 
         #region AudioProcessing
         public static IEnumerator c_ExtractAudio(string AudioFilePath, string VideoFilePath)
@@ -67,8 +90,9 @@ namespace BTV.Services.VideoService
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.FileName = "/Applications/VLC.app/Contents/MacOS/VLC";
-                startInfo.Arguments = "-I dummy --sout \"#transcode{acodec=s16l,channels=2,samplerate=11025}:std{access=file,mux=wav,dst=" + AudioFilePath + "}\" " + "\"" + VideoFilePath + "\" vlc://quit";
+                startInfo.FileName = m_VlcPath;
+                //startInfo.Arguments = "-I dummy --sout \"#transcode{acodec=s16l,channels=2,samplerate=11025}:std{access=file,mux=wav,dst=" + AudioFilePath + "}\" " + "\"" + VideoFilePath + "\" vlc://quit";
+                startInfo.Arguments = "-I dummy --sout \"#transcode{acodec=s16l,samplerate=11025}:std{access=file,mux=wav,dst=" + AudioFilePath + "}\" " + "\"" + VideoFilePath + "\" vlc://quit";
 
                 Process process = new Process();
                 process.StartInfo = startInfo;
@@ -86,7 +110,7 @@ namespace BTV.Services.VideoService
         {
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.FileName = "/Applications/VLC.app/Contents/MacOS/VLC";
+            startInfo.FileName = m_VlcPath;
             startInfo.Arguments = "-I dummy screen:// --screen-fps 25 --sout \"#transcode{vcodec=h264,venc=x264, vb=1500,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + OutputVideoPath + "}\" --stop-time " + durationInSeconds+ " vlc://quit";
 
             Process m_recordProcess = new Process();
@@ -109,17 +133,12 @@ namespace BTV.Services.VideoService
             Frequency DownsampledFrequency = new Frequency(DownsampFreq);
 
             float[] RawAudio = m_RawAudioData.ValuesByChannel.Values.ElementAt(0);
-            int FilteredLength = (int)((float)RawAudio.Length / m_RawAudioData.Frequency.Value) * DownsampledFrequency.Value;
+            int FilteredLength = Mathf.CeilToInt((float)RawAudio.Length / m_RawAudioData.Frequency.Value * DownsampledFrequency.Value);
             float[][] FilteredData = new float[6][];
 
             //Process Hilbert Enveloppe from raw signal
             FilteredData[0] = new float[FilteredLength];
-
-            UnityEngine.Debug.Log("Hilbert " + RawAudio.Length + " et " + m_RawAudioData.Frequency.Value  + " et " + FilteredLength);
-            //yield return Ninja.JumpBack;
-            CalculationService.CalculationService.ToHilbert(RawAudio, RawAudio.Length, m_RawAudioData.Frequency.Value, DownsampledFrequency.Value, FrequencyBands, FilteredData[0]);
-            //yield return Ninja.JumpToUnity;
-            UnityEngine.Debug.Log("Fin Hilbert");
+            CalculationService.CalculationService.ToHilbert(RawAudio, RawAudio.Length, m_RawAudioData.Frequency.Value, FilteredData[0], FilteredLength, DownsampledFrequency.Value, FrequencyBands);
 
             //Convolve Hilbert Enveloppe according to different smoothing coefficient
             int[] WindowSmoothinginMs = { 0, 250, 500, 1000, 2500, 5000 };

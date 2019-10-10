@@ -11,7 +11,7 @@ namespace BTV.Services.CalculationService
     public static class CalculationService
     {
         [DllImport("Framework", EntryPoint = "ToHilbert", CallingConvention = CallingConvention.Cdecl)]
-        static public extern int ToHilbert(float[] Signal, int Length, int SamplingFrequency, int DownsampledFrequency, string freqBands, float[] filteredData);
+        static public extern int ToHilbert(float[] Signal, int Length, int SamplingFrequency, float[] filteredData, int FilteredLength, int DownsampledFrequency, string freqBands );
 
         [DllImport("Framework", EntryPoint = "Convolution", CallingConvention = CallingConvention.Cdecl)]
         static public extern void Convolution(float[] iinputData, int length, float[] outputData, int coeff);
