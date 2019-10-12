@@ -35,18 +35,18 @@ namespace BTV.Services.VideoService
                 return Path.ChangeExtension(OriginalVideoPath, ".wav");
             }
         }
-        public static bool AudioFileExist
-        {
-            get
-            {
-                return new FileInfo(AudioFromVideoPath).Exists;
-            }
-        }
         public static string FilteredAudioPath
         {
             get
             {
                 return AudioFromVideoPath.Replace(".wav", "_audio.csv");
+            }
+        }
+        public static bool AudioFileExist
+        {
+            get
+            {
+                return new FileInfo(AudioFromVideoPath).Exists;
             }
         }
         public static bool FilteredAudioFileExist
@@ -56,6 +56,7 @@ namespace BTV.Services.VideoService
                 return new FileInfo(FilteredAudioPath).Exists;
             }
         }
+        public static bool FilteredDataLoaded { get; private set; } = false;
 
         private static BtvProgram m_ProcessedAudio = null;
         private static AudioDataContainer m_RawAudioData = null;
@@ -158,17 +159,22 @@ namespace BTV.Services.VideoService
 
             yield return Ninja.JumpToUnity;
             AudioDataLoaded.Invoke();
+            FilteredDataLoaded = true;
             yield return Ninja.JumpBack;
 
             yield return null;
         }
 
-        //TODO : see how the data is handled internally before transmitting to btv programs
         public static IEnumerator c_LoadFilteredAudioFromFile(string FilteredAudioFilePath)
         {
             AudioDataContainer container = new AudioDataContainer(FilteredAudioFilePath, AudioFile.AudioFileType.Processed);
             m_ProcessedAudio = new BtvProgram(container);
+
+            yield return Ninja.JumpToUnity;
             AudioDataLoaded.Invoke();
+            FilteredDataLoaded = true;
+            yield return Ninja.JumpBack;
+
             yield return null;
         }
         #endregion

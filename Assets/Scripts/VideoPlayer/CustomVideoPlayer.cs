@@ -20,17 +20,6 @@ public delegate void stopVideo();
 /// </summary>
 public class CustomVideoPlayer : MonoBehaviour
 {
-    public WavReader audioWav
-    {
-        get
-        {
-            return _wavReader;
-        }
-        set
-        {
-            _wavReader = value;
-        }
-    }
     public IVideoPlayer videoInterface
     {
         get
@@ -105,7 +94,6 @@ public class CustomVideoPlayer : MonoBehaviour
     #endregion
 
     #region private members
-    private WavReader _wavReader = null;
     private IVideoPlayer _Iplayer = null;
     private bool m_scrollbarnotclicked = true, m_initDone = false, m_forceMove = false;
     private EventTrigger m_trigger = null;
@@ -133,9 +121,6 @@ public class CustomVideoPlayer : MonoBehaviour
         if (m_initDone)
         {
             _Iplayer.cleanup();
-
-            if (_wavReader != null)
-                _wavReader.Dispose();
 
             playPause.onClick.RemoveAllListeners();
             stopButton.onClick.RemoveAllListeners();
@@ -531,59 +516,6 @@ public class CustomVideoPlayer : MonoBehaviour
         m_keyForceMove = true;
         initForceMoveLoopScroll();
         loopScroll.value += value;
-    }
-    #endregion
-
-    #region WawReader
-    public IEnumerator c_filterAudio()
-    {
-        yield return Ninja.JumpBack;
-        yield return StartCoroutine(c_loadAudio());
-        BtvProgram container = EegFileService.ReturnFirstValidContainer();
-        yield return filterAudio(_wavReader, container.Frequency.Value);
-        yield return Ninja.JumpToUnity;
-        yield return null;
-    }
-
-    public IEnumerator c_loadAudio()
-    {
-        string audioPath = AudioPath;
-
-        if (new FileInfo(audioPath).Exists == false)
-        {
-            yield return Ninja.JumpBack;
-            yield return PrepareAudio(audioPath, VideoPath);
-            yield return Ninja.JumpToUnity;
-        }
-        yield return Ninja.JumpBack;
-        yield return loadAudio(audioPath, r => _wavReader = r);
-        yield return Ninja.JumpToUnity; //recomm si jamais
-        yield return null;
-    }
-
-    YieldInstruction PrepareAudio(string audioPath, string videoPath)
-    {
-        // I give my callback to the process
-        // Async needed for another thread and not freezing/laging UI
-        //return this.StartCoroutineAsync(WavReader.c_extractAudio(audioPath, videoPath));
-        return null;
-    }
-
-    YieldInstruction loadAudio(string audioPath, Action<WavReader> resWav)
-    {
-        // I give my callback to the process
-        // Async needed for another thread and not freezing/laging UI
-        //return this.StartCoroutineAsync(WavReader.c_loadAudioFile(audioPath, resWav));
-        return this.StartCoroutineAsync(WavReader.c_loadAudioFile(audioPath, resWav));
-
-    }
-
-    YieldInstruction filterAudio(WavReader wav, int samplingFreq)
-    {
-        // I give my callback to the process
-        // Async needed for another thread and not freezing/laging UI
-        //return this.StartCoroutineAsync(wav.ToHilbert("300:100:1300", samplingFreq));
-        return this.StartCoroutineAsync(wav.c_ToHilbert("300:100:1300", samplingFreq));
     }
     #endregion
 }

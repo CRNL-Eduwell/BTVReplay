@@ -43,7 +43,7 @@ namespace BTV.UI.Module3D.Tools
             }
             m_FileDropDown.onValueChanged.AddListener((value) => UpdateAudioFileID(value));
 
-            m_ShowTrace.onValueChanged.Invoke(true);
+            m_ShowTrace.isOn = true;
             m_FileDropDown.onValueChanged.Invoke(0);
         }
     }
