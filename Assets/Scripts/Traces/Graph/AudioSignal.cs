@@ -1,13 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using BTV.Data;
+﻿using BTV.Data;
 using BTV.Services.VideoService;
-using UnityEngine;
 
 public class AudioSignal : SignalDisp
 {
-    [SerializeField] CustomVideoPlayer video = null;
-
     public BtvChannel ChannelHandle { get; private set; } = null;
 
     public override void init()
@@ -16,11 +11,8 @@ public class AudioSignal : SignalDisp
         base.init();
     }
 
-    public override void updateDraw(int milliSecToLook)
+    public override void UpdateDraw(int milliSecToLook)
     {
-        //if (lineRenderer.gameObject.activeSelf == false || video.audioWav == null ||
-        //    video.audioWav.filterFileExist == false || milliSecToLook == -1)
-        //    return;
         if (ChannelHandle == null)
             return;
 
@@ -33,7 +25,6 @@ public class AudioSignal : SignalDisp
             if ((i + PositionInArray >= 0) && (i + PositionInArray < ChannelHandle.NumberOfSample))
             {
                 float value = m_gain * ChannelHandle.Data[i + PositionInArray];
-                //float value = m_gain * video.audioWav.currentAudio[i + PositionInArray];
                 if (value >= -limitVal && value <= limitVal)
                 {
                     m_dataArray[i].y = value;
@@ -59,9 +50,8 @@ public class AudioSignal : SignalDisp
         lineRenderer.gameObject.SetActive(show);
     }
 
-    public void changeAudioId(int NewId)
+    public void UpdateAudioID(int NewId)
     {
         ChannelHandle = VideoService.GetSmoothedAudio(NewId);
-        //video.audioWav.idAudioHandle = newId;
     }
 }

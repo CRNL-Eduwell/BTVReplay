@@ -27,50 +27,7 @@ public class CustomVideoPlayer : MonoBehaviour
             return _Iplayer;
         }
     }
-    public string VideoPath
-    {
-        get
-        {
-            return m_videoPath;
-        }
-        set
-        {
-            m_videoPath = value;
-        }
-    }
-    public string AudioPath
-    {
-        get
-        {
-            string[] videoPathSplit = VideoPath.Split('.');
-            if (videoPathSplit.Length > 0)
-                return VideoPath.Replace("." + videoPathSplit[videoPathSplit.Length - 1], ".wav");
-            else
-                return "";
-        }
-    }
-    public string AudioFilteredPath
-    {
-        get
-        {
-            string[] audioPathSplit = AudioPath.Split('.');
-            if (audioPathSplit.Length > 0)
-                return AudioPath.Replace("." + audioPathSplit[audioPathSplit.Length - 1], "_audio.csv");
-            else
-                return "";
-        }
-    }
-    public bool needAudioProcess
-    {
-        get
-        {
-            if (File.Exists(AudioPath) && File.Exists(AudioFilteredPath))
-                return false;
-            else
-                return true;
-        }
-    }
-    //==
+
     public event timeVideo sendTime;
     public event timeVideoSync sendTimeVideo;
     public event stopVideo stopTimeVideo;
@@ -107,7 +64,6 @@ public class CustomVideoPlayer : MonoBehaviour
     private float m_minTimeClick = 0.0f, m_maxTimeClick = 0.0f;
     private float m_scrollVal = 0.0f, m_scrollMemory = 0.0f;
     private long m_currentTimeScrollBar = 0;
-    private string m_videoPath = "";
     #endregion
 
     private void Awake()
@@ -195,9 +151,7 @@ public class CustomVideoPlayer : MonoBehaviour
 
     #region implement Interface
     void init(string videoPath, int eegFileDurationInSec)
-    {
-        VideoPath = videoPath;
-        
+    {        
         //TODO : rebrancher proprement 
         //if (needAudioProcess)
         //    hub.videoRemote.setButtonsInteractable(true);

@@ -91,7 +91,7 @@ public class EegSignal : SignalDisp
         //m_offsetCoefficient = (m_offsetPerTen / 10) * eHandle.maxValues[idCurrentElec];
     }
 
-    public override void updateDraw(int milliSecToLook)
+    public override void UpdateDraw(int milliSecToLook)
     {
         MostRecentSample = (int)(milliSecToLook * ((float)m_samplingFreq / 1000));
         int posInArray = MostRecentSample - m_numberPoint;

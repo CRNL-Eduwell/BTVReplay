@@ -82,8 +82,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         media.loadTrace -= new initTrace(init);
         if (m_initDone)
         {
-            video.sendTime -= new timeVideo(eegSignal.updateDraw);
-            video.sendTimeVideo -= new timeVideoSync(audioSignal.updateDraw);
+            video.sendTime -= new timeVideo(eegSignal.UpdateDraw);
+            video.sendTimeVideo -= new timeVideoSync(audioSignal.UpdateDraw);
             video.sendTime -= new timeVideo(graphEvent.UpdateEventsOnTrace);
             video.sendTime -= new timeVideo(graphSonif.updateSonif);
             video.stopTimeVideo -= new stopVideo(graphSonif.muteSonficiation);
@@ -127,8 +127,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         graphSonif.init(this);
 
         #region plugEvents
-        video.sendTime += new timeVideo(eegSignal.updateDraw);
-        video.sendTimeVideo += new timeVideoSync(audioSignal.updateDraw);
+        video.sendTime += new timeVideo(eegSignal.UpdateDraw);
+        video.sendTimeVideo += new timeVideoSync(audioSignal.UpdateDraw);
         video.sendTime += new timeVideo(graphEvent.UpdateEventsOnTrace);
         video.sendTime += new timeVideo(graphSonif.updateSonif);
         video.stopTimeVideo += new stopVideo(graphSonif.muteSonficiation);
@@ -206,7 +206,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 3:
                 Debug.Log("Update Trace Audio File");
-                audioSignal.changeAudioId(message.TraceID);
+                audioSignal.UpdateAudioID(message.TraceID);
                 break;
         }
     }
@@ -222,7 +222,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 graphEvent.DisplayEvents = message.IsShowEventsOn;
                 break;
             case 2://Edit Events
-                if(isOver(Input.mousePosition)) 
+                if (isOver(Input.mousePosition))
                     OpenEventModify(message.Event);
                 break;
             case 3://Add Event
@@ -329,7 +329,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         float sampleClicked = (eegSignal.MostRecentSample - eegSignal.numberOfPoint) + (perCentX * eegSignal.numberOfPoint);
         if (sampleClicked >= 0)
         {
-            TraceEvent currentEvent = new TraceEvent(new eventEeg(0, (int)sampleClicked, eegSignal.SamplingFrequency), elecOfInterest:eegSignal.ElectrodeLabel);
+            TraceEvent currentEvent = new TraceEvent(new eventEeg(0, (int)sampleClicked, eegSignal.SamplingFrequency), elecOfInterest: eegSignal.ElectrodeLabel);
             //eventWasClicked(currentEvent, traceID);
             OpenEventAdd(currentEvent);
         }
