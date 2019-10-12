@@ -9,7 +9,7 @@ public interface IVideoPlayer
     bool isPlaying { get; }
     bool isPaused { get; }
     bool isStopped { get; }
-    byte[] textureBytes { get; }
+    byte[] TextureBytes { get; }
 
     void init(string videoPath, int eegFileDurationInSec, RawImage tex);
     void UpdateVideoOffset(float newOffset);

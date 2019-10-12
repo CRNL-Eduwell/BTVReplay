@@ -152,12 +152,6 @@ public class CustomVideoPlayer : MonoBehaviour
     #region implement Interface
     void init(string videoPath, int eegFileDurationInSec)
     {        
-        //TODO : rebrancher proprement 
-        //if (needAudioProcess)
-        //    hub.videoRemote.setButtonsInteractable(true);
-        //else
-        //    hub.videoRemote.setButtonsInteractable(false);
-
         if (videoPath == "")
             _Iplayer = gameObject.AddComponent<VLCLess>();
         else

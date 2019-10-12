@@ -268,17 +268,25 @@ public class BTVMedia : MonoBehaviour
     {
         ApplicationState.Patient = myPat;
 
-        //When you start a coroutine there is an implicit jumpback
-        //So we jump back to unity just in case
-        yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadEEGFile(myPat));
-        //ApplicationState.EegFiles = elanFiles;
         mediaLoaded();
-
-        yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadVideo(myPat.video));
+        yield return StartCoroutine(c_LoadBrainAnatomy(myPat));
+        loadTrace();
+        yield return StartCoroutine(c_loadPOSandPROV(myPat));
 
-        //====
+        //When everything is loaded we close the loading brain and media panel
+        loadingCircle.Close();
+        gameObject.SetActive(false);
+        loaded = true;
+        Text PatientNameHeader = GameObject.Find("HeaderDisplay").transform.GetChild(0).GetComponent<Text>();
+        PatientNameHeader.text = myPat.patientName;
+        ApplicationState.init();
+        yield return new WaitForSeconds(0.1f);
+    }
+
+    IEnumerator c_LoadBrainAnatomy(Patient myPat)
+    {
         bool ShouldLoadMniFirst = (myPat.hasMNI && !myPat.hasPAT) || (myPat.hasMNI && myPat.hasPAT);
         bool ShouldLoadPatFirst = !myPat.hasMNI && myPat.hasPAT;
         if (ShouldLoadMniFirst)
@@ -312,21 +320,8 @@ public class BTVMedia : MonoBehaviour
             };
             Messenger.Default.Send(message, MessageContext.LoaderToBrain);
         }
-        //====
 
-        loadTrace();
-
-        yield return Ninja.JumpToUnity;
-        yield return StartCoroutine(c_loadPOSandPROV(myPat));
-
-        yield return Ninja.JumpToUnity;
-        loadingCircle.Close();
-        gameObject.SetActive(false);
-        loaded = true;
-        Text PatientNameHeader = GameObject.Find("HeaderDisplay").transform.GetChild(0).GetComponent<Text>();
-        PatientNameHeader.text = myPat.patientName;
-        ApplicationState.init();
-        yield return new WaitForSeconds(0.1f);
+        yield return null;
     }
 
     IEnumerator c_loadEEGFile(Patient myPat)

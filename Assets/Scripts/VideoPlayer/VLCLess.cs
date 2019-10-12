@@ -79,7 +79,7 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
             return !m_playing;
         }
     }
-    public byte[] textureBytes
+    public byte[] TextureBytes
     {
         get
         {
