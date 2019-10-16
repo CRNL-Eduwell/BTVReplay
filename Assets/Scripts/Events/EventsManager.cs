@@ -191,6 +191,16 @@ public class EventsManager : MonoBehaviour
             EventsService.Load(filePath);
             m_EventsList.DeleteAllEvents();
             m_EventsList.LoadEvents(EventsService.Events);
+            for (int i = 0; i < EventsService.Events.Count; i++)
+            {
+                EventsToTraceMessage message = new EventsToTraceMessage
+                {
+                    TaskToExecute = 3,
+                    Event = EventsService.Events[i],
+                    EventIndex = i
+                };
+                Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
+            }
         }
     }
 

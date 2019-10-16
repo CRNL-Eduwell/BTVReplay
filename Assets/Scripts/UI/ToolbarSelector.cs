@@ -57,7 +57,8 @@ namespace BTV.UI.Module3D
             });
             m_PerformanceToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-
+                UnityEngine.Debug.Log("Update Performance Opt : " + UiOptionIndex);
+                ChangeToolbar(m_PerformanceToggle, UiOptionIndex);
             });
             m_VideoToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {

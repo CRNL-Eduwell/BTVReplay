@@ -22,7 +22,7 @@ namespace BTV.Services.EventsService
                 for (int i = 0; i < file.Events.Count; i++)
                 {
                     Events.Add(new TraceEvent(file.Events[i]));
-                    UnityEngine.Debug.Log(Events[i].code + " et " + Events[i].sample);
+                    //UnityEngine.Debug.Log(Events[i].code + " et " + Events[i].sample);
                 }
             }
         }
@@ -91,6 +91,14 @@ namespace BTV.Services.EventsService
                          .Where(x => x.Item.sample == Event.sample)
                          .Select(x => x.Index)
                          .First();
+        }
+
+        public static List<int> FindIndexes(int SearchValue)
+        {
+            return Events.Select((item, index) => new { Item = item, Index = index })
+             .Where(x => x.Item.code == SearchValue)
+             .Select(x => x.Index)
+             .ToList();
         }
 
         /// <summary>

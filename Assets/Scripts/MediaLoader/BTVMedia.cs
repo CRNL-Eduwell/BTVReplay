@@ -399,10 +399,10 @@ public class BTVMedia : MonoBehaviour
             }
         }
 
-        if (posFile != null && posFile.FileTriggers.Count > 0)
-            loadPerf(true);
-        else
-            loadPerf(false);
+        //if (posFile != null && posFile.FileTriggers.Count > 0)
+        //    loadPerf(true);
+        //else
+        //    loadPerf(false);
 
         yield return new WaitForSeconds(1.0f);
         yield return null;

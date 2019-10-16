@@ -4,9 +4,11 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
+    public delegate void UpdateTimeComportmentWindow(int UpdatedTime);
+
     public class ComportementalWindow : Tool
     {
-        public event timePeriodChangedEventHandler timeHasChanged;
+        public event UpdateTimeComportmentWindow UpdateTime;
 
         /// <summary>
         /// </summary>
@@ -21,7 +23,7 @@ namespace BTV.UI.Module3D.Tools
         void UpdateTimePeriod(string UpdatedField)
         {
             int.TryParse(UpdatedField, out int time);
-            timeHasChanged(time);
+            UpdateTime(time);
         }
     }
 }

@@ -52,6 +52,7 @@ public class EventList : Tools.Unity.Lists.SelectableList<TraceEvent>
 
     public void DeleteAllEvents()
     {
+        UnityEngine.Debug.Log(Objects.Length);
         for (int i = Objects.Length - 1; i >= 0; i--)
         {
             Remove(Objects[i]);

@@ -27,7 +27,7 @@ namespace BTV.UI.Module3D.Tools
         #endregion
 
         //audiosource extention file : https://docs.unity3d.com/Manual/AudioFiles.html
-        private string[] m_audioFileExtention = new string[] { ".mp3", ".ogg", ".wav", ".aiff", ".aif", ".mod", ".it", ".s3m", ".xm" };
+        private string[] m_audioFileExtention = { ".mp3", ".ogg", ".wav", ".aiff", ".aif", ".mod", ".it", ".s3m", ".xm" };
 
         public override void Initialize()
         {
