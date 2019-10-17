@@ -24,7 +24,7 @@ public class AudioSignal : SignalDisp
         {
             if ((i + PositionInArray >= 0) && (i + PositionInArray < ChannelHandle.NumberOfSample))
             {
-                float value = m_gain * ChannelHandle.Data[i + PositionInArray];
+                float value = m_gain * ChannelHandle.GetSample(i + PositionInArray);
                 if (value >= -limitVal && value <= limitVal)
                 {
                     m_dataArray[i].y = value;

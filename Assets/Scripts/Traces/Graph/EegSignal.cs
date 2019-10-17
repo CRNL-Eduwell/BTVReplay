@@ -18,7 +18,7 @@ public class EegSignal : SignalDisp
             if (value > -1 && value < FileHandle.NumberOfElectrodes)
             {
                 m_currentElectrodeID = value;
-                m_Data = FileHandle.Channels[m_currentElectrodeID].Data;
+                m_Channel = FileHandle.Channels[m_currentElectrodeID];
             }
         }
     }
@@ -49,7 +49,7 @@ public class EegSignal : SignalDisp
     {
         get
         {
-            return m_Data[MostRecentSample];
+            return m_Channel.GetSample(MostRecentSample, true);
         }
     }
 
@@ -58,7 +58,7 @@ public class EegSignal : SignalDisp
     private float m_offsetCoefficient = 0;
     private float m_offsetPerTen = 0;
     private int m_NumberSample = 0;
-    private float[] m_Data = null;
+    private BtvChannel m_Channel = null;
 
     public override void init()
     {
@@ -66,7 +66,7 @@ public class EegSignal : SignalDisp
         m_samplingFreq = FileHandle.Frequency.Value;
         m_NumberSample = FileHandle.Channels[m_currentElectrodeID].NumberOfSample;
         m_numberPoint = m_samplingFreq * m_periodSec;
-        m_Data = FileHandle.Channels[m_currentElectrodeID].Data;
+        m_Channel = FileHandle.Channels[m_currentElectrodeID];
 
         base.init();
     }
@@ -77,7 +77,7 @@ public class EegSignal : SignalDisp
         m_samplingFreq = FileHandle.Frequency.Value;
         m_NumberSample = FileHandle.Channels[m_currentElectrodeID].NumberOfSample;
         m_numberPoint = m_samplingFreq * m_periodSec;
-        m_Data = FileHandle.Channels[m_currentElectrodeID].Data;
+        m_Channel = FileHandle.Channels[m_currentElectrodeID];
     }
 
     public void updateOffset(float newOffset)
@@ -101,7 +101,8 @@ public class EegSignal : SignalDisp
         {
             if (i + posInArray >= 0)
             {
-                float value = m_gain * m_Data[i + posInArray] + m_offsetCoefficient;
+                float eegValue = m_Channel.GetSample(i + posInArray, true);
+                float value = m_gain * eegValue + m_offsetCoefficient;
                 if (value >= -limitVal && value <= limitVal)
                 {
                     m_dataArray[i].y = value;

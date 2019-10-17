@@ -15,5 +15,11 @@ namespace BTV.Services.CalculationService
 
         [DllImport("Framework", EntryPoint = "Convolution", CallingConvention = CallingConvention.Cdecl)]
         static public extern void Convolution(float[] iinputData, int length, float[] outputData, int coeff);
+
+        //pearson à remettre
+        //pearson2 à remettre
+
+        [DllImport("Framework", EntryPoint = "Median", CallingConvention = CallingConvention.Cdecl)]
+        static public extern float Median(float[] DataArray, int Size);
     }
 }

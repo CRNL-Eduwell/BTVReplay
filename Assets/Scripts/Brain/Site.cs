@@ -147,8 +147,7 @@ public class Site : MonoBehaviour
             //Might put that back when there is a service with base info like sampling freq and stuff
             int MostRecentSample = ApplicationState.Window1.TraceEeg.FileHandle.Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
             //int PositionOfSampleInArray = (ID * ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample) + MostRecentSample;
-            float[] data = ApplicationState.Window1.TraceEeg.FileHandle.Channels[ID].Data;
-            float currentValue = data[MostRecentSample] / 100;
+            float currentValue = ApplicationState.Window1.TraceEeg.FileHandle.Channels[ID].GetSample(MostRecentSample) / 100;
             float scale = 2 + (m_Gain * currentValue);
 
             if (scale >= 7)

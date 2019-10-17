@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BTV.Services.CalculationService;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,20 +14,35 @@ namespace BTV.Data
         {
             get
             {
-                return Data != null ? Data.Length : 0;
+                return m_Data != null ? m_Data.Length : 0;
             }
         }
         public string Label { get; private set; } = "";
         public int ID { get; private set; } = -1;
-        public float[] Data { get; private set; } = null;
         public Frequency Frequency { get; private set; } = new Frequency();
+        //==
+        private float[] m_Data = null;
+        private float m_Median = 0;
 
         public BtvChannel(string Name, int Position, float DataFrequency, float[] DataArray)
         {
             Label = Name;
             ID = Position;
             Frequency = new Frequency(DataFrequency);
-            Data = DataArray;
+            m_Data = DataArray;
+            //Get some values usefull to manipulate data 
+            //Median (possibly later mean, max and min)
+            m_Median = CalculationService.Median(m_Data, m_Data.Length);
+        }
+
+        public float GetSample(int index, bool centered = false)
+        {
+            if (index >= m_Data.Length)
+            {
+                throw new ArgumentException("Index value : " + index + " is greater or equal to the size of the data array : " + m_Data.Length);
+            }
+
+            return centered ? m_Data[index] - m_Median : m_Data[index];
         }
     }
 }
