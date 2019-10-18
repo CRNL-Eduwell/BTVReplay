@@ -14,14 +14,12 @@ using System.Collections.Generic;
 public delegate void mediaLoadedEventHandler();
 public delegate void initTrace();
 public delegate void initVideo(string videoPath, int totalFileDuration);
-public delegate void initPerf(bool init);
 
 public class BTVMedia : MonoBehaviour
 {
     public event mediaLoadedEventHandler mediaLoaded;
     public event initTrace loadTrace;
     public event initVideo loadVideo;
-    public event initPerf loadPerf;
     
     #region UILoadingCircle
     [SerializeField] GameObject loadingCirclePrefab = null;
@@ -43,9 +41,6 @@ public class BTVMedia : MonoBehaviour
 
     #region members
     public DBManager pm = new DBManager();
-    public POS posFile = null;
-    //public ELAN[] elanFiles = new ELAN[6];
-    public PROV provFile = null;
     public bool loaded = false;
     #endregion
 
@@ -109,12 +104,6 @@ public class BTVMedia : MonoBehaviour
         saveBase.onClick.RemoveAllListeners();
         loadBase.onClick.RemoveAllListeners();
         loadBUBase.onClick.RemoveAllListeners();
-
-        //for (int i = 0; i < elanFiles.Length; i++)
-        //{
-        //    if (elanFiles[i] != null)
-        //        elanFiles[i].Dispose();
-        //}
 
         for (int i = 0; i < patientContent.childCount; i += 2)
         {
@@ -273,7 +262,6 @@ public class BTVMedia : MonoBehaviour
         yield return StartCoroutine(c_loadVideo(myPat.video));
         yield return StartCoroutine(c_LoadBrainAnatomy(myPat));
         loadTrace();
-        yield return StartCoroutine(c_loadPOSandPROV(myPat));
 
         //When everything is loaded we close the loading brain and media panel
         loadingCircle.Close();
@@ -375,36 +363,6 @@ public class BTVMedia : MonoBehaviour
         BtvProgram container = EegFileService.ReturnFirstValidContainer();
         loadVideo(videoPath, container.TotalDurationInSeconds);
 
-        yield return null;
-    }
-
-    IEnumerator c_loadPOSandPROV(Patient myPat)
-    {
-        if (myPat.prov != "")
-        {
-            if (myPat.pos != "")
-            {
-                BtvProgram container = EegFileService.ReturnFirstValidContainer();
-                posFile = new POS(myPat.pos, container.Frequency.Value);
-                posFile.readPosData();
-            }
-
-            if (posFile.FileTriggers.Count > 0)
-            {
-                provFile = new PROV(myPat.prov);
-                if (provFile.changeCodeFilePath != "")
-                    posFile.renameTrigger(provFile);
-
-                posFile.calculateReactionTime(provFile);
-            }
-        }
-
-        //if (posFile != null && posFile.FileTriggers.Count > 0)
-        //    loadPerf(true);
-        //else
-        //    loadPerf(false);
-
-        yield return new WaitForSeconds(1.0f);
         yield return null;
     }
 
