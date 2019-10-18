@@ -64,4 +64,10 @@ class UiToTraceMessage
         get;
         set;
     }
+
+    public int FileID
+    {
+        get;
+        set;
+    }
 }

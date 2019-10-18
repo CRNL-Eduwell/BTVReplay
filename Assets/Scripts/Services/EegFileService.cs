@@ -2,6 +2,7 @@
 using System.Collections;
 using Tools.CSharp.EEG;
 using BTV.Data;
+using CielaSpike;
 
 //If need destructor https://stackoverflow.com/questions/4364665/static-destructor
 
@@ -51,6 +52,14 @@ namespace BTV.Services.EegFileService
             }
 
             return null;
+        }
+
+        public static bool IsFileIdValid(int FileID)
+        {
+            if (FileID >= 6)
+                throw new ArgumentException("There is only 6 possible file, fileID argument is wrong => " + FileID);
+
+            return m_EegFiles[FileID] != null;
         }
 
         public static void AddNewChannel(float[] Data, string Name, int SamplingFrequency, int ProgramID)

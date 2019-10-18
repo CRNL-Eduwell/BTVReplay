@@ -88,7 +88,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             video.sendTime -= new timeVideo(graphSonif.updateSonif);
             video.stopTimeVideo -= new stopVideo(graphSonif.muteSonficiation);
 
-            //hub.traceRemotes[traceID].idFileHasChanged -= new idFileChangedEventHandler(changeFileID);
             //hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeById);
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
             //hub.traceRemotes[traceID].deleteElectrodeInPanel();
@@ -133,7 +132,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         video.sendTime += new timeVideo(graphSonif.updateSonif);
         video.stopTimeVideo += new stopVideo(graphSonif.muteSonficiation);
 
-        //hub.traceRemotes[traceID].idFileHasChanged += new idFileChangedEventHandler(changeFileID);
         //hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeById);
         graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
         //hub.traceRemotes[traceID].loadElectrodeInPanel(eegSignal.fileHandle.electrodes);
@@ -179,6 +177,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 7:
                 Debug.Log("Update File Switcher");
+                changeFileID(message.FileID);
                 break;
             default:
                 Debug.LogError("Trace.cs : Id of action to execute does not exist : " + message.TaskToExecute);

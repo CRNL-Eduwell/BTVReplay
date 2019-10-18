@@ -59,7 +59,7 @@ namespace BTV.UI.Module3D
             m_Sonifier.sonifToggled += ToggleSonification;
             m_Sonifier.soundChanged += UpdateSonificationSound;
             m_ColorPicker.UpdateColor += UpdateTraceColor;
-            m_FileSwitcher.idFileHasChanged += UpdateTraceCurrentFile;
+            m_FileSwitcher.UpdateEegFileID += UpdateTraceCurrentFile;
         }
 
         private void UpdateTraceGain(float NewGain)
@@ -148,7 +148,14 @@ namespace BTV.UI.Module3D
 
         private void UpdateTraceCurrentFile(int NewFileId)
         {
-            throw new System.NotImplementedException();
+            UnityEngine.Debug.Log("Update File ID");
+            UiToTraceMessage message = new UiToTraceMessage
+            {
+                TaskToExecute = 7,
+                TraceID = m_TraceID,
+                FileID = NewFileId
+            };
+            Messenger.Default.Send(message, MessageContext.UiToTrace);
         }
         #endregion
 
