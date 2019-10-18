@@ -83,12 +83,12 @@ public class EegSignal : SignalDisp
     public void updateOffset(float newOffset)
     {
         m_offsetPerTen = newOffset;
-        //m_offsetCoefficient = (m_offsetPerTen / 10) * eHandle.maxValues[idCurrentElec];
+        m_offsetCoefficient = (m_offsetPerTen / 10) * m_Channel.MaxValue;
     }
 
     public void updateOffset()
     {
-        //m_offsetCoefficient = (m_offsetPerTen / 10) * eHandle.maxValues[idCurrentElec];
+        m_offsetCoefficient = (m_offsetPerTen / 10) * m_Channel.MaxValue;
     }
 
     public override void UpdateDraw(int milliSecToLook)

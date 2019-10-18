@@ -20,6 +20,7 @@ namespace BTV.Data
         public string Label { get; private set; } = "";
         public int ID { get; private set; } = -1;
         public Frequency Frequency { get; private set; } = new Frequency();
+        public float MaxValue { get; private set; }
         //==
         private float[] m_Data = null;
         private float m_Median = 0;
@@ -33,6 +34,7 @@ namespace BTV.Data
             //Get some values usefull to manipulate data 
             //Median (possibly later mean, max and min)
             m_Median = CalculationService.Median(m_Data, m_Data.Length);
+            MaxValue = Math.Max(Math.Abs(m_Data.Min()), Math.Abs(m_Data.Max()));
         }
 
         public float GetSample(int index, bool centered = false)

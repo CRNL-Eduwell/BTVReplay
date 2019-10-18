@@ -153,7 +153,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 1:
                 Debug.Log("Update Trace Offset");
-                eegSignal.updateOffset(message.Gain);
+                eegSignal.updateOffset(message.Offset);
                 break;
             case 2:
                 Debug.Log("Toggle Grid");

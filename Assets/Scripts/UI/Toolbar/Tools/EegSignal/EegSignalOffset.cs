@@ -23,7 +23,7 @@ namespace BTV.UI.Module3D.Tools
         private Button m_RemoveOffset = null;
         /// <summary>
         /// </summary>
-        private float m_Offset = 1;
+        private float m_Offset = 0;
 
         public override void Initialize()
         {
