@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TriggerBarplot : MonoBehaviour
 {
-    public trigg Trigger
+    public EegTrigger Trigger
     {
         get;
         set;

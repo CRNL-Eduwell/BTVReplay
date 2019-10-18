@@ -47,7 +47,7 @@ namespace Assets.Scripts.Data.Files
                         {
                             int Code = int.Parse(resultSplit[2]);
                             int Sample = int.Parse(resultSplit[3]);
-                            eventEeg currentEvent = new eventEeg(Code, Sample);
+                            EegEvent currentEvent = new EegEvent(Code, Sample);
                             int Duration = int.Parse(resultSplit[4]);
                             string FirstElectrodeOfInterest = resultSplit[5];
                             string SecondElectrodeOfInterest = resultSplit[6];

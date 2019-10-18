@@ -45,7 +45,7 @@ namespace Assets.Scripts.Data.Files
                         {
                             int Code = int.Parse(resultSplit[1]);
                             int Sample = int.Parse(resultSplit[0]);
-                            eventEeg currentEvent = new eventEeg(Code, Sample);
+                            EegEvent currentEvent = new EegEvent(Code, Sample);
                             Events.Add(new TraceEvent(currentEvent));
                         }
                     }

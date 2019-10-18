@@ -11,15 +11,15 @@ namespace BTV.Services.TaskPerformanceService
 {
     public static class TaskPerformanceService
     {
-        public static List<trigg> ProcessedTriggers
+        public static List<EegTrigger> ProcessedTriggers
         {
             get; private set;
         }
 
         //calculateReactionTime in old pos.cs
-        public static void ProcessEventsForExperiment(PROV protocol, int flagCode = 99, int DownsamplingFactor = 1)
+        public static void ProcessEventsForExperiment(ProvFile protocol, int flagCode = 99, int DownsamplingFactor = 1)
         {
-            List<trigg> Triggers = GetTriggerList(flagCode, DownsamplingFactor);
+            List<EegTrigger> Triggers = GetTriggerList(flagCode, DownsamplingFactor);
             UnityEngine.Debug.Log(Triggers.Count + "dede");
             if (protocol.changeCodeFilePath != "")
             {
@@ -43,14 +43,14 @@ namespace BTV.Services.TaskPerformanceService
         }
 
         //==== Private
-        private static List<trigg> GetTriggerList(int flagCode = 99, int DownsamplingFactor = 1)
+        private static List<EegTrigger> GetTriggerList(int flagCode = 99, int DownsamplingFactor = 1)
         {
             int beginvalue = 0;
             if (flagCode != -1)
                 beginvalue = FindFirstIndexAfter(flagCode);
 
             int TriggerCount = EventsService.EventsService.Events.Count;
-            List<trigg> triggers = new List<trigg>();
+            List<EegTrigger> triggers = new List<EegTrigger>();
             if (TriggerCount > 0)
             {
                 for (int i = beginvalue; i < TriggerCount; i++)
@@ -59,7 +59,7 @@ namespace BTV.Services.TaskPerformanceService
                     int sample = EventsService.EventsService.Events[i].sample;
                     int samplingFrequency = 64;// EventsService.EventsService.Events[i].samplingFrequency;
                     
-                    trigg currentTrigger = new trigg(new eventEeg(code, sample, samplingFrequency));
+                    EegTrigger currentTrigger = new EegTrigger(new EegEvent(code, sample, samplingFrequency));
                     //TODO
                     //currentTrigger.UpdateFrequency(m_originalSamplingFrequency / downSamplingFactor);
                     triggers.Add(currentTrigger);
@@ -79,7 +79,7 @@ namespace BTV.Services.TaskPerformanceService
             return beginValue;
         }
 
-        private static void RenameTriggersForExperiment(PROV protocol, ref List<trigg> processedTriggers)
+        private static void RenameTriggersForExperiment(ProvFile protocol, ref List<EegTrigger> processedTriggers)
         {
             ChangeCodeFile chgCode = new ChangeCodeFile(protocol.changeCodeFilePath);
 
@@ -94,7 +94,7 @@ namespace BTV.Services.TaskPerformanceService
                 {
                     for (int m = 0; m < chgCode.OldCodes[l].Count; m++)
                     {
-                        if (processedTriggers[k].trigger.code == chgCode.OldCodes[l][m].Key)
+                        if (processedTriggers[k].Trigger.Code == chgCode.OldCodes[l][m].Key)
                         {
                             idMain = k;
                             int BlocCount = protocol.blocs.Count;
@@ -110,7 +110,7 @@ namespace BTV.Services.TaskPerformanceService
                 //TODO : add a function that check there is not some triggerd with a different
                 //sampling frequnecy, otherwise throw exception
                 int memId = 0;
-                Frequency triggersSamplingFrequency = new Frequency(processedTriggers[0].trigger.samplingFrequency);
+                Frequency triggersSamplingFrequency = new Frequency(processedTriggers[0].Trigger.SamplingFrequency);
                 if (idMain != -1)
                 {
                     int[] blocEpochWindow = protocol.blocs[idVisuBloc].dispBloc.epochWindow;
@@ -124,13 +124,13 @@ namespace BTV.Services.TaskPerformanceService
                         {
                             for (int m = 0; m < chgCode.OldCodes[l].Count; m++)
                             {
-                                if (processedTriggers[idMain].trigger.code == chgCode.OldCodes[l][m].Key && processedTriggers[CurrentTriggerId].trigger.code == chgCode.OldCodes[l][m].Value)
+                                if (processedTriggers[idMain].Trigger.Code == chgCode.OldCodes[l][m].Key && processedTriggers[CurrentTriggerId].Trigger.Code == chgCode.OldCodes[l][m].Value)
                                 {
                                     idSec = CurrentTriggerId;
                                     memId = l;
                                     break;
                                 }
-                                else if (processedTriggers[CurrentTriggerId].trigger.code == chgCode.OldCodes[l][m].Key && idSec == -1)
+                                else if (processedTriggers[CurrentTriggerId].Trigger.Code == chgCode.OldCodes[l][m].Key && idSec == -1)
                                 {
                                     idMain = CurrentTriggerId;
                                     memId = l;
@@ -142,14 +142,14 @@ namespace BTV.Services.TaskPerformanceService
 
                     if (idMain != -1 && idSec != -1)
                     {
-                        int winMax = processedTriggers[idMain].trigger.sample + winSamMax;
-                        int winMin = processedTriggers[idMain].trigger.sample - Math.Abs(winSamMin);
+                        int winMax = processedTriggers[idMain].Trigger.Sample + winSamMax;
+                        int winMin = processedTriggers[idMain].Trigger.Sample - Math.Abs(winSamMin);
 
-                        bool isInWindow = (processedTriggers[idSec].trigger.sample < winMax) && (processedTriggers[idSec].trigger.sample > winMin);
+                        bool isInWindow = (processedTriggers[idSec].Trigger.Sample < winMax) && (processedTriggers[idSec].Trigger.Sample > winMin);
                         if (isInWindow)
                         {
-                            processedTriggers[idMain].trigger.code = chgCode.NewCodes[memId].Key;
-                            processedTriggers[idSec].trigger.code = chgCode.NewCodes[memId].Value;
+                            processedTriggers[idMain].Trigger.Code = chgCode.NewCodes[memId].Key;
+                            processedTriggers[idSec].Trigger.Code = chgCode.NewCodes[memId].Value;
                         }
                     }
                 }
@@ -157,7 +157,7 @@ namespace BTV.Services.TaskPerformanceService
             //removeDuplicateEventCode();
         }
 
-        private static void PairStimulationWithResponses(PROV protocol, ref List<trigg> processedTriggers)
+        private static void PairStimulationWithResponses(ProvFile protocol, ref List<EegTrigger> processedTriggers)
         {
             List<KeyValuePair<int, int>> NewCodes = new List<KeyValuePair<int, int>>();
 
@@ -195,7 +195,7 @@ namespace BTV.Services.TaskPerformanceService
 
                 for (int l = 0; l < NewCodes.Count; l++)
                 {
-                    if (processedTriggers[k].trigger.code == NewCodes[l].Key)
+                    if (processedTriggers[k].Trigger.Code == NewCodes[l].Key)
                     {
                         idMain = k;
                         for (int m = 0; m < protocol.blocs.Count; m++)
@@ -206,7 +206,7 @@ namespace BTV.Services.TaskPerformanceService
                     }
                 }
 
-                Frequency triggersSamplingFrequency = new Frequency(processedTriggers[0].trigger.samplingFrequency);
+                Frequency triggersSamplingFrequency = new Frequency(processedTriggers[0].Trigger.SamplingFrequency);
                 if (idMain != -1)
                 {
                     int[] blocEpochWindow = protocol.blocs[idVisuBloc].dispBloc.epochWindow;
@@ -219,13 +219,13 @@ namespace BTV.Services.TaskPerformanceService
                     {
                         for (int l = 0; l < NewCodes.Count; l++)
                         {
-                            if (processedTriggers[dd].trigger.code == NewCodes[l].Value &&
-                                processedTriggers[idMain].trigger.code == NewCodes[l].Key)
+                            if (processedTriggers[dd].Trigger.Code == NewCodes[l].Value &&
+                                processedTriggers[idMain].Trigger.Code == NewCodes[l].Key)
                             {
                                 idSec = dd;
                                 idcode = l;
                             }
-                            else if (processedTriggers[dd].trigger.code == NewCodes[l].Key && idSec == -1)
+                            else if (processedTriggers[dd].Trigger.Code == NewCodes[l].Key && idSec == -1)
                             {
                                 idMain = dd;
                                 idcode = l;
@@ -236,20 +236,20 @@ namespace BTV.Services.TaskPerformanceService
 
                     if (idMain != -1 && idSec != -1)
                     {
-                        int winMax = processedTriggers[idMain].trigger.sample + winSamMax;
-                        int winMin = processedTriggers[idMain].trigger.sample - Math.Abs(winSamMin);
+                        int winMax = processedTriggers[idMain].Trigger.Sample + winSamMax;
+                        int winMin = processedTriggers[idMain].Trigger.Sample - Math.Abs(winSamMin);
 
-                        bool isInWindow = (processedTriggers[idSec].trigger.sample < winMax) && (processedTriggers[idSec].trigger.sample > winMin);
+                        bool isInWindow = (processedTriggers[idSec].Trigger.Sample < winMax) && (processedTriggers[idSec].Trigger.Sample > winMin);
                         if (isInWindow)
                         {
-                            processedTriggers[idMain].response = new eventEeg(processedTriggers[idSec].trigger);
+                            processedTriggers[idMain].Response = new EegEvent(processedTriggers[idSec].Trigger);
                         }
                     }
                 }
             }
         }
 
-        private static void DeleteTriggerNotInExperiment(PROV protocol, ref List<trigg> processedTriggers)
+        private static void DeleteTriggerNotInExperiment(ProvFile protocol, ref List<EegTrigger> processedTriggers)
         {
             List<int> IDsToDelete = new List<int>();
             for (int i = 0; i < processedTriggers.Count; i++)
@@ -263,14 +263,14 @@ namespace BTV.Services.TaskPerformanceService
                 processedTriggers.RemoveAt(IDsToDelete[i]);
         }
 
-        private static bool IsTriggerInExperiment(PROV protocol, trigg trigger)
+        private static bool IsTriggerInExperiment(ProvFile protocol, EegTrigger trigger)
         {
-            if (trigger.response == null)
+            if (trigger.Response == null)
                 return false;
 
             for (int i = 0; i < protocol.blocs.Count; i++)
             {
-                if (trigger.trigger.code == protocol.blocs[i].mainEvent.code)
+                if (trigger.Trigger.Code == protocol.blocs[i].mainEvent.code)
                     return true;
             }
 

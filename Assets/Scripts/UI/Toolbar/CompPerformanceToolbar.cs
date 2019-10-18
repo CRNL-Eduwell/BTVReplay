@@ -27,7 +27,7 @@ namespace BTV.UI.Module3D
             m_Protocols.UpdateProtocol += SendUpdateProtocolMessage;
         }
 
-        private void SendUpdateProtocolMessage(PROV protocol)
+        private void SendUpdateProtocolMessage(ProvFile protocol)
         {
             UiToTaskPerformanceMessage message = new UiToTaskPerformanceMessage
             {

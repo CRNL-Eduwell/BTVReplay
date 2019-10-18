@@ -7,7 +7,7 @@ using UnityEngine;
 public class TraceEvent
 {
     #region Private Members
-    eventEeg m_event;
+    EegEvent m_event;
     int m_duration = 0;
     string m_elecOfInterest = "";
     string m_secondElecOfInterest = "";
@@ -21,25 +21,25 @@ public class TraceEvent
     {
         get
         {
-            return m_event.code;
+            return m_event.Code;
         }
         set
         {
-            m_event.code = value;
+            m_event.Code = value;
         }
     }
     public int sample
     {
         get
         {
-            return m_event.sample;
+            return m_event.Sample;
         }
     }
     public int samplingFrequency
     {
         get
         {
-            return m_event.samplingFrequency;
+            return m_event.SamplingFrequency;
         }
     }
     public int duration
@@ -111,9 +111,9 @@ public class TraceEvent
     #endregion
 
     #region Constructors
-    public TraceEvent(eventEeg eegEvent, int duration = 0, string elecOfInterest = "", string secondElecOfInterest = "", string comment = "")
+    public TraceEvent(EegEvent eegEvent, int duration = 0, string elecOfInterest = "", string secondElecOfInterest = "", string comment = "")
     {
-        m_event = new eventEeg(eegEvent);
+        m_event = new EegEvent(eegEvent);
         m_duration = duration;
         m_elecOfInterest = elecOfInterest;
         m_secondElecOfInterest = secondElecOfInterest;
@@ -122,7 +122,7 @@ public class TraceEvent
 
     public TraceEvent(TraceEvent currentTraceEvent)
     {
-        m_event = new eventEeg(currentTraceEvent.m_event);
+        m_event = new EegEvent(currentTraceEvent.m_event);
         m_duration = currentTraceEvent.m_duration;
         m_elecOfInterest = currentTraceEvent.m_elecOfInterest;
         m_secondElecOfInterest = currentTraceEvent.m_secondElecOfInterest;

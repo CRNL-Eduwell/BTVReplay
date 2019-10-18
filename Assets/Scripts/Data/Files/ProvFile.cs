@@ -45,15 +45,15 @@ public class BLOC
     public displayBloc dispBloc;
 }
 
-public class PROV
+public class ProvFile
 {
-    public PROV(string p_provFilePath)
+    public ProvFile(string p_provFilePath)
     {
         provFilePath = p_provFilePath;
         extractProvData();
     }
 
-    ~PROV()
+    ~ProvFile()
     {
 
     }

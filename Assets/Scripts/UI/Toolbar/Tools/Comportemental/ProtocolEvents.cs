@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
-    public delegate void UpdateProtocol(PROV protocol);
+    public delegate void UpdateProtocol(ProvFile protocol);
 
     public class ProtocolEvents : Tool
     {
@@ -23,7 +23,7 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField]
         private Button m_ProcessEvents = null;
 
-        private List<PROV> m_ProtocolList = new List<PROV>();
+        private List<ProvFile> m_ProtocolList = new List<ProvFile>();
 
         public override void Initialize()
         {
@@ -45,7 +45,7 @@ namespace BTV.UI.Module3D.Tools
                 m_Protocols.options.Add(new Dropdown.OptionData(shortName));
 
                 //Add to protocol list
-                m_ProtocolList.Add(new PROV(protocolPaths[i]));  
+                m_ProtocolList.Add(new ProvFile(protocolPaths[i]));  
             }
         }
     }

@@ -329,7 +329,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         float sampleClicked = (eegSignal.MostRecentSample - eegSignal.numberOfPoint) + (perCentX * eegSignal.numberOfPoint);
         if (sampleClicked >= 0)
         {
-            TraceEvent currentEvent = new TraceEvent(new eventEeg(0, (int)sampleClicked, eegSignal.SamplingFrequency), elecOfInterest: eegSignal.ElectrodeLabel);
+            TraceEvent currentEvent = new TraceEvent(new EegEvent(0, (int)sampleClicked, eegSignal.SamplingFrequency), elecOfInterest: eegSignal.ElectrodeLabel);
             //eventWasClicked(currentEvent, traceID);
             OpenEventAdd(currentEvent);
         }

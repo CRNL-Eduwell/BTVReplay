@@ -83,7 +83,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         }
     }
 
-    private void UpdateEventsForProtocol(PROV protocol)
+    private void UpdateEventsForProtocol(ProvFile protocol)
     {
         UnityEngine.Debug.Log("Update Protocol Events");
         m_HasDataToDisplay = false;
@@ -93,7 +93,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         m_HasDataToDisplay = (TaskPerformanceService.ProcessedTriggers.Count == 0) ? false : true;
     }
 
-    private void UpdateEvents(PROV protocol)
+    private void UpdateEvents(ProvFile protocol)
     {
         UnityEngine.Debug.Log("Update Events");
 
@@ -123,7 +123,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         }
     }
 
-    private void UpdateProtocolPicturesAndCodes(PROV protocol)
+    private void UpdateProtocolPicturesAndCodes(ProvFile protocol)
     {
         UnityEngine.Debug.Log("Update Protocol Pics and code");
 
@@ -158,7 +158,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         int MaxReactionTime = 0;
         for (int i = 0; i < m_Triggers.Count; i++)
         {
-            int currentRtMs = m_Triggers[i].Trigger.rtMs(64);
+            int currentRtMs = m_Triggers[i].Trigger.ReactionTimeInMs(64);
             if (currentRtMs > MaxReactionTime)
                 MaxReactionTime = currentRtMs;
         }
@@ -175,7 +175,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         int rightTime = (int)(milliSecToLook * ((float)m_signalWindow1.TraceEeg.SamplingFrequency / 1000));
 
         List<int> currentIndex = m_Triggers.Select((item, index) => new { Item = item, Index = index })
-                                                         .Where(x => x.Item.Trigger.response.sample > leftTime && x.Item.Trigger.response.sample < rightTime)
+                                                         .Where(x => x.Item.Trigger.Response.Sample > leftTime && x.Item.Trigger.Response.Sample < rightTime)
                                                          .Select(x => x.Index)
                                                          .ToList();
         DeactivateSpawn();
@@ -183,15 +183,15 @@ public class TaskPerformanceTrace : MonoBehaviour
         {
             for (int i = 0; i < currentIndex.Count; i++)
             {
-                float posiionSample = (leftTime - m_Triggers[currentIndex[i]].Trigger.response.sample);
+                float posiionSample = (leftTime - m_Triggers[currentIndex[i]].Trigger.Response.Sample);
                 float positionInsideRect = posiionSample * -m_HorizontalScale;
 
-                if (m_Triggers[currentIndex[i]].Trigger.response.sample <= rightTime)
+                if (m_Triggers[currentIndex[i]].Trigger.Response.Sample <= rightTime)
                 {
                     m_Triggers[currentIndex[i]].gameObject.SetActive(true);
                     m_Triggers[currentIndex[i]].UpdatePosition(0, positionInsideRect, 5, -2);
 
-                    float value = m_VerticalScale * (m_Triggers[currentIndex[i]].Trigger.rtMs() - 750);
+                    float value = m_VerticalScale * (m_Triggers[currentIndex[i]].Trigger.ReactionTimeInMs() - 750);
                     m_Triggers[currentIndex[i]].UpdatePosition(1, positionInsideRect, Mathf.Abs(value), -2);
                 }
             }
@@ -215,7 +215,7 @@ public class TaskPerformanceTrace : MonoBehaviour
 
         int sampleToLook = (int)(milliSecToLook * ((float)m_signalWindow1.TraceEeg.SamplingFrequency / 1000));
         UnityEngine.Debug.Log(sampleToLook);
-        int found = m_Triggers.FindIndex(x => x.Trigger.trigger.sample >= sampleToLook - 8 && x.Trigger.trigger.sample < sampleToLook + 8);
+        int found = m_Triggers.FindIndex(x => x.Trigger.Trigger.Sample >= sampleToLook - 8 && x.Trigger.Trigger.Sample < sampleToLook + 8);
         UnityEngine.Debug.Log("found " + found);
         if (found == -1)
         {
@@ -228,7 +228,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         if (m_EventPicture.activeSelf == false)
         {
             m_EventPicture.SetActive(true);
-            m_EventRawImage.texture = m_EventPictures[m_EventMainCodes.IndexOf(m_Triggers[found].Trigger.trigger.code)];
+            m_EventRawImage.texture = m_EventPictures[m_EventMainCodes.IndexOf(m_Triggers[found].Trigger.Trigger.Code)];
         }
     }
 }
