@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class EventsTexture : MonoBehaviour
@@ -18,6 +19,15 @@ public class EventsTexture : MonoBehaviour
         m_CurrentTexture = Instantiate(m_DefaultTexturePrefab);
         m_ScrollBarRawImage.texture = m_CurrentTexture;
         m_TextureColorData = m_CurrentTexture.GetPixels();
+    }
+
+    public void AddEvents(List<TraceEvent> events)
+    {
+        int eventsCount = events.Count;
+        for (int i = 0; i < eventsCount; i++)
+        {
+            AddEvent(events[i]);
+        }
     }
 
     public void AddEvent(TraceEvent currentEvent)
@@ -51,6 +61,25 @@ public class EventsTexture : MonoBehaviour
         }
         m_CurrentTexture.SetPixels(m_TextureColorData);
         m_CurrentTexture.Apply();
+    }
+
+    public void RemoveAllEvents()
+    {
+        int textureSize = m_TextureColorData.Length;
+        for (int i = 0; i < textureSize; i++)
+            m_TextureColorData[i] = hardBlue;
+
+        m_CurrentTexture.SetPixels(m_TextureColorData);
+        m_CurrentTexture.Apply();
+    }
+
+    public void RemoveEvents(List<TraceEvent> events)
+    {
+        int eventsCount = events.Count;
+        for (int i = 0; i < eventsCount; i++)
+        {
+            RemoveEvent(events[i]);
+        }
     }
 
     public void RemoveEvent(TraceEvent currentEvent)

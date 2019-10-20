@@ -73,6 +73,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         switch (message.TaskToExecute)
         {
             case 0:
+                ClearTrace();
                 UpdateEventsForProtocol(message.NewProtocol);
                 UpdateScales();
                 break;
@@ -81,6 +82,28 @@ public class TaskPerformanceTrace : MonoBehaviour
                 UpdateScales();
                 break;
         }
+    }
+
+    private void ClearTrace()
+    {
+        m_HasDataToDisplay = false;
+
+        //Clear barplots
+        int BarplotCount = m_Triggers.Count;
+        for (int i = BarplotCount - 1; i >= 0; i--)
+        {
+            m_Triggers[i].SelfDestruct();
+        }
+        m_Triggers.Clear();
+
+        //Clear Event pics and main codes
+        int EventPicturesCount = m_EventPictures.Count;
+        for (int i = EventPicturesCount - 1; i >= 0; i--)
+        {
+            Resources.UnloadAsset(m_EventPictures[i]);
+        }
+        m_EventPictures.Clear();
+        m_EventMainCodes.Clear();
     }
 
     private void UpdateEventsForProtocol(ProvFile protocol)
@@ -104,21 +127,10 @@ public class TaskPerformanceTrace : MonoBehaviour
         {
             TriggerBarplot trigger = Instantiate(m_TriggerBarplotPrefabs, m_TaskBarHolder); //instancier avec parent dzans les paramètres
             trigger.Trigger = TaskPerformanceService.ProcessedTriggers[i];
-
-            //trigger.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0);
-            //trigger.GetComponent<RectTransform>().anchorMax = new Vector2(1, 0);
-            //trigger.GetComponent<RectTransform>().pivot = new Vector2(0, 0.5f);
-            //trigger.transform.localPosition = new Vector3(0, 0, 0);
-            //trigger.name = "Perf" + (m_Triggers.Count);
-
-            //trigger.transform.GetComponent<LineRenderer>().SetPosition(0, new Vector3(i, 0, -2));
-            //trigger.transform.GetComponent<LineRenderer>().SetPosition(1, new Vector3(i, 100, -2));
             trigger.UpdatePosition(0, i, 0, -2);
             trigger.UpdatePosition(0, i, 100, -2);
+            trigger.Show(false);
 
-            //trigger.transform.localScale = new Vector3(1, 1, 1);
-
-            trigger.gameObject.SetActive(false);
             m_Triggers.Add(trigger);
         }
     }
@@ -204,7 +216,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         if (ActiveObjects.Count > 0)
         {
             for (int i = 0; i < ActiveObjects.Count; i++)
-                ActiveObjects[i].gameObject.SetActive(false);
+                ActiveObjects[i].Show(false);
         }
     }
 

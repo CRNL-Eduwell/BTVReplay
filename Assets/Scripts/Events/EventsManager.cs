@@ -189,8 +189,13 @@ public class EventsManager : MonoBehaviour
         if (File.Exists(filePath))
         {
             EventsService.Load(filePath);
+            //load in UI List
             m_EventsList.DeleteAllEvents();
             m_EventsList.LoadEvents(EventsService.Events);
+            //load in Scrollbar Texture
+            m_EventsTexture.RemoveAllEvents();
+            m_EventsTexture.AddEvents(EventsService.Events);
+            //send events to traces
             for (int i = 0; i < EventsService.Events.Count; i++)
             {
                 EventsToTraceMessage message = new EventsToTraceMessage
