@@ -40,7 +40,7 @@ public class EventItem : Tools.Unity.Lists.SelectableItem<TraceEvent>
     {
         gameObject.name = "HubEvent - " + base.Object.sample;
 
-        int timeInSec = base.Object.sample / ApplicationState.Window1.TraceEeg.SamplingFrequency;
+        int timeInSec = base.Object.sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
         int h = timeInSec / 3600;
         int m = (timeInSec / 60) % 60;
         int s = timeInSec % 60;

@@ -12,6 +12,13 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             return traceID;
         }
     }
+    public AudioSignal TraceAudio
+    {
+        get
+        {
+            return audioSignal;
+        }
+    }
     public EegSignal TraceEeg
     {
         get
@@ -140,7 +147,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         m_initDone = true;
     }
 
-    void OnTraceParametersMessage(UiToTraceMessage message)
+    private void OnTraceParametersMessage(UiToTraceMessage message)
     {
         if (message.TraceID != traceID)
             return;
@@ -185,7 +192,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    void OnVideoParametersMessage(UiToVideoMessage message)
+    private void OnVideoParametersMessage(UiToVideoMessage message)
     {
         switch (message.TaskToExecute)
         {
@@ -210,7 +217,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    void OnEventsToTraceMessage(EventsToTraceMessage message)
+    private void OnEventsToTraceMessage(EventsToTraceMessage message)
     {
         switch (message.TaskToExecute)
         {
@@ -237,7 +244,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    void OnBrainWardenToTraceMessage(BrainWardenToTraceMessage message)
+    private void OnBrainWardenToTraceMessage(BrainWardenToTraceMessage message)
     {
         switch (message.TaskToExecute)
         {
@@ -246,6 +253,40 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             default:
                 Debug.LogError("Trace.cs : Id of action to execute does not exist : " + message.TaskToExecute);
+                break;
+        }
+    }
+
+    public void UpdateWindowState(int state)
+    {
+        UnityEngine.Debug.Log("Updating Trace " + TraceId + " Ui State");
+        switch (state)
+        {
+            case 0: //Hide 3D Module
+                gameObject.SetActive(false);
+                break;
+            case 1: //Show 3D Module
+                gameObject.SetActive(true);
+                break;
+            case 2: //Module is visible but special selection mode
+                    //for electrodes is disabled if it was on before
+                plotClicked(null);
+                m_window.setBorderColor(blue);
+                m_window.hasFocus = false;
+                break;
+            case 3: //Module is visible and special selection mode
+                    //allowing to change electrode by clicking on the brain
+                    //is on
+                m_window.setBorderColor(orange);
+                m_window.hasFocus = true;
+
+                if (m_handleOtherTrace != null)
+                {
+                    m_handleOtherTrace.hasFocus = false;
+                    m_handleOtherTrace.setBorderColor(blue);
+                }
+
+                plotClicked(GameObject.Find(eegSignal.ElectrodeName.ToLower()));
                 break;
         }
     }
@@ -427,7 +468,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OpenEventModify(TraceEvent Event)
     {
-        ApplicationState.MemoryEvent = null;
+        ApplicationState.Module3D.MemoryEvent = null;
 
         GameObject AddEventWindow = Instantiate(m_AddEventWindowPrefabs);
 

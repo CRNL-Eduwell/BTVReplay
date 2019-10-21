@@ -49,16 +49,19 @@ namespace BTV.UI.Module3D
             {
                 UnityEngine.Debug.Log("Update EEG1 : " + UiOptionIndex);
                 ChangeToolbar(m_Eeg1Toggle, UiOptionIndex);
+                ApplicationState.Module3D.Window1.UpdateWindowState(UiOptionIndex);
             });
             m_Eeg2Toggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
                 UnityEngine.Debug.Log("Update EEG2 : " + UiOptionIndex);
                 ChangeToolbar(m_Eeg2Toggle, UiOptionIndex);
+                ApplicationState.Module3D.Window2.UpdateWindowState(UiOptionIndex);
             });
             m_PerformanceToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
                 UnityEngine.Debug.Log("Update Performance Opt : " + UiOptionIndex);
                 ChangeToolbar(m_PerformanceToggle, UiOptionIndex);
+                ApplicationState.Module3D.TaskPerformanceWindow.UpdateWindowState(UiOptionIndex);
             });
             m_VideoToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {

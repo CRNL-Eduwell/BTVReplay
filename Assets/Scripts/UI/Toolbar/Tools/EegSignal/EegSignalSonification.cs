@@ -40,14 +40,14 @@ namespace BTV.UI.Module3D.Tools
 
         private void LoadAudioData()
         {
-            ApplicationState.SoundFilePaths = Directory.GetFiles(Application.dataPath + @"/Config/Sounds/", "*.*")
+            ApplicationState.Module3D.SoundFilePaths = Directory.GetFiles(Application.dataPath + @"/Config/Sounds/", "*.*")
                 .Where(n => m_audioFileExtention.Contains(System.IO.Path.GetExtension(n), StringComparer.OrdinalIgnoreCase))
                 .ToList();
 
             m_SoundChoice.options.Clear();
-            for (int i = 0; i < ApplicationState.SoundFilePaths.Count(); i++)
+            for (int i = 0; i < ApplicationState.Module3D.SoundFilePaths.Count(); i++)
             {
-                string[] splitPath = ApplicationState.SoundFilePaths[i].Split(new char[] { '/', '.' });
+                string[] splitPath = ApplicationState.Module3D.SoundFilePaths[i].Split(new char[] { '/', '.' });
                 string shortName = splitPath[splitPath.Count() - 2];
                 m_SoundChoice.options.Add(new Dropdown.OptionData(shortName));
             }

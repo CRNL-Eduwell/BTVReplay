@@ -32,15 +32,15 @@ public class EventsTexture : MonoBehaviour
 
     public void AddEvent(TraceEvent currentEvent)
     {
-        float perC = ((((float)currentEvent.sample / ApplicationState.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
+        float perC = ((((float)currentEvent.sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
         int pixelID = (int)(perC * m_CurrentTexture.width);
 
         if (currentEvent.duration > 0)
         {
             if (currentEvent.duration > 1000)
             {
-                float durationInSample = (currentEvent.duration * ((float)ApplicationState.Window1.TraceEeg.SamplingFrequency / 1000));
-                float perCDuration = (((((float)currentEvent.sample + durationInSample) / ApplicationState.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
+                float durationInSample = (currentEvent.duration * ((float)ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency / 1000));
+                float perCDuration = (((((float)currentEvent.sample + durationInSample) / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
                 int pixelIDDuration = (int)(perCDuration * m_CurrentTexture.width);
                 for (int i = 0; i < m_CurrentTexture.height / 2; i++)
                 {
@@ -84,15 +84,15 @@ public class EventsTexture : MonoBehaviour
 
     public void RemoveEvent(TraceEvent currentEvent)
     {
-        float perC = ((((float)currentEvent.sample / ApplicationState.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
+        float perC = ((((float)currentEvent.sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
         int pixelID = (int)(perC * m_CurrentTexture.width);
 
         if (currentEvent.duration > 0)
         {
             if (currentEvent.duration > 1000)
             {
-                float durationInSample = (currentEvent.duration * ((float)ApplicationState.Window1.TraceEeg.SamplingFrequency / 1000));
-                float perCDuration = (((((float)currentEvent.sample + durationInSample) / ApplicationState.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
+                float durationInSample = (currentEvent.duration * ((float)ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency / 1000));
+                float perCDuration = (((((float)currentEvent.sample + durationInSample) / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
                 int pixelIDDuration = (int)(perCDuration * m_CurrentTexture.width);
                 for (int i = 0; i < m_CurrentTexture.height / 2; i++)
                 {

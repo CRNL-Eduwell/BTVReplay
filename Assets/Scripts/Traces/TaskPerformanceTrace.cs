@@ -44,6 +44,23 @@ public class TaskPerformanceTrace : MonoBehaviour
     private float m_HorizontalScale = 0;
     private float m_VerticalScale = 0;
 
+    public void UpdateWindowState(int state)
+    {
+        UnityEngine.Debug.Log("Updating Task performance Ui State");
+        switch (state)
+        {
+            case 0:
+                gameObject.SetActive(false);
+                break;
+            case 1:
+                gameObject.SetActive(true);
+                break;
+            case 2:
+                gameObject.SetActive(true);
+                break;
+        }
+    }
+
     private void Awake()
     {
         m_TriggerBarplotPrefabs = Resources.Load("Prefabs/PerfTrace", typeof(TriggerBarplot)) as TriggerBarplot;

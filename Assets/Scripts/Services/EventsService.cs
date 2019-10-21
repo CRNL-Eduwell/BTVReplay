@@ -60,8 +60,8 @@ namespace BTV.Services.EventsService
 
                 if (UpdateElectrodeDefault)
                 {
-                    Events[Id].elecOfInterest = ApplicationState.Window1.TraceEeg.ElectrodeLabel;
-                    Events[Id].secondElecOfInterest = ApplicationState.Window2.TraceEeg.ElectrodeLabel;
+                    Events[Id].elecOfInterest = ApplicationState.Module3D.Window1.TraceEeg.ElectrodeLabel;
+                    Events[Id].secondElecOfInterest = ApplicationState.Module3D.Window2.TraceEeg.ElectrodeLabel;
                 }
             }
         }

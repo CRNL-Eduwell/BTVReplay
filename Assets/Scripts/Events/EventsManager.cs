@@ -3,7 +3,10 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using BTV.Data;
+using BTV.Services.CalculationService;
 using BTV.Services.EventsService;
+using BTV.Services.VideoService;
 using CielaSpike;
 using UnityEngine;
 
@@ -148,18 +151,18 @@ public class EventsManager : MonoBehaviour
         if (EventsService.Events.Count > 0)
         {
             long TimeInSec = m_videoPlayer.videoInterface.currentTime / 1000;
-            long TimeInSample = TimeInSec * ApplicationState.Window1.TraceEeg.SamplingFrequency;
+            long TimeInSample = TimeInSec * ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
             int index = EventsService.Events.Select(x=>x.sample).ToList().BinarySearch((int)TimeInSample);
             if (Math.Abs(index) - 1 == 0)
             {
-                int TimeInMilliSec = ((EventsService.Events[0].sample / ApplicationState.Window1.TraceEeg.SamplingFrequency) * 1000);
+                int TimeInMilliSec = ((EventsService.Events[0].sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) * 1000);
                 m_videoPlayer.changeTimeClick(TimeInMilliSec);
                 m_videoPlayer.setTime(TimeInMilliSec);
             }
             else
             {
                 int currentPos = Math.Abs(index) - 1;
-                int TimeInMilliSec = ((EventsService.Events[currentPos - 1].sample / ApplicationState.Window1.TraceEeg.SamplingFrequency) * 1000);
+                int TimeInMilliSec = ((EventsService.Events[currentPos - 1].sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) * 1000);
                 m_videoPlayer.changeTimeClick(TimeInMilliSec);
                 m_videoPlayer.setTime(TimeInMilliSec);
             }
@@ -171,12 +174,12 @@ public class EventsManager : MonoBehaviour
         if (EventsService.Events.Count > 0)
         {
             long TimeInSec = m_videoPlayer.videoInterface.currentTime / 1000;
-            long TimeInSample = TimeInSec * ApplicationState.Window1.TraceEeg.SamplingFrequency;
+            long TimeInSample = TimeInSec * ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
             int index = EventsService.Events.Select(x => x.sample).ToList().BinarySearch((int)TimeInSample);
             int currentPos = Math.Abs(index) - 1;
             if (currentPos + 1 < EventsService.Events.Count)
             {
-                int TimeInMilliSec = ((EventsService.Events[currentPos + 1].sample / ApplicationState.Window1.TraceEeg.SamplingFrequency) * 1000);
+                int TimeInMilliSec = ((EventsService.Events[currentPos + 1].sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) * 1000);
                 m_videoPlayer.changeTimeClick(TimeInMilliSec);
                 m_videoPlayer.setTime(TimeInMilliSec);
             }
@@ -276,78 +279,89 @@ public class EventsManager : MonoBehaviour
     IEnumerator ProcessCorrelation(TraceEvent currentEvent)
     {
         yield return Ninja.JumpBack;
-        ApplicationState.coroutineManager.StartCoroutine(c_Correlation(currentEvent));
+        this.StartCoroutineAsync(c_Correlation(currentEvent));
         yield return Ninja.JumpToUnity;
     }
 
     IEnumerator c_Correlation(TraceEvent currentEvent)
     {
-        int nbElec = ApplicationState.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
-        //List<int> ids = Objects.Select((item, index) => new { Item = item, Index = index })
-        //                         .Where(x => x.Item.sample == currentEvent.sample)
-        //                         .Select(x => x.Index)
-        //                         .ToList();
+        int electrodeCount = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
+        int eventIndex = EventsService.GetEventId(currentEvent);
 
-        //Objects[ids[0]].correlationArray = new float[nbElec];
-        //Objects[ids[0]].correlation2DArray = null;
+        EventsService.Events[eventIndex].correlationArray = new float[electrodeCount];
+        EventsService.Events[eventIndex].correlation2DArray = null;
 
-        //int beginSample = Objects[ids[0]].sample;
-        //int durationSample = (Objects[ids[0]].duration / 1000) * Objects[ids[0]].samplingFrequency;
+        int beginTimeSample = EventsService.Events[eventIndex].sample;
+        int durationInSample = (EventsService.Events[eventIndex].duration / 1000) * EventsService.Events[eventIndex].samplingFrequency;
 
-        //int idBase = ApplicationState.Window1.TraceEeg.FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.elecOfInterest);
-        //if (idBase != -1)
-        //{
-        //    int[] sizes = new int[5] { idBase, nbElec, beginSample, durationSample, ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample };
-        //    //pearsonCoefficientsCorrelation(Objects[ids[0]].correlationArray, ApplicationState.Window1.TraceEeg.FileHandle.eegData, sizes);
-        //}
-        //else
-        //{
-        //    if (currentEvent.elecOfInterest.StartsWith("AUD"))
-        //    {
-        //        int[] sizes = new int[4] { nbElec, beginSample, durationSample, ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample };
-        //        //pearsonCoefficientsCorrelation2(Objects[ids[0]].correlationArray, m_videoPlayer.audioWav.getAudioHandle(m_videoPlayer.audioWav.idAudioHandle), ApplicationState.Window1.TraceEeg.FileHandle.eegData, sizes);
-        //    }
-        //}
+        int indexBaseline = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.elecOfInterest);
+        if (indexBaseline != -1)
+        {
+            int[] sizes = { beginTimeSample, durationInSample };
+            BtvProgram container = ApplicationState.Module3D.Window1.TraceEeg.FileHandle;
+            float[] baseline = container.Channels[indexBaseline].Data;
+            for (int i = 0; i < electrodeCount; i++)
+            {
+                if (i == indexBaseline)
+                    continue;
+
+                float[] channel = container.Channels[i].Data;
+                EventsService.Events[eventIndex].correlationArray[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
+            }
+        }
+        else
+        {
+            //Run Correlation against Audio trace
+            if (currentEvent.elecOfInterest.StartsWith("AUD"))
+            {
+                int[] sizes = { beginTimeSample, durationInSample };
+                BtvChannel audioChannel = ApplicationState.Module3D.Window1.TraceAudio.ChannelHandle;
+                float[] baseline = audioChannel.Data;
+
+                for (int i = 0; i < electrodeCount; i++)
+                {
+                    float[] channel = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Channels[i].Data;
+                    EventsService.Events[eventIndex].correlationArray[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
+                }
+            }
+        }
         yield return null;
     }
 
     IEnumerator Process2dCorrelation(TraceEvent currentEvent)
     {
         yield return Ninja.JumpBack;
-        ApplicationState.coroutineManager.StartCoroutine(c_Correlation2d(currentEvent));
+        this.StartCoroutineAsync(c_Correlation2d(currentEvent));
         yield return Ninja.JumpToUnity;
     }
 
     IEnumerator c_Correlation2d(TraceEvent currentEvent)
     {
-        int nbElec = ApplicationState.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
-        //List<int> ids = Objects.Select((item, index) => new { Item = item, Index = index })
-        //                         .Where(x => x.Item.sample == currentEvent.sample)
-        //                         .Select(x => x.Index)
-        //                         .ToList();
+        int electrodeCount = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
+        int eventIndex = EventsService.GetEventId(currentEvent);
 
-        //Objects[ids[0]].correlationArray = null;
-        //Objects[ids[0]].correlation2DArray = new float[nbElec][];
-        //for (int i = 0; i < Objects[ids[0]].correlation2DArray.Length; i++)
-        //    Objects[ids[0]].correlation2DArray[i] = new float[nbElec];
+        EventsService.Events[eventIndex].correlationArray = null;
+        EventsService.Events[eventIndex].correlation2DArray = new float[electrodeCount][];
+        for (int i = 0; i < electrodeCount; i++)
+            EventsService.Events[eventIndex].correlation2DArray[i] = new float[electrodeCount];
 
-        //int beginSample = Objects[ids[0]].sample;
-        //int durationSample = (Objects[ids[0]].duration / 1000) * Objects[ids[0]].samplingFrequency;
+        int beginTimeSample = EventsService.Events[eventIndex].sample;
+        int durationInSample = (EventsService.Events[eventIndex].duration / 1000) * EventsService.Events[eventIndex].samplingFrequency;
 
-        //for (int i = 0; i < Objects[ids[0]].correlation2DArray.Length; i++)
-        //{
-        //    int[] sizes = new int[5] { i, nbElec, beginSample, durationSample, ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample };
-        //    //pearsonCoefficientsCorrelation(Objects[ids[0]].correlation2DArray[i], ApplicationState.Window1.TraceEeg.FileHandle.eegData, sizes);
-        //}
+        int[] sizes = { beginTimeSample, durationInSample };
+        BtvProgram container = ApplicationState.Module3D.Window1.TraceEeg.FileHandle;
+        for (int i = 0; i < electrodeCount; i++)
+        {
+            for (int j = 0; j < electrodeCount; j++)
+            {
+                if (i == j)
+                    continue;
+                float[] baseline = container.Channels[i].Data;
+                float[] channel = container.Channels[j].Data;
+                EventsService.Events[eventIndex].correlation2DArray[i][j] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
+            }
+        }
 
         yield return null;
     }
-
-    #region DLLImport
-    [DllImport("BTVReplayLibraryC++", EntryPoint = "pearsonCoefficientsCorrelation", CallingConvention = CallingConvention.Cdecl)]
-    static private extern void pearsonCoefficientsCorrelation(float[] coeffs, float[] eegData, int[] sizes);
-
-    [DllImport("BTVReplayLibraryC++", EntryPoint = "pearsonCoefficientsCorrelation2", CallingConvention = CallingConvention.Cdecl)]
-    static private extern void pearsonCoefficientsCorrelation2(float[] coeffs, float[] baseArray, float[] eegData, int[] sizes);
-    #endregion
 }

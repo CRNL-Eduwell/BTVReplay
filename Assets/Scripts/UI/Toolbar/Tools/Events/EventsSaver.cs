@@ -21,7 +21,7 @@ namespace BTV.UI.Module3D.Tools
             m_SaveFile.onClick.AddListener(() =>
             {                
                 //Need to change Appliction State file folder with the folder of the project , not just the eeg ? 
-                string filePath = FileBrowser.getSaveFileName(new string[] { "pos" }, "Save Event File", ApplicationState.Window1.TraceEeg.FileHandle.Directory);
+                string filePath = FileBrowser.getSaveFileName(new string[] { "pos" }, "Save Event File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
                 SaveFile.Invoke(filePath);
             });
         }

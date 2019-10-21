@@ -31,8 +31,8 @@ public class EventInfoEdit : MonoBehaviour
 
         InitTimeDisplay((int)m_Event.timeSeconds());
 
-        if (isModif && ApplicationState.MemoryEvent != null)
-            InitUiValues(ApplicationState.MemoryEvent);
+        if (isModif && ApplicationState.Module3D.MemoryEvent != null)
+            InitUiValues(ApplicationState.Module3D.MemoryEvent);
         else
             InitUiValues(m_Event);
 

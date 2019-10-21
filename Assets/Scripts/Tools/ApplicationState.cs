@@ -9,46 +9,8 @@ using BTV.Services.EventsService;
 
 public static class ApplicationState
 {
-    public static Trace Window1
-    {
-        get;
-        set;
-    }
-
-    public static Trace Window2
-    {
-        get;
-        set;
-    }
-
-    public static Patient Patient
-    {
-        get;
-        set;
-    }
-
-    //public static ELAN[] EegFiles
-    //{
-    //    get;
-    //    set;
-    //}
-
-    public static TraceEvent MemoryEvent
-    {
-        get;
-        set;
-    }
-
-    //For the moment , only the file paths
-    //later , will load the audio clips only once
-    //and then distribute a pointer to it
-    public static List<string> SoundFilePaths
-    {
-        get;
-        set;
-    }
-
     #region public members
+    public static BTV3DModule Module3D { get; set; }
     public static MessageWindow messageWindow
     {
         get; set;
@@ -65,9 +27,6 @@ public static class ApplicationState
             coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
         if (messageWindow == null)
             messageWindow = GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<MessageWindow>();
-
-        Window1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
-        Window2 = GameObject.Find("Trace2Window").GetComponent<Trace>();
     }
 
     // If in coroutine, need to be as such, otherwise it trigger error : "StartCoroutine_Auto_Internal can only be called from the main thread"

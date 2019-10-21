@@ -35,10 +35,10 @@ namespace BTV.UI.Module3D.Tools
             switch (VisuID)
             {
                 case 0:
-                    ChangeReferentialSafely(ApplicationState.Patient.hasMNI, VisuID);
+                    ChangeReferentialSafely(ApplicationState.Module3D.Patient.hasMNI, VisuID);
                     break;
                 case 1:
-                    ChangeReferentialSafely(ApplicationState.Patient.hasPAT, VisuID);
+                    ChangeReferentialSafely(ApplicationState.Module3D.Patient.hasPAT, VisuID);
                     break;
                 case 2:
                     needToChangeBrain.Invoke(VisuID);

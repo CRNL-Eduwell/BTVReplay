@@ -19,6 +19,9 @@ namespace BTV.Services.CalculationService
         //pearson à remettre
         //pearson2 à remettre
 
+        [DllImport("Framework", EntryPoint = "PearsonCorrelationCoefficients", CallingConvention = CallingConvention.Cdecl)]
+        static public extern float PearsonCorrelationCoefficients(float[] baseline, float[] channel, int[] sizes);
+
         [DllImport("Framework", EntryPoint = "Median", CallingConvention = CallingConvention.Cdecl)]
         static public extern float Median(float[] DataArray, int Size);
     }

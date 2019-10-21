@@ -25,7 +25,7 @@ namespace BTV.Services.VideoService
         {
             get
             {
-                return ApplicationState.Patient.video;
+                return ApplicationState.Module3D.Patient.video;
             }
         }
         public static string AudioFromVideoPath

@@ -37,7 +37,7 @@ public class EventList : Tools.Unity.Lists.SelectableList<TraceEvent>
 
     public void AddEvent(TraceEvent currentEvent)
     {
-        ApplicationState.MemoryEvent = new TraceEvent(currentEvent);
+        ApplicationState.Module3D.MemoryEvent = new TraceEvent(currentEvent);
 
         Add(currentEvent);
         m_Objects = m_Objects.OrderBy(x => x.sample).ToList();

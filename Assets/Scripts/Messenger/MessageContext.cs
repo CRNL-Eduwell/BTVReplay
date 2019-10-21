@@ -15,5 +15,5 @@ enum MessageContext
     EventsToTraceMessage,
     EventsModificationMessage,
     BrainWardenToElectrodePointerMessage,
-    BrainWardenToTraceMessage
+    BrainWardenToTraceMessage,
 }

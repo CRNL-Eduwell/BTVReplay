@@ -255,7 +255,7 @@ public class BTVMedia : MonoBehaviour
 
     IEnumerator c_load(Patient myPat)
     {
-        ApplicationState.Patient = myPat;
+        ApplicationState.Module3D.Patient = myPat;
 
         yield return StartCoroutine(c_loadEEGFile(myPat));
         mediaLoaded();

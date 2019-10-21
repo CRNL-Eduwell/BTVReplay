@@ -83,9 +83,9 @@ public class GraphSonification : MonoBehaviour
     IEnumerator StartAudio()
     {
         AudioClip clip = null;
-        for (int i = 0; i < ApplicationState.SoundFilePaths.Count; i++)
+        for (int i = 0; i < ApplicationState.Module3D.SoundFilePaths.Count; i++)
         {
-            WWW audioLoader = new WWW("file://" + ApplicationState.SoundFilePaths[i]);
+            WWW audioLoader = new WWW("file://" + ApplicationState.Module3D.SoundFilePaths[i]);
             while (!audioLoader.isDone)
                 yield return null;
             clip = audioLoader.GetAudioClip(false);
