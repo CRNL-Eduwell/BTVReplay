@@ -39,7 +39,13 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
 
     public void ResetToggle()
     {
-        m_OptionsCounter = 1;
+        //if it's in special selection mode we reset it
+        //otherwise it stays the way it is
+        if (m_OptionsCounter >= 2)
+        {
+            m_OptionsCounter = 1;
+            UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
+        }
         m_BackgroundImage.color = Color.black;
     }
 

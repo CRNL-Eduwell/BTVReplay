@@ -266,10 +266,10 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 gameObject.SetActive(false);
                 break;
             case 1: //Show 3D Module
-                gameObject.SetActive(true);
-                break;
             case 2: //Module is visible but special selection mode
                     //for electrodes is disabled if it was on before
+                gameObject.SetActive(true);
+
                 plotClicked(null);
                 m_window.setBorderColor(blue);
                 m_window.hasFocus = false;
