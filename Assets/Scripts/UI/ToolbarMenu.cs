@@ -1,0 +1,84 @@
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace BTV.UI.Module3D
+{
+    public class ToolbarMenu : MonoBehaviour
+    {
+        /// <summary>
+        /// Currently used toolbar
+        /// </summary>
+        public Toolbar CurrentToolbar { get; set; }
+
+        /// <summary>
+        /// </summary>
+        public BrainToolbar BrainToolBar
+        {
+            get { return m_BrainToolbar; }
+        }
+        [SerializeField] BrainToolbar m_BrainToolbar = null;
+        /// <summary>
+        /// </summary>
+        public EegSignalToolbar EegSignal1ToolBar
+        {
+            get { return m_EegSignal1Toolbar; }
+        }
+        [SerializeField] EegSignalToolbar m_EegSignal1Toolbar = null;
+        /// <summary>
+        /// </summary>
+        public EegSignalToolbar EegSignal2ToolBar
+        {
+            get { return m_EegSignal2Toolbar; }
+        }
+        [SerializeField] EegSignalToolbar m_EegSignal2Toolbar = null;
+        /// <summary>
+        /// </summary>
+        public CompPerformanceToolbar PerformanceToolBar
+        {
+            get { return m_PerformanceToolbar; }
+        }
+        [SerializeField] CompPerformanceToolbar m_PerformanceToolbar = null;
+        /// <summary>
+        /// </summary>
+        public VideoToolbar VideoToolBar
+        {
+            get { return m_VideoToolbar; }
+        }
+        [SerializeField] VideoToolbar m_VideoToolbar = null;
+        /// <summary>
+        /// </summary>
+        public EventsToolbar EventsToolBar
+        {
+            get { return m_EventsToolbar; }
+        }
+        [SerializeField] EventsToolbar m_EventsToolbar = null;
+
+        private void Awake()
+        {
+            Initialize();
+        }
+
+        /// <summary>
+        /// Initialize the toolbar menu
+        /// </summary>
+        private void Initialize()
+        {
+            m_BrainToolbar.Initialize();
+            m_EegSignal1Toolbar.Initialize();
+            m_EegSignal2Toolbar.Initialize();
+            m_PerformanceToolbar.Initialize();
+            m_VideoToolbar.Initialize();
+            m_EventsToolbar.Initialize();
+
+            CurrentToolbar = null;
+
+            m_BrainToolbar.gameObject.SetActive(false);
+            m_EegSignal1Toolbar.gameObject.SetActive(false);
+            m_EegSignal2Toolbar.gameObject.SetActive(false);
+            m_PerformanceToolbar.gameObject.SetActive(false);
+            m_VideoToolbar.gameObject.SetActive(false);
+            m_EventsToolbar.gameObject.SetActive(false);
+        }
+    }
+}

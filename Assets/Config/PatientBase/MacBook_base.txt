@@ -1,0 +1,42 @@
+LH_MNI : /Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/MNI_single_hight_Lhemi.tri
+RH_MNI : /Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/MNI_single_hight_Rhemi.tri
+PTS_MNI : /Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_MNI.pts
+MESH_MNI : Left/Right Mesh
+EEG_MNI : Intracranial EEG
+LH_PAT : 
+RH_PAT : 
+PTS_PAT : 
+ATLAS_PAT : 
+MESH_PAT : Left/Right Mesh
+EEG_PAT : Intracranial EEG
+SM0 : /Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm0.eeg
+SM250 : /Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm250.eeg
+SM500 : 
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : 
+PROV : 
+VID : /Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV.AVI
+[----------]
+LH_MNI : /Users/fsipp/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Lhemi.tri
+RH_MNI : /Users/fsipp/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Rhemi.tri
+PTS_MNI : /Users/fsipp/Documents/Arbeit/Data/Epilepsy/LYONNEURO_2019_LUIv/implantation/LYONNEURO_2019_LUIv_MNI.pts
+MESH_MNI : Left/Right Mesh
+EEG_MNI : Intracranial EEG
+LH_PAT : 
+RH_PAT : 
+PTS_PAT : 
+ATLAS_PAT : 
+MESH_PAT : Left/Right Mesh
+EEG_PAT : Intracranial EEG
+SM0 : /Users/fsipp/Documents/Arbeit/Data/LocaDB/2019/LYONNEURO_2019_LUIv/LYONNEURO_2019_LUIv_MCSE/LYONNEURO_2019_LUIv_MCSE_f50f150/LYONNEURO_2019_LUIv_MCSE_f50f150_ds8_sm0.eeg
+SM250 : /Users/fsipp/Documents/Arbeit/Data/LocaDB/2019/LYONNEURO_2019_LUIv/LYONNEURO_2019_LUIv_MCSE/LYONNEURO_2019_LUIv_MCSE_f50f150/LYONNEURO_2019_LUIv_MCSE_f50f150_ds8_sm250.eeg
+SM500 : 
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : 
+PROV : 
+VID : 
+[----------]

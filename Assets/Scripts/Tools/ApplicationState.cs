@@ -4,10 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using CielaSpike;
+using BTV.UI.Module3D;
+using BTV.Services.EventsService;
 
 public static class ApplicationState
 {
     #region public members
+    public static BTV3DModule Module3D { get; set; }
     public static MessageWindow messageWindow
     {
         get; set;
@@ -23,7 +26,7 @@ public static class ApplicationState
         if (coroutineManager == null)
             coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(7).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<MessageWindow>();
     }
 
     // If in coroutine, need to be as such, otherwise it trigger error : "StartCoroutine_Auto_Internal can only be called from the main thread"
@@ -33,7 +36,7 @@ public static class ApplicationState
     public static void displayMessage(string HeaderMessage, string TypeMessage, string DetailledMessage)
     {
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(7).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<MessageWindow>();
         messageWindow.display(HeaderMessage, TypeMessage, DetailledMessage);
     }
 

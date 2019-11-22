@@ -6,22 +6,20 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 using CielaSpike;
+using BTV.Services.EegFileService;
+using BTV.Data;
+using System.Linq;
+using System.Collections.Generic;
 
 public delegate void mediaLoadedEventHandler();
-public delegate void BrainLoadEventHandler(brain_anat brainToLoad, int otherBrain);
-public delegate void BrainNotPresentLoadEventHandler(eeg_Technology eeg);
 public delegate void initTrace();
 public delegate void initVideo(string videoPath, int totalFileDuration);
-public delegate void initPerf(bool init);
 
 public class BTVMedia : MonoBehaviour
 {
     public event mediaLoadedEventHandler mediaLoaded;
-    public event BrainLoadEventHandler loadBrain;
-    public event BrainNotPresentLoadEventHandler loadDefault;
     public event initTrace loadTrace;
     public event initVideo loadVideo;
-    public event initPerf loadPerf;
     
     #region UILoadingCircle
     [SerializeField] GameObject loadingCirclePrefab = null;
@@ -43,9 +41,6 @@ public class BTVMedia : MonoBehaviour
 
     #region members
     public DBManager pm = new DBManager();
-    public POS posFile = null;
-    public ELAN[] elanFiles = new ELAN[6];
-    public PROV provFile = null;
     public bool loaded = false;
     #endregion
 
@@ -109,12 +104,6 @@ public class BTVMedia : MonoBehaviour
         saveBase.onClick.RemoveAllListeners();
         loadBase.onClick.RemoveAllListeners();
         loadBUBase.onClick.RemoveAllListeners();
-
-        for (int i = 0; i < elanFiles.Length; i++)
-        {
-            if (elanFiles[i] != null)
-                elanFiles[i].Dispose();
-        }
 
         for (int i = 0; i < patientContent.childCount; i += 2)
         {
@@ -266,39 +255,15 @@ public class BTVMedia : MonoBehaviour
 
     IEnumerator c_load(Patient myPat)
     {
-        //When you start a coroutine there is an implicit jumpback
-        //So we jump back to unity just in case
-        yield return Ninja.JumpToUnity;
+        ApplicationState.Module3D.Patient = myPat;
+
         yield return StartCoroutine(c_loadEEGFile(myPat));
         mediaLoaded();
-
-        yield return Ninja.JumpToUnity;
         yield return StartCoroutine(c_loadVideo(myPat.video));
-
-
-        if (myPat.hasMNI && !myPat.hasPAT)
-        {
-            loadBrain(myPat.mni, 0);
-        }
-        else if (myPat.hasMNI && myPat.hasPAT)
-        {
-            loadBrain(myPat.mni, 1);
-        }
-        else if (!myPat.hasMNI && myPat.hasPAT)
-        {
-            loadBrain(myPat.pat, 2);
-        }
-        else if (!myPat.hasMNI && !myPat.hasPAT)
-        {
-            loadDefault(myPat.mni.GetEegTech);
-        }
-
+        yield return StartCoroutine(c_LoadBrainAnatomy(myPat));
         loadTrace();
 
-        yield return Ninja.JumpToUnity;
-        yield return StartCoroutine(c_loadPOSandPROV(myPat));
-
-        yield return Ninja.JumpToUnity;
+        //When everything is loaded we close the loading brain and media panel
         loadingCircle.Close();
         gameObject.SetActive(false);
         loaded = true;
@@ -306,6 +271,45 @@ public class BTVMedia : MonoBehaviour
         PatientNameHeader.text = myPat.patientName;
         ApplicationState.init();
         yield return new WaitForSeconds(0.1f);
+    }
+
+    IEnumerator c_LoadBrainAnatomy(Patient myPat)
+    {
+        bool ShouldLoadMniFirst = (myPat.hasMNI && !myPat.hasPAT) || (myPat.hasMNI && myPat.hasPAT);
+        bool ShouldLoadPatFirst = !myPat.hasMNI && myPat.hasPAT;
+        if (ShouldLoadMniFirst)
+        {
+            LoaderToBrainMessage message = new LoaderToBrainMessage
+            {
+                HasAnatomy = true,
+                Anatomy = myPat.mni
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderToBrain);
+        }
+        else if (ShouldLoadPatFirst)
+        {
+            LoaderToBrainMessage message = new LoaderToBrainMessage
+            {
+                HasAnatomy = true,
+                Anatomy = myPat.pat
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderToBrain);
+        }
+        else
+        {
+            //TODO
+            //When there is no 3D model , we take the value of the mni dropdown for eegtech
+            //if this is not filled this might be wrong, need to find another way to know
+            //if it's intra or scalp
+            LoaderToBrainMessage message = new LoaderToBrainMessage
+            {
+                HasAnatomy = false,
+                Techno = myPat.mni.GetEegTech
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderToBrain);
+        }
+
+        yield return null;
     }
 
     IEnumerator c_loadEEGFile(Patient myPat)
@@ -317,79 +321,48 @@ public class BTVMedia : MonoBehaviour
         loadingCircle.Set(0, "Finding files");
         loadingCircle.Set(0.1f, "Loading File 1");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[0], r => elanFiles[0] = r);
+        yield return Process(myPat.smFiles[0], 0);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.2f, "Loading File 2");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[1], r => elanFiles[1] = r);
+        yield return Process(myPat.smFiles[1], 1);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.4f, "Loading File 3");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[2], r => elanFiles[2] = r);
+        yield return Process(myPat.smFiles[2], 2);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.6f, "Loading File 4");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[3], r => elanFiles[3] = r);
+        yield return Process(myPat.smFiles[3], 3);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.8f, "Loading File 5");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[4], r => elanFiles[4] = r);
+        yield return Process(myPat.smFiles[4], 4);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(1.0f, "Loading File 6");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[5], r => elanFiles[5] = r);
+        yield return Process(myPat.smFiles[5], 5);
         yield return Ninja.JumpToUnity;
     }
 
-    YieldInstruction Process(string filePath, Action<ELAN> resultCB)
+    YieldInstruction Process(string filePath, int FileID)
     {
         // I give my callback to the process
         // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(ELAN.c_loadIfExist(filePath, resultCB));
+        return this.StartCoroutineAsync(EegFileService.c_Load(filePath, Tools.CSharp.EEG.File.FileType.ELAN, FileID));
     }
 
     IEnumerator c_loadVideo(string videoPath)
     {
         //load video
-        float sampFreq = ELAN.getSamplingFreq(elanFiles);
-        int id = ELAN.returnFirstValidHandleId(elanFiles);
-        long totalDuration = ELAN.getTotalFileDuration(elanFiles[id]);
-        loadVideo(videoPath, (int)totalDuration);
+        BtvProgram container = EegFileService.ReturnFirstValidContainer();
+        loadVideo(videoPath, container.TotalDurationInSeconds);
 
-        yield return null;
-    }
-
-    IEnumerator c_loadPOSandPROV(Patient myPat)
-    {
-        if (myPat.prov != "")
-        {
-            if (myPat.pos != "")
-            {
-                posFile = new POS(myPat.pos, (int)ELAN.getSamplingFreq(elanFiles));
-                posFile.readPosData();
-            }
-
-            if (posFile.FileTriggers.Count > 0)
-            {
-                provFile = new PROV(myPat.prov);
-                if (provFile.changeCodeFilePath != "")
-                    posFile.renameTrigger(provFile);
-
-                posFile.calculateReactionTime(provFile);
-            }
-        }
-
-        if (posFile != null && posFile.FileTriggers.Count > 0)
-            loadPerf(true);
-        else
-            loadPerf(false);
-
-        yield return new WaitForSeconds(1.0f);
         yield return null;
     }
 

@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Tools
+namespace Tools.Unity.Lists
 {
     [RequireComponent(typeof(ScrollRect))]
     public class List<T> : MonoBehaviour
@@ -12,7 +12,9 @@ namespace Tools
         public GameObject ItemPrefab;
         public float ItemHeight;
 
-        protected System.Collections.Generic.List<Item<T>> m_Items;
+        public enum Sorting { Ascending, Descending };
+
+        protected System.Collections.Generic.List<Item<T>> m_Items = new System.Collections.Generic.List<Item<T>>();
         protected int m_NumberOfItems;
 
         protected System.Collections.Generic.List<T> m_Objects = new System.Collections.Generic.List<T>();
@@ -133,6 +135,27 @@ namespace Tools
                 return true;
             }
             return false;
+        }
+        public void ScrollToObject(T objectToScroll)
+        {
+            GetLimits(out int min, out int max);
+            int index = m_Objects.IndexOf(objectToScroll);
+            if (index == -1) return;
+
+            if (index > max - 2)
+            {
+                float bottomOfTargetItem = ItemHeight * (index + 1);
+                float position = 1.0f - ((bottomOfTargetItem - m_ScrollRect.viewport.sizeDelta.y) / (m_ScrollRect.content.sizeDelta.y - m_ScrollRect.viewport.sizeDelta.y));
+                m_ScrollRect.verticalNormalizedPosition = Mathf.Clamp(position, 0f, 1f);
+                m_ScrollRect.content.hasChanged = true;
+            }
+            else if (index < min + 1)
+            {
+                float topOfTargetItem = ItemHeight * index;
+                float position = 1.0f - (topOfTargetItem / (m_ScrollRect.content.sizeDelta.y - m_ScrollRect.viewport.sizeDelta.y));
+                m_ScrollRect.verticalNormalizedPosition = Mathf.Clamp(position, 0f, 1f);
+                m_ScrollRect.content.hasChanged = true;
+            }
         }
         #endregion
 

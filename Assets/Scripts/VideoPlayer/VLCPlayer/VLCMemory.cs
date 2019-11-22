@@ -8,24 +8,17 @@ using System.Runtime.InteropServices;
 
 using VLCSharp.Tools;
 using VLCSharp.Interface;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace VLCSharp.VLCMemory
 {
     internal unsafe class MemoryHeap
     {
-        static IntPtr ph = GetProcessHeap();
-
         private MemoryHeap() { }
 
-        /// <summary>
-        /// Allocates a memory block of the given size. The allocated memory is
-        /// automatically initialized to zero.
-        /// </summary>
-        /// <param name="size"></param>
-        /// <returns></returns>
         public static void* Alloc(int size)
         {
-            void* result = HeapAlloc(ph, HEAP_ZERO_MEMORY, size);
+            void* result = UnsafeUtility.Malloc(size, 1, Unity.Collections.Allocator.Persistent);
             if (result == null)
             {
                 throw new OutOfMemoryException();
@@ -34,74 +27,15 @@ namespace VLCSharp.VLCMemory
             return result;
         }
 
-        /// <summary>
-        /// Frees a memory block.
-        /// </summary>
-        /// <param name="block"></param>
         public static void Free(void* block)
         {
-            if (!HeapFree(ph, 0, block))
-            {
-                throw new InvalidOperationException();
-            }
+            UnsafeUtility.Free(block, Unity.Collections.Allocator.Persistent);
         }
 
-        /// <summary>
-        /// Re-allocates a memory block. If the reallocation request is for a
-        /// larger size, the additional region of memory is automatically
-        /// initialized to zero.
-        /// </summary>
-        /// <param name="block"></param>
-        /// <param name="size"></param>
-        /// <returns></returns>
-        public static void* ReAlloc(void* block, int size)
+        public static void CopyMemory(void* dest, void* src, int size)
         {
-            void* result = HeapReAlloc(ph, HEAP_ZERO_MEMORY, block, size);
-            if (result == null)
-            {
-                throw new OutOfMemoryException();
-            }
-
-            return result;
+            UnsafeUtility.MemCpy(dest, src, size);
         }
-
-        /// <summary>
-        /// Returns the size of a memory block.
-        /// </summary>
-        /// <param name="block"></param>
-        /// <returns></returns>
-        public static int SizeOf(void* block)
-        {
-            int result = HeapSize(ph, 0, block);
-            if (result == -1)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return result;
-        }
-
-        // Heap API flags
-        const int HEAP_ZERO_MEMORY = 0x00000008;
-
-        // Heap API functions
-        [DllImport("kernel32")]
-        static extern IntPtr GetProcessHeap();
-
-        [DllImport("kernel32")]
-        static extern void* HeapAlloc(IntPtr hHeap, int flags, int size);
-
-        [DllImport("kernel32")]
-        static extern bool HeapFree(IntPtr hHeap, int flags, void* block);
-
-        [DllImport("kernel32")]
-        static extern void* HeapReAlloc(IntPtr hHeap, int flags, void* block, int size);
-
-        [DllImport("kernel32")]
-        static extern int HeapSize(IntPtr hHeap, int flags, void* block);
-
-        [DllImport("Kernel32.dll", EntryPoint = "RtlMoveMemory", SetLastError = true)]
-        public static unsafe extern void CopyMemory(void* dest, void* src, int size);
     }
 
     /// <summary>
@@ -394,7 +328,6 @@ namespace VLCSharp.VLCMemory
                 {
                     PixelData* px = (PixelData*)opaque;
                     MemoryHeap.CopyMemory(m_pBuffer, px->pPixelData, px->size);
-
                     m_frameRate++;
                     if (m_callback != null)
                     {

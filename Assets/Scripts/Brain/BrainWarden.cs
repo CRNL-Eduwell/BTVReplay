@@ -3,19 +3,14 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using System.Linq;
-
-public delegate void newPlotClicked(GameObject plot);
-public delegate void changeColorPlotEvent(string namePlot, Color color);
+using System;
+using BTV.Services.EventsService;
 
 public class BrainWarden : MonoBehaviour, IPointerClickHandler
 {
-    public event newPlotClicked plotWasClicked;
-    public event changeColorPlotEvent changeColorEvent;
-
-    [SerializeField] optionsHub hub = null;
     [SerializeField] Camera brainCam = null;
     [SerializeField] BTVMedia media = null;
-    [SerializeField] VideoPlayer video = null;
+    [SerializeField] CustomVideoPlayer video = null;
 
     bool isMaxed = false;
     bool initDone = false;
@@ -25,23 +20,18 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     Window winTrace1 = null;
     Window winTrace2 = null;
     Trace curveTrace1 = null;
-    GameObject plot = null;
-    GameObject elecPointer = null;
-    GameObject elecPointerPic = null;
-    Text elecPointerText = null;
 
-    ElecPointer el = null;
     GameObject elecOptionPanel = null;
     GameObject ElecOption = null;
 
-    void Start ()
+    private void Start()
     {
         elecOptionPanel = Resources.Load("Prefabs/Brain-ElecOptions", typeof(GameObject)) as GameObject;
 
         media.loadTrace += new initTrace(() =>
         {
             initDone = true;
-            video.sendTime += new timeVideo(updateEventsOnBrain);
+            video.sendTime += new timeVideo(UpdateEventsOnBrain);
         });
 
         m_rectTransform = gameObject.GetComponent<RectTransform>();
@@ -50,12 +40,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
         winTrace1 = GameObject.Find("Trace1Window").GetComponent<Window>();
         winTrace2 = GameObject.Find("Trace2Window").GetComponent<Window>();
-        curveTrace1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
-
-        el = GameObject.Find("Canvas").transform.GetChild(5).GetChild(0).GetComponent<ElecPointer>();
-        elecPointer = GameObject.Find("Canvas").transform.GetChild(5).gameObject;
-        elecPointerPic = elecPointer.transform.GetChild(0).gameObject;
-        elecPointerText = elecPointerPic.transform.GetChild(0).GetComponent<Text>();
+        curveTrace1 = winTrace1.gameObject.GetComponent<Trace>();
     }
 
     private void OnDestroy()
@@ -63,17 +48,20 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         media.loadTrace -= new initTrace(() =>
         {
             initDone = true;
-            video.sendTime += new timeVideo(updateEventsOnBrain);
+            video.sendTime += new timeVideo(UpdateEventsOnBrain);
         });
 
         if (initDone)
-            video.sendTime -= new timeVideo(updateEventsOnBrain);
+            video.sendTime -= new timeVideo(UpdateEventsOnBrain);
     }
 
-    void Update()
+    private void OnGUI()
     {
-        if (initDone && isOver(Input.mousePosition))
-                checkIfPointElectrode();
+        if (initDone && IsOver(Input.mousePosition))
+        {
+            brainCam.GetComponent<BrainCamera>().IsMouseOver = true;
+            CheckIfPointElectrode();
+        }
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -83,15 +71,15 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             if (eventData.clickCount == 2)
             {
                 if (!isMaxed)
-                    bigBrain();
+                    BigBrain();
                 else
-                    smallBrain();
+                    SmallBrain();
 
                 isMaxed = !isMaxed;
             }
 
             if (eventData.clickCount == 1 && (winTrace1.hasFocus || winTrace2.hasFocus))
-                checkIfhitElectrode();
+                CheckIfhitElectrode();
         }
 
         if (eventData.button == PointerEventData.InputButton.Right)
@@ -123,7 +111,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    void bigBrain()
+    private void BigBrain()
     {
         m_rectTransform.anchorMin = new Vector2(0, 0);
         m_rectTransform.anchorMax = new Vector2(1, 1);
@@ -137,7 +125,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         m_rectTransform.sizeDelta = m_BigSize;
     }
 
-    void smallBrain()
+    private void SmallBrain()
     {
         m_rectTransform.anchorMin = new Vector2(0f, 0.5f);
         m_rectTransform.anchorMax = new Vector2(0.5f, 1.0f);
@@ -151,7 +139,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         m_rectTransform.sizeDelta = m_startSize;
     }
 
-    void checkIfhitElectrode()
+    private void CheckIfhitElectrode()
     {
         m_rectTransform.GetWorldCorners(worldCornerOfBrainPanel);
 
@@ -169,16 +157,25 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         RaycastHit[] hits = Physics.RaycastAll(ray2);
         if (hits.Length > 0)
         {
-            plot = GameObject.Find(hits[0].collider.name);
-            plotWasClicked(plot);
+            BrainWardenToTraceMessage message = new BrainWardenToTraceMessage
+            {
+                TaskToExecute = 0,
+                ClickedElectrode = GameObject.Find(hits[0].collider.name)
+            };
+            Messenger.Default.Send(message, MessageContext.BrainWardenToTraceMessage);
         }
         else
         {
-            plotWasClicked(null);
+            BrainWardenToTraceMessage message = new BrainWardenToTraceMessage
+            {
+                TaskToExecute = 0,
+                ClickedElectrode = null
+            };
+            Messenger.Default.Send(message, MessageContext.BrainWardenToTraceMessage);
         }
     }
 
-    public bool isOver(Vector3 mousePos)
+    private bool IsOver(Vector3 mousePos)
     {
         m_rectTransform.GetWorldCorners(worldCornerOfBrainPanel);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -190,7 +187,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             return false;
     }
 
-    void checkIfPointElectrode()
+    private void CheckIfPointElectrode()
     {
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         float perCentX = (worldClick.x - m_rectTransform.position.x) / (worldCornerOfBrainPanel[2].x - worldCornerOfBrainPanel[1].x);
@@ -204,73 +201,97 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
         if (Physics.Raycast(ray2, out hit))
         {
-            ElecPlotSize hitPlot = GameObject.Find(hit.collider.name).GetComponent<ElecPlotSize>();
-            el.moveTo(worldClick.x, worldClick.y, 0);
-            el.show(true);
-            el.setElecLabel(hit.collider.name.ToUpper());
-            el.setMarsAtlasLabel(hitPlot.MarsAtlasName);
-            el.setBroadmanLabel(hitPlot.BroadmanName);
-            el.setCorrdinatesLabel(hitPlot.Coordinates);
+            BrainWardenToElectrodePointerMessage message = new BrainWardenToElectrodePointerMessage
+            {
+                TaskToExecute = 0,
+                PointerPosition = new Vector3(worldClick.x, worldClick.y, 0),
+                ShowPointer = true,
+                ElectrodeLabel = hit.collider.name
+            };
+            Messenger.Default.Send(message, MessageContext.BrainWardenToElectrodePointerMessage);
         }
         else
         {
-            el.show(false);
+            BrainWardenToElectrodePointerMessage message = new BrainWardenToElectrodePointerMessage
+            {
+                TaskToExecute = 1,
+                ShowPointer = false
+            };
+            Messenger.Default.Send(message, MessageContext.BrainWardenToElectrodePointerMessage);
         }
     }
 
-    void updateEventsOnBrain(int milliSecToLook)
+    private void UpdateEventsOnBrain(int milliSecToLook)
     {
-        if (hub.eventRemote.userEvents.Length > 0)
+        int EventCount = EventsService.Events.Count;
+        if (EventCount > 0)
         {
-            int left =(int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - curveTrace1.TraceEeg.numberOfPoint;
+            int left = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - curveTrace1.TraceEeg.numberOfPoint;
             int right = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
 
-            float factor = ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000);
-            List<int> idOverFlow = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
-                                         .Where(x => (x.Item.sample <= left && (x.Item.sample + (x.Item.duration * factor) >= right)))
-                                         .Select(x => x.Index)
-                                         .ToList();
-
-            List<int> idRightEnter = hub.eventRemote.userEvents.Select((item, index) => new { Item = item, Index = index })
-                                           .Where(x => (x.Item.sample < right && x.Item.sample > left && (x.Item.sample + (x.Item.duration * factor) >= right)))
-                                           .Select(x => x.Index)
-                                           .ToList();
-
+            List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right, curveTrace1.TraceEeg.SamplingFrequency);
+            List<int> idRightEnter = EventsService.GetEventIdsEnteringWindow(left, right, curveTrace1.TraceEeg.SamplingFrequency);
             //Union joins and delete duplicates
             List<int> indexes = idOverFlow.Union(idRightEnter).ToList();
 
-            changeColorEvent("", Color.white);
+            ChangeElectrodesColor("", Color.white);
             for (int i = 0; i < indexes.Count; i++)
             {
-                if (hub.eventRemote.userEvents[indexes[i]].correlation2DArray != null)
+                if (EventsService.Events[indexes[i]].correlation2DArray != null)
                 {
-                    int id = curveTrace1.TraceEeg.IdElectrode;
-                    for (int j = 0; j < curveTrace1.TraceEeg.fileHandle.electrodes.Length; j++)
+                    int id = curveTrace1.TraceEeg.ElectrodeID;
+                    for (int j = 0; j < curveTrace1.TraceEeg.FileHandle.NumberOfElectrodes; j++)
                     {
-                        changeColorEvent(curveTrace1.TraceEeg.fileHandle.electrodes[j].name, correlationColor(hub.eventRemote.userEvents[indexes[i]].correlation2DArray[id][j]));
+                        string ElectrodeName = curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
+                        Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].correlation2DArray[id][j]);
+                        ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
-                else if (hub.eventRemote.userEvents[indexes[i]].correlationArray != null)
+                else if (EventsService.Events[indexes[i]].correlationArray != null)
                 {
-                    for (int j = 0; j < curveTrace1.TraceEeg.fileHandle.electrodes.Length; j++)
+                    for (int j = 0; j < curveTrace1.TraceEeg.FileHandle.NumberOfElectrodes; j++)
                     {
-                        changeColorEvent(curveTrace1.TraceEeg.fileHandle.electrodes[j].name, correlationColor(hub.eventRemote.userEvents[indexes[i]].correlationArray[j]));
+                        string ElectrodeName = curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
+                        Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].correlationArray[j]);
+                        ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
                 else
                 {
-                    changeColorEvent(hub.eventRemote.userEvents[indexes[i]].elecOfInterest, Color.red);
-                    changeColorEvent(hub.eventRemote.userEvents[indexes[i]].secondElecOfInterest, Color.blue);
+                    string FirstElectrodeName = EventsService.Events[indexes[i]].elecOfInterest;
+                    ChangeElectrodesColor(FirstElectrodeName, Color.red);
+                    string SecondElectrodeName = EventsService.Events[indexes[i]].secondElecOfInterest;
+                    ChangeElectrodesColor(SecondElectrodeName, Color.blue);
                 }
             }
         }
         else
         {
-            changeColorEvent("", Color.white);
+            ChangeElectrodesColor("", Color.white);
         }
     }
 
-    Color correlationColor(float value)
+    private void ChangeElectrodesColor(string Name, Color NewColor)
+    {
+        Site[] Electrodes = GameObject.Find("Electrodes").gameObject.GetComponentsInChildren<Site>();
+        if (Name == "")
+        {
+            foreach (Site electrode in Electrodes)
+            {
+                electrode.Color = NewColor;
+            }
+        }
+        else
+        {
+            Site Electrode = Array.Find(Electrodes, x => x.gameObject.name == Name.ToLower());
+            if (Electrode != null)
+            {
+                Electrode.Color = NewColor;
+            }
+        }
+    }
+
+    private Color GetCorrelationColor(float value)
     {
         if (value > 0)
         {

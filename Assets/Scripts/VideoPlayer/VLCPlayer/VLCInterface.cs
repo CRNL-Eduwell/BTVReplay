@@ -451,6 +451,7 @@ namespace VLCSharp.Interface
     //==== DELEGATE 
     public delegate void NewFrameEH(Bitmap frame);
 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void NewFrameEventHandler(Bitmap frame);
 
     /// <summary>

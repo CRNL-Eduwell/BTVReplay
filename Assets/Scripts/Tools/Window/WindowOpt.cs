@@ -22,7 +22,7 @@ public class WindowOpt : MonoBehaviour
         m_rectTransformL = m_rectTransformView.GetChild(0).GetComponent<RectTransform>();
         m_rectTransformR = m_rectTransformView.GetChild(1).GetComponent<RectTransform>();
         m_rectTransform = gameObject.GetComponent<RectTransform>();
-        gameObject.SetActive(false);
+        //gameObject.SetActive(false);
     }
 
     #region MouseEnterEvents
@@ -45,10 +45,13 @@ public class WindowOpt : MonoBehaviour
 
     public void OnHorizontalDrag()
     {
+        if(m_initialWidth == 0)
+            m_initialWidth = m_rectTransformView.gameObject.GetComponent<RectTransform>().rect.width;
+
         float delta = Input.mousePosition.x - m_initialMousePosition.x;
         float newSize = ((m_rectTransformL.rect.width + m_rectTransformR.rect.width + delta) / m_initialWidth);
 
-        if ((1 - newSize) < 0.3f && (1 - newSize) > 0.1f)
+        if (((1 - newSize) * m_initialWidth) >= 30)
         {
             m_rectTransformL.anchorMin = new Vector2(0, 0);
             m_rectTransformL.anchorMax = new Vector2(newSize / 2, 1);
@@ -69,42 +72,4 @@ public class WindowOpt : MonoBehaviour
         }
     }
     #endregion
-
-    public void HideOptionPanel(bool showMe)
-    {
-        m_optionVisible = showMe;
-        m_rectTransform.gameObject.SetActive(m_optionVisible);
-        m_initialWidth = m_rectTransformView.gameObject.GetComponent<RectTransform>().rect.width;
-
-        if (m_optionVisible == false)
-        {
-            m_rectTransformL.anchorMin = new Vector2(0, 0);
-            m_rectTransformL.anchorMax = new Vector2(0.5f, 1);
-            m_rectTransformL.offsetMin = new Vector2(0, 0);
-            m_rectTransformL.offsetMax = new Vector2(0, 0);
-
-            m_rectTransformR.anchorMin = new Vector2(0.5f, 0);
-            m_rectTransformR.anchorMax = new Vector2(1, 1);
-            m_rectTransformR.offsetMin = new Vector2(0, 0);
-            m_rectTransformR.offsetMax = new Vector2(0, 0);
-        }
-        else
-        {
-            float percent = m_rectTransform.rect.width / m_initialWidth;
-            m_rectTransformL.anchorMin = new Vector2(0, 0);
-            m_rectTransformL.anchorMax = new Vector2((1 - percent) / 2, 1);
-            m_rectTransformL.offsetMin = new Vector2(0, 0);
-            m_rectTransformL.offsetMax = new Vector2(0, 0);
-
-            m_rectTransformR.anchorMin = new Vector2((1 - percent) / 2, 0);
-            m_rectTransformR.anchorMax = new Vector2(1 - percent, 1);
-            m_rectTransformR.offsetMin = new Vector2(0, 0);
-            m_rectTransformR.offsetMax = new Vector2(0, 0);
-
-            m_rectTransform.anchorMin = new Vector2(1 - percent, 0);
-            m_rectTransform.anchorMax = new Vector2(1, 1);
-            m_rectTransform.offsetMin = new Vector2(0, 0);
-            m_rectTransform.offsetMax = new Vector2(0, 0);
-        }
-    }
 }

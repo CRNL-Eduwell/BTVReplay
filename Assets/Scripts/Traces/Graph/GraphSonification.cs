@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class GraphSonification : MonoBehaviour
 {
-    [SerializeField] optionsHub hub = null;
-    [SerializeField] VideoPlayer video = null;
+    [SerializeField] CustomVideoPlayer video = null;
     [SerializeField] AudioSource audioSourceScript = null;
 
     Trace m_curve = null;
@@ -48,10 +47,10 @@ public class GraphSonification : MonoBehaviour
 
     public void updateSonif(int milliSecToLook)
     {
-        int posInArray = (m_curve.TraceEeg.IdElectrode * m_curve.TraceEeg.fileHandle.nbSam) + (int)(milliSecToLook * (m_curve.TraceEeg.fileHandle.sampFreq / 1000));
+        //int posInArray = m_curve.TraceEeg.FileHandle.Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
         if (video.videoInterface.isPlaying)
         {
-            float currentValue = 0.5f + ((m_curve.TraceEeg.fileHandle.eegData[posInArray] / 100) * m_curve.TraceEeg.Gain);
+            float currentValue = 0.5f + ((m_curve.TraceEeg.MostRecentValue / 100) * m_curve.TraceEeg.Gain);
             if (currentValue > 1)
                 audioSourceScript.volume = 1;
             else if (currentValue <= 1 && currentValue >= 0)
@@ -84,14 +83,13 @@ public class GraphSonification : MonoBehaviour
     IEnumerator StartAudio()
     {
         AudioClip clip = null;
-        for (int i = 0; i < hub.traceRemotes[m_curve.TraceId].soundFilesAbsPath.Count; i++)
+        for (int i = 0; i < ApplicationState.Module3D.SoundFilePaths.Count; i++)
         {
-            WWW audioLoader = new WWW("file://" + hub.traceRemotes[m_curve.TraceId].soundFilesAbsPath[i]);
+            WWW audioLoader = new WWW("file://" + ApplicationState.Module3D.SoundFilePaths[i]);
             while (!audioLoader.isDone)
                 yield return null;
-
             clip = audioLoader.GetAudioClip(false);
-            clip.name = hub.traceRemotes[m_curve.TraceId].soundFileShort[i];
+            clip.name = "Audio Clip number " + i.ToString();
             m_clips.Add(clip);
         }
         audioSourceScript.clip = m_clips[0];

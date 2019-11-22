@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Tools
+namespace Tools.Unity.Lists
 {
     public abstract class Item<T> : MonoBehaviour
     {
@@ -17,4 +17,3 @@ namespace Tools
         #endregion
     }
 }
-

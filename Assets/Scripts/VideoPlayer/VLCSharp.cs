@@ -148,7 +148,9 @@ namespace VLCSharp
             Handle = LibVlc.libvlc_new(0, args);
             if (Handle == IntPtr.Zero)
             {
-                throw new VlcException();
+                VlcException exept = new VlcException();
+                UnityEngine.Debug.LogError(exept.Message);
+                throw exept;
             }
         }
 
@@ -236,7 +238,7 @@ namespace VLCSharp
         public void Dispose()
         {
             LibVlc.libvlc_media_player_release(Handle);
-            GC.SuppressFinalize(this);
+            //GC.SuppressFinalize(this);
         }
 
         public IntPtr Drawable
@@ -350,7 +352,7 @@ namespace VLCSharp
         {
             get
             {
-                long currentTime = m_player.currentTime;
+                long currentTime = m_VideoPlayer.currentTime;
                 if (m_lastPlayTime == currentTime && m_lastPlayTime != 0)
                 {
                     currentTime += (long)m_stopwatch.Elapsed.TotalMilliseconds - m_lastPlayTimeGlobal;
@@ -396,8 +398,8 @@ namespace VLCSharp
         {
             get
             {
-                if (m_player.totalVideoTime != -1)
-                    return m_player.totalVideoTime;
+                if (m_VideoPlayer.totalVideoTime != -1)
+                    return m_VideoPlayer.totalVideoTime;
                 else
                     return m_eegFileDurationInSec * 1000;
             }
@@ -406,28 +408,28 @@ namespace VLCSharp
         {
             get
             {
-                return m_player.IsPlaying;
+                return m_VideoPlayer.IsPlaying;
             }
         }
         public bool isPaused
         {
             get
             {
-                return m_player.IsPaused;
+                return m_VideoPlayer.IsPaused;
             }
         }
         public bool isStopped
         {
             get
             {
-                return m_player.IsStopped;
+                return m_VideoPlayer.IsStopped;
             }
         }
-        public byte[] textureBytes
+        public byte[] TextureBytes
         {
             get
             {
-                return m_textureByteArray;
+                return m_TextureByteArray;
             }
         }
 
@@ -435,12 +437,12 @@ namespace VLCSharp
         private string m_videoPath = "";
         private long m_eegFileDurationInSec = 0;
         //===
-        VlcMediaPlayer m_player = null;
-        VlcInstance m_instance = null;
+        VlcMediaPlayer m_VideoPlayer = null;
+        VlcInstance m_VlcInstance = null;
         RawImage m_Tex2Draw = null;
-        optionsHub m_hub = null;
-        Bitmap m_picCopy = null;
-        byte[] m_textureByteArray;
+        NewFrameEventHandler m_VideoCallback = null;
+        Bitmap m_BitmapCopy = null;
+        byte[] m_TextureByteArray;
         bool m_newPic = false;
         //===
         Stopwatch m_stopwatch;
@@ -448,40 +450,28 @@ namespace VLCSharp
         int m_offsetVideoMilliSec = 0;
         #endregion
 
-        public void init(string videoPath, int eegFileDurationInSec)
+
+        public void init(string videoPath, int eegFileDurationInSec, RawImage tex)
         {
+            m_Tex2Draw = tex;
+
             m_videoPath = videoPath;
             m_eegFileDurationInSec = eegFileDurationInSec;
             m_stopwatch = new Stopwatch();
-            m_instance = new VlcInstance(new string[] {""});
+            m_VlcInstance = new VlcInstance(new string[] {""});
             m_stopwatch = new Stopwatch();
             m_stopwatch.Start();
 
-            using (VlcMedia media = new VlcMedia(m_instance, "file:///" + videoPath))
+            using (VlcMedia media = new VlcMedia(m_VlcInstance, "file:///" + videoPath))
             {
-                if (m_player == null)
+                if (m_VideoPlayer == null)
                 {
-                    m_player = new VlcMediaPlayer(media);
+                    m_VideoPlayer = new VlcMediaPlayer(media);
+                    IMemoryRenderer memRender = m_VideoPlayer.CustomRenderer;
 
-                    IMemoryRenderer memRender = m_player.CustomRenderer;
-                    memRender.SetCallback(delegate (Bitmap frame)
-                    {
-                        m_picCopy = frame.Clone(new RectangleF(0, 0, frame.Width, frame.Height), PixelFormat.Format32bppArgb);
-                        //===
-                        //Memory stream to store the bitmap data.
-                        MemoryStream ms = new MemoryStream();
-                        //Save to that memory stream.
-                        m_picCopy.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                        //Go to the beginning of the memory stream.
-                        ms.Seek(0, SeekOrigin.Begin);
-                        m_textureByteArray = ms.ToArray();
-                        //Close the stream.
-                        ms.Close();
-                        ms = null;
-                        //===
-                        m_picCopy.Dispose();
-                        m_newPic = true;
-                    });
+                    //Define callback to process video frame from libvlc
+                    m_VideoCallback = new NewFrameEventHandler(ProcessFrameCallback);
+                    memRender.SetCallback(m_VideoCallback);
 
                     //the size of the bitmap format need to be the same as 
                     //the texture on unity Otherwise performance issue
@@ -489,107 +479,117 @@ namespace VLCSharp
                 }
                 else
                 {
-                    m_player.Media = media;
+                    m_VideoPlayer.Media = media;
                 }
             }
 
-            m_hub.videoRemote.offsetVideoHasChanged += new offsetVideoChangedEventHandler(
-                delegate (float newVal)
-                {
-                    m_offsetVideoMilliSec = (int)newVal;
-                });
+            //m_hub.videoRemote.offsetVideoHasChanged += new offsetVideoChangedEventHandler(
+            //    delegate (float newVal)
+            //    {
+            //        m_offsetVideoMilliSec = (int)newVal;
+            //    });
 
             setVolume(0.5f);
         }
 
-        public void getVideoReference(RawImage tex, optionsHub hubOpt)
+        public void UpdateVideoOffset(float newOffset)
         {
-            m_Tex2Draw = tex;
-            m_hub = hubOpt;
+            m_offsetVideoMilliSec = (int)newOffset;
         }
 
         public void cleanup()
         {
             //remove offset video event
-            m_hub.videoRemote.offsetVideoHasChanged -= new offsetVideoChangedEventHandler(
-                delegate (float newVal)
-                {
-                    m_offsetVideoMilliSec = (int)newVal;
-                });
+            //m_hub.videoRemote.offsetVideoHasChanged -= new offsetVideoChangedEventHandler(
+            //    delegate (float newVal)
+            //    {
+            //        m_offsetVideoMilliSec = (int)newVal;
+            //    });
 
             //to release resources
-            if (m_player != null)
+            if (m_VideoPlayer != null)
             {
-                m_player.Stop();
-                m_player.Dispose();
-                m_player = null;
+                m_VideoPlayer.Stop();
+                m_VideoPlayer.Dispose();
+                m_VideoPlayer = null;
             }
 
-            m_instance = new VlcInstance(new string[] { "" });
+            m_VlcInstance = new VlcInstance(new string[] { "" });
         }
 
         public void update()
         {
-            if (m_newPic && m_player.IsPlaying)
+            if (m_newPic && m_VideoPlayer.IsPlaying)
             {
-               ((Texture2D)m_Tex2Draw.texture).LoadImage(m_textureByteArray);
+                //UnityEngine.Debug.Log("update called");
+               ((Texture2D)m_Tex2Draw.texture).LoadImage(m_TextureByteArray);
                 m_newPic = false;
             }
         }
 
         public void play()
         {
-            if (m_player.IsPaused || m_player.IsStopped)
+            if (m_VideoPlayer.IsPaused || m_VideoPlayer.IsStopped)
             {
-                m_player.Play();
+                m_VideoPlayer.Play();
                 m_stopwatch.Start();
             }
         }
 
         public void pause()
         {
-            if (m_player.IsPlaying)
+            if (m_VideoPlayer.IsPlaying)
             {
-                m_player.Pause();
+                m_VideoPlayer.Pause();
                 m_stopwatch.Stop();
             }
         }
 
         public void stop()
         {
-            m_player.Stop();
+            m_VideoPlayer.Stop();
             m_stopwatch.Stop();
         }
 
         public void moveTime(long secondsToAdd)
         {
-            m_player.setTime(currentTime + (secondsToAdd * 1000));
+            m_VideoPlayer.setTime(currentTime + (secondsToAdd * 1000));
         }
 
         public void setTime(long timeMilliSec)
         {
-            m_player.setTime(timeMilliSec);
+            m_VideoPlayer.setTime(timeMilliSec);
         }
 
         public void setVolume(float volume)
         {
             int maxPercentVideo = 200;
-            m_player.SetVolume((int)(volume * maxPercentVideo));
+            m_VideoPlayer.SetVolume((int)(volume * maxPercentVideo));
         }
 
-        static void Image2Texture(System.Drawing.Image im, Texture2D myTex)
+        /// <summary>
+        /// Callback to process the frame extracted from the video
+        /// 
+        /// We make a copy of the frame, load it in a MemoryStream
+        /// in order to be abble to load the data in a byte array
+        /// that will be used for rendering
+        /// </summary>
+        /// <param name="frame">Frame sent from the dll</param>
+        private void ProcessFrameCallback(Bitmap frame)
         {
+            m_BitmapCopy = frame.Clone(new RectangleF(0, 0, frame.Width, frame.Height), PixelFormat.Format32bppArgb);
             //Memory stream to store the bitmap data.
             MemoryStream ms = new MemoryStream();
             //Save to that memory stream.
-            im.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            m_BitmapCopy.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
             //Go to the beginning of the memory stream.
             ms.Seek(0, SeekOrigin.Begin);
-            //load in tex
-            myTex.LoadImage(ms.ToArray());
+            m_TextureByteArray = ms.ToArray();
             //Close the stream.
             ms.Close();
-            ms = null;
+            //===
+            m_BitmapCopy.Dispose();
+            m_newPic = true;
         }
     }
 

@@ -132,5 +132,5 @@ public abstract class SignalDisp : MonoBehaviour
         lineRenderer.SetPositions(m_dataArray);
     }
 
-    public abstract void updateDraw(int milliSecToLook);
+    public abstract void UpdateDraw(int milliSecToLook);
 }

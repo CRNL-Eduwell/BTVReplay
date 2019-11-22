@@ -79,7 +79,7 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
             return !m_playing;
         }
     }
-    public byte[] textureBytes
+    public byte[] TextureBytes
     {
         get
         {
@@ -95,14 +95,14 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
     private bool m_paused = true, m_playing = false;
     #endregion
 
-    public void init(string videoPath, int eegFileDurationInSec)
+    public void init(string videoPath, int eegFileDurationInSec, RawImage tex)
     {
         m_videoPath = videoPath;
         m_eegFileDurationInSec = eegFileDurationInSec;
         m_internalTimer = new Stopwatch();
     }
 
-    public void getVideoReference(RawImage tex, optionsHub hub)
+    public void UpdateVideoOffset(float newOffset)
     {
 
     }

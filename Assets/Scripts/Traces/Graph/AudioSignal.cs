@@ -1,10 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using BTV.Data;
+using BTV.Services.VideoService;
 
 public class AudioSignal : SignalDisp
 {
-    [SerializeField] VideoPlayer video = null;
+    public BtvChannel ChannelHandle { get; private set; } = null;
 
     public override void init()
     {
@@ -12,20 +11,20 @@ public class AudioSignal : SignalDisp
         base.init();
     }
 
-    public override void updateDraw(int milliSecToLook)
+    public override void UpdateDraw(int milliSecToLook)
     {
-        if (lineRenderer.gameObject.activeSelf == false || video.audioWav == null ||
-            video.audioWav.filterFileExist == false || milliSecToLook == -1)
+        if (ChannelHandle == null)
             return;
 
-        int posInArray = (int)(milliSecToLook * ((float)m_samplingFreq / 1000)) - m_numberPoint;
+        int SamplePosition = ChannelHandle.Frequency.ConvertToCeiledNumberOfSamples(milliSecToLook);
+        int PositionInArray = SamplePosition - m_numberPoint;
         float limitVal = (m_parentRectTransform.rect.height - 6.5f) / 2;
 
         for (int i = 0; i < m_dataArray.Length; i++)
         {
-            if ((i + posInArray >= 0) && (i + posInArray < video.audioWav.currentAudio.Length))
+            if ((i + PositionInArray >= 0) && (i + PositionInArray < ChannelHandle.NumberOfSample))
             {
-                float value = m_gain * video.audioWav.currentAudio[i + posInArray];
+                float value = m_gain * ChannelHandle.GetSample(i + PositionInArray);
                 if (value >= -limitVal && value <= limitVal)
                 {
                     m_dataArray[i].y = value;
@@ -51,8 +50,8 @@ public class AudioSignal : SignalDisp
         lineRenderer.gameObject.SetActive(show);
     }
 
-    public void changeAudioId(int newId)
+    public void UpdateAudioID(int NewId)
     {
-        video.audioWav.idAudioHandle = newId;
+        ChannelHandle = VideoService.GetSmoothedAudio(NewId);
     }
 }
