@@ -47,7 +47,11 @@ namespace Assets.Scripts.Data.Files
                         {
                             int Code = int.Parse(resultSplit[2]);
                             int Sample = int.Parse(resultSplit[3]);
-                            EegEvent currentEvent = new EegEvent(Code, Sample);
+                            //==========================
+                            // /!\ SUPER UGLY FIX. NEED TO CHANGE EVENT MANAGEMENT FROM SAMPLE TO MILLISECONDS
+                            //==========================
+                            int Frequency = ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
+                            EegEvent currentEvent = new EegEvent(Code, Sample, Frequency);
                             int Duration = int.Parse(resultSplit[4]);
                             string FirstElectrodeOfInterest = resultSplit[5];
                             string SecondElectrodeOfInterest = resultSplit[6];
