@@ -69,3 +69,50 @@
         return Trigger.GetHashCode();
     }
 }
+
+public class EegTrigger2
+{
+    public float ReactionTimeInMs { get { return m_Response.TimeInMilliSeconds - m_MainEvent.TimeInMilliSeconds; } }
+
+    private EegEvent2 m_MainEvent = null;
+    private EegEvent2 m_Response = null;
+
+    public EegTrigger2(EegTrigger2 trigger)
+    {
+        m_MainEvent = new EegEvent2(trigger.m_MainEvent);
+        m_Response = new EegEvent2(trigger.m_Response);
+    }
+    public EegTrigger2(EegEvent2 trigger)
+    {
+        m_MainEvent = new EegEvent2(trigger);
+    }
+    public EegTrigger2(EegEvent2 trigger, EegEvent2 response)
+    {
+        m_MainEvent = new EegEvent2(trigger.Code, trigger.TimeInMilliSeconds);
+        m_Response = new EegEvent2(response.Code, response.TimeInMilliSeconds);
+    }
+
+    public static bool operator !=(EegTrigger2 c1, EegTrigger2 c2)
+    {
+        return !(c1 == c2);
+    }
+    public static bool operator ==(EegTrigger2 c1, EegTrigger2 c2)
+    {
+        if (c1.m_MainEvent.Code == c2.m_MainEvent.Code)
+            return true;
+        else
+            return false;
+    }
+    public override bool Equals(object obj)
+    {
+        EegTrigger2 triggObj = obj as EegTrigger2;
+        if (triggObj == null)
+            return false;
+        else
+            return m_MainEvent.Code.Equals(triggObj.m_MainEvent.Code);
+    }
+    public override int GetHashCode()
+    {
+        return m_MainEvent.GetHashCode();
+    }
+}
