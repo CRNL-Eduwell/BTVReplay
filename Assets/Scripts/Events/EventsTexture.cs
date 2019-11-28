@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using BTV.Data;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,7 +22,7 @@ public class EventsTexture : MonoBehaviour
         m_TextureColorData = m_CurrentTexture.GetPixels();
     }
 
-    public void AddEvents(List<TraceEvent> events)
+    public void AddEvents(List<BtvEvent> events)
     {
         int eventsCount = events.Count;
         for (int i = 0; i < eventsCount; i++)
@@ -30,17 +31,16 @@ public class EventsTexture : MonoBehaviour
         }
     }
 
-    public void AddEvent(TraceEvent currentEvent)
+    public void AddEvent(BtvEvent currentEvent)
     {
-        float perC = ((((float)currentEvent.sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
+        float perC = ((currentEvent.TimeInMilliSeconds / m_VideoPlayer.videoInterface.totalVideoTime));// * 1000);
         int pixelID = (int)(perC * m_CurrentTexture.width);
 
-        if (currentEvent.duration > 0)
+        if (currentEvent.Duration > 0)
         {
-            if (currentEvent.duration > 1000)
+            if (currentEvent.Duration > 1000)
             {
-                float durationInSample = (currentEvent.duration * ((float)ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency / 1000));
-                float perCDuration = (((((float)currentEvent.sample + durationInSample) / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
+                float perCDuration = ((currentEvent.TimeInMilliSeconds + currentEvent.Duration) / m_VideoPlayer.videoInterface.totalVideoTime);// * 1000;
                 int pixelIDDuration = (int)(perCDuration * m_CurrentTexture.width);
                 for (int i = 0; i < m_CurrentTexture.height / 2; i++)
                 {
@@ -73,7 +73,7 @@ public class EventsTexture : MonoBehaviour
         m_CurrentTexture.Apply();
     }
 
-    public void RemoveEvents(List<TraceEvent> events)
+    public void RemoveEvents(List<BtvEvent> events)
     {
         int eventsCount = events.Count;
         for (int i = 0; i < eventsCount; i++)
@@ -82,17 +82,16 @@ public class EventsTexture : MonoBehaviour
         }
     }
 
-    public void RemoveEvent(TraceEvent currentEvent)
+    public void RemoveEvent(BtvEvent currentEvent)
     {
-        float perC = ((((float)currentEvent.sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
+        float perC = (currentEvent.TimeInMilliSeconds / m_VideoPlayer.videoInterface.totalVideoTime);// * 1000);
         int pixelID = (int)(perC * m_CurrentTexture.width);
 
-        if (currentEvent.duration > 0)
+        if (currentEvent.Duration > 0)
         {
-            if (currentEvent.duration > 1000)
+            if (currentEvent.Duration > 1000)
             {
-                float durationInSample = (currentEvent.duration * ((float)ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency / 1000));
-                float perCDuration = (((((float)currentEvent.sample + durationInSample) / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) / m_VideoPlayer.videoInterface.totalVideoTime) * 1000);
+                float perCDuration = ((currentEvent.TimeInMilliSeconds + currentEvent.Duration) / m_VideoPlayer.videoInterface.totalVideoTime);// * 1000;
                 int pixelIDDuration = (int)(perCDuration * m_CurrentTexture.width);
                 for (int i = 0; i < m_CurrentTexture.height / 2; i++)
                 {

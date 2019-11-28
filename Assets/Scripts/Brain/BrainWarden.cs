@@ -226,41 +226,41 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         int EventCount = EventsService.Events.Count;
         if (EventCount > 0)
         {
-            int left = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000)) - curveTrace1.TraceEeg.numberOfPoint;
-            int right = (int)(milliSecToLook * ((float)curveTrace1.TraceEeg.SamplingFrequency / 1000));
+            int left = milliSecToLook  - (curveTrace1.TraceEeg.PeriodInSeconds * 1000);
+            int right = milliSecToLook;
 
-            List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right, curveTrace1.TraceEeg.SamplingFrequency);
-            List<int> idRightEnter = EventsService.GetEventIdsEnteringWindow(left, right, curveTrace1.TraceEeg.SamplingFrequency);
+            List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right);
+            List<int> idRightEnter = EventsService.GetEventIdsEnteringWindow(left, right);
             //Union joins and delete duplicates
             List<int> indexes = idOverFlow.Union(idRightEnter).ToList();
 
             ChangeElectrodesColor("", Color.white);
             for (int i = 0; i < indexes.Count; i++)
             {
-                if (EventsService.Events[indexes[i]].correlation2DArray != null)
+                if (EventsService.Events[indexes[i]].Correlation2D != null)
                 {
                     int id = curveTrace1.TraceEeg.ElectrodeID;
                     for (int j = 0; j < curveTrace1.TraceEeg.FileHandle.NumberOfElectrodes; j++)
                     {
                         string ElectrodeName = curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
-                        Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].correlation2DArray[id][j]);
+                        Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].Correlation2D[id][j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
-                else if (EventsService.Events[indexes[i]].correlationArray != null)
+                else if (EventsService.Events[indexes[i]].Correlation != null)
                 {
                     for (int j = 0; j < curveTrace1.TraceEeg.FileHandle.NumberOfElectrodes; j++)
                     {
                         string ElectrodeName = curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
-                        Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].correlationArray[j]);
+                        Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].Correlation[j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
                 else
                 {
-                    string FirstElectrodeName = EventsService.Events[indexes[i]].elecOfInterest;
+                    string FirstElectrodeName = EventsService.Events[indexes[i]].SiteOfInterest;
                     ChangeElectrodesColor(FirstElectrodeName, Color.red);
-                    string SecondElectrodeName = EventsService.Events[indexes[i]].secondElecOfInterest;
+                    string SecondElectrodeName = EventsService.Events[indexes[i]].SecondSiteOfInterest;
                     ChangeElectrodesColor(SecondElectrodeName, Color.blue);
                 }
             }

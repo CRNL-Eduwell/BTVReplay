@@ -27,16 +27,16 @@ public class EventInfoDisplay : MonoBehaviour
     [SerializeField]
     private Button m_CloseWindow = null;
 
-    private TraceEvent m_Event = null;
+    private BtvEvent m_Event = null;
 
-    public void init(TraceEvent clickedEvent)
+    public void init(BtvEvent clickedEvent)
     {
-        m_Event = new TraceEvent(clickedEvent);
+        m_Event = new BtvEvent(clickedEvent);
 
-        InitTimeDisplay((int)m_Event.timeSeconds());
+        InitTimeDisplay((int)m_Event.TimeInSeconds);
         InitElectrodeDropDown();
         InitUiValues(m_Event);
-        SetButtonsInteractibility(m_Event.duration);
+        SetButtonsInteractibility(m_Event.Duration);
 
         m_Electrodes.onValueChanged.AddListener(UpdateEventMainElectrode);
         m_EditEvent.onClick.AddListener(EditEvent);
@@ -77,21 +77,21 @@ public class EventInfoDisplay : MonoBehaviour
         if(VideoService.FilteredDataLoaded)
             m_Electrodes.options.Add(new Dropdown.OptionData("AUD"));
 
-        m_Electrodes.value = container.GetElectrodeIDFromElectrodeName(m_Event.elecOfInterest);
+        m_Electrodes.value = container.GetElectrodeIDFromElectrodeName(m_Event.SiteOfInterest);
     }
 
-    private void InitUiValues(TraceEvent currentEvent)
+    private void InitUiValues(BtvEvent currentEvent)
     {
-        m_Code.text = currentEvent.code.ToString();
-        m_Duration.text = currentEvent.duration.ToString();
-        m_Comment.text = currentEvent.comment;
+        m_Code.text = currentEvent.Code.ToString();
+        m_Duration.text = currentEvent.Duration.ToString();
+        m_Comment.text = currentEvent.Comment;
     }
 
     private void UpdateEventMainElectrode(int ElectrodeID)
     {
-        TraceEvent modifyEvent = new TraceEvent(m_Event)
+        BtvEvent modifyEvent = new BtvEvent(m_Event)
         {
-            elecOfInterest = m_Electrodes.options[ElectrodeID].text
+            SiteOfInterest = m_Electrodes.options[ElectrodeID].text
         };
 
         EventsModificationMessage message = new EventsModificationMessage
@@ -102,7 +102,7 @@ public class EventInfoDisplay : MonoBehaviour
         };
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
 
-        m_Event = new TraceEvent(modifyEvent);
+        m_Event = new BtvEvent(modifyEvent);
     }
 
     private void EditEvent()

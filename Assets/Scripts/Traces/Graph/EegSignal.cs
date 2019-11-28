@@ -45,6 +45,7 @@ public class EegSignal : SignalDisp
     }
     public BtvProgram FileHandle{ get; private set; } = null;
     public int MostRecentSample { get; private set; } = 0;
+    public int MostRecentTimeInMilliSecs { get; private set; } = 0;
     public float MostRecentValue
     {
         get
@@ -93,6 +94,7 @@ public class EegSignal : SignalDisp
 
     public override void UpdateDraw(int milliSecToLook)
     {
+        MostRecentTimeInMilliSecs = milliSecToLook;
         MostRecentSample = (int)(milliSecToLook * ((float)m_samplingFreq / 1000));
         int posInArray = MostRecentSample - m_numberPoint;
         float limitVal = (m_parentRectTransform.rect.height - 6.5f) / 2;

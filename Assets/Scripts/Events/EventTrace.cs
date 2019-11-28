@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using BTV.Data;
 
 public class EventTrace : MonoBehaviour, IPointerClickHandler
 {
     GameObject m_ContextualWindowPrefabs = null;
-    TraceEvent m_Event = null;
+    BtvEvent m_Event = null;
     int parentWinID = -2;
 
     GameObject ContextualMenuWindow = null;
@@ -15,17 +16,17 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
     Button m_DeleteEvent = null;
     Button m_CloseWindow = null;
 
-    public void init(TraceEvent currentEvent, int winID)
+    public void init(BtvEvent currentEvent, int winID)
     {
         m_ContextualWindowPrefabs = Resources.Load("Prefabs/EventOptions", typeof(GameObject)) as GameObject;
 
-        m_Event = new TraceEvent(currentEvent);
+        m_Event = new BtvEvent(currentEvent);
         parentWinID = winID;
     }
 
-    public void UpdateEvent(TraceEvent modifyedEvent)
+    public void UpdateEvent(BtvEvent modifyedEvent)
     {
-        m_Event = new TraceEvent(modifyedEvent);
+        m_Event = new BtvEvent(modifyedEvent);
     }
 
     public void DeleteMe()

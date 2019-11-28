@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using BTV.Data;
 
 public class BTV3DModule : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class BTV3DModule : MonoBehaviour
     public TaskPerformanceTrace TaskPerformanceWindow { get { return m_TaskPerformanceWindow; } }
 
     public Patient Patient { get; set; }
-    public TraceEvent MemoryEvent { get; set; }
+    public BtvEvent MemoryEvent { get; set; }
     //For the moment , only the file paths
     //later , will load the audio clips only once
     //and then distribute a pointer to it

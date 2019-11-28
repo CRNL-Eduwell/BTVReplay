@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using BrainTV.Tools.NumberExtensions;
+using BTV.Data;
 
 public class EventInfoEdit : MonoBehaviour
 {
@@ -19,17 +20,17 @@ public class EventInfoEdit : MonoBehaviour
     [SerializeField]
     private Button m_CloseWindow = null;
 
-    private TraceEvent m_Event = null;
-    private TraceEvent m_OriginalEvent = null;
+    private BtvEvent m_Event = null;
+    private BtvEvent m_OriginalEvent = null;
     private bool m_IsModif = false;
 
-    public void init(TraceEvent clickedEvent, bool isModif)
+    public void init(BtvEvent clickedEvent, bool isModif)
     {
-        m_Event = new TraceEvent(clickedEvent);
-        m_OriginalEvent = new TraceEvent(clickedEvent);
+        m_Event = new BtvEvent(clickedEvent);
+        m_OriginalEvent = new BtvEvent(clickedEvent);
         m_IsModif = isModif;
 
-        InitTimeDisplay((int)m_Event.timeSeconds());
+        InitTimeDisplay((int)m_Event.TimeInSeconds);
 
         if (isModif && ApplicationState.Module3D.MemoryEvent != null)
             InitUiValues(ApplicationState.Module3D.MemoryEvent);
@@ -60,11 +61,11 @@ public class EventInfoEdit : MonoBehaviour
             m_Time.text = "00:" + m.FormatToTimeString() + ":" + s.FormatToTimeString();
     }
 
-    private void InitUiValues(TraceEvent currentEvent)
+    private void InitUiValues(BtvEvent currentEvent)
     {
-        m_Code.text = currentEvent.code.ToString();
-        m_Duration.text = currentEvent.duration.ToString();
-        m_Comment.text = currentEvent.comment;
+        m_Code.text = currentEvent.Code.ToString();
+        m_Duration.text = currentEvent.Duration.ToString();
+        m_Comment.text = currentEvent.Comment;
     }
 
     private void SaveEvent()
@@ -96,12 +97,12 @@ public class EventInfoEdit : MonoBehaviour
     private void CheckEventIntegrity()
     {
         if (int.TryParse(m_Code.text, out int codeValue))
-            m_Event.code = codeValue;
+            m_Event.Code = codeValue;
         else
-            m_Event.code = 0;
+            m_Event.Code = 0;
 
-        m_Event.comment = m_Comment.text;
-        m_Event.duration = int.Parse(m_Duration.text);
+        m_Event.Comment = m_Comment.text;
+        m_Event.Duration = int.Parse(m_Duration.text);
     }
 
     private void DeleteEvent()

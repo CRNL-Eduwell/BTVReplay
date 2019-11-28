@@ -102,7 +102,9 @@ namespace Assets.Scripts.Data.Files
                         sw.Write(timeString.PadRight(10));
                         sw.Write(eegEvent.Comment.PadRight(40));
                         sw.Write(eegEvent.Code.ToString().PadRight(10));
-                        sw.Write(eegEvent.sample.ToString().PadRight(10));
+                        // ====> TODO : MAKE  GOOD FIX FOR A NEW FILE
+                        //sw.Write(eegEvent.sample.ToString().PadRight(10));
+                        sw.Write("00000".PadRight(10));
                         sw.Write(eegEvent.Duration.ToString().PadRight(10));
                         sw.Write(eegEvent.SiteOfInterest.PadRight(10));
                         sw.WriteLine(eegEvent.SecondSiteOfInterest);

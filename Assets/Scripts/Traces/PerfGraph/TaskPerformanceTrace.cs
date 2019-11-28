@@ -187,7 +187,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         int MaxReactionTime = 0;
         for (int i = 0; i < m_Triggers.Count; i++)
         {
-            int currentRtMs = m_Triggers[i].Trigger.ReactionTimeInMs(64);
+            int currentRtMs = (int)m_Triggers[i].Trigger.ReactionTimeInMs;
             if (currentRtMs > MaxReactionTime)
                 MaxReactionTime = currentRtMs;
         }
@@ -200,27 +200,28 @@ public class TaskPerformanceTrace : MonoBehaviour
         if (!m_HasDataToDisplay)
             return;
 
-        int leftTime = (int)(milliSecToLook * ((float)m_signalWindow1.TraceEeg.SamplingFrequency / 1000)) - m_NumberOfPoint;
-        int rightTime = (int)(milliSecToLook * ((float)m_signalWindow1.TraceEeg.SamplingFrequency / 1000));
+        int left = milliSecToLook - (m_PeriopdInSec * 1000);
+        int right = milliSecToLook;
 
         List<int> currentIndex = m_Triggers.Select((item, index) => new { Item = item, Index = index })
-                                                         .Where(x => x.Item.Trigger.Response.Sample > leftTime && x.Item.Trigger.Response.Sample < rightTime)
-                                                         .Select(x => x.Index)
-                                                         .ToList();
+                                            .Where(x => x.Item.Trigger.ResponsTimeInMilliSeconds > left && x.Item.Trigger.ResponsTimeInMilliSeconds < right)
+                                            .Select(x => x.Index)
+                                            .ToList();
+
         DeactivateSpawn();
         if (currentIndex.Count != 0)
         {
             for (int i = 0; i < currentIndex.Count; i++)
             {
-                float posiionSample = (leftTime - m_Triggers[currentIndex[i]].Trigger.Response.Sample);
+                float posiionSample = (left - m_Triggers[currentIndex[i]].Trigger.ResponsTimeInMilliSeconds);
                 float positionInsideRect = posiionSample * -m_HorizontalScale;
 
-                if (m_Triggers[currentIndex[i]].Trigger.Response.Sample <= rightTime)
+                if (m_Triggers[currentIndex[i]].Trigger.ResponsTimeInMilliSeconds <= right)
                 {
                     m_Triggers[currentIndex[i]].gameObject.SetActive(true);
                     m_Triggers[currentIndex[i]].UpdatePosition(0, positionInsideRect, 5, -2);
 
-                    float value = m_VerticalScale * (m_Triggers[currentIndex[i]].Trigger.ReactionTimeInMs() - 750);
+                    float value = m_VerticalScale * (m_Triggers[currentIndex[i]].Trigger.ReactionTimeInMs - 750);
                     m_Triggers[currentIndex[i]].UpdatePosition(1, positionInsideRect, Mathf.Abs(value), -2);
                 }
             }
@@ -242,10 +243,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         if (!m_HasDataToDisplay)
             return;
 
-        int sampleToLook = (int)(milliSecToLook * ((float)m_signalWindow1.TraceEeg.SamplingFrequency / 1000));
-        UnityEngine.Debug.Log(sampleToLook);
-        int found = m_Triggers.FindIndex(x => x.Trigger.Trigger.Sample >= sampleToLook - 8 && x.Trigger.Trigger.Sample < sampleToLook + 8);
-        UnityEngine.Debug.Log("found " + found);
+        int found = m_Triggers.FindIndex(x => x.Trigger.MainEventTimeInMilliSeconds >= milliSecToLook - 8 && x.Trigger.MainEventTimeInMilliSeconds < milliSecToLook + 8);
         if (found == -1)
         {
             if (m_EventPicture.activeSelf == true)
@@ -257,7 +255,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         if (m_EventPicture.activeSelf == false)
         {
             m_EventPicture.SetActive(true);
-            m_EventRawImage.texture = m_EventPictures[m_EventMainCodes.IndexOf(m_Triggers[found].Trigger.Trigger.Code)];
+            m_EventRawImage.texture = m_EventPictures[m_EventMainCodes.IndexOf(m_Triggers[found].Trigger.MainEnventCode)];
         }
     }
 }

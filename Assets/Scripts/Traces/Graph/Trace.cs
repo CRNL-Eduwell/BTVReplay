@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using BTV.Data;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -366,10 +367,10 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         m_rectTransform.GetWorldCorners(m_worldCorners);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         float perCentX = (worldClick.x - m_worldCorners[1].x) / (m_worldCorners[2].x - m_worldCorners[1].x);
-        float sampleClicked = (eegSignal.MostRecentSample - eegSignal.numberOfPoint) + (perCentX * eegSignal.numberOfPoint);
-        if (sampleClicked >= 0)
+        float msClicked = (eegSignal.MostRecentTimeInMilliSecs - (eegSignal.PeriodInSeconds * 1000)) + (perCentX * (eegSignal.PeriodInSeconds * 1000));
+        if (msClicked >= 0)
         {
-            TraceEvent currentEvent = new TraceEvent(new EegEvent(0, (int)sampleClicked, eegSignal.SamplingFrequency), elecOfInterest: eegSignal.ElectrodeLabel);
+            BtvEvent currentEvent = new BtvEvent(0, (int)msClicked, elecOfInterest: eegSignal.ElectrodeLabel);
             //eventWasClicked(currentEvent, traceID);
             OpenEventAdd(currentEvent);
         }
@@ -427,7 +428,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     //===
     //Those 3 needs to be connected via reception of a message from messenger
-    private void OpenEventAdd(TraceEvent Event)
+    private void OpenEventAdd(BtvEvent Event)
     {
         if (m_AddEvents)
         {
@@ -436,12 +437,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             if (traceID == 0)
             {
                 AddEventWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
-                Event.secondElecOfInterest = m_signalWindow2.TraceEeg.ElectrodeLabel;
+                Event.SecondSiteOfInterest = m_signalWindow2.TraceEeg.ElectrodeLabel;
             }
             else
             {
                 AddEventWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
-                Event.secondElecOfInterest = m_signalWindow1.TraceEeg.ElectrodeLabel;
+                Event.SecondSiteOfInterest = m_signalWindow1.TraceEeg.ElectrodeLabel;
             }
             AddEventWindow.transform.localScale = new Vector3(1, 1, 1);
             AddEventWindow.transform.localPosition = new Vector3(0, 0, -402);
@@ -451,7 +452,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    private void OpenEventDisplay(TraceEvent Event)
+    private void OpenEventDisplay(BtvEvent Event)
     {
         GameObject DisplayEventWindow = Instantiate(m_DisplayEventWindowPrefabs);
 
@@ -466,7 +467,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         infoDisp.init(Event);
     }
 
-    private void OpenEventModify(TraceEvent Event)
+    private void OpenEventModify(BtvEvent Event)
     {
         ApplicationState.Module3D.MemoryEvent = null;
 

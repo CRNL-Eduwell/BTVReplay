@@ -1,9 +1,10 @@
-﻿using System.Collections;
+﻿using BTV.Data;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EventItem : Tools.Unity.Lists.SelectableItem<TraceEvent>
+public class EventItem : Tools.Unity.Lists.SelectableItem<BtvEvent>
 {
     #region Properties
     [SerializeField] private Button m_time = null;
@@ -11,7 +12,7 @@ public class EventItem : Tools.Unity.Lists.SelectableItem<TraceEvent>
     [SerializeField] private Text m_code = null;
     private CustomVideoPlayer m_video = null;
 
-    public override TraceEvent Object
+    public override BtvEvent Object
     {
         get
         {
@@ -38,9 +39,9 @@ public class EventItem : Tools.Unity.Lists.SelectableItem<TraceEvent>
 
     private void initValues()
     {
-        gameObject.name = "HubEvent - " + base.Object.sample;
+        gameObject.name = "HubEvent - " + base.Object.TimeInSeconds;
 
-        int timeInSec = base.Object.sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
+        int timeInSec = (int)base.Object.TimeInSeconds;
         int h = timeInSec / 3600;
         int m = (timeInSec / 60) % 60;
         int s = timeInSec % 60;
@@ -52,8 +53,8 @@ public class EventItem : Tools.Unity.Lists.SelectableItem<TraceEvent>
 
         m_time.onClick.AddListener(() => m_video.setTime(timeInSec * 1000));
 
-        m_comment.text = base.Object.comment;
-        m_code.text = base.Object.code.ToString();
+        m_comment.text = base.Object.Comment;
+        m_code.text = base.Object.Code.ToString();
     }
     #endregion
 }

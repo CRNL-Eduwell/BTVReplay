@@ -150,19 +150,18 @@ public class EventsManager : MonoBehaviour
     {
         if (EventsService.Events.Count > 0)
         {
-            long TimeInSec = m_videoPlayer.videoInterface.currentTime / 1000;
-            long TimeInSample = TimeInSec * ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
-            int index = EventsService.Events.Select(x=>x.sample).ToList().BinarySearch((int)TimeInSample);
+            long VideoTimeInMs = m_videoPlayer.videoInterface.currentTime;
+            int index = EventsService.Events.Select(x=>x.TimeInMilliSeconds).ToList().BinarySearch(VideoTimeInMs);
             if (Math.Abs(index) - 1 == 0)
             {
-                int TimeInMilliSec = ((EventsService.Events[0].sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) * 1000);
+                int TimeInMilliSec = (int)EventsService.Events[0].TimeInMilliSeconds;
                 m_videoPlayer.changeTimeClick(TimeInMilliSec);
                 m_videoPlayer.setTime(TimeInMilliSec);
             }
             else
             {
                 int currentPos = Math.Abs(index) - 1;
-                int TimeInMilliSec = ((EventsService.Events[currentPos - 1].sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) * 1000);
+                int TimeInMilliSec = (int)EventsService.Events[currentPos - 1].TimeInMilliSeconds;
                 m_videoPlayer.changeTimeClick(TimeInMilliSec);
                 m_videoPlayer.setTime(TimeInMilliSec);
             }
@@ -173,13 +172,12 @@ public class EventsManager : MonoBehaviour
     {
         if (EventsService.Events.Count > 0)
         {
-            long TimeInSec = m_videoPlayer.videoInterface.currentTime / 1000;
-            long TimeInSample = TimeInSec * ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
-            int index = EventsService.Events.Select(x => x.sample).ToList().BinarySearch((int)TimeInSample);
+            long VideoTimeInMs = m_videoPlayer.videoInterface.currentTime;
+            int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(VideoTimeInMs);
             int currentPos = Math.Abs(index) - 1;
             if (currentPos + 1 < EventsService.Events.Count)
             {
-                int TimeInMilliSec = ((EventsService.Events[currentPos + 1].sample / ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency) * 1000);
+                int TimeInMilliSec = (int)EventsService.Events[currentPos + 1].TimeInMilliSeconds;
                 m_videoPlayer.changeTimeClick(TimeInMilliSec);
                 m_videoPlayer.setTime(TimeInMilliSec);
             }
@@ -212,7 +210,7 @@ public class EventsManager : MonoBehaviour
         }
     }
 
-    private void AddEvent(TraceEvent Event)
+    private void AddEvent(BtvEvent Event)
     {
         EventsService.AddEvent(Event);
         EventsService.SortBySample();
@@ -231,18 +229,18 @@ public class EventsManager : MonoBehaviour
         Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
     }
 
-    private void UpdateEvent(TraceEvent modifyiedEvent, TraceEvent previousEvent)
+    private void UpdateEvent(BtvEvent modifyiedEvent, BtvEvent previousEvent)
     {
         int Id = EventsService.GetEventId(previousEvent);
         if (Id != -1)
         {
-            bool UpdateEventUI = (modifyiedEvent.duration - previousEvent.duration == modifyiedEvent.duration) || (modifyiedEvent.duration - previousEvent.duration == -previousEvent.duration);
+            bool UpdateEventUI = (modifyiedEvent.Duration - previousEvent.Duration == modifyiedEvent.Duration) || (modifyiedEvent.Duration - previousEvent.Duration == -previousEvent.Duration);
 
             m_EventsTexture.RemoveEvent(previousEvent);
             EventsService.UpdateEvent(modifyiedEvent, previousEvent);
             m_EventsTexture.AddEvent(EventsService.Events[Id]);
 
-            var eventToChangeObjects = Resources.FindObjectsOfTypeAll<GameObject>().Where(obj => obj.name == "Event - " + previousEvent.sample);
+            var eventToChangeObjects = Resources.FindObjectsOfTypeAll<GameObject>().Where(obj => obj.name == "Event - " + previousEvent.TimeInSeconds);
             if (UpdateEventUI)
             {
                 eventToChangeObjects.ElementAt(0).GetComponent<EventTrace>().DeleteMe();
@@ -259,7 +257,7 @@ public class EventsManager : MonoBehaviour
         }
     }
 
-    private void DeleteEvent(TraceEvent Event)
+    private void DeleteEvent(BtvEvent Event)
     {
         int Id = EventsService.GetEventId(Event);
         EventsService.RemoveEventAt(Id);
@@ -276,25 +274,26 @@ public class EventsManager : MonoBehaviour
         Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
     }
 
-    IEnumerator ProcessCorrelation(TraceEvent currentEvent)
+    IEnumerator ProcessCorrelation(BtvEvent currentEvent)
     {
         yield return Ninja.JumpBack;
         this.StartCoroutineAsync(c_Correlation(currentEvent));
         yield return Ninja.JumpToUnity;
     }
 
-    IEnumerator c_Correlation(TraceEvent currentEvent)
+    IEnumerator c_Correlation(BtvEvent currentEvent)
     {
+        int samplingFrequency = ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
         int electrodeCount = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
         int eventIndex = EventsService.GetEventId(currentEvent);
 
-        EventsService.Events[eventIndex].correlationArray = new float[electrodeCount];
-        EventsService.Events[eventIndex].correlation2DArray = null;
+        EventsService.Events[eventIndex].Correlation = new float[electrodeCount];
+        EventsService.Events[eventIndex].Correlation2D = null;
+        
+        int beginTimeSample = (int)(EventsService.Events[eventIndex].TimeInSeconds * samplingFrequency);
+        int durationInSample = (EventsService.Events[eventIndex].Duration / 1000) * samplingFrequency;
 
-        int beginTimeSample = EventsService.Events[eventIndex].sample;
-        int durationInSample = (EventsService.Events[eventIndex].duration / 1000) * EventsService.Events[eventIndex].samplingFrequency;
-
-        int indexBaseline = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.elecOfInterest);
+        int indexBaseline = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.SiteOfInterest);
         if (indexBaseline != -1)
         {
             int[] sizes = { beginTimeSample, durationInSample };
@@ -306,13 +305,13 @@ public class EventsManager : MonoBehaviour
                     continue;
 
                 float[] channel = container.Channels[i].Data;
-                EventsService.Events[eventIndex].correlationArray[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
+                EventsService.Events[eventIndex].Correlation[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
             }
         }
         else
         {
             //Run Correlation against Audio trace
-            if (currentEvent.elecOfInterest.StartsWith("AUD"))
+            if (currentEvent.SiteOfInterest.StartsWith("AUD"))
             {
                 int[] sizes = { beginTimeSample, durationInSample };
                 BtvChannel audioChannel = ApplicationState.Module3D.Window1.TraceAudio.ChannelHandle;
@@ -321,32 +320,33 @@ public class EventsManager : MonoBehaviour
                 for (int i = 0; i < electrodeCount; i++)
                 {
                     float[] channel = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Channels[i].Data;
-                    EventsService.Events[eventIndex].correlationArray[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
+                    EventsService.Events[eventIndex].Correlation[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
                 }
             }
         }
         yield return null;
     }
 
-    IEnumerator Process2dCorrelation(TraceEvent currentEvent)
+    IEnumerator Process2dCorrelation(BtvEvent currentEvent)
     {
         yield return Ninja.JumpBack;
         this.StartCoroutineAsync(c_Correlation2d(currentEvent));
         yield return Ninja.JumpToUnity;
     }
 
-    IEnumerator c_Correlation2d(TraceEvent currentEvent)
+    IEnumerator c_Correlation2d(BtvEvent currentEvent)
     {
+        int samplingFrequency = ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
         int electrodeCount = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
         int eventIndex = EventsService.GetEventId(currentEvent);
 
-        EventsService.Events[eventIndex].correlationArray = null;
-        EventsService.Events[eventIndex].correlation2DArray = new float[electrodeCount][];
+        EventsService.Events[eventIndex].Correlation = null;
+        EventsService.Events[eventIndex].Correlation2D = new float[electrodeCount][];
         for (int i = 0; i < electrodeCount; i++)
-            EventsService.Events[eventIndex].correlation2DArray[i] = new float[electrodeCount];
+            EventsService.Events[eventIndex].Correlation2D[i] = new float[electrodeCount];
 
-        int beginTimeSample = EventsService.Events[eventIndex].sample;
-        int durationInSample = (EventsService.Events[eventIndex].duration / 1000) * EventsService.Events[eventIndex].samplingFrequency;
+        int beginTimeSample = (int)(EventsService.Events[eventIndex].TimeInSeconds * samplingFrequency);
+        int durationInSample = (EventsService.Events[eventIndex].Duration / 1000) * samplingFrequency;
 
         int[] sizes = { beginTimeSample, durationInSample };
         BtvProgram container = ApplicationState.Module3D.Window1.TraceEeg.FileHandle;
@@ -358,7 +358,7 @@ public class EventsManager : MonoBehaviour
                     continue;
                 float[] baseline = container.Channels[i].Data;
                 float[] channel = container.Channels[j].Data;
-                EventsService.Events[eventIndex].correlation2DArray[i][j] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
+                EventsService.Events[eventIndex].Correlation2D[i][j] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
             }
         }
 

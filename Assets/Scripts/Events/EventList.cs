@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using BTV.Data;
 
-public class EventList : Tools.Unity.Lists.SelectableList<TraceEvent>
+public class EventList : Tools.Unity.Lists.SelectableList<BtvEvent>
 {
     [SerializeField] Toggle m_checkAll = null;
 
@@ -26,7 +27,7 @@ public class EventList : Tools.Unity.Lists.SelectableList<TraceEvent>
             DeselectAll();
     }
 
-    public void LoadEvents(List<TraceEvent> Events)
+    public void LoadEvents(List<BtvEvent> Events)
     {
         int EventsCount = Events.Count;
         for (int i = 0; i < EventsCount; i++)
@@ -35,12 +36,12 @@ public class EventList : Tools.Unity.Lists.SelectableList<TraceEvent>
         }
     }
 
-    public void AddEvent(TraceEvent currentEvent)
+    public void AddEvent(BtvEvent currentEvent)
     {
-        ApplicationState.Module3D.MemoryEvent = new TraceEvent(currentEvent);
+        ApplicationState.Module3D.MemoryEvent = new BtvEvent(currentEvent);
 
         Add(currentEvent);
-        m_Objects = m_Objects.OrderBy(x => x.sample).ToList();
+        m_Objects = m_Objects.OrderBy(x => x.TimeInMilliSeconds).ToList();
         Refresh();
     }
 

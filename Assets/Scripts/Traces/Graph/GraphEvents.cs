@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using BTV.Services.EventsService;
+using BTV.Data;
 
 public class GraphEvents : MonoBehaviour
 {
@@ -34,16 +35,16 @@ public class GraphEvents : MonoBehaviour
         m_parentRectTransform = gameObject.transform.parent.GetComponent<RectTransform>();
     }
 
-    public void AddEventToTrace(TraceEvent currentEvent, int id)
+    public void AddEventToTrace(BtvEvent currentEvent, int id)
     {
         UnityEngine.Debug.Log("Add event to trace");
         GameObject currentEventToAdd = null;
-        if (currentEvent.duration == 0)
+        if (currentEvent.Duration == 0)
             currentEventToAdd = Instantiate(m_EventZeroDurationPrefab);
         else
             currentEventToAdd = Instantiate(m_EventNonZeroDurationPrefab);
 
-        currentEventToAdd.name = "Event - " + currentEvent.sample;
+        currentEventToAdd.name = "Event - " + currentEvent.TimeInSeconds;
         currentEventToAdd.transform.SetParent(m_eventHolder);
         currentEventToAdd.transform.localScale = new Vector3(1, 1, 1);
         currentEventToAdd.transform.SetSiblingIndex(id);
@@ -68,29 +69,29 @@ public class GraphEvents : MonoBehaviour
         if (EventCount > 0)
         {
             float samplingFreq = m_parent.TraceEeg.FileHandle.Frequency.RawValue;
-            int numberPoint = m_parent.TraceEeg.numberOfPoint;
+            int PeriodInSeconds = m_parent.TraceEeg.PeriodInSeconds;
             float horizontalScale = m_parent.TraceEeg.horizontalScale;
             float widthOfGameObject = m_parent.TraceEeg.widthOfGameObject;
 
-            int left = (int)(milliSecToLook * (samplingFreq / 1000)) - numberPoint;
-            int right = (int)(milliSecToLook * ((float)samplingFreq / 1000));
+            int left = milliSecToLook - (PeriodInSeconds * 1000);
+            int right = milliSecToLook;
 
             HideActiveEvents();
             if (DisplayEvents)
             {
                 //We get all relevant events
-                List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right, samplingFreq);
-                List<int> idRightEnter = EventsService.GetEventIdsEnteringWindow(left, right, samplingFreq);
-                List<int> idInside = EventsService.GetEventIdsInsideWindow(left, right, samplingFreq);
-                List<int> idLeftEnter = EventsService.GetEventIdsExitingWindow(left, right, samplingFreq);
+                List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right);
+                List<int> idRightEnter = EventsService.GetEventIdsEnteringWindow(left, right);
+                List<int> idInside = EventsService.GetEventIdsInsideWindow(left, right);
+                List<int> idLeftEnter = EventsService.GetEventIdsExitingWindow(left, right);
 
                 //Then we display
                 float sizeV = m_parentRectTransform.rect.height - 10;
 
                 for (int i = 0; i < idRightEnter.Count; i++)
                 {
-                    float positionInsideRect = (left - EventsService.Events[idRightEnter[i]].sample) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                    float rightevent = right - EventsService.Events[idRightEnter[i]].sample;
+                    float positionInsideRect = (left - EventsService.Events[idRightEnter[i]].TimeInMilliSeconds) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float rightevent = right - EventsService.Events[idRightEnter[i]].TimeInMilliSeconds;
                     float size = (rightevent / (right - left)) * widthOfGameObject;
 
                     m_EventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
@@ -101,10 +102,10 @@ public class GraphEvents : MonoBehaviour
 
                 for (int i = 0; i < idInside.Count; i++)
                 {
-                    float positionInsideRect = (left - EventsService.Events[idInside[i]].sample) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                    float size = ((EventsService.Events[idInside[i]].duration * ((float)samplingFreq / 1000)) / (right - left)) * widthOfGameObject;
+                    float positionInsideRect = (left - EventsService.Events[idInside[i]].TimeInMilliSeconds) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float size = (EventsService.Events[idInside[i]].Duration / (right - left)) * widthOfGameObject;
 
-                    if (EventsService.Events[idInside[i]].duration > 0)
+                    if (EventsService.Events[idInside[i]].Duration > 0)
                     {
                         m_EventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
                         m_EventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
@@ -114,14 +115,14 @@ public class GraphEvents : MonoBehaviour
                     else
                     {
                         m_EventsAdded[idInside[i]].SetActive(true);
-                        m_EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, m_parent.TraceEeg.dataArray[EventsService.Events[idInside[i]].sample - left].y, -201);
+                        m_EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, m_parent.TraceEeg.dataArray[(int)EventsService.Events[idInside[i]].TimeInMilliSeconds - left].y, -201);
                     }
                 }
 
                 for (int i = 0; i < idLeftEnter.Count; i++)
                 {
                     float positionInsideRect = ((-widthOfGameObject / 2) + 1);
-                    float leftevent = (EventsService.Events[idLeftEnter[i]].sample + (EventsService.Events[idLeftEnter[i]].duration * ((float)samplingFreq / 1000)) - left);
+                    float leftevent = (EventsService.Events[idLeftEnter[i]].TimeInMilliSeconds + (EventsService.Events[idLeftEnter[i]].Duration * ((float)samplingFreq / 1000)) - left);
                     float size = (leftevent / (right - left)) * widthOfGameObject;
 
                     m_EventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
