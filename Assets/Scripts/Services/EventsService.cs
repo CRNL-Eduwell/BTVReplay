@@ -12,11 +12,11 @@ namespace BTV.Services.EventsService
     {
         public static List<TraceEvent> Events { get; set; } = new List<TraceEvent>();
 
-        public static void Load(string filePath)
+        public static void Load(string filePath, int samplingFrequency = 0)
         {
             if (File.Exists(filePath))
             {
-                IEventsContext file = EventsFactory.GetEventsContext(filePath);
+                IEventsContext file = EventsFactory.GetEventsContext(filePath, samplingFrequency);
 
                 Events = new List<TraceEvent>();
                 for (int i = 0; i < file.Events.Count; i++)

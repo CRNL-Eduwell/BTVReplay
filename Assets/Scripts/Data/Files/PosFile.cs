@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Data.Factory;
+using BTV.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +9,7 @@ namespace Assets.Scripts.Data.Files
 {
     class PosFile : IEventsContext
     {
-        public List<TraceEvent> Events
+        public List<BtvEvent> Events
         {
             get;
             private set;
@@ -19,23 +20,23 @@ namespace Assets.Scripts.Data.Files
             private set;
         }
 
-        public PosFile(string filePath)
+        public PosFile(string filePath, float samplingFrequency)
         {
             FilePath = filePath;
 
             if (File.Exists(FilePath))
-                Load(FilePath);
+                Load(FilePath, samplingFrequency);
             else
                 Debug.LogError("PosFile => Filepath : " + FilePath + " does not exist ");
         }
 
-        private int Load(string FilePath)
+        private int Load(string FilePath, float samplingFrequency)
         {
             try
             {
                 using (StreamReader sr = new StreamReader(FilePath))
                 {
-                    Events = new List<TraceEvent>();
+                    Events = new List<BtvEvent>();
 
                     string r;
                     while ((r = sr.ReadLine()) != null)
@@ -45,12 +46,9 @@ namespace Assets.Scripts.Data.Files
                         {
                             int Code = int.Parse(resultSplit[1]);
                             int Sample = int.Parse(resultSplit[0]);
-                            //==========================
-                            // /!\ SUPER UGLY FIX. NEED TO CHANGE EVENT MANAGEMENT FROM SAMPLE TO MILLISECONDS
-                            //==========================
-                            int Frequency = ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
-                            EegEvent currentEvent = new EegEvent(Code, Sample, Frequency);
-                            Events.Add(new TraceEvent(currentEvent));
+                            float TimeInMilliSec = (Sample / samplingFrequency) * 1000;
+
+                            Events.Add(new BtvEvent(Code, TimeInMilliSec));
                         }
                     }
                     sr.Close();
@@ -61,21 +59,22 @@ namespace Assets.Scripts.Data.Files
             {
                 Console.WriteLine("The pos file could not be read:");
                 Console.WriteLine(e.Message);
-                Events = new List<TraceEvent>();
+                Events = new List<BtvEvent>();
                 return -1;
             }
         }
 
-        public static void Save(string FilePath, List<TraceEvent> Events)
+        public static void Save(string FilePath, List<BtvEvent> Events, float samplingFrequency = 0)
         {
             try
             {
                 using (StreamWriter sw = new StreamWriter(FilePath))
                 {
-                    foreach (TraceEvent Event in Events)
+                    foreach (BtvEvent Event in Events)
                     {
-                        sw.Write(Event.sample.ToString().PadRight(10));
-                        sw.Write(Event.code.ToString().PadRight(10));
+                        int sample = Convert.ToInt32(Event.TimeInSeconds * samplingFrequency);
+                        sw.Write(sample.ToString().PadRight(10));
+                        sw.Write(Event.Code.ToString().PadRight(10));
                         sw.Write("0\n");
                     }
 

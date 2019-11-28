@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Data.Files;
+using BTV.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,13 +11,17 @@ namespace Assets.Scripts.Data.Factory
 {
     public class EventsFactory
     {
-        public static IEventsContext GetEventsContext(string FilePath)
+        public static IEventsContext GetEventsContext(string FilePath, float samplingFrequency = 0)
         {
             FileInfo fileInfo = new FileInfo(FilePath);
             switch (fileInfo.Extension)
             {
                 case ".pos":
-                    return new PosFile(FilePath);
+                    if (samplingFrequency == 0)
+                    {
+                        throw new ArgumentException("EventsFactory.GetEventsContext : SamplingFrequency should not be 0");
+                    }
+                    return new PosFile(FilePath, samplingFrequency);
                 case ".btv":
                     return new BtvFile(FilePath);
                 default:
@@ -24,13 +29,17 @@ namespace Assets.Scripts.Data.Factory
             }
         }
 
-        public static void SaveEvents(string FilePath, List<TraceEvent> Events)
+        public static void SaveEvents(string FilePath, List<BtvEvent> Events, float samplingFrequency = 0)
         {
             FileInfo fileInfo = new FileInfo(FilePath);
             switch (fileInfo.Extension)
             {
                 case ".pos":
-                    PosFile.Save(FilePath, Events);
+                    if (samplingFrequency == 0)
+                    {
+                        throw new ArgumentException("EventsFactory.SaveEvents : SamplingFrequency should not be 0");
+                    }
+                    PosFile.Save(FilePath, Events, samplingFrequency);
                     break;
                 case ".btv":
                     BtvFile.Save(FilePath, Events);

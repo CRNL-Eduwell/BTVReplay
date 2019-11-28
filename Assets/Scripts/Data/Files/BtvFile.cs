@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using BrainTV.Tools.NumberExtensions;
+using BTV.Data;
 
 namespace Assets.Scripts.Data.Files
 {
     class BtvFile : IEventsContext
     {
-        public List<TraceEvent> Events
+        public List<BtvEvent> Events
         {
             get;
             private set;
@@ -36,7 +37,7 @@ namespace Assets.Scripts.Data.Files
             {
                 using (StreamReader sr = new StreamReader(FilePath))
                 {
-                    Events = new List<TraceEvent>();
+                    Events = new List<BtvEvent>();
 
                     string r;
                     while ((r = sr.ReadLine()) != null)
@@ -45,18 +46,15 @@ namespace Assets.Scripts.Data.Files
                         string[] resultSplit = System.Text.RegularExpressions.Regex.Split(r, @"\s{2,}");
                         if (resultSplit.Length == 7)
                         {
+                            int Time = TimeStringToMilliSeconds(resultSplit[0]);
+                            string Comment = resultSplit[1];
                             int Code = int.Parse(resultSplit[2]);
                             int Sample = int.Parse(resultSplit[3]);
-                            //==========================
-                            // /!\ SUPER UGLY FIX. NEED TO CHANGE EVENT MANAGEMENT FROM SAMPLE TO MILLISECONDS
-                            //==========================
-                            int Frequency = ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
-                            EegEvent currentEvent = new EegEvent(Code, Sample, Frequency);
                             int Duration = int.Parse(resultSplit[4]);
                             string FirstElectrodeOfInterest = resultSplit[5];
                             string SecondElectrodeOfInterest = resultSplit[6];
-                            string Comment = resultSplit[1];
-                            Events.Add(new TraceEvent(currentEvent, Duration, FirstElectrodeOfInterest, SecondElectrodeOfInterest, Comment));
+
+                            Events.Add(new BtvEvent(Code, Time, Duration, FirstElectrodeOfInterest, SecondElectrodeOfInterest, Comment));
                         }
                     }
                     sr.Close();
@@ -67,38 +65,47 @@ namespace Assets.Scripts.Data.Files
             {
                 Console.WriteLine("The btv file could not be read:");
                 Console.WriteLine(e.Message);
-                Events = new List<TraceEvent>();
+                Events = new List<BtvEvent>();
                 return -1;
             }
         }
 
-        public static void Save(string FilePath, List<TraceEvent> Events)
+        private int TimeStringToMilliSeconds(string str)
+        {
+            string[] timeSplit = str.Split(new string[] { ":" }, StringSplitOptions.None);
+            if (timeSplit.Length == 3)
+            {
+                int HourInSeconds = Convert.ToInt32(timeSplit[0]) * 3600;
+                int MinInSeconds = Convert.ToInt32(timeSplit[1]) * 60;
+                int Seconds = Convert.ToInt32(timeSplit[2]);
+                return ((HourInSeconds + MinInSeconds + Seconds) * 1000);
+            }
+            else
+            {
+                Console.WriteLine("BtvFile => Error when spliting time string, we should only have 3 elements");
+                Console.WriteLine("Make sure the format is hh:mm:ss");
+                Console.WriteLine("Returning 0 as value");
+                return 0;
+            }
+        }
+
+        public static void Save(string FilePath, List<BtvEvent> Events)
         {
             try
             {
                 using (StreamWriter sw = new StreamWriter(FilePath))
                 {
-                    foreach (TraceEvent eegEvent in Events)
+                    foreach (BtvEvent eegEvent in Events)
                     {
-                        //if eegEvent.samplingFrequency does not work , see to use ApplicationState.CurrentSelectedFile.sampFreq
-                        int timeInSec = eegEvent.sample / eegEvent.samplingFrequency;
-                        int h = timeInSec / 3600;
-                        int m = (timeInSec / 60) % 60;
-                        int s = timeInSec % 60;
-                        
-                        string timeString = "";
-                        if (h > 0)
-                            timeString = h.FormatToTimeString() + ":" + m.FormatToTimeString() + ":" + s.FormatToTimeString();
-                        else
-                            timeString = "00:" + m.FormatToTimeString() + ":" + s.FormatToTimeString();
+                        string timeString = MilliSecondsToTimeString((int)eegEvent.TimeInMilliSeconds);
 
                         sw.Write(timeString.PadRight(10));
-                        sw.Write(eegEvent.comment.PadRight(40));
-                        sw.Write(eegEvent.code.ToString().PadRight(10));
+                        sw.Write(eegEvent.Comment.PadRight(40));
+                        sw.Write(eegEvent.Code.ToString().PadRight(10));
                         sw.Write(eegEvent.sample.ToString().PadRight(10));
-                        sw.Write(eegEvent.duration.ToString().PadRight(10));
-                        sw.Write(eegEvent.elecOfInterest.PadRight(10));
-                        sw.WriteLine(eegEvent.secondElecOfInterest);
+                        sw.Write(eegEvent.Duration.ToString().PadRight(10));
+                        sw.Write(eegEvent.SiteOfInterest.PadRight(10));
+                        sw.WriteLine(eegEvent.SecondSiteOfInterest);
                     }
 
                     sw.Close();
@@ -110,5 +117,22 @@ namespace Assets.Scripts.Data.Files
                 Console.WriteLine(e.Message);
             }
         }
+
+        private static string MilliSecondsToTimeString(int timeInMilliSec)
+        {
+            string TimeString = "";
+            int TimeInSeconds = timeInMilliSec / 1000;
+            int h = TimeInSeconds / 3600;
+            int m = (TimeInSeconds / 60) % 60;
+            int s = TimeInSeconds % 60;
+
+            if (h > 0)
+                TimeString = h.FormatToTimeString() + ":" + m.FormatToTimeString() + ":" + s.FormatToTimeString();
+            else
+                TimeString = "00:" + m.FormatToTimeString() + ":" + s.FormatToTimeString();
+
+            return TimeString;
+        }
+
     }
 }

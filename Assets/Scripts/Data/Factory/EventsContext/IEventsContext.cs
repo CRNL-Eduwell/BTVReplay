@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BTV.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace Assets.Scripts.Data.Factory
 {
     public interface IEventsContext
     {
-        List<TraceEvent> Events
+        List<BtvEvent> Events
         {
             get;
         }
