@@ -1,7 +1,30 @@
 ﻿
 public class EegTrigger
 {
-    public float ReactionTimeInMs { get { return m_Response.TimeInMilliSeconds - m_MainEvent.TimeInMilliSeconds; } }
+    public float ReactionTimeInMs
+    {
+        get { return m_Response.TimeInMilliSeconds - m_MainEvent.TimeInMilliSeconds; }
+    }
+    public int MainEnventCode
+    {
+        get { return m_MainEvent != null ? m_MainEvent.Code : -666; }
+        set { if(m_MainEvent != null) m_MainEvent.Code = value; }
+    }
+    public float MainEventTimeInMilliSeconds
+    {
+        get { return m_MainEvent != null ? m_MainEvent.TimeInMilliSeconds : -666; }
+        set { if (m_MainEvent != null) m_MainEvent.TimeInMilliSeconds = value; }
+    }
+    public int ResponseCode
+    {
+        get { return m_Response != null ? m_Response.Code : -666; }
+        set { if (m_Response != null) m_Response.Code = value; else m_Response = new EegEvent(value, -666); }
+    }
+    public float ResponsTimeInMilliSeconds
+    {
+        get { return m_Response != null ? m_Response.TimeInMilliSeconds : -666; }
+        set { if (m_Response != null) m_Response.TimeInMilliSeconds = value; else  m_Response = new EegEvent(-1, value); }
+    }
 
     private EegEvent m_MainEvent = null;
     private EegEvent m_Response = null;

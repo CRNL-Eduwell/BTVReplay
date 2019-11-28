@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Data.Factory;
+using BTV.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +11,7 @@ namespace BTV.Services.EventsService
 {
     public static class EventsService
     {
-        public static List<TraceEvent> Events { get; set; } = new List<TraceEvent>();
+        public static List<BtvEvent> Events { get; set; } = new List<BtvEvent>();
 
         public static void Load(string filePath, int samplingFrequency = 0)
         {
@@ -18,15 +19,15 @@ namespace BTV.Services.EventsService
             {
                 IEventsContext file = EventsFactory.GetEventsContext(filePath, samplingFrequency);
 
-                Events = new List<TraceEvent>();
+                Events = new List<BtvEvent>();
                 for (int i = 0; i < file.Events.Count; i++)
                 {
-                    Events.Add(new TraceEvent(file.Events[i]));
-                    //UnityEngine.Debug.Log(Events[i].code + " et " + Events[i].sample);
+                    Events.Add(new BtvEvent(file.Events[i]));
                 }
             }
         }
 
+        //Add sampling freq as parameter from the outside
         public static void SaveEvents(string filePath)
         {
             string posFilePath = filePath.Replace(".pos", "_btv.pos");
@@ -35,40 +36,40 @@ namespace BTV.Services.EventsService
             EventsFactory.SaveEvents(btvFilePath, Events);
         }
 
-        public static void AddEvent(TraceEvent Event)
+        public static void AddEvent(BtvEvent Event)
         {
-            TraceEvent EventToAdd = new TraceEvent(Event);
+            BtvEvent EventToAdd = new BtvEvent(Event);
             if (!Events.Contains(EventToAdd))
             {
                 Events.Add(EventToAdd);
             }
         }
 
-        public static void UpdateEvent(TraceEvent ModifiedEvent, TraceEvent OriginalEvent)
+        public static void UpdateEvent(BtvEvent ModifiedEvent, BtvEvent OriginalEvent)
         {
-            bool UpdateDuration = ModifiedEvent.duration != OriginalEvent.duration;
-            bool UpdateElectrodeDefault = ModifiedEvent.elecOfInterest == "";
+            bool UpdateDuration = ModifiedEvent.Duration != OriginalEvent.Duration;
+            bool UpdateElectrodeDefault = ModifiedEvent.SiteOfInterest == "";
             int Id = GetEventId(OriginalEvent);
             if (Id != -1)
             {
-                Events[Id] = new TraceEvent(ModifiedEvent);
+                Events[Id] = new BtvEvent(ModifiedEvent);
                 if (UpdateDuration)
                 {
-                    Events[Id].correlationArray = null;
-                    Events[Id].correlation2DArray = null;
+                    Events[Id].Correlation = null;
+                    Events[Id].Correlation2D = null;
                 }
 
                 if (UpdateElectrodeDefault)
                 {
-                    Events[Id].elecOfInterest = ApplicationState.Module3D.Window1.TraceEeg.ElectrodeLabel;
-                    Events[Id].secondElecOfInterest = ApplicationState.Module3D.Window2.TraceEeg.ElectrodeLabel;
+                    Events[Id].SiteOfInterest = ApplicationState.Module3D.Window1.TraceEeg.ElectrodeLabel;
+                    Events[Id].SecondSiteOfInterest = ApplicationState.Module3D.Window2.TraceEeg.ElectrodeLabel;
                 }
             }
         }
 
-        public static void RemoveEvent(TraceEvent Event)
+        public static void RemoveEvent(BtvEvent Event)
         {
-            TraceEvent EventToRemove = new TraceEvent(Event);
+            BtvEvent EventToRemove = new BtvEvent(Event);
             if (Events.Contains(EventToRemove))
             {
                 bool result = Events.Remove(EventToRemove);
@@ -85,10 +86,10 @@ namespace BTV.Services.EventsService
             }
         }
 
-        public static int GetEventId(TraceEvent Event)
+        public static int GetEventId(BtvEvent Event)
         {
             return Events.Select((item, index) => new { Item = item, Index = index })
-                         .Where(x => x.Item.sample == Event.sample)
+                         .Where(x => x.Item.TimeInMilliSeconds == Event.TimeInMilliSeconds)
                          .Select(x => x.Index)
                          .First();
         }
@@ -96,7 +97,7 @@ namespace BTV.Services.EventsService
         public static List<int> FindIndexes(int SearchValue)
         {
             return Events.Select((item, index) => new { Item = item, Index = index })
-             .Where(x => x.Item.code == SearchValue)
+             .Where(x => x.Item.Code == SearchValue)
              .Select(x => x.Index)
              .ToList();
         }
@@ -106,16 +107,15 @@ namespace BTV.Services.EventsService
         /// [BeginEvent ---------------------------------------------- EndEvent]
         ///         [LeftBorderWindow ------------ RightBorderWindow]
         /// 
-        /// Condition => Events.Sample < Left && Events.sample + Events.duration > Right
+        /// Condition => Events.TimeInMilliSeconds < Left && Events.TimeInMilliSeconds + Events.duration > Right
         /// </summary>
-        /// <param name="LeftBorderSample"></param>
-        /// <param name="RightBorderSample"></param>
-        /// <param name="SamplingFrequency"></param>
+        /// <param name="LeftBorderMilliSeconds"></param>
+        /// <param name="RightBorderMilliSeconds"></param>
         /// <returns></returns>
-        public static List<int> GetEventIdsBiggerThanWindow(int LeftBorderSample, int RightBorderSample, float SamplingFrequency)
+        public static List<int> GetEventIdsBiggerThanWindow(int LeftBorderMilliSeconds, int RightBorderMilliSeconds)
         {
             return Events.Select((item, index) => new { Item = item, Index = index })
-                    .Where(x => (x.Item.sample <= LeftBorderSample && (x.Item.sample + (x.Item.duration * (SamplingFrequency / 1000)) >= RightBorderSample)))
+                    .Where(x => (x.Item.TimeInMilliSeconds <= LeftBorderMilliSeconds && (x.Item.TimeInMilliSeconds + x.Item.Duration >= RightBorderMilliSeconds)))
                     .Select(x => x.Index)
                     .ToList();
         }
@@ -125,19 +125,18 @@ namespace BTV.Services.EventsService
         ///                     [BeginEvent --- EndEvent]
         ///         [LeftBorderWindow ------------ RightBorderWindow]
         /// 
-        /// Condition => Left < Events.Sample < Right && Left < Events.Sample + Events.Duration < Right 
+        /// Condition => Left < TimeInMilliSeconds < Right && Left < TimeInMilliSeconds + Events.Duration < Right 
         /// </summary>
-        /// <param name="LeftBorderSample"></param>
-        /// <param name="RightBorderSample"></param>
-        /// <param name="SamplingFrequency"></param>
+        /// <param name="LeftBorderMilliSeconds"></param>
+        /// <param name="RightBorderMilliSeconds"></param>
         /// <returns></returns>
-        public static List<int> GetEventIdsInsideWindow(int LeftBorderSample, int RightBorderSample, float SamplingFrequency)
+        public static List<int> GetEventIdsInsideWindow(int LeftBorderMilliSeconds, int RightBorderMilliSeconds)
         {
            return Events.Select((item, index) => new { Item = item, Index = index })
-                    .Where(x => ((x.Item.sample < RightBorderSample) &&
-                                (x.Item.sample > LeftBorderSample) &&
-                                (x.Item.sample + (x.Item.duration * ((float)x.Item.samplingFrequency / 1000)) >= LeftBorderSample) &&
-                                (x.Item.sample + (x.Item.duration * ((float)SamplingFrequency / 1000)) <= RightBorderSample)))
+                    .Where(x => ((x.Item.TimeInMilliSeconds < RightBorderMilliSeconds) &&
+                                (x.Item.TimeInMilliSeconds > LeftBorderMilliSeconds) &&
+                                (x.Item.TimeInMilliSeconds + x.Item.Duration >= LeftBorderMilliSeconds) &&
+                                (x.Item.TimeInMilliSeconds + x.Item.Duration <= RightBorderMilliSeconds)))
                     .Select(x => x.Index)
                     .ToList();
         }
@@ -147,16 +146,15 @@ namespace BTV.Services.EventsService
         ///                                             [BeginEvent -- EndEvent]
         ///         [LeftBorderWindow ------------ RightBorderWindow]
         /// 
-        /// Condition => Left < Events.Sample < Right && Events.Sample + Events.Duration > Right 
+        /// Condition => Left < TimeInMilliSeconds < Right && Events.TimeInMilliSeconds + Events.Duration > Right 
         /// </summary>
-        /// <param name="LeftBorderSample"></param>
-        /// <param name="RightBorderSample"></param>
-        /// <param name="SamplingFrequency"></param>
+        /// <param name="LeftBorderMilliSeconds"></param>
+        /// <param name="RightBorderMilliSeconds"></param>
         /// <returns></returns>
-        public static List<int> GetEventIdsEnteringWindow(int LeftBorderSample, int RightBorderSample, float SamplingFrequency)
+        public static List<int> GetEventIdsEnteringWindow(int LeftBorderMilliSeconds, int RightBorderMilliSeconds)
         {
            return Events.Select((item, index) => new { Item = item, Index = index })
-                    .Where(x => (x.Item.sample < RightBorderSample && x.Item.sample > LeftBorderSample && (x.Item.sample + (x.Item.duration * (SamplingFrequency / 1000)) >= RightBorderSample)))
+                    .Where(x => (x.Item.TimeInMilliSeconds < RightBorderMilliSeconds && x.Item.TimeInMilliSeconds > LeftBorderMilliSeconds && (x.Item.TimeInMilliSeconds + x.Item.Duration) >= RightBorderMilliSeconds))
                     .Select(x => x.Index)
                     .ToList();
         }
@@ -166,25 +164,24 @@ namespace BTV.Services.EventsService
         /// [BeginEvent -- EndEvent]
         ///         [LeftBorderWindow ------------ RightBorderWindow]
         /// 
-        /// Condition => Events.Sample > Left && Left < Events.Sample + Events.Duration < Right 
+        /// Condition => Events.TimeInMilliSeconds > Left && Left < Events.TimeInMilliSeconds + Events.Duration < Right 
         /// </summary>
-        /// <param name="LeftBorderSample"></param>
-        /// <param name="RightBorderSample"></param>
-        /// <param name="SamplingFrequency"></param>
+        /// <param name="LeftBorderMilliSeconds"></param>
+        /// <param name="RightBorderMilliSeconds"></param>
         /// <returns></returns>
-        public static List<int> GetEventIdsExitingWindow(int LeftBorderSample, int RightBorderSample, float SamplingFrequency)
+        public static List<int> GetEventIdsExitingWindow(int LeftBorderMilliSeconds, int RightBorderMilliSeconds)
         {
             return Events.Select((item, index) => new { Item = item, Index = index })
-                                          .Where(x => ((x.Item.sample < LeftBorderSample) &&
-                                                       (x.Item.sample + (x.Item.duration * (SamplingFrequency / 1000)) >= LeftBorderSample) &&
-                                                       (x.Item.sample + (x.Item.duration * (SamplingFrequency / 1000)) <= RightBorderSample)))
+                                          .Where(x => (x.Item.TimeInMilliSeconds < LeftBorderMilliSeconds) &&
+                                                      (x.Item.TimeInMilliSeconds + x.Item.Duration >= LeftBorderMilliSeconds) &&
+                                                      (x.Item.TimeInMilliSeconds + x.Item.Duration <= RightBorderMilliSeconds))
                                           .Select(x => x.Index)
                                           .ToList();
         }
 
         public static void SortBySample()
         {
-            Events = Events.OrderBy(x => x.sample).ToList();
+            Events = Events.OrderBy(x => x.TimeInMilliSeconds).ToList();
         }
     }
 }
