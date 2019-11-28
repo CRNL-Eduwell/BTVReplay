@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BTV.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,13 +19,13 @@ class EventsModificationMessage
         set;
     }
 
-    public TraceEvent Event
+    public BtvEvent Event
     {
         get;
         set;
     }
 
-    public TraceEvent EventMemory
+    public BtvEvent EventMemory
     {
         get;
         set;

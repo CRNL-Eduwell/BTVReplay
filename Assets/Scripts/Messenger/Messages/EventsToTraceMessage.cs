@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BTV.Data;
 
 class EventsToTraceMessage
 {    
@@ -31,7 +27,7 @@ class EventsToTraceMessage
         set;
     }
 
-    public TraceEvent Event
+    public BtvEvent Event
     {
         get;
         set;
