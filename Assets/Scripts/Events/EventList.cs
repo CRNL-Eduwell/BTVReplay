@@ -53,7 +53,7 @@ public class EventList : Tools.Unity.Lists.SelectableList<BtvEvent>
 
     public void DeleteAllEvents()
     {
-        UnityEngine.Debug.Log(Objects.Length);
+        UnityEngine.Debug.Log("Deleting " + Objects.Length + " objects");
         for (int i = Objects.Length - 1; i >= 0; i--)
         {
             Remove(Objects[i]);

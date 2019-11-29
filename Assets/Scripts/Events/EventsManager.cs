@@ -231,30 +231,8 @@ public class EventsManager : MonoBehaviour
 
     private void UpdateEvent(BtvEvent modifyiedEvent, BtvEvent previousEvent)
     {
-        int Id = EventsService.GetEventId(previousEvent);
-        if (Id != -1)
-        {
-            bool UpdateEventUI = (modifyiedEvent.Duration - previousEvent.Duration == modifyiedEvent.Duration) || (modifyiedEvent.Duration - previousEvent.Duration == -previousEvent.Duration);
-
-            m_EventsTexture.RemoveEvent(previousEvent);
-            EventsService.UpdateEvent(modifyiedEvent, previousEvent);
-            m_EventsTexture.AddEvent(EventsService.Events[Id]);
-
-            var eventToChangeObjects = Resources.FindObjectsOfTypeAll<GameObject>().Where(obj => obj.name == "Event - " + previousEvent.TimeInSeconds);
-            if (UpdateEventUI)
-            {
-                eventToChangeObjects.ElementAt(0).GetComponent<EventTrace>().DeleteMe();
-                m_EventsList.AddEvent(EventsService.Events[Id]);
-            }
-
-            //Update object on Traces UI
-            foreach (var eventToChange in eventToChangeObjects)
-            {
-                eventToChange.GetComponent<EventTrace>().UpdateEvent(EventsService.Events[Id]);
-            }
-
-            m_EventsList.Refresh();
-        }
+        DeleteEvent(previousEvent);
+        AddEvent(modifyiedEvent);
     }
 
     private void DeleteEvent(BtvEvent Event)

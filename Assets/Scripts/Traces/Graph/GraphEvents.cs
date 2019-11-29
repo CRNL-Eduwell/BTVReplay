@@ -90,7 +90,7 @@ public class GraphEvents : MonoBehaviour
 
                 for (int i = 0; i < idRightEnter.Count; i++)
                 {
-                    float positionInsideRect = (left - EventsService.Events[idRightEnter[i]].TimeInMilliSeconds) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float positionInsideRect = (((left - EventsService.Events[idRightEnter[i]].TimeInMilliSeconds) * m_parent.TraceEeg.SamplingFrequency) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
                     float rightevent = right - EventsService.Events[idRightEnter[i]].TimeInMilliSeconds;
                     float size = (rightevent / (right - left)) * widthOfGameObject;
 
@@ -102,8 +102,8 @@ public class GraphEvents : MonoBehaviour
 
                 for (int i = 0; i < idInside.Count; i++)
                 {
-                    float positionInsideRect = (left - EventsService.Events[idInside[i]].TimeInMilliSeconds) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                    float size = (EventsService.Events[idInside[i]].Duration / (right - left)) * widthOfGameObject;
+                    float positionInsideRect = (((left - EventsService.Events[idInside[i]].TimeInMilliSeconds) * m_parent.TraceEeg.SamplingFrequency) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float size = ((float)EventsService.Events[idInside[i]].Duration / (right - left)) * widthOfGameObject;
 
                     if (EventsService.Events[idInside[i]].Duration > 0)
                     {
@@ -115,14 +115,17 @@ public class GraphEvents : MonoBehaviour
                     else
                     {
                         m_EventsAdded[idInside[i]].SetActive(true);
-                        m_EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, m_parent.TraceEeg.dataArray[(int)EventsService.Events[idInside[i]].TimeInMilliSeconds - left].y, -201);
+                        // /!\ Fix that, ugly /!\
+                        float timeDiffinMs = EventsService.Events[idInside[i]].TimeInMilliSeconds - left;
+                        int sampleToLook = (int)Mathf.Floor((timeDiffinMs * m_parent.TraceEeg.SamplingFrequency) / 1000);
+                        m_EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, m_parent.TraceEeg.dataArray[sampleToLook].y, -201);
                     }
                 }
 
                 for (int i = 0; i < idLeftEnter.Count; i++)
                 {
-                    float positionInsideRect = ((-widthOfGameObject / 2) + 1);
-                    float leftevent = (EventsService.Events[idLeftEnter[i]].TimeInMilliSeconds + (EventsService.Events[idLeftEnter[i]].Duration * ((float)samplingFreq / 1000)) - left);
+                    float positionInsideRect = (-widthOfGameObject / 2) + 1;
+                    float leftevent = (EventsService.Events[idLeftEnter[i]].TimeInMilliSeconds + EventsService.Events[idLeftEnter[i]].Duration) - left;
                     float size = (leftevent / (right - left)) * widthOfGameObject;
 
                     m_EventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
@@ -133,7 +136,7 @@ public class GraphEvents : MonoBehaviour
 
                 for (int i = 0; i < idOverFlow.Count; i++)
                 {
-                    float positionInsideRect = ((-widthOfGameObject / 2) + 1);
+                    float positionInsideRect = (-widthOfGameObject / 2) + 1;
                     float size = widthOfGameObject;
                     m_EventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
                     m_EventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
