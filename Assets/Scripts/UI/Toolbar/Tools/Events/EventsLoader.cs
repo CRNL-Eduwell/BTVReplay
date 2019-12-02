@@ -18,12 +18,14 @@ namespace BTV.UI.Module3D.Tools
 
         public override void Initialize()
         {
-            m_LoadFile.onClick.AddListener(() =>
-            {
-                //Need to change Appliction State file folder with the folder of the project , not just the eeg ? 
-                string filePath = FileBrowser.getOpenFileName(new string[] { "btv", "pos" }, "Select an Event File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
-                LoadFile.Invoke(filePath);
-            });
+            m_LoadFile.onClick.AddListener(Load);
+        }
+
+        private void Load()
+        {
+            //Need to change Appliction State file folder with the folder of the project , not just the eeg ? 
+            string filePath = FileBrowser.getOpenFileName(new string[] { "btv", "pos" }, "Select an Event File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
+            LoadFile.Invoke(filePath);
         }
     }
 }

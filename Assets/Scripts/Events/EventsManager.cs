@@ -3,12 +3,15 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using BrainTV.Tools.NumberExtensions;
 using BTV.Data;
 using BTV.Services.CalculationService;
 using BTV.Services.EventsService;
 using BTV.Services.VideoService;
+using BTV.UI;
 using CielaSpike;
 using UnityEngine;
+using UnityEngine.Events;
 
 /// <summary>
 /// Class responsible for managing the events of the scene
@@ -28,6 +31,13 @@ public class EventsManager : MonoBehaviour
     EventsTexture m_EventsTexture = null;
     [SerializeField]
     CustomVideoPlayer m_videoPlayer = null;
+
+    private GameObject m_InputFieldWindowPrefabs = null;
+
+    private void Awake()
+    {
+        m_InputFieldWindowPrefabs = Resources.Load("Prefabs/UIElements/InputFieldWindow", typeof(GameObject)) as GameObject;
+    }
 
     private void Start()
     {
@@ -57,7 +67,15 @@ public class EventsManager : MonoBehaviour
             case 0:
                 {
                     Debug.Log("Load File");
-                    LoadEvents(message.FilePathToLoad);
+                    FileInfo file = new FileInfo(message.FilePathToLoad);
+                    if (file.Extension.Equals(".pos"))
+                    {
+                        SpawFrequencyChoiceWindow(message.FilePathToLoad);
+                    }
+                    else
+                    {
+                        LoadEvents(message.FilePathToLoad);
+                    }
                     break;
                 }
             case 1:
@@ -184,12 +202,20 @@ public class EventsManager : MonoBehaviour
         }
     }
 
+    private void SpawFrequencyChoiceWindow(string filePath)
+    {
+        GameObject ViewGameObject = GameObject.Find("View");
+        GameObject InputField = Instantiate(m_InputFieldWindowPrefabs, ViewGameObject.transform);
+        InputFieldWindow window = InputField.GetComponent<InputFieldWindow>();
+        window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { LoadEvents(filePath, window.IntValue); window.Close(); }, () => { window.Close(); });
+    }
+
     //TODO : Reset Everything or allow to load data over already existing events ? 
-    private void LoadEvents(string filePath)
+    private void LoadEvents(string filePath, int SamplingFrequency = 0)
     {
         if (File.Exists(filePath))
         {
-            EventsService.Load(filePath);
+            EventsService.Load(filePath, SamplingFrequency);
             //load in UI List
             m_EventsList.DeleteAllEvents();
             m_EventsList.LoadEvents(EventsService.Events);
