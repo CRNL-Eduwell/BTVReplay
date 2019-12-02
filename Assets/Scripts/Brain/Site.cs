@@ -118,6 +118,16 @@ public class Site : MonoBehaviour
     }
 
     /// <summary>
+    /// Update object plot behing it , and according to the referential controls whether
+    /// it shows MarsAtlas information or not
+    /// </summary>
+    /// <param name="Plot"></param>
+    public void UpdatePlot(object Plot)
+    {
+        m_Plot = Plot;
+    }
+
+    /// <summary>
     /// Used to unsubscribe from events whent he site is deactivated
     /// otherwise it tries to update values that are note here.
     /// Maybe see to destroy the go totally ? 

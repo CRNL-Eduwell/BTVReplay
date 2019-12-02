@@ -111,9 +111,7 @@ namespace Assets.Scripts.Data.Factory
                 if (CurrentElectrodeTransform != null)
                 {
                     CurrentElectrodeTransform.localPosition = new Vector3(-CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y, CurrentPlot.Coordinates.z);
-                    //??WTF??
-                    //seems we only update position, no need to update underlying electrode object (ieeg or scalp)
-                    //currentElecTransform.GetComponent<ElecPlotSize>().setPlot(electrodes[i]);
+                    CurrentElectrodeTransform.GetComponent<Site>().UpdatePlot(Electrodes[i]);
                 }
             }
         }

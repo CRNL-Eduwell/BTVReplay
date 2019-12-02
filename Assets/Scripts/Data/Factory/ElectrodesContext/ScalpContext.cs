@@ -92,7 +92,7 @@ namespace Assets.Scripts.Data.Factory
                 if (CurrentElectrodeTransform != null)
                 {
                     CurrentElectrodeTransform.localPosition = new Vector3(-CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y, CurrentPlot.Coordinates.z);
-                    //currentElecTransform.GetComponent<ElecPlotSize>().setPlot(electrodes[i]);
+                    CurrentElectrodeTransform.GetComponent<Site>().UpdatePlot(Electrodes[i]);
                 }
             }
         }

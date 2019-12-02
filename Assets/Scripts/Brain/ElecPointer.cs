@@ -10,7 +10,7 @@ public class ElecPointer : MonoBehaviour
     [SerializeField]
     private Text m_MarsAtlasLabel = null;
     [SerializeField]
-    private Text m_BroadmanLabel = null;
+    private Text m_BrodmannLabel = null;
     [SerializeField]
     private Text m_CoordinatesLabel = null;
 
@@ -66,7 +66,7 @@ public class ElecPointer : MonoBehaviour
 
     private void SetBroadmanLabel(string label)
     {
-        m_BroadmanLabel.text = "Broadman Area : " + label;
+        m_BrodmannLabel.text = "Brodmann Area : " + label;
     }
 
     private void SetCorrdinatesLabel(Vector3 position)
