@@ -109,7 +109,7 @@ public class Site : MonoBehaviour
         //If we don't find the corresponding name beetween this object and one electrode
         //in an eeg file , we don't show the site on the 3D brain
         BtvProgram container = EegFileService.ReturnFirstValidContainer();
-        ID = container.GetElectrodeIDFromElectrodeName(gameObject.name, false);
+        ID = container.GetElectrodeIDFromElectrodeName(gameObject.name.ToLower(), true);
         if (ID == -1)
             gameObject.SetActive(false);
 
