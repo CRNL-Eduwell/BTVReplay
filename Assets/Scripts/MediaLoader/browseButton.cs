@@ -20,8 +20,8 @@ public class browseButton : MonoBehaviour
     private void loadFile()
     {
         if(open)
-            inputfield.text = FileBrowser.getOpenFileName(new string[] { "tri", "gii", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni", "csv" });
+            inputfield.text = FileBrowser.GetExistingFileName(new string[] { "tri", "gii", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni", "csv" });
         else
-            inputfield.text = FileBrowser.getSaveFileName(new string[] { "mp4" }, "Save Video To");
+            inputfield.text = FileBrowser.GetSavedFileName(new string[] { "mp4" }, "Save Video To");
     }
 }
