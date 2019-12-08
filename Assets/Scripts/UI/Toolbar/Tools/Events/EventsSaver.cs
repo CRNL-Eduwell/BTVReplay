@@ -24,7 +24,8 @@ namespace BTV.UI.Module3D.Tools
             m_SaveFile.onClick.AddListener(() =>
             {
                 string filePath = FileBrowser.GetSavedFileName(m_ExtensionList, "Save Event File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
-                SaveFile.Invoke(filePath);
+                if (filePath != "")
+                    SaveFile.Invoke(filePath);
             });
         }
     }

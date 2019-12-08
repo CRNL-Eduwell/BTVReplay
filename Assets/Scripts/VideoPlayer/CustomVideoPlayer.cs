@@ -413,7 +413,7 @@ public class CustomVideoPlayer : MonoBehaviour
             m_timeClick = _Iplayer.currentTime;
             m_minTimeClick = m_timeClick - (2 * 1000);
             m_maxTimeClick = m_timeClick + (2 * 1000);
-            scrollBar.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = m_texHandleSlave;
+            scrollBar.transform.GetChild(0).GetChild(1).GetComponent<Image>().sprite = m_texHandleSlave;
         }
         else
         {
@@ -425,7 +425,7 @@ public class CustomVideoPlayer : MonoBehaviour
             m_timeClick = -1;
             loopScroll.value = 0.5f;
             loopScroll.gameObject.SetActive(false);
-            scrollBar.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = m_texHandle;
+            scrollBar.transform.GetChild(0).GetChild(1).GetComponent<Image>().sprite = m_texHandle;
         }
     }
 

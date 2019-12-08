@@ -96,6 +96,12 @@ public class BTVMedia : MonoBehaviour
             }
         });
         #endregion
+
+        //TODO : 
+        //ugly patch to prevent an undefined reference if we click on show panel
+        //twice at the begining without having shown the panel to add patient
+        showAddPanel.onClick.Invoke();
+        showAddPanel.onClick.Invoke();
     }
 
     void OnDestroy()

@@ -30,7 +30,8 @@ public class FileBrowser
         string[] paths = SFB.StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) }, false);
         if (paths.Length > 0)
         {
-            m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
+            if(paths[0] != "")
+                m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
             return paths[0];
         }
         else
