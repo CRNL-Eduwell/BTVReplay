@@ -10,6 +10,7 @@ using BTV.Services.EegFileService;
 using BTV.Data;
 using System.Linq;
 using System.Collections.Generic;
+using SFB;
 
 public delegate void mediaLoadedEventHandler();
 public delegate void initTrace();
@@ -157,7 +158,8 @@ public class BTVMedia : MonoBehaviour
                 pm.currentPatients[i / 2] = guiPat.getPatientGUI();
             }
 
-            string bddFilePath = FileBrowser.GetSavedFileName(new string[] { "txt" }, "Save to a bdd File", Application.dataPath + @"/Config/PatientBase");
+            var extensionList = new[] { new ExtensionFilter("BrainTV BDD File", "txt")};
+            string bddFilePath = FileBrowser.GetSavedFileName(extensionList, "Save to a bdd File", Application.dataPath + @"/Config/PatientBase");
             if (bddFilePath != "")
             {
                 pm.SaveList(bddFilePath);

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using SFB;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class browseButton : MonoBehaviour
@@ -19,9 +20,12 @@ public class browseButton : MonoBehaviour
 
     private void loadFile()
     {
-        if(open)
+        if (open)
             inputfield.text = FileBrowser.GetExistingFileName(new string[] { "tri", "gii", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni", "csv" });
         else
-            inputfield.text = FileBrowser.GetSavedFileName(new string[] { "mp4" }, "Save Video To");
+        {
+            var extensionList = new[] { new ExtensionFilter("Video File", "mp4") };
+            inputfield.text = FileBrowser.GetSavedFileName(extensionList, "Save Video To");
+        }
     }
 }

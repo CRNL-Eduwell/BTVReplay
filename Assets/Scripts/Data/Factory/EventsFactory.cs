@@ -17,7 +17,7 @@ namespace Assets.Scripts.Data.Factory
             switch (fileInfo.Extension)
             {
                 case ".pos":
-                    if (samplingFrequency == 0)
+                    if (samplingFrequency.Equals(0))
                     {
                         throw new ArgumentException("EventsFactory.GetEventsContext : SamplingFrequency should not be 0");
                     }
@@ -35,7 +35,7 @@ namespace Assets.Scripts.Data.Factory
             switch (fileInfo.Extension)
             {
                 case ".pos":
-                    if (samplingFrequency == 0)
+                    if (samplingFrequency.Equals(0))
                     {
                         throw new ArgumentException("EventsFactory.SaveEvents : SamplingFrequency should not be 0");
                     }

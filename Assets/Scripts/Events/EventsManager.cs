@@ -70,7 +70,8 @@ public class EventsManager : MonoBehaviour
                     FileInfo file = new FileInfo(message.FilePathToLoad);
                     if (file.Extension.Equals(".pos"))
                     {
-                        SpawFrequencyChoiceWindow(message.FilePathToLoad);
+                        InputFieldWindow window = SpawFrequencyChoiceWindow();
+                        window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { LoadEvents(file.FullName, window.IntValue); window.Close(); }, () => { window.Close(); });
                     }
                     else
                     {
@@ -81,7 +82,17 @@ public class EventsManager : MonoBehaviour
             case 1:
                 {
                     Debug.Log("Save File");
-                    EventsService.SaveEvents(message.FilePathToSave);
+                    FileInfo file = new FileInfo(message.FilePathToSave);
+                    if (file.Extension == ".pos")
+                    {
+                        string path = message.FilePathToSave.Replace(".pos", "_btv.pos");
+                        InputFieldWindow window = SpawFrequencyChoiceWindow();
+                        window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { EventsService.SaveEvents(path, window.IntValue); window.Close(); }, () => { window.Close(); });
+                    }
+                    else
+                    {
+                        EventsService.SaveEvents(file.FullName);
+                    }
                     break;
                 }
             case 2:
@@ -202,12 +213,12 @@ public class EventsManager : MonoBehaviour
         }
     }
 
-    private void SpawFrequencyChoiceWindow(string filePath)
+    private InputFieldWindow SpawFrequencyChoiceWindow()
     {
         GameObject ViewGameObject = GameObject.Find("View");
         GameObject InputField = Instantiate(m_InputFieldWindowPrefabs, ViewGameObject.transform);
         InputFieldWindow window = InputField.GetComponent<InputFieldWindow>();
-        window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { LoadEvents(filePath, window.IntValue); window.Close(); }, () => { window.Close(); });
+        return window;
     }
 
     //TODO : Reset Everything or allow to load data over already existing events ? 

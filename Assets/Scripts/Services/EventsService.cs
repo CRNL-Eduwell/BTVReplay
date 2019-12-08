@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BTV.Services.EventsService
 {
@@ -27,13 +25,17 @@ namespace BTV.Services.EventsService
             }
         }
 
-        //Add sampling freq as parameter from the outside
-        public static void SaveEvents(string filePath)
+        public static void SaveEvents(string filePath, int samplingFrequency = 0)
         {
-            string posFilePath = filePath.Replace(".pos", "_btv.pos");
-            EventsFactory.SaveEvents(posFilePath, Events);
-            string btvFilePath = filePath.Replace(".pos", ".btv");
-            EventsFactory.SaveEvents(btvFilePath, Events);
+            try
+            {
+                EventsFactory.SaveEvents(filePath, Events, samplingFrequency);
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogError("Error while saving file events.");
+                UnityEngine.Debug.LogError(ex.Message);
+            }
         }
 
         public static void AddEvent(BtvEvent Event)
