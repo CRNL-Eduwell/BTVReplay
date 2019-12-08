@@ -42,18 +42,25 @@ namespace BTV.Services.VideoService
                 return AudioFromVideoPath.Replace(".wav", "_audio.csv");
             }
         }
+        public static bool VideoFileExist
+        {
+            get
+            {
+                return OriginalVideoPath != "" ? new FileInfo(OriginalVideoPath).Exists : false;
+            }
+        }
         public static bool AudioFileExist
         {
             get
             {
-                return new FileInfo(AudioFromVideoPath).Exists;
+                return AudioFromVideoPath != "" ? new FileInfo(AudioFromVideoPath).Exists : false;
             }
         }
         public static bool FilteredAudioFileExist
         {
             get
             {
-                return new FileInfo(FilteredAudioPath).Exists;
+                return FilteredAudioPath != "" ? new FileInfo(FilteredAudioPath).Exists : false;
             }
         }
         public static bool FilteredDataLoaded { get; private set; } = false;

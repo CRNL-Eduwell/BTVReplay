@@ -24,13 +24,17 @@ namespace BTV.UI.Module3D.Tools
 
         private void TryToExtractAudioFromVideo()
         {
-            if (!VideoService.AudioFileExist)
+            if (VideoService.VideoFileExist && !VideoService.AudioFileExist)
             {
                 StartCoroutine(c_LaunchAudioExtraction(VideoService.AudioFromVideoPath, VideoService.OriginalVideoPath));
             }
-            else
+            else if (VideoService.VideoFileExist && VideoService.AudioFileExist)
             {
                 ApplicationState.displayConfirmation("Audio File already exists", "Do you want to delete the existing file and extract the audio again ?", DeleteAndExtract, () => { });
+            }
+            else
+            {
+                ApplicationState.displayMessage("Audio Extraction", "NOK", "Error, there seems to be no video file for this patient.");
             }
         }
 
