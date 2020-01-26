@@ -179,8 +179,8 @@ public class EventsManager : MonoBehaviour
     {
         if (EventsService.Events.Count > 0)
         {
-            long VideoTimeInMs = m_videoPlayer.videoInterface.currentTime;
-            int index = EventsService.Events.Select(x=>x.TimeInMilliSeconds).ToList().BinarySearch(VideoTimeInMs);
+            long VideoTimeInMs = m_videoPlayer.videoInterface.CurrentTime;
+            int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(VideoTimeInMs);
             if (Math.Abs(index) - 1 == 0)
             {
                 int TimeInMilliSec = (int)EventsService.Events[0].TimeInMilliSeconds;
@@ -201,7 +201,7 @@ public class EventsManager : MonoBehaviour
     {
         if (EventsService.Events.Count > 0)
         {
-            long VideoTimeInMs = m_videoPlayer.videoInterface.currentTime;
+            long VideoTimeInMs = m_videoPlayer.videoInterface.CurrentTime;
             int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(VideoTimeInMs);
             int currentPos = Math.Abs(index) - 1;
             if (currentPos + 1 < EventsService.Events.Count)
@@ -304,7 +304,7 @@ public class EventsManager : MonoBehaviour
 
         EventsService.Events[eventIndex].Correlation = new float[electrodeCount];
         EventsService.Events[eventIndex].Correlation2D = null;
-        
+
         int beginTimeSample = (int)(EventsService.Events[eventIndex].TimeInSeconds * samplingFrequency);
         int durationInSample = (EventsService.Events[eventIndex].Duration / 1000) * samplingFrequency;
 

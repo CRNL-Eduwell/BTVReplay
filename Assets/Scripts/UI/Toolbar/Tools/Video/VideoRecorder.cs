@@ -44,7 +44,7 @@ public class VideoRecorder : MonoBehaviour
             return;
         }
 
-        int totalVideoTimeInSecond = (int)m_VideoPlayer.videoInterface.totalVideoTime / 1000;
+        int totalVideoTimeInSecond = (int)m_VideoPlayer.videoInterface.TotalVideoTime / 1000;
         int beginTimeInSecond = m_RecordBeginTime.TimeInSeconds;
         int endTimeInSecond = m_RecordEndTime.TimeInSeconds;
         int durationInSeconds = endTimeInSecond - beginTimeInSecond;

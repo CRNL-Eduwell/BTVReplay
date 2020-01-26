@@ -15,7 +15,7 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
     /// Exact Time of the video
     /// In MilliSeconds
     /// </summary>
-    public long currentTime
+    public long CurrentTime
     {
         get
         {
@@ -27,11 +27,11 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
     /// Time of the video, there is no possible offset due to user input since 
     /// In MilliSeconds
     /// </summary>
-    public long time
+    public long Time
     {
         get
         {
-            return currentTime;
+            return CurrentTime;
         }
     }
 
@@ -39,7 +39,7 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
     /// Exact Time of the video
     /// In MilliSeconds
     /// </summary>
-    public long videoTime
+    public long VideoTime
     {
         get
         {
@@ -51,28 +51,28 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
     /// Total Duration of the Video
     /// In MilliSeconds
     /// </summary>
-    public long totalVideoTime
+    public long TotalVideoTime
     {
         get
         {
             return m_eegFileDurationInSec * 1000;
         }
     }
-    public bool isPlaying
+    public bool IsPlaying
     {
         get
         {
             return m_playing && !m_paused;
         }
     }
-    public bool isPaused
+    public bool IsPaused
     {
         get
         {
             return m_playing && m_paused;
         }
     }
-    public bool isStopped
+    public bool IsStopped
     {
         get
         {
@@ -95,24 +95,24 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
     private bool m_paused = true, m_playing = false;
     #endregion
 
-    public void init(string videoPath, int eegFileDurationInSec, RawImage tex)
+    public void Init(string videoPath, int eegFileDurationInSec, RawImage tex)
     {
         m_videoPath = videoPath;
         m_eegFileDurationInSec = eegFileDurationInSec;
         m_internalTimer = new Stopwatch();
     }
 
-    public void UpdateVideoOffset(float newOffset)
+    public void SetVideoOffset(float newOffset)
     {
 
     }
 
-    public void cleanup()
+    public void Cleanup()
     {
 
     }
 
-    public void update()
+    public void Update()
     {
         if (m_internalTimer != null && m_internalTimer.IsRunning)
         {
@@ -122,12 +122,12 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
             //    sendTimeEvent((int)time);
             //else
             //    stop();
-            if (m_internalTime > totalVideoTime)
-                stop();
+            if (m_internalTime > TotalVideoTime)
+                Stop();
         }
     }
 
-    public void play()
+    public void Play()
     {
         //if (paused)
         //{
@@ -141,7 +141,7 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
         //}
     }
 
-    public void pause()
+    public void Pause()
     {
         if (!m_paused)
         {
@@ -151,7 +151,7 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
         }
     }
 
-    public void stop()
+    public void Stop()
     {
         m_internalTimer.Reset();
         m_internalTime = 0;
@@ -160,17 +160,17 @@ public class VLCLess : MonoBehaviour, IVideoPlayer
         m_playing = false;
     }
 
-    public void moveTime(long secondsToAdd)
+    public void MoveTime(long secondsToAdd)
     {
         m_internalTime = m_internalTime + (secondsToAdd * 1000);
     }
 
-    public void setTime(long timeMilliSec)
+    public void SetTime(long timeMilliSec)
     {
         m_internalTime = timeMilliSec;
     }
 
-    public void setVolume(float volume)
+    public void SetVolume(float volume)
     {
 
     }

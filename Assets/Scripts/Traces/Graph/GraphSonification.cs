@@ -48,7 +48,7 @@ public class GraphSonification : MonoBehaviour
     public void updateSonif(int milliSecToLook)
     {
         //int posInArray = m_curve.TraceEeg.FileHandle.Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
-        if (video.videoInterface.isPlaying)
+        if (video.videoInterface.IsPlaying)
         {
             float currentValue = 0.5f + ((m_curve.TraceEeg.MostRecentValue / 100) * m_curve.TraceEeg.Gain);
             if (currentValue > 1)

@@ -2,23 +2,31 @@
 
 public interface IVideoPlayer
 {
-    long currentTime { get; }
-    long time { get; }
-    long videoTime { get; }
-    long totalVideoTime { get; }
-    bool isPlaying { get; }
-    bool isPaused { get; }
-    bool isStopped { get; }
+    /// <summary>
+    /// Exact Time of the video
+    /// In MilliSeconds
+    /// </summary>
+    long CurrentTime { get; }
+    long Time { get; }
+    long VideoTime { get; }
+    /// <summary>
+    /// Total Duration of the Video
+    /// In MilliSeconds
+    /// </summary>
+    long TotalVideoTime { get; }
+    bool IsPlaying { get; }
+    bool IsPaused { get; }
+    bool IsStopped { get; }
     byte[] TextureBytes { get; }
 
-    void init(string videoPath, int eegFileDurationInSec, RawImage tex);
-    void UpdateVideoOffset(float newOffset);
-    void cleanup();
-    void update();
-    void play();
-    void pause();
-    void stop();
-    void moveTime(long secondsToAdd);
-    void setTime(long timeMilliSec);
-    void setVolume(float volume);
+    void Init(string path, int duration, RawImage texture);
+    void Cleanup();
+    void Update();
+    void Play();
+    void Pause();
+    void Stop();
+    void MoveTime(long secondsToAdd);
+    void SetTime(long timeMilliSec);
+    void SetVolume(float volume);
+    void SetVideoOffset(float newOffset);
 }
