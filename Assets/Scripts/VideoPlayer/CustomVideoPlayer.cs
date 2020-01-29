@@ -153,9 +153,9 @@ public class CustomVideoPlayer : MonoBehaviour
     void init(string videoPath, int eegFileDurationInSec)
     {        
         if (videoPath == "")
-            _Iplayer = gameObject.AddComponent<VLCLess>();
+            _Iplayer = gameObject.AddComponent<GhostVideoPlayer>();
         else
-            _Iplayer = gameObject.AddComponent<UnityVideoPlayer>();
+            _Iplayer = gameObject.AddComponent<UnityVideoPlayer2>();
 
         TextureToDraw.texture = (Texture2D)Instantiate(m_texLogo);
 
