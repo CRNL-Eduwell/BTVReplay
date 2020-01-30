@@ -155,7 +155,7 @@ public class CustomVideoPlayer : MonoBehaviour
         if (videoPath == "")
             _Iplayer = gameObject.AddComponent<GhostVideoPlayer>();
         else
-            _Iplayer = gameObject.AddComponent<UnityVideoPlayer2>();
+            _Iplayer = gameObject.AddComponent<UnityVideoPlayer>();
 
         TextureToDraw.texture = (Texture2D)Instantiate(m_texLogo);
 
