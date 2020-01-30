@@ -191,7 +191,7 @@ public class TaskPerformanceTrace : MonoBehaviour
             if (currentRtMs > MaxReactionTime)
                 MaxReactionTime = currentRtMs;
         }
-        m_HorizontalScale = m_TaskBarHolder.rect.width / m_NumberOfPoint;
+        m_HorizontalScale = m_TaskBarHolder.rect.width / (m_PeriopdInSec * 1000);
         m_VerticalScale = m_TaskBarHolder.rect.height / MaxReactionTime;
     }
 
