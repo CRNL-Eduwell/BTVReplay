@@ -33,14 +33,14 @@ public class EventsTexture : MonoBehaviour
 
     public void AddEvent(BtvEvent currentEvent)
     {
-        float perC = ((currentEvent.TimeInMilliSeconds / m_VideoPlayer.videoInterface.totalVideoTime));// * 1000);
+        float perC = ((currentEvent.TimeInMilliSeconds / m_VideoPlayer.videoInterface.TotalVideoTime));// * 1000);
         int pixelID = (int)(perC * m_CurrentTexture.width);
 
         if (currentEvent.Duration > 0)
         {
             if (currentEvent.Duration > 1000)
             {
-                float perCDuration = ((currentEvent.TimeInMilliSeconds + currentEvent.Duration) / m_VideoPlayer.videoInterface.totalVideoTime);// * 1000;
+                float perCDuration = ((currentEvent.TimeInMilliSeconds + currentEvent.Duration) / m_VideoPlayer.videoInterface.TotalVideoTime);// * 1000;
                 int pixelIDDuration = (int)(perCDuration * m_CurrentTexture.width);
                 for (int i = 0; i < m_CurrentTexture.height / 2; i++)
                 {
@@ -84,14 +84,14 @@ public class EventsTexture : MonoBehaviour
 
     public void RemoveEvent(BtvEvent currentEvent)
     {
-        float perC = (currentEvent.TimeInMilliSeconds / m_VideoPlayer.videoInterface.totalVideoTime);// * 1000);
+        float perC = (currentEvent.TimeInMilliSeconds / m_VideoPlayer.videoInterface.TotalVideoTime);// * 1000);
         int pixelID = (int)(perC * m_CurrentTexture.width);
 
         if (currentEvent.Duration > 0)
         {
             if (currentEvent.Duration > 1000)
             {
-                float perCDuration = ((currentEvent.TimeInMilliSeconds + currentEvent.Duration) / m_VideoPlayer.videoInterface.totalVideoTime);// * 1000;
+                float perCDuration = ((currentEvent.TimeInMilliSeconds + currentEvent.Duration) / m_VideoPlayer.videoInterface.TotalVideoTime);// * 1000;
                 int pixelIDDuration = (int)(perCDuration * m_CurrentTexture.width);
                 for (int i = 0; i < m_CurrentTexture.height / 2; i++)
                 {
