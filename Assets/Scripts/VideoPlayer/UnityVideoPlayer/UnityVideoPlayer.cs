@@ -3,20 +3,31 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 
-public class UnityVideoPlayer : BaseVideoPlayer
+public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
 {
     /// <summary>
     /// Same as time, see if both are usefull ????
     /// </summary>
-    public override long CurrentTime { get { return base.CurrentTime + m_OffsetVideoMilliSec; } }
+    public long CurrentTime { get { return (long)((m_VideoPlayer.time * 1000) + m_OffsetVideoMilliSec); } }
 
-    public override long Time { get { return CurrentTime; } }
+    public long Time { get { return CurrentTime; } }
 
-    public override long VideoTime { get { return CurrentTime - m_OffsetVideoMilliSec; } }
+    public long VideoTime { get { return CurrentTime - m_OffsetVideoMilliSec; } }
 
-    public override long TotalVideoTime { get { return (long)(m_VideoPlayer.length * 1000); } }
+    public long TotalVideoTime { get { return (long)(m_VideoPlayer.length * 1000); } }
+
+    public bool IsPlaying { get { return m_VideoPlayer.isPlaying && !m_VideoPlayer.isPaused; } }
+
+    public bool IsPaused { get { return m_VideoPlayer.isPaused; } }
+
+    public bool IsStopped { get { return !m_VideoPlayer.isPrepared; } }
+
+    public byte[] TextureBytes => throw new System.NotImplementedException();
 
     #region private members
+    private string m_VideoFilePath = "";
+    private long m_EegFileDurationInSec = 0;
+    private RawImage m_TextureForVideo = null;
     private VideoPlayer m_VideoPlayer = null;
     private int m_OffsetVideoMilliSec = 0;
     #endregion
@@ -29,18 +40,21 @@ public class UnityVideoPlayer : BaseVideoPlayer
     /// <param name="path">Video File Path</param>
     /// <param name="duration">Eeg File Duration in Seconds</param>
     /// <param name="texture">Raw Image containing texture to draw the video frame on</param>
-    public override void Init(string path, int duration, RawImage texture)
+    public void Init(string path, int duration, RawImage texture)
     {
-        base.Init(path, duration,texture);
+        m_VideoFilePath = path;
+        m_EegFileDurationInSec = duration;
+        m_TextureForVideo = texture;
+
         m_VideoPlayer = gameObject.AddComponent<VideoPlayer>();
     }
 
-    public override void Update()
+    public void Update()
     {
-        base.Update();
+
     }
 
-    public override void Play()
+    public void Play()
     {
         if (!m_VideoPlayer.isPrepared)
         {
@@ -50,42 +64,37 @@ public class UnityVideoPlayer : BaseVideoPlayer
 
         if (m_VideoPlayer.isPaused || m_VideoPlayer.isPrepared)
         {
-            base.Play();
             m_VideoPlayer.Play();
         }
     }
 
-    public override void Pause()
+    public void Pause()
     {
         if (m_VideoPlayer.isPlaying)
         {
-            base.Pause();
             m_VideoPlayer.Pause();
         }
     }
 
-    public override void Stop()
+    public void Stop()
     {
-        base.Stop();
         m_VideoPlayer.Stop();
         //Delete old texture or BTVLogo 
         Texture oldTexture = m_TextureForVideo.texture;
         Destroy(oldTexture);
     }
 
-    public override void MoveTime(long secondsToAdd)
+    public void MoveTime(long secondsToAdd)
     {
-        base.MoveTime(secondsToAdd);
         m_VideoPlayer.time += secondsToAdd;
     }
 
-    public override void SetTime(long timeMilliSec)
+    public void SetTime(long timeMilliSec)
     {
-        base.SetTime(timeMilliSec);
-        m_VideoPlayer.time = (long)((double)base.CurrentTime/1000);
+        m_VideoPlayer.time = ((double)timeMilliSec / 1000);
     }
 
-    public override void SetVolume(float volume)
+    public void SetVolume(float volume)
     {
         m_VideoPlayer.SetDirectAudioVolume(0, volume);
     }
@@ -120,7 +129,12 @@ public class UnityVideoPlayer : BaseVideoPlayer
         m_VideoPlayer.EnableAudioTrack(0, true);
         // Restart from beginning when done.
         m_VideoPlayer.isLooping = true;
+        m_VideoPlayer.waitForFirstFrame = true;
 
         m_VideoPlayer.Prepare();
     }
+
+    public void Cleanup() { }
+
+    public void SetVideoOffset(float newOffset) { }
 }
