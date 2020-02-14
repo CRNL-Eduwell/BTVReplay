@@ -89,6 +89,8 @@ public abstract class BaseVideoPlayer : MonoBehaviour, IVideoPlayer
         {
             CurrentTime = CurrentTime + (m_internalTimer.ElapsedMilliseconds - m_internalLastTime);
             m_internalLastTime = m_internalTimer.ElapsedMilliseconds;
+            if (CurrentTime > TotalVideoTime)
+                SetTime(0);
         }
     }
 
