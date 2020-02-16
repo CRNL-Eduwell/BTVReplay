@@ -9,6 +9,7 @@ using CielaSpike;
 using BTV.Services.EegFileService;
 using BTV.Data;
 using BTV.Services.VideoService;
+using BrainTV.Tools.TextExtensions;
 
 public delegate void timeVideo(int currentTime);
 public delegate void timeVideoSync(int currentTime);
@@ -83,6 +84,7 @@ public class CustomVideoPlayer : MonoBehaviour
             backTime10.onClick.RemoveAllListeners();
             backTime1.onClick.RemoveAllListeners();
             frontTime10.onClick.RemoveAllListeners();
+            scrollBar.onValueChanged.RemoveAllListeners();
             volumeScrollBar.onValueChanged.RemoveAllListeners();
             recordVideo.onClick.RemoveAllListeners();
 
@@ -167,11 +169,11 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         playPause.onClick.AddListener(Play);
         stopButton.onClick.AddListener(Stop);
-        backTime10.onClick.AddListener(() => MoveTime(-10));
-        backTime1.onClick.AddListener(() => MoveTime(-1));
-        frontTime10.onClick.AddListener(() => MoveTime(10));
-        volumeScrollBar.onValueChanged.AddListener((float newVolume) =>
-                                                    _Iplayer.SetVolume(newVolume));
+        backTime10.onClick.AddListener(() => _Iplayer.MoveTime(-10));
+        backTime1.onClick.AddListener(() => _Iplayer.MoveTime(-1));
+        frontTime10.onClick.AddListener(() => _Iplayer.MoveTime(10));
+        scrollBar.onValueChanged.AddListener(OnValueChangeScrollBar);
+        volumeScrollBar.onValueChanged.AddListener((float newVolume) => _Iplayer.SetVolume(newVolume));
 
         recordVideo.onClick.AddListener(()=> 
         {
@@ -261,24 +263,13 @@ public class CustomVideoPlayer : MonoBehaviour
         TextureToDraw.texture = Instantiate(m_texLogo);
         playPause.GetComponent<RawImage>().texture = m_texPause;
     }
-
-    void MoveTime(long secondsToAdd)
-    {
-        _Iplayer.SetTime(_Iplayer.CurrentTime + (secondsToAdd * 1000));
-    }
     #endregion
 
     #region timeInterface
-    public void setTimeScrollBar()
-    {
-        _Iplayer.SetTime((long)(scrollBar.value * _Iplayer.TotalVideoTime));
-        m_scrollbarnotclicked = true;
-    }
-
-    public void OnValueChangeScrollBar()
+    private void OnValueChangeScrollBar(float value)
     {
         if (_Iplayer.IsPlaying && !m_scrollbarnotclicked)
-            _Iplayer.SetTime((long)(scrollBar.value * _Iplayer.TotalVideoTime));
+            _Iplayer.SetTime((long)(value * _Iplayer.TotalVideoTime));
     }
 
     public void setTimeIfValueChanged()
@@ -356,47 +347,9 @@ public class CustomVideoPlayer : MonoBehaviour
 
     void updateTimeText()
     {
-        displayTimeGUI(currentTimetext, m_currentTimeScrollBar);
-
+        currentTimetext.DisplayToTimeFormat(m_currentTimeScrollBar);
         long totalTimeSec = Mathf.RoundToInt(_Iplayer.TotalVideoTime * 0.001f);
-        displayTimeGUI(totalTimeText, totalTimeSec);
-    }
-
-    void displayTimeGUI(Text textGUI, long timeInSec)
-    {
-        long h = timeInSec / 3600;
-        long m = (timeInSec / 60) % 60;
-        long s = timeInSec % 60;
-        timeToString(textGUI, h, m, s);
-    }
-
-    /// <summary>
-    /// Create The String to display Current Time
-    /// </summary>
-    /// <param name="textGUI">Object to display Time</param>
-    /// <param name="h">Calculated Hour</param>
-    /// <param name="m">Calculated Minute</param>
-    /// <param name="s">Calculated Second</param>
-    void timeToString(Text textGUI, long h, long m, long s)
-    {
-        if (h > 0)
-            textGUI.text = returnTimeString(h) + ":" + returnTimeString(m) + ":" + returnTimeString(s);
-        else
-            textGUI.text = returnTimeString(m) + ":" + returnTimeString(s);
-    }
-
-    /// <summary>
-    /// Convert number Value to String representation
-    /// parsed with a possible 0 to represent Time
-    /// </summary>
-    /// <param name="time">Value To Convert</param>
-    /// <returns>\a String to display </returns>
-    string returnTimeString(long time)
-    {
-        if (time < 10)
-            return "0" + time;
-        else
-            return time.ToString();
+        totalTimeText.DisplayToTimeFormat(totalTimeSec);
     }
     #endregion
 
