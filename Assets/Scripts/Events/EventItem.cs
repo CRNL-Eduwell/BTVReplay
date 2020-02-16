@@ -51,7 +51,15 @@ public class EventItem : Tools.Unity.Lists.SelectableItem<BtvEvent>
         else
             m_time.transform.GetChild(0).GetComponent<Text>().text = "00:" + m + ":" + s;
 
-        m_time.onClick.AddListener(() => m_video.setTime(timeInSec * 1000));
+        m_time.onClick.AddListener(() =>
+        {
+            ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
+            {
+                UpdateClickPosition = false,
+                TimeMilliseconds = timeInSec * 1000
+            };
+            Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
+        }); 
 
         m_comment.text = base.Object.Comment;
         m_code.text = base.Object.Code.ToString();

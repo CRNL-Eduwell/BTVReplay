@@ -8,7 +8,7 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
     /// <summary>
     /// Same as time, see if both are usefull ????
     /// </summary>
-    public long CurrentTime { get { return (long)((m_VideoPlayer.time * 1000) + m_OffsetVideoMilliSec); } }
+    public long CurrentTime { get { return (long)((m_VideoPlayer.clockTime * 1000) + m_OffsetVideoMilliSec); } }
 
     public long Time { get { return CurrentTime; } }
 

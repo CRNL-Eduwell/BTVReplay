@@ -53,7 +53,13 @@ public class VideoRecorder : MonoBehaviour
 
         if (IsBeginTimeValid && IsEndTimeValid && durationInSeconds > 0)
         {
-            m_VideoPlayer.setTime(beginTimeInSecond * 1000);
+            ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
+            {
+                UpdateClickPosition = false,
+                TimeMilliseconds = beginTimeInSecond * 1000
+            };
+            Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
+
             StartCoroutine(c_LaunchVideoRecording(m_OutputVideoPath.text, durationInSeconds.ToString()));
             UiPanel.gameObject.SetActive(false);
         }

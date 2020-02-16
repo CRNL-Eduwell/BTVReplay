@@ -180,15 +180,23 @@ public class EventsManager : MonoBehaviour
             if (Math.Abs(index) - 1 == 0)
             {
                 int TimeInMilliSec = (int)EventsService.Events[0].TimeInMilliSeconds;
-                m_videoPlayer.changeTimeClick(TimeInMilliSec);
-                m_videoPlayer.setTime(TimeInMilliSec);
+                ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
+                {
+                    UpdateClickPosition = true,
+                    TimeMilliseconds = TimeInMilliSec
+                };
+                Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
             }
             else
             {
                 int currentPos = Math.Abs(index) - 1;
                 int TimeInMilliSec = (int)EventsService.Events[currentPos - 1].TimeInMilliSeconds;
-                m_videoPlayer.changeTimeClick(TimeInMilliSec);
-                m_videoPlayer.setTime(TimeInMilliSec);
+                ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
+                {
+                    UpdateClickPosition = true,
+                    TimeMilliseconds = TimeInMilliSec
+                };
+                Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
             }
         }
     }
@@ -203,8 +211,12 @@ public class EventsManager : MonoBehaviour
             if (currentPos + 1 < EventsService.Events.Count)
             {
                 int TimeInMilliSec = (int)EventsService.Events[currentPos + 1].TimeInMilliSeconds;
-                m_videoPlayer.changeTimeClick(TimeInMilliSec);
-                m_videoPlayer.setTime(TimeInMilliSec);
+                ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
+                {
+                    UpdateClickPosition = true,
+                    TimeMilliseconds = TimeInMilliSec
+                };
+                Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
             }
         }
     }
