@@ -175,26 +175,17 @@ public class EventsManager : MonoBehaviour
     {
         if (EventsService.Events.Count > 0)
         {
-            long VideoTimeInMs = m_videoPlayer.videoInterface.CurrentTime;
-            int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(VideoTimeInMs);
-            if (Math.Abs(index) - 1 == 0)
+            long videoTimeInMs = m_videoPlayer.videoInterface.CurrentTime;
+            int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(videoTimeInMs);
+            if (index < 0) index = ~index - 1;
+
+            if (index - 1 >= 0)
             {
-                int TimeInMilliSec = (int)EventsService.Events[0].TimeInMilliSeconds;
+                int eventTimeInMs = (int)EventsService.Events[index - 1].TimeInMilliSeconds;
                 ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
                 {
                     UpdateClickPosition = true,
-                    TimeMilliseconds = TimeInMilliSec
-                };
-                Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
-            }
-            else
-            {
-                int currentPos = Math.Abs(index) - 1;
-                int TimeInMilliSec = (int)EventsService.Events[currentPos - 1].TimeInMilliSeconds;
-                ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
-                {
-                    UpdateClickPosition = true,
-                    TimeMilliseconds = TimeInMilliSec
+                    TimeMilliseconds = eventTimeInMs
                 };
                 Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
             }
@@ -205,16 +196,17 @@ public class EventsManager : MonoBehaviour
     {
         if (EventsService.Events.Count > 0)
         {
-            long VideoTimeInMs = m_videoPlayer.videoInterface.CurrentTime;
-            int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(VideoTimeInMs);
-            int currentPos = Math.Abs(index) - 1;
-            if (currentPos + 1 < EventsService.Events.Count)
+            long videoTimeInMs = m_videoPlayer.videoInterface.CurrentTime;
+            int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(videoTimeInMs);
+            index = (index < 0) ? ~index : index + 1;
+
+            if (index + 1 <= EventsService.Events.Count)
             {
-                int TimeInMilliSec = (int)EventsService.Events[currentPos + 1].TimeInMilliSeconds;
+                int eventTimeInMs = (int)EventsService.Events[index].TimeInMilliSeconds;
                 ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
                 {
                     UpdateClickPosition = true,
-                    TimeMilliseconds = TimeInMilliSec
+                    TimeMilliseconds = eventTimeInMs
                 };
                 Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
             }
@@ -223,9 +215,9 @@ public class EventsManager : MonoBehaviour
 
     private InputFieldWindow SpawFrequencyChoiceWindow()
     {
-        GameObject ViewGameObject = GameObject.Find("View");
-        GameObject InputField = Instantiate(m_InputFieldWindowPrefabs, ViewGameObject.transform);
-        InputFieldWindow window = InputField.GetComponent<InputFieldWindow>();
+        GameObject viewGameObject = GameObject.Find("View");
+        GameObject inputField = Instantiate(m_InputFieldWindowPrefabs, viewGameObject.transform);
+        InputFieldWindow window = inputField.GetComponent<InputFieldWindow>();
         return window;
     }
 
@@ -265,7 +257,7 @@ public class EventsManager : MonoBehaviour
     {
         EventsService.AddEvent(Event);
         EventsService.SortBySample();
-        int Id = EventsService.GetEventId(Event);
+        int id = EventsService.GetEventId(Event);
 
         m_EventsTexture.AddEvent(Event);
         m_EventsList.AddEvent(Event);
@@ -274,7 +266,7 @@ public class EventsManager : MonoBehaviour
         EventsToTraceMessage message = new EventsToTraceMessage
         {
             TaskToExecute = 3,
-            EventIndex = Id,
+            EventIndex = id,
             Event = Event
         };
         Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
@@ -300,17 +292,17 @@ public class EventsManager : MonoBehaviour
 
     private void DeleteEvent(BtvEvent Event)
     {
-        int Id = EventsService.GetEventId(Event);
-        EventsService.RemoveEventAt(Id);
+        int id = EventsService.GetEventId(Event);
+        EventsService.RemoveEventAt(id);
 
         m_EventsTexture.RemoveEvent(Event);
-        m_EventsList.DeleteEvent(Id);
+        m_EventsList.DeleteEvent(id);
 
         //Send message to delete from traces
         EventsToTraceMessage message = new EventsToTraceMessage
         {
             TaskToExecute = 4,
-            EventIndex = Id
+            EventIndex = id
         };
         Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
 
