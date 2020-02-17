@@ -17,5 +17,6 @@ enum MessageContext
     EventsModificationMessage,
     BrainWardenToElectrodePointerMessage,
     BrainWardenToTraceMessage,
-    ModulesToVideoMessage
+    ModulesToVideoMessage,
+    VideoToModulesMessage
 }

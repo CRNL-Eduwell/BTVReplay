@@ -175,7 +175,7 @@ public class EventsManager : MonoBehaviour
     {
         if (EventsService.Events.Count > 0)
         {
-            long videoTimeInMs = m_videoPlayer.videoInterface.CurrentTime;
+            long videoTimeInMs = m_videoPlayer.VideoInterface.CurrentTime;
             int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(videoTimeInMs);
             if (index < 0) index = ~index - 1;
 
@@ -196,7 +196,7 @@ public class EventsManager : MonoBehaviour
     {
         if (EventsService.Events.Count > 0)
         {
-            long videoTimeInMs = m_videoPlayer.videoInterface.CurrentTime;
+            long videoTimeInMs = m_videoPlayer.VideoInterface.CurrentTime;
             int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(videoTimeInMs);
             index = (index < 0) ? ~index : index + 1;
 

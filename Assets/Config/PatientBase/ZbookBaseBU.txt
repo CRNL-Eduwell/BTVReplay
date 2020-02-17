@@ -19,3 +19,45 @@ POS :
 PROV : 
 VID : D:\Users\Florian\Documents\Arbeit\Data Patient\BTV\LYONNEURO_2017_DAMa_BTV\LYONNEURO_2017_DAMa_BTV.mp4
 [----------]
+LH_MNI : D:\Users\Florian\Documents\Arbeit\Repository\Unity\BTVReplay\Assets\Config\Data\MNI\MNI_single_hight_Lhemi.tri
+RH_MNI : D:\Users\Florian\Documents\Arbeit\Repository\Unity\BTVReplay\Assets\Config\Data\MNI\MNI_single_hight_Rhemi.tri
+PTS_MNI : D:\Users\Florian\Documents\Arbeit\Data Patient\BTV\LYONNEURO_2017_DAMa_BTV\MNI\LYONNEURO_2017_DAMa_MNI.pts
+MESH_MNI : Left/Right Mesh
+EEG_MNI : Intracranial EEG
+LH_PAT : 
+RH_PAT : 
+PTS_PAT : 
+ATLAS_PAT : 
+MESH_PAT : Left/Right Mesh
+EEG_PAT : Intracranial EEG
+SM0 : D:\Users\Florian\Documents\Arbeit\Data Patient\Loca\LYONNEURO_2017_DAMa\LYONNEURO_2017_DAMa_MVIS\LYONNEURO_2017_DAMa_MVIS_f50f150\LYONNEURO_2017_DAMa_MVIS_f50f150_ds16_sm0.eeg
+SM250 : D:\Users\Florian\Documents\Arbeit\Data Patient\Loca\LYONNEURO_2017_DAMa\LYONNEURO_2017_DAMa_MVIS\LYONNEURO_2017_DAMa_MVIS_f50f150\LYONNEURO_2017_DAMa_MVIS_f50f150_ds16_sm500.eeg
+SM500 : 
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : 
+PROV : 
+VID : 
+[----------]
+LH_MNI : D:\Users\Florian\Documents\Arbeit\Repository\Unity\BTVReplay\Assets\Config\Data\MNI\MNI_single_hight_Lhemi.tri
+RH_MNI : D:\Users\Florian\Documents\Arbeit\Repository\Unity\BTVReplay\Assets\Config\Data\MNI\MNI_single_hight_Rhemi.tri
+PTS_MNI : D:\Users\Florian\Desktop\pat_son\anat\LYONNEURO_2020_LAMm_MNI.pts
+MESH_MNI : Left/Right Mesh
+EEG_MNI : Intracranial EEG
+LH_PAT : D:\Users\Florian\Desktop\pat_son\anat\LYONNEURO_2020_LAMm_Lhemi.gii
+RH_PAT : D:\Users\Florian\Desktop\pat_son\anat\LYONNEURO_2020_LAMm_Rhemi.gii
+PTS_PAT : D:\Users\Florian\Desktop\pat_son\anat\LYONNEURO_2020_LAMm.pts
+ATLAS_PAT : D:\Users\Florian\Desktop\pat_son\anat\LYONNEURO_2020_LAMm.csv
+MESH_PAT : Left/Right Mesh
+EEG_PAT : Intracranial EEG
+SM0 : D:\Users\Florian\Desktop\pat_son\LYONNEURO_2020_LAMm_BenTV\LYONNEURO_2020_LAMm_BenTV_f50f150\LYONNEURO_2020_LAMm_BenTV_f50f150_ds8_sm0.eeg
+SM250 : 
+SM500 : 
+SM1000 : 
+SM2500 : 
+SM5000 : 
+POS : 
+PROV : 
+VID : D:\Users\Florian\Desktop\pat_son\LYONNEURO_2020_LAMm_BenTV\LYONNEURO_2020_LAMm_BenTV.mp4
+[----------]

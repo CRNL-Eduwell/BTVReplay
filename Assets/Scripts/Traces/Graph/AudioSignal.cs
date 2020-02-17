@@ -4,6 +4,7 @@ using BTV.Services.VideoService;
 public class AudioSignal : SignalDisp
 {
     public BtvChannel ChannelHandle { get; private set; } = null;
+    public float OffsetInMilliseconds { get; set; } = 0;
 
     public override void init()
     {
@@ -16,7 +17,7 @@ public class AudioSignal : SignalDisp
         if (ChannelHandle == null)
             return;
 
-        int SamplePosition = ChannelHandle.Frequency.ConvertToCeiledNumberOfSamples(milliSecToLook);
+        int SamplePosition = ChannelHandle.Frequency.ConvertToCeiledNumberOfSamples((int)(milliSecToLook + OffsetInMilliseconds));
         int PositionInArray = SamplePosition - m_numberPoint;
         float limitVal = (m_parentRectTransform.rect.height - 6.5f) / 2;
 

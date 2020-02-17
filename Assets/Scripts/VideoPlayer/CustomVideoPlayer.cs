@@ -1,12 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;//Requiered for Event data.
+using UnityEngine.EventSystems;
 using BrainTV.Tools.TextExtensions;
-
-public delegate void timeVideo(int currentTime);
-public delegate void timeVideoSync(int currentTime);
-public delegate void stopVideo();
 
 /// <summary>
 /// Represents an instance of a video, either from a real video
@@ -14,45 +10,7 @@ public delegate void stopVideo();
 /// </summary>
 public class CustomVideoPlayer : MonoBehaviour
 {
-    public event timeVideo sendTime;
-    public event timeVideoSync sendTimeVideo;
-    public event stopVideo stopTimeVideo;
-
-    public IVideoPlayer videoInterface
-    {
-        get
-        {
-            return _Iplayer;
-        }
-    }
-    /// <summary>
-    /// Time of the video, there is a possible offset due to user input
-    /// In MilliSeconds
-    /// </summary>
-    long Time
-    {
-        get
-        {
-            if (m_scrollbarnotclicked)
-                return _Iplayer.Time;
-            else
-                return (long)((_TimeScrollbar.value * _Iplayer.TotalVideoTime));
-        }
-    }
-    /// <summary>
-    /// Exact Time of the video without a possible offset
-    /// In MilliSeconds
-    /// </summary>
-    long videoTime
-    {
-        get
-        {
-            if (m_scrollbarnotclicked)
-                return _Iplayer.VideoTime;
-            else
-                return (long)((_TimeScrollbar.value * _Iplayer.TotalVideoTime));
-        }
-    }
+    public IVideoPlayer VideoInterface { get; private set; }
 
     #region scene members
     [SerializeField] BTVMedia _Media = null;
@@ -71,18 +29,18 @@ public class CustomVideoPlayer : MonoBehaviour
     #endregion
 
     #region private members
-    private IVideoPlayer _Iplayer = null;
     private bool m_scrollbarnotclicked = true, m_initDone = false, m_forceMove = false;
-    private EventTrigger m_trigger = null;
+    private EventTrigger m_trigger = null, m_triggerSlaved = null;
     private Texture2D m_texPlay = null, m_texPause = null, m_texLogo = null;
     private Sprite m_texHandle = null, m_texHandleSlave = null;
     private GameObject m_RecorderPrefab = null;
 
     private bool m_slaved = false, m_keyForceMove = false;
-    private EventTrigger m_triggerSlaved = null;
     private long m_timeClick = -1;
     private float m_minTimeClick = 0.0f, m_maxTimeClick = 0.0f;
     private float m_scrollVal = 0.0f, m_scrollMemory = 0.0f;
+    private VideoToModulesMessage m_message = new VideoToModulesMessage();
+
     #endregion
 
     private void Awake()
@@ -97,7 +55,7 @@ public class CustomVideoPlayer : MonoBehaviour
         Messenger.Default.Unregister(this, MessageContext.ModulesToVideoMessage);
         if (m_initDone)
         {
-            _Iplayer.Cleanup();
+            VideoInterface.Cleanup();
             RemoveListeners();
         }
     }
@@ -116,37 +74,29 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         if (m_initDone)
         {
-            if (_Iplayer.IsPlaying)
+            if(!VideoInterface.IsStopped)
             {
-                _Iplayer.Update();
-                if (_Iplayer.CurrentTime > _Iplayer.TotalVideoTime)
+                VideoInterface.Update();
+                if (VideoInterface.CurrentTime > VideoInterface.TotalVideoTime)
                     Stop();
 
                 if (m_slaved && !m_forceMove)
                 {
-                    if (_Iplayer.CurrentTime > m_timeClick + 2000)
+                    if (VideoInterface.CurrentTime > m_timeClick + 2000)
                         UpdateTime((int)Math.Max(0, m_timeClick - 2000));
-                    if (_Iplayer.CurrentTime < m_timeClick - 2000)
-                        UpdateTime((int)Math.Min(_Iplayer.TotalVideoTime, m_timeClick + 2000));
+                    if (VideoInterface.CurrentTime < m_timeClick - 2000)
+                        UpdateTime((int)Math.Min(VideoInterface.TotalVideoTime, m_timeClick + 2000));
                 }
                 UpdateScrollBarPosition();
-                sendTime((int)Time);
-                sendTimeVideo((int)videoTime);
-            }
-            else if (_Iplayer.IsPaused)
-            {
-                UpdateScrollBarPosition();
-                sendTime((int)Time);
-                sendTimeVideo((int)videoTime);
             }
 
             if (m_slaved)
             {
                 if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.J))
-                    forceMoveLoopScroll(-0.05f);
+                    ForceMoveLoopScroll(-0.05f);
 
                 if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.K))
-                    forceMoveLoopScroll(0.05f);
+                    ForceMoveLoopScroll(0.05f);
             }
 
         }
@@ -155,13 +105,13 @@ public class CustomVideoPlayer : MonoBehaviour
     private void Init(string videoPath, int eegFileDurationInSec)
     {
         if (videoPath == "")
-            _Iplayer = gameObject.AddComponent<GhostVideoPlayer>();
+            VideoInterface = gameObject.AddComponent<GhostVideoPlayer>();
         else
-            _Iplayer = gameObject.AddComponent<UnityVideoPlayer>();
+            VideoInterface = gameObject.AddComponent<UnityVideoPlayer>();
 
         _VideoTexture.texture = (Texture2D)Instantiate(m_texLogo);
 
-        _Iplayer.Init(videoPath, eegFileDurationInSec, _VideoTexture);
+        VideoInterface.Init(videoPath, eegFileDurationInSec, _VideoTexture);
         AddListeners();
     }
 
@@ -178,11 +128,11 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         _Play.onClick.AddListener(Play);
         _Stop.onClick.AddListener(Stop);
-        _GoBkwd10.onClick.AddListener(() => _Iplayer.MoveTime(-10));
-        _GoBkwd1.onClick.AddListener(() => _Iplayer.MoveTime(-1));
-        _GoFwd10.onClick.AddListener(() => _Iplayer.MoveTime(10));
+        _GoBkwd10.onClick.AddListener(() => VideoInterface.MoveTime(-10));
+        _GoBkwd1.onClick.AddListener(() => VideoInterface.MoveTime(-1));
+        _GoFwd10.onClick.AddListener(() => VideoInterface.MoveTime(10));
         _TimeScrollbar.onValueChanged.AddListener(OnValueChangeScrollBar);
-        _VolumeScrollbar.onValueChanged.AddListener((float newVolume) => _Iplayer.SetVolume(newVolume));
+        _VolumeScrollbar.onValueChanged.AddListener((float newVolume) => VideoInterface.SetVolume(newVolume));
         _RecordVideo.onClick.AddListener(InstantiateVideoRecorder);
 
         m_trigger = _TimeScrollbar.gameObject.AddComponent<EventTrigger>();
@@ -192,7 +142,7 @@ public class CustomVideoPlayer : MonoBehaviour
         entry.callback.AddListener((eventData) =>
         {
             if (!m_slaved)
-                initForceMoveLoopScroll();
+                InitForceMoveLoopScroll();
         });
         m_trigger.triggers.Add(entry);
 
@@ -217,7 +167,7 @@ public class CustomVideoPlayer : MonoBehaviour
         entry3.eventID = EventTriggerType.BeginDrag;
         entry3.callback.AddListener((eventData) =>
         {
-            initForceMoveLoopScroll();
+            InitForceMoveLoopScroll();
         });
         m_triggerSlaved.triggers.Add(entry3);
 
@@ -225,7 +175,7 @@ public class CustomVideoPlayer : MonoBehaviour
         entry4.eventID = EventTriggerType.EndDrag;
         entry4.callback.AddListener((eventData) =>
         {
-            finishForceMoveLoopScroll();
+            FinishForceMoveLoopScroll();
         });
         m_triggerSlaved.triggers.Add(entry4);
 
@@ -255,30 +205,36 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void Play()
     {
-        if (_Iplayer.IsPaused || _Iplayer.IsStopped)
+        if (VideoInterface.IsPaused || VideoInterface.IsStopped)
         {
-            _Iplayer.Play();
+            VideoInterface.Play();
             _Play.GetComponent<RawImage>().texture = m_texPlay;
         }
         else
         {
-            _Iplayer.Pause();
+            VideoInterface.Pause();
             _Play.GetComponent<RawImage>().texture = m_texPause;
         }
     }
 
     private void Stop()
     {
-        _Iplayer.Stop();
-        stopTimeVideo();
+        VideoInterface.Stop();
+        _TimeScrollbar.value = 0;
+        UpdateTimeText(0);
+
+        m_message.IsStopped = true;
+        m_message.TimeMilliseconds = 0;
+        Messenger.Default.Send(m_message, MessageContext.VideoToModulesMessage);
+
         _VideoTexture.texture = Instantiate(m_texLogo);
         _Play.GetComponent<RawImage>().texture = m_texPause;
     }
 
     private void OnValueChangeScrollBar(float value)
     {
-        if (_Iplayer.IsPlaying && !m_scrollbarnotclicked)
-            _Iplayer.SetTime((long)(value * _Iplayer.TotalVideoTime));
+        if (VideoInterface.IsPlaying && !m_scrollbarnotclicked)
+            VideoInterface.SetTime((long)(value * VideoInterface.TotalVideoTime));
     }
 
     private void InstantiateVideoRecorder()
@@ -297,13 +253,13 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         if (m_scrollMemory != _TimeScrollbar.value)
         {
-            if (_Iplayer.IsPaused)
+            if (VideoInterface.IsPaused)
                 Play();
             m_scrollMemory = _TimeScrollbar.value;
         }
         else
         {
-            if (_Iplayer.IsPlaying)
+            if (VideoInterface.IsPlaying)
                 Play();
         }
     }
@@ -312,8 +268,8 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         if (m_scrollbarnotclicked)
         {
-            _TimeScrollbar.value = (float)(_Iplayer.CurrentTime) / _Iplayer.TotalVideoTime;
-            UpdateTimeText((long)(_Iplayer.CurrentTime * 0.001f));
+            _TimeScrollbar.value = (float)(VideoInterface.CurrentTime) / VideoInterface.TotalVideoTime;
+            UpdateTimeText((long)(VideoInterface.CurrentTime * 0.001f));
         }
         else if (m_slaved)
         {
@@ -321,36 +277,41 @@ public class CustomVideoPlayer : MonoBehaviour
                 SetTimeIfValueChanged();
 
             m_scrollVal = (_LoopScrollbar.value * 4000) - 2000;
-            _TimeScrollbar.value = (float)(m_timeClick + m_scrollVal) / _Iplayer.TotalVideoTime;
-            UpdateTimeText((long)(_Iplayer.CurrentTime * 0.001f));
+            _TimeScrollbar.value = (float)(m_timeClick + m_scrollVal) / VideoInterface.TotalVideoTime;
+            UpdateTimeText((long)(VideoInterface.CurrentTime * 0.001f));
 
             if (m_keyForceMove)
-                finishForceMoveLoopScroll();
+                FinishForceMoveLoopScroll();
         }
         else
         {
             if (m_forceMove)
                 SetTimeIfValueChanged();
-            UpdateTimeText((long)(_TimeScrollbar.value * _Iplayer.TotalVideoTime * 0.001f));
+            UpdateTimeText((long)(_TimeScrollbar.value * VideoInterface.TotalVideoTime * 0.001f));
         }
     }
 
     /// <summary>
-    /// TODO : Faire que cela set une propriété et que en faisant cela , cela execute
-    /// cette fonction en plus d'envoyer les events de temps
+    /// Update Display of Current Time and send message to the outside
+    /// with the current time in milliseconds
     /// </summary>
-    /// <param name="seconds"></param>
+    /// <param name="seconds">Current time in seconds</param>
     private void UpdateTimeText(long seconds)
     {
         _CurrentTime.DisplayToTimeFormat(seconds);
-        long totalTimeSec = Mathf.RoundToInt(_Iplayer.TotalVideoTime * 0.001f);
+        long totalTimeSec = Mathf.RoundToInt(VideoInterface.TotalVideoTime * 0.001f);
         _TotalTime.DisplayToTimeFormat(totalTimeSec);
+
+        //Send Message with timing information to the outside
+        m_message.IsStopped = false;
+        m_message.TimeMilliseconds = m_scrollbarnotclicked ? VideoInterface.CurrentTime : _TimeScrollbar.value * VideoInterface.TotalVideoTime;
+        Messenger.Default.Send(m_message, MessageContext.VideoToModulesMessage);
     }
 
     private void UpdateTime(long timeMilliSec)
     {
         m_scrollbarnotclicked = false;
-        _Iplayer.SetTime(timeMilliSec);
+        VideoInterface.SetTime(timeMilliSec);
         m_scrollbarnotclicked = true;
     }
 
@@ -362,24 +323,24 @@ public class CustomVideoPlayer : MonoBehaviour
     }
 
     #region loopMode
-    public void slaveMode()
+    public void SlaveMode()
     {
         if (!_LoopScrollbar.gameObject.activeSelf)
         {
-            _Iplayer.SetVolume(0.0f);
-            if (_Iplayer.IsPlaying)
+            VideoInterface.SetVolume(0.0f);
+            if (VideoInterface.IsPlaying)
                 Play();
             m_slaved = true;
             _LoopScrollbar.gameObject.SetActive(true);
-            m_timeClick = _Iplayer.CurrentTime;
+            m_timeClick = VideoInterface.CurrentTime;
             m_minTimeClick = m_timeClick - (2 * 1000);
             m_maxTimeClick = m_timeClick + (2 * 1000);
             _TimeScrollbar.transform.GetChild(0).GetChild(1).GetComponent<Image>().sprite = m_texHandleSlave;
         }
         else
         {
-            _Iplayer.SetVolume(_VolumeScrollbar.value);
-            if (_Iplayer.IsPaused)
+            VideoInterface.SetVolume(_VolumeScrollbar.value);
+            if (VideoInterface.IsPaused)
                 Play();
             m_slaved = false;
             m_scrollVal = 0;
@@ -390,21 +351,21 @@ public class CustomVideoPlayer : MonoBehaviour
         }
     }
 
-    void initForceMoveLoopScroll()
+    private void InitForceMoveLoopScroll()
     {
         m_scrollbarnotclicked = false;
-        if (_Iplayer.IsPaused)
+        if (VideoInterface.IsPaused)
         {
             m_forceMove = true;
             Play();
         }
     }
 
-    void finishForceMoveLoopScroll()
+    private void FinishForceMoveLoopScroll()
     {
         if (!m_scrollbarnotclicked)
         {
-            if (_Iplayer.IsPlaying)
+            if (VideoInterface.IsPlaying)
                 Play();
 
             m_forceMove = false;
@@ -413,10 +374,10 @@ public class CustomVideoPlayer : MonoBehaviour
         }
     }
 
-    void forceMoveLoopScroll(float value)
+    private void ForceMoveLoopScroll(float value)
     {
         m_keyForceMove = true;
-        initForceMoveLoopScroll();
+        InitForceMoveLoopScroll();
         _LoopScrollbar.value += value;
     }
     #endregion
