@@ -41,20 +41,27 @@ public class PatientGUIManager : MonoBehaviour
         prov = EventAndVideo.transform.GetChild(0).GetChild(1).GetChild(1).GetComponent<browseButton>();
         video = EventAndVideo.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<browseButton>();
 
+        mni_LHemi.inputfield.text = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri";
+        mni_RHemi.inputfield.text = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri";
+
         mni_nbMesh.onValueChanged.AddListener((int value) => 
         {
             if (value == 0)
             {
                 mni_LHemi.gameObject.SetActive(true);
                 mni_LHemi.inputfield.placeholder.GetComponent<Text>().text = "LHemi File";
+                mni_LHemi.inputfield.text = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri";
                 mni_RHemi.gameObject.SetActive(true);
                 mni_RHemi.inputfield.placeholder.GetComponent<Text>().text = "RHemi File";
+                mni_RHemi.inputfield.text = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri";
             }
             else
             {
                 mni_LHemi.gameObject.SetActive(true);
                 mni_LHemi.inputfield.placeholder.GetComponent<Text>().text = "Single File";
+                mni_LHemi.inputfield.text = "";
                 mni_RHemi.gameObject.SetActive(false);
+                mni_RHemi.inputfield.text = "";
             }
         });
         //mni_eegTech.onValueChanged.AddListener((int value) => { });
