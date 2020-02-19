@@ -44,7 +44,7 @@ public class VideoRecorder : MonoBehaviour
             return;
         }
 
-        int totalVideoTimeInSecond = (int)m_VideoPlayer.videoInterface.TotalVideoTime / 1000;
+        int totalVideoTimeInSecond = (int)m_VideoPlayer.VideoInterface.TotalVideoTime / 1000;
         int beginTimeInSecond = m_RecordBeginTime.TimeInSeconds;
         int endTimeInSecond = m_RecordEndTime.TimeInSeconds;
         int durationInSeconds = endTimeInSecond - beginTimeInSecond;
@@ -53,7 +53,13 @@ public class VideoRecorder : MonoBehaviour
 
         if (IsBeginTimeValid && IsEndTimeValid && durationInSeconds > 0)
         {
-            m_VideoPlayer.setTime(beginTimeInSecond * 1000);
+            ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
+            {
+                UpdateClickPosition = false,
+                TimeMilliseconds = beginTimeInSecond * 1000
+            };
+            Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
+
             StartCoroutine(c_LaunchVideoRecording(m_OutputVideoPath.text, durationInSeconds.ToString()));
             UiPanel.gameObject.SetActive(false);
         }

@@ -91,20 +91,12 @@ public class Site : MonoBehaviour
     private float m_Gain = 1;
     #endregion
 
-    private CustomVideoPlayer m_VideoPlayer = null;
-
     public void Init(object Plot)
     {
         m_Plot = Plot;
 
         Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
-
-        //ToDO :
-        //need to be removed from here later
-        //will be retrieved using IoCServiceContainer once it's loaded or
-        //info will be send via messenger
-        m_VideoPlayer = GameObject.Find("Workable Part").transform.GetChild(0).GetChild(1).GetComponent<CustomVideoPlayer>();
-        m_VideoPlayer.sendTime += new timeVideo(UpdateSize);
+        Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
 
         //If we don't find the corresponding name beetween this object and one electrode
         //in an eeg file , we don't show the site on the 3D brain
@@ -135,19 +127,24 @@ public class Site : MonoBehaviour
     private void OnDisable()
     {
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
-        m_VideoPlayer.sendTime -= new timeVideo(UpdateSize);
+        Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
     }
 
     private void OnDestroy()
     {
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
-        m_VideoPlayer.sendTime -= new timeVideo(UpdateSize);
+        Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
     }
 
     private void OnBrainParametersMessage(UiToBrainMessage message)
     {
         if (message.TaskToExecute == 2) //=> gain update
             m_Gain = message.Gain;
+    }
+
+    private void OnVideoToModulesMessage(VideoToModulesMessage message)
+    {
+        UpdateSize((int)message.TimeMilliseconds);
     }
 
     private void UpdateSize(int milliSecToLook)
