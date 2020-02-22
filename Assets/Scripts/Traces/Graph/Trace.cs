@@ -43,7 +43,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     }
 
     [SerializeField] BTVMedia media = null;
-    [SerializeField] CustomVideoPlayer video = null;
     [SerializeField] EegSignal eegSignal = null;
     [SerializeField] AudioSignal audioSignal = null;
     [SerializeField] GraphLabel graphLabel = null;
@@ -69,7 +68,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     GameObject m_AddEventWindowPrefabs = null;
     GameObject m_DisplayEventWindowPrefabs = null;
-    GameObject m_PopUpWindow = null;
+    GameObject m_PopUpAddWindow = null, m_PopUpEditWindow = null, m_PopUpDisplayWindow = null;
 
     void Awake()
     {
@@ -84,6 +83,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         Messenger.Default.Register<UiToVideoMessage>(this, OnVideoParametersMessage, MessageContext.UiToVideo);
         Messenger.Default.Register<EventsToTraceMessage>(this, OnEventsToTraceMessage, MessageContext.EventsToTraceMessage);
         Messenger.Default.Register<BrainWardenToTraceMessage>(this, OnBrainWardenToTraceMessage, MessageContext.BrainWardenToTraceMessage);
+        Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
     }
 
     void OnDestroy()
@@ -91,12 +91,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         media.loadTrace -= new initTrace(init);
         if (m_initDone)
         {
-            video.sendTime -= new timeVideo(eegSignal.UpdateDraw);
-            video.sendTimeVideo -= new timeVideoSync(audioSignal.UpdateDraw);
-            video.sendTime -= new timeVideo(graphEvent.UpdateEventsOnTrace);
-            video.sendTime -= new timeVideo(graphSonif.updateSonif);
-            video.stopTimeVideo -= new stopVideo(graphSonif.muteSonficiation);
-
             //hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeById);
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
             //hub.traceRemotes[traceID].deleteElectrodeInPanel();
@@ -105,6 +99,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             Messenger.Default.Unregister(this, MessageContext.UiToVideo);
             Messenger.Default.Unregister(this, MessageContext.EventsToTraceMessage);
             Messenger.Default.Unregister(this, MessageContext.BrainWardenToTraceMessage);
+            Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
         }
     }
 
@@ -135,12 +130,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         graphSonif.init(this);
 
         #region plugEvents
-        video.sendTime += new timeVideo(eegSignal.UpdateDraw);
-        video.sendTimeVideo += new timeVideoSync(audioSignal.UpdateDraw);
-        video.sendTime += new timeVideo(graphEvent.UpdateEventsOnTrace);
-        video.sendTime += new timeVideo(graphSonif.updateSonif);
-        video.stopTimeVideo += new stopVideo(graphSonif.muteSonficiation);
-
         //hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeById);
         graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
         //hub.traceRemotes[traceID].loadElectrodeInPanel(eegSignal.fileHandle.electrodes);
@@ -204,9 +193,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 1:
                 Debug.Log("Update Trace Offset");
-                //At the moment offset is just used to calculate video time
-                //by reading scrollbar value, maybe need to separate that
-                //better
+                audioSignal.OffsetInMilliseconds = message.Offset;
                 break;
             case 2:
                 Debug.Log("Toggle Audio Trace");
@@ -230,7 +217,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 graphEvent.DisplayEvents = message.IsShowEventsOn;
                 break;
             case 2://Edit Events
-                if (isOver(Input.mousePosition))
+                bool ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
+                if(ind)
                     OpenEventModify(message.Event);
                 break;
             case 3://Add Event
@@ -240,7 +228,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 graphEvent.DeleteEventFromTrace(message.EventIndex);
                 break;
             case 5:
-                if (isOver(Input.mousePosition))
+                ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
+                if (ind)
                     OpenEventDisplay(message.Event);
                 break;
         }
@@ -257,6 +246,16 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 Debug.LogError("Trace.cs : Id of action to execute does not exist : " + message.TaskToExecute);
                 break;
         }
+    }
+
+    private void OnVideoToModulesMessage(VideoToModulesMessage message)
+    {
+        if (message.IsStopped) graphSonif.muteSonficiation();
+
+        eegSignal.UpdateDraw((int)message.TimeMilliseconds);
+        audioSignal.UpdateDraw((int)message.TimeMilliseconds);
+        graphEvent.UpdateEventsOnTrace((int)message.TimeMilliseconds);
+        graphSonif.updateSonif((int)message.TimeMilliseconds);
     }
 
     public void UpdateWindowState(int state)
@@ -350,7 +349,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         m_rectTransform.GetWorldCorners(m_worldCornerOfBrainPanel);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
         if (worldClick.x > m_worldCornerOfBrainPanel[1].x && worldClick.x < m_worldCornerOfBrainPanel[2].x
             && worldClick.y > m_worldCornerOfBrainPanel[3].y && worldClick.y < m_worldCornerOfBrainPanel[2].y)
             return true;
@@ -431,42 +429,42 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     //Those 3 needs to be connected via reception of a message from messenger
     private void OpenEventAdd(BtvEvent Event)
     {
-        if (m_AddEvents && m_PopUpWindow == null)
+        if (m_AddEvents && m_PopUpAddWindow == null)
         {
-            m_PopUpWindow = Instantiate(m_AddEventWindowPrefabs);
+            m_PopUpAddWindow = Instantiate(m_AddEventWindowPrefabs);
 
             if (traceID == 0)
             {
-                m_PopUpWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
+                m_PopUpAddWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
                 Event.SecondSiteOfInterest = m_signalWindow2.TraceEeg.ElectrodeLabel;
             }
             else
             {
-                m_PopUpWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
+                m_PopUpAddWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
                 Event.SecondSiteOfInterest = m_signalWindow1.TraceEeg.ElectrodeLabel;
             }
-            m_PopUpWindow.transform.localScale = new Vector3(1, 1, 1);
-            m_PopUpWindow.transform.localPosition = new Vector3(0, 0, -402);
+            m_PopUpAddWindow.transform.localScale = new Vector3(1, 1, 1);
+            m_PopUpAddWindow.transform.localPosition = new Vector3(0, 0, -402);
 
-            EventInfoEdit infoEdit = m_PopUpWindow.GetComponent<EventInfoEdit>();
+            EventInfoEdit infoEdit = m_PopUpAddWindow.GetComponent<EventInfoEdit>();
             infoEdit.init(Event, false);
         }
     }
 
     private void OpenEventDisplay(BtvEvent Event)
     {
-        if(m_PopUpWindow == null)
+        if(m_PopUpDisplayWindow == null)
         {
-            m_PopUpWindow = Instantiate(m_DisplayEventWindowPrefabs);
+            m_PopUpDisplayWindow = Instantiate(m_DisplayEventWindowPrefabs);
 
             if (traceID == 0)
-                m_PopUpWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
+                m_PopUpDisplayWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
             else
-                m_PopUpWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
-            m_PopUpWindow.transform.localScale = new Vector3(1, 1, 1);
-            m_PopUpWindow.transform.localPosition = new Vector3(0, 0, -402);
+                m_PopUpDisplayWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
+            m_PopUpDisplayWindow.transform.localScale = new Vector3(1, 1, 1);
+            m_PopUpDisplayWindow.transform.localPosition = new Vector3(0, 0, -402);
 
-            EventInfoDisplay infoDisp = m_PopUpWindow.GetComponent<EventInfoDisplay>();
+            EventInfoDisplay infoDisp = m_PopUpDisplayWindow.GetComponent<EventInfoDisplay>();
             infoDisp.init(Event);
         }
     }
@@ -474,18 +472,18 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     private void OpenEventModify(BtvEvent Event)
     {
         ApplicationState.Module3D.MemoryEvent = null;
-        if (m_PopUpWindow == null)
+        if (m_PopUpEditWindow == null)
         {
-            m_PopUpWindow = Instantiate(m_AddEventWindowPrefabs);
+            m_PopUpEditWindow = Instantiate(m_AddEventWindowPrefabs);
 
             if (traceID == 0)
-                m_PopUpWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
+                m_PopUpEditWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
             else
-                m_PopUpWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
-            m_PopUpWindow.transform.localScale = new Vector3(1, 1, 1);
-            m_PopUpWindow.transform.localPosition = new Vector3(0, 0, -402);
+                m_PopUpEditWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
+            m_PopUpEditWindow.transform.localScale = new Vector3(1, 1, 1);
+            m_PopUpEditWindow.transform.localPosition = new Vector3(0, 0, -402);
 
-            EventInfoEdit infoEdit = m_PopUpWindow.GetComponent<EventInfoEdit>();
+            EventInfoEdit infoEdit = m_PopUpEditWindow.GetComponent<EventInfoEdit>();
             infoEdit.init(Event, true);
         }
     }

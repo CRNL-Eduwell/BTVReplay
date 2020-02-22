@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using UnityEngine;
 
 public enum mesh_Configuration { leftright, single };
 public enum eeg_Technology { intra, scalp };
@@ -128,8 +129,12 @@ public class Patient
     {
         switch (key)
         {
-            case "LH_MNI": if (data.Length > 1) mni.lhemi = data[1]; break;
-            case "RH_MNI": if (data.Length > 1) mni.rhemi = data[1]; break;
+            case "LH_MNI": if (data.Length == 1) mni.lhemi = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri";
+                           else if (data.Length > 1) mni.lhemi = data[1];
+                break;
+            case "RH_MNI": if (data.Length == 1) mni.rhemi = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri";
+                           else if (data.Length > 1) mni.rhemi = data[1];
+                break;
             case "PTS_MNI": if (data.Length > 1) mni.pts = data[1]; break;
             case "MESH_MNI": if (data.Length > 1) mni.setNbMesh(data[1]); break;
             case "EEG_MNI": if (data.Length > 1) mni.setEegTech(data[1]); break;

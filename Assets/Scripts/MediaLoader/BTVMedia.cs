@@ -1,16 +1,14 @@
-﻿using System;
+﻿using System.IO;
 using System.Collections; //IEnumerator
 
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+using SFB;
+using BTV.Data;
 using CielaSpike;
 using BTV.Services.EegFileService;
-using BTV.Data;
-using System.Linq;
-using System.Collections.Generic;
-using SFB;
 
 public delegate void mediaLoadedEventHandler();
 public delegate void initTrace();
@@ -360,9 +358,32 @@ public class BTVMedia : MonoBehaviour
 
     YieldInstruction Process(string filePath, int FileID)
     {
+        if (filePath == "") return null;
+
+        Tools.CSharp.EEG.File.FileType fileType;
+        FileInfo file = new FileInfo(filePath);
+        switch (file.Extension.ToLower())
+        {
+            case ".trc":
+                fileType = Tools.CSharp.EEG.File.FileType.Micromed;
+                break;
+            case ".eeg":
+                fileType = Tools.CSharp.EEG.File.FileType.ELAN;
+                break;
+            case ".vhdr":
+                fileType = Tools.CSharp.EEG.File.FileType.BrainVision;
+                break;
+            case ".edf":
+                fileType = Tools.CSharp.EEG.File.FileType.EDF;
+                break;
+            default:
+                UnityEngine.Debug.LogError("Fileformat " + file.Extension + " not supported");
+                return null;
+        }
+
         // I give my callback to the process
         // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(EegFileService.c_Load(filePath, Tools.CSharp.EEG.File.FileType.ELAN, FileID));
+        return this.StartCoroutineAsync(EegFileService.c_Load(file.FullName, fileType, FileID));
     }
 
     IEnumerator c_loadVideo(string videoPath)

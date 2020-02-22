@@ -9,11 +9,8 @@ using BTV.Services.EventsService;
 public class BrainWarden : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField] Camera brainCam = null;
-    [SerializeField] BTVMedia media = null;
-    [SerializeField] CustomVideoPlayer video = null;
 
     bool isMaxed = false;
-    bool initDone = false;
     RectTransform m_rectTransform = null;
     Vector2 m_startSize, m_BigSize;
     Vector3[] worldCornerOfBrainPanel = new Vector3[4];
@@ -24,15 +21,14 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     GameObject elecOptionPanel = null;
     GameObject ElecOption = null;
 
+    private void Awake()
+    {
+        Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
+    }
+
     private void Start()
     {
         elecOptionPanel = Resources.Load("Prefabs/Brain-ElecOptions", typeof(GameObject)) as GameObject;
-
-        media.loadTrace += new initTrace(() =>
-        {
-            initDone = true;
-            video.sendTime += new timeVideo(UpdateEventsOnBrain);
-        });
 
         m_rectTransform = gameObject.GetComponent<RectTransform>();
         m_startSize = m_rectTransform.sizeDelta;
@@ -45,19 +41,12 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     private void OnDestroy()
     {
-        media.loadTrace -= new initTrace(() =>
-        {
-            initDone = true;
-            video.sendTime += new timeVideo(UpdateEventsOnBrain);
-        });
-
-        if (initDone)
-            video.sendTime -= new timeVideo(UpdateEventsOnBrain);
+        Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
     }
 
     private void OnGUI()
     {
-        if (initDone && IsOver(Input.mousePosition))
+        if (IsOver(Input.mousePosition))
         {
             brainCam.GetComponent<BrainCamera>().IsMouseOver = true;
             CheckIfPointElectrode();
@@ -109,6 +98,12 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
                 ElecOption.GetComponent<ElecOptions>().init(plotClick);
             }
         }
+    }
+
+    private void OnVideoToModulesMessage(VideoToModulesMessage message)
+    {
+        int timeInMilliseconds = (int)message.TimeMilliseconds;
+        UpdateEventsOnBrain(timeInMilliseconds);
     }
 
     private void BigBrain()

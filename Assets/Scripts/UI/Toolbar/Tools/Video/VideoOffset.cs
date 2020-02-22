@@ -59,9 +59,9 @@ namespace BTV.UI.Module3D.Tools
 
         private void AddOffset()
         {
-            if (m_Offset - 10 >= -60000)
+            if (m_Offset + 10 <= 60000)
             {
-                m_Offset -= 10;
+                m_Offset += 10;
                 m_ChangeOffset.value = ((m_Offset / 1000) / 120) + 0.5f;
                 UpdateOffset(m_Offset);
             }
@@ -69,9 +69,9 @@ namespace BTV.UI.Module3D.Tools
 
         private void RemoveOffset()
         {
-            if (m_Offset + 10 <= 60000)
+            if (m_Offset - 10 >= -60000)
             {
-                m_Offset += 10;
+                m_Offset -= 10;
                 m_ChangeOffset.value = ((m_Offset / 1000) / 120) + 0.5f;
                 UpdateOffset(m_Offset);
             }

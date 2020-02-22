@@ -29,11 +29,6 @@ public class TaskPerformanceTrace : MonoBehaviour
     /// </summary>
     [SerializeField]
     private GameObject m_InfoDisplay = null;
-    /// <summary>
-    /// Videoplayer for timing informations
-    /// </summary>
-    [SerializeField]
-    private CustomVideoPlayer video = null;
 
     private Trace m_signalWindow1 = null;
 
@@ -74,18 +69,16 @@ public class TaskPerformanceTrace : MonoBehaviour
 
         m_signalWindow1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
 
-        video.sendTime += UpdateSpawn;
-        video.sendTime += UpdatePicEvent;
         Messenger.Default.Register<UiToTaskPerformanceMessage>(this, OnUiToTaskPerformanceMessage, MessageContext.UiToTaskPerformanceMessage);
         Messenger.Default.Register<EventsToTaskPerformanceMessage>(this, OnEventsToTaskPerformanceMessage, MessageContext.EventsToTaskPerformanceMessage);
+        Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
     }
 
     private void OnDestroy()
     {
-        video.sendTime -= UpdateSpawn;
-        video.sendTime -= UpdatePicEvent;
         Messenger.Default.Unregister(this, MessageContext.UiToTaskPerformanceMessage);
         Messenger.Default.Unregister(this, MessageContext.EventsToTaskPerformanceMessage);
+        Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
     }
 
     private void OnRectTransformDimensionsChange()
@@ -123,6 +116,13 @@ public class TaskPerformanceTrace : MonoBehaviour
                     m_InfoDisplay.SetActive(true);
                 break;
         }
+    }
+
+    private void OnVideoToModulesMessage(VideoToModulesMessage message)
+    {
+        int timeInMilliseconds = (int)message.TimeMilliseconds;
+        UpdateSpawn(timeInMilliseconds);
+        UpdatePicEvent(timeInMilliseconds);
     }
 
     private void ClearTrace()
