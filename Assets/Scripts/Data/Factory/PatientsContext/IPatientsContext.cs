@@ -1,11 +1,10 @@
-﻿using BTV.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Assets.Scripts.Data.Factory
 {
-    public interface IEventsContext
+    public interface IPatientsContext
     {
-        List<BtvEvent> Events
+        List<Patient> Patients
         {
             get;
         }
