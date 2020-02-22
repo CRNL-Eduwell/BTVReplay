@@ -69,6 +69,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     GameObject m_AddEventWindowPrefabs = null;
     GameObject m_DisplayEventWindowPrefabs = null;
+    GameObject m_PopUpWindow = null;
 
     void Awake()
     {
@@ -430,57 +431,62 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     //Those 3 needs to be connected via reception of a message from messenger
     private void OpenEventAdd(BtvEvent Event)
     {
-        if (m_AddEvents)
+        if (m_AddEvents && m_PopUpWindow == null)
         {
-            GameObject AddEventWindow = Instantiate(m_AddEventWindowPrefabs);
+            m_PopUpWindow = Instantiate(m_AddEventWindowPrefabs);
 
             if (traceID == 0)
             {
-                AddEventWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
+                m_PopUpWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
                 Event.SecondSiteOfInterest = m_signalWindow2.TraceEeg.ElectrodeLabel;
             }
             else
             {
-                AddEventWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
+                m_PopUpWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
                 Event.SecondSiteOfInterest = m_signalWindow1.TraceEeg.ElectrodeLabel;
             }
-            AddEventWindow.transform.localScale = new Vector3(1, 1, 1);
-            AddEventWindow.transform.localPosition = new Vector3(0, 0, -402);
+            m_PopUpWindow.transform.localScale = new Vector3(1, 1, 1);
+            m_PopUpWindow.transform.localPosition = new Vector3(0, 0, -402);
 
-            EventInfoEdit infoEdit = AddEventWindow.GetComponent<EventInfoEdit>();
+            EventInfoEdit infoEdit = m_PopUpWindow.GetComponent<EventInfoEdit>();
             infoEdit.init(Event, false);
         }
     }
 
     private void OpenEventDisplay(BtvEvent Event)
     {
-        GameObject DisplayEventWindow = Instantiate(m_DisplayEventWindowPrefabs);
+        if(m_PopUpWindow == null)
+        {
+            m_PopUpWindow = Instantiate(m_DisplayEventWindowPrefabs);
 
-        if (traceID == 0)
-            DisplayEventWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
-        else
-            DisplayEventWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
-        DisplayEventWindow.transform.localScale = new Vector3(1, 1, 1);
-        DisplayEventWindow.transform.localPosition = new Vector3(0, 0, -402);
+            if (traceID == 0)
+                m_PopUpWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
+            else
+                m_PopUpWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
+            m_PopUpWindow.transform.localScale = new Vector3(1, 1, 1);
+            m_PopUpWindow.transform.localPosition = new Vector3(0, 0, -402);
 
-        EventInfoDisplay infoDisp = DisplayEventWindow.GetComponent<EventInfoDisplay>();
-        infoDisp.init(Event);
+            EventInfoDisplay infoDisp = m_PopUpWindow.GetComponent<EventInfoDisplay>();
+            infoDisp.init(Event);
+        }
     }
 
     private void OpenEventModify(BtvEvent Event)
     {
         ApplicationState.Module3D.MemoryEvent = null;
+        if (m_PopUpWindow == null)
+        {
+            m_PopUpWindow = Instantiate(m_AddEventWindowPrefabs);
 
-        GameObject AddEventWindow = Instantiate(m_AddEventWindowPrefabs);
+            if (traceID == 0)
+                m_PopUpWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
+            else
+                m_PopUpWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
+            m_PopUpWindow.transform.localScale = new Vector3(1, 1, 1);
+            m_PopUpWindow.transform.localPosition = new Vector3(0, 0, -402);
 
-        if (traceID == 0)
-            AddEventWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
-        else
-            AddEventWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
-        AddEventWindow.transform.localScale = new Vector3(1, 1, 1);
-        AddEventWindow.transform.localPosition = new Vector3(0, 0, -402);
-
-        EventInfoEdit infoEdit = AddEventWindow.GetComponent<EventInfoEdit>();
-        infoEdit.init(Event, true);
+            EventInfoEdit infoEdit = m_PopUpWindow.GetComponent<EventInfoEdit>();
+            infoEdit.init(Event, true);
+        }
     }
 }

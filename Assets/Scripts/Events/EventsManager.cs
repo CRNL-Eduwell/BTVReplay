@@ -2,16 +2,12 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using BrainTV.Tools.NumberExtensions;
 using BTV.Data;
 using BTV.Services.CalculationService;
 using BTV.Services.EventsService;
-using BTV.Services.VideoService;
 using BTV.UI;
 using CielaSpike;
 using UnityEngine;
-using UnityEngine.Events;
 
 /// <summary>
 /// Class responsible for managing the events of the scene
@@ -120,7 +116,7 @@ public class EventsManager : MonoBehaviour
             case 4:
                 {
                     Debug.Log("Delete Selected Notes");
-                    ApplicationState.displayConfirmation("Deleting Notes", "You are going to delete " + m_EventsList.NumberOfItemSelected + " Notes, are you sure ? ", m_EventsList.DeleteSelectedEvents, () => { });
+                    ApplicationState.displayConfirmation("Deleting Notes", "You are going to delete " + m_EventsList.NumberOfItemSelected + " Notes, are you sure ? ", ()=> { DeleteSelectedEvents(); }, () => { });
                     break;
                 }
         }
@@ -179,8 +175,8 @@ public class EventsManager : MonoBehaviour
     {
         if (EventsService.Events.Count > 0)
         {
-            long VideoTimeInMs = m_videoPlayer.videoInterface.currentTime;
-            int index = EventsService.Events.Select(x=>x.TimeInMilliSeconds).ToList().BinarySearch(VideoTimeInMs);
+            long VideoTimeInMs = m_videoPlayer.videoInterface.CurrentTime;
+            int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(VideoTimeInMs);
             if (Math.Abs(index) - 1 == 0)
             {
                 int TimeInMilliSec = (int)EventsService.Events[0].TimeInMilliSeconds;
@@ -201,7 +197,7 @@ public class EventsManager : MonoBehaviour
     {
         if (EventsService.Events.Count > 0)
         {
-            long VideoTimeInMs = m_videoPlayer.videoInterface.currentTime;
+            long VideoTimeInMs = m_videoPlayer.videoInterface.CurrentTime;
             int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(VideoTimeInMs);
             int currentPos = Math.Abs(index) - 1;
             if (currentPos + 1 < EventsService.Events.Count)
@@ -244,6 +240,12 @@ public class EventsManager : MonoBehaviour
                 };
                 Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
             }
+
+            EventsToTaskPerformanceMessage resetMessage = new EventsToTaskPerformanceMessage
+            {
+                TaskToExecute = 0
+            };
+            Messenger.Default.Send(resetMessage, MessageContext.EventsToTaskPerformanceMessage);
         }
     }
 
@@ -264,12 +266,24 @@ public class EventsManager : MonoBehaviour
             Event = Event
         };
         Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
+        //Send message to task perf that an event was added
+        EventsToTaskPerformanceMessage addedMessage = new EventsToTaskPerformanceMessage
+        {
+            TaskToExecute = 1
+        };
+        Messenger.Default.Send(addedMessage, MessageContext.EventsToTaskPerformanceMessage);
     }
 
     private void UpdateEvent(BtvEvent modifyiedEvent, BtvEvent previousEvent)
     {
         DeleteEvent(previousEvent);
         AddEvent(modifyiedEvent);
+
+        EventsToTaskPerformanceMessage modifiedMessage = new EventsToTaskPerformanceMessage
+        {
+            TaskToExecute = 1
+        };
+        Messenger.Default.Send(modifiedMessage, MessageContext.EventsToTaskPerformanceMessage);
     }
 
     private void DeleteEvent(BtvEvent Event)
@@ -287,6 +301,22 @@ public class EventsManager : MonoBehaviour
             EventIndex = Id
         };
         Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
+
+        EventsToTaskPerformanceMessage deletedMessage = new EventsToTaskPerformanceMessage
+        {
+            TaskToExecute = EventsService.Events.Count == 0 ? 0 : 1
+        };
+        Messenger.Default.Send(deletedMessage, MessageContext.EventsToTaskPerformanceMessage);
+    }
+
+    private void DeleteSelectedEvents()
+    {
+        BtvEvent[] selectedEvents = m_EventsList.ObjectsSelected;
+        int selectedCount = selectedEvents.Length;
+        for (int i = selectedCount - 1; i >=  0; i--)
+        {
+            DeleteEvent(selectedEvents[i]);
+        }
     }
 
     IEnumerator ProcessCorrelation(BtvEvent currentEvent)
@@ -304,7 +334,7 @@ public class EventsManager : MonoBehaviour
 
         EventsService.Events[eventIndex].Correlation = new float[electrodeCount];
         EventsService.Events[eventIndex].Correlation2D = null;
-        
+
         int beginTimeSample = (int)(EventsService.Events[eventIndex].TimeInSeconds * samplingFrequency);
         int durationInSample = (EventsService.Events[eventIndex].Duration / 1000) * samplingFrequency;
 

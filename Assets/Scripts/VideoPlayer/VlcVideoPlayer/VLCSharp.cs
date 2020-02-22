@@ -19,8 +19,8 @@ namespace VLCSharp
     {
         #region core
         [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr libvlc_new(int argc, 
-            [MarshalAs(UnmanagedType.LPArray,ArraySubType = UnmanagedType.LPStr)] string[] argv);
+        public static extern IntPtr libvlc_new(int argc,
+            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr)] string[] argv);
 
         [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern void libvlc_release(IntPtr instance);
@@ -121,8 +121,8 @@ namespace VLCSharp
 
         [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr libvlc_errmsg();
-    #endregion
-}
+        #endregion
+    }
 
     class VlcException : Exception
     {
@@ -348,7 +348,7 @@ namespace VLCSharp
         /// This is an extrapolation of the time returned by VLC API since we need a greater precision
         /// In MilliSeconds
         /// </summary>
-        public long currentTime
+        public long CurrentTime
         {
             get
             {
@@ -370,11 +370,11 @@ namespace VLCSharp
         /// Time of the video, there is a possible offset due to user input
         /// In MilliSeconds
         /// </summary>
-        public long time
+        public long Time
         {
             get
             {
-                return (long)(currentTime);
+                return (long)(CurrentTime);
             }
         }
 
@@ -382,11 +382,11 @@ namespace VLCSharp
         /// Exact Time of the video without a possible offset
         /// In MilliSeconds
         /// </summary>
-        public long videoTime
+        public long VideoTime
         {
             get
             {
-                return (long)((currentTime - m_offsetVideoMilliSec));
+                return (long)((CurrentTime - m_offsetVideoMilliSec));
             }
         }
 
@@ -394,7 +394,7 @@ namespace VLCSharp
         /// Total Duration of the Video
         /// In MilliSeconds
         /// </summary>
-        public long totalVideoTime
+        public long TotalVideoTime
         {
             get
             {
@@ -404,21 +404,21 @@ namespace VLCSharp
                     return m_eegFileDurationInSec * 1000;
             }
         }
-        public bool isPlaying
+        public bool IsPlaying
         {
             get
             {
                 return m_VideoPlayer.IsPlaying;
             }
         }
-        public bool isPaused
+        public bool IsPaused
         {
             get
             {
                 return m_VideoPlayer.IsPaused;
             }
         }
-        public bool isStopped
+        public bool IsStopped
         {
             get
             {
@@ -451,14 +451,14 @@ namespace VLCSharp
         #endregion
 
 
-        public void init(string videoPath, int eegFileDurationInSec, RawImage tex)
+        public void Init(string videoPath, int eegFileDurationInSec, RawImage tex)
         {
             m_Tex2Draw = tex;
 
             m_videoPath = videoPath;
             m_eegFileDurationInSec = eegFileDurationInSec;
             m_stopwatch = new Stopwatch();
-            m_VlcInstance = new VlcInstance(new string[] {""});
+            m_VlcInstance = new VlcInstance(new string[] { "" });
             m_stopwatch = new Stopwatch();
             m_stopwatch.Start();
 
@@ -489,15 +489,15 @@ namespace VLCSharp
             //        m_offsetVideoMilliSec = (int)newVal;
             //    });
 
-            setVolume(0.5f);
+            SetVolume(0.5f);
         }
 
-        public void UpdateVideoOffset(float newOffset)
+        public void SetVideoOffset(float newOffset)
         {
             m_offsetVideoMilliSec = (int)newOffset;
         }
 
-        public void cleanup()
+        public void Cleanup()
         {
             //remove offset video event
             //m_hub.videoRemote.offsetVideoHasChanged -= new offsetVideoChangedEventHandler(
@@ -517,17 +517,17 @@ namespace VLCSharp
             m_VlcInstance = new VlcInstance(new string[] { "" });
         }
 
-        public void update()
+        public void Update()
         {
             if (m_newPic && m_VideoPlayer.IsPlaying)
             {
                 //UnityEngine.Debug.Log("update called");
-               ((Texture2D)m_Tex2Draw.texture).LoadImage(m_TextureByteArray);
+                ((Texture2D)m_Tex2Draw.texture).LoadImage(m_TextureByteArray);
                 m_newPic = false;
             }
         }
 
-        public void play()
+        public void Play()
         {
             if (m_VideoPlayer.IsPaused || m_VideoPlayer.IsStopped)
             {
@@ -536,7 +536,7 @@ namespace VLCSharp
             }
         }
 
-        public void pause()
+        public void Pause()
         {
             if (m_VideoPlayer.IsPlaying)
             {
@@ -545,23 +545,23 @@ namespace VLCSharp
             }
         }
 
-        public void stop()
+        public void Stop()
         {
             m_VideoPlayer.Stop();
             m_stopwatch.Stop();
         }
 
-        public void moveTime(long secondsToAdd)
+        public void MoveTime(long secondsToAdd)
         {
-            m_VideoPlayer.setTime(currentTime + (secondsToAdd * 1000));
+            m_VideoPlayer.setTime(CurrentTime + (secondsToAdd * 1000));
         }
 
-        public void setTime(long timeMilliSec)
+        public void SetTime(long timeMilliSec)
         {
             m_VideoPlayer.setTime(timeMilliSec);
         }
 
-        public void setVolume(float volume)
+        public void SetVolume(float volume)
         {
             int maxPercentVideo = 200;
             m_VideoPlayer.SetVolume((int)(volume * maxPercentVideo));

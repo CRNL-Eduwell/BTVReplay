@@ -24,6 +24,12 @@ public class TaskPerformanceTrace : MonoBehaviour
     [SerializeField]
     private RawImage m_EventRawImage = null;
     /// <summary>
+    /// Gameobject used to display a message if events have been updated since
+    /// the calculation of the task performance
+    /// </summary>
+    [SerializeField]
+    private GameObject m_InfoDisplay = null;
+    /// <summary>
     /// Videoplayer for timing informations
     /// </summary>
     [SerializeField]
@@ -71,6 +77,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         video.sendTime += UpdateSpawn;
         video.sendTime += UpdatePicEvent;
         Messenger.Default.Register<UiToTaskPerformanceMessage>(this, OnUiToTaskPerformanceMessage, MessageContext.UiToTaskPerformanceMessage);
+        Messenger.Default.Register<EventsToTaskPerformanceMessage>(this, OnEventsToTaskPerformanceMessage, MessageContext.EventsToTaskPerformanceMessage);
     }
 
     private void OnDestroy()
@@ -78,6 +85,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         video.sendTime -= UpdateSpawn;
         video.sendTime -= UpdatePicEvent;
         Messenger.Default.Unregister(this, MessageContext.UiToTaskPerformanceMessage);
+        Messenger.Default.Unregister(this, MessageContext.EventsToTaskPerformanceMessage);
     }
 
     private void OnRectTransformDimensionsChange()
@@ -97,6 +105,22 @@ public class TaskPerformanceTrace : MonoBehaviour
             case 1:
                 UpdateTimeResolution(message.TimeWindow);
                 UpdateScales();
+                break;
+        }
+    }
+
+    private void OnEventsToTaskPerformanceMessage(EventsToTaskPerformanceMessage message)
+    {
+        switch (message.TaskToExecute)
+        {
+            case 0:
+                UnityEngine.Debug.Log("Task deactivated, events have been reseted");
+                ClearTrace();
+                break;
+            case 1:
+                UnityEngine.Debug.Log("Task not up to date, events have been modifyed (add, delete, update)");
+                if(m_HasDataToDisplay)
+                    m_InfoDisplay.SetActive(true);
                 break;
         }
     }
@@ -121,6 +145,8 @@ public class TaskPerformanceTrace : MonoBehaviour
         }
         m_EventPictures.Clear();
         m_EventMainCodes.Clear();
+
+        m_InfoDisplay.SetActive(false);
     }
 
     private void UpdateEventsForProtocol(ProvFile protocol)
@@ -191,7 +217,7 @@ public class TaskPerformanceTrace : MonoBehaviour
             if (currentRtMs > MaxReactionTime)
                 MaxReactionTime = currentRtMs;
         }
-        m_HorizontalScale = m_TaskBarHolder.rect.width / m_NumberOfPoint;
+        m_HorizontalScale = m_TaskBarHolder.rect.width / (m_PeriopdInSec * 1000);
         m_VerticalScale = m_TaskBarHolder.rect.height / MaxReactionTime;
     }
 
