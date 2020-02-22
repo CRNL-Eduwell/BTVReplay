@@ -215,7 +215,7 @@ public class BTVMedia : MonoBehaviour
         currentShowMe = patientBar.transform.GetChild(0).GetComponent<Button>();
         myPic = patientBar.transform.GetChild(0).GetComponent<Image>();
         myName = patientBar.transform.GetChild(1).GetComponent<Text>();
-        myName.text = pm.currentPatients[idPat].patientName;
+        myName.text = pm.currentPatients[idPat].PatientName;
         loadMe = patientBar.transform.GetChild(2).GetComponent<Button>();
         deleteMe = patientBar.transform.GetChild(3).GetComponent<Button>();
         #endregion
@@ -274,15 +274,15 @@ public class BTVMedia : MonoBehaviour
         gameObject.SetActive(false);
         loaded = true;
         Text PatientNameHeader = GameObject.Find("HeaderDisplay").transform.GetChild(0).GetComponent<Text>();
-        PatientNameHeader.text = myPat.patientName;
+        PatientNameHeader.text = myPat.PatientName;
         ApplicationState.init();
         yield return new WaitForSeconds(0.1f);
     }
 
     IEnumerator c_LoadBrainAnatomy(Patient myPat)
     {
-        bool ShouldLoadMniFirst = (myPat.hasMNI && !myPat.hasPAT) || (myPat.hasMNI && myPat.hasPAT);
-        bool ShouldLoadPatFirst = !myPat.hasMNI && myPat.hasPAT;
+        bool ShouldLoadMniFirst = (myPat.HasMNI && !myPat.HasPAT) || (myPat.HasMNI && myPat.HasPAT);
+        bool ShouldLoadPatFirst = !myPat.HasMNI && myPat.HasPAT;
         if (ShouldLoadMniFirst)
         {
             LoaderToBrainMessage message = new LoaderToBrainMessage

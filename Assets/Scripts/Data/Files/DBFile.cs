@@ -24,9 +24,6 @@ public class DBFile : IPatientsContext
     {
         try
         {
-            List<int> indexToLook = new List<int> { 11, 12, 13, 14, 15, 16 };
-            bool nameFound = false;
-
             if (Patients.Count > 0)
                 Patients = new List<Patient>();
 
@@ -40,18 +37,10 @@ public class DBFile : IPatientsContext
                     for (int j = 0; j < currentPatSplit.Length; j++)
                     {
                         string[] splitPath = currentPatSplit[j].Split(new string[] { " : " }, StringSplitOptions.RemoveEmptyEntries);
-                        if (indexToLook.IndexOf(j) != -1 && splitPath.Length > 1 && splitPath[1] != "" && nameFound == false)
-                        {
-                            currentPat.patientName = Patient.getPatientNameFromPath(splitPath[1]);
-                            nameFound = true;
-                        }
-                        //currentPat.loadValue(j, splitPath);
-                        //currentPat.loadValue(splitPath[0], splitPath);
                         loadValue(currentPat, splitPath);
                     }
 
                     Patients.Add(currentPat);
-                    nameFound = false;
                 }
 
                 sr.Close();
@@ -62,7 +51,7 @@ public class DBFile : IPatientsContext
         {
             Console.WriteLine("The patient database file could not be read:");
             Console.WriteLine(e.Message);
-            //Events = new List<BtvEvent>();
+            Patients = new List<Patient>();
             return -1;
         }
     }
