@@ -96,18 +96,27 @@ public class PatientGUIManager : MonoBehaviour
     {
         Patient myPat = new Patient();
 
-        myPat.mni.lhemi = mni_LHemi.inputfield.text;
-        myPat.mni.rhemi = mni_RHemi.inputfield.text;
-        myPat.mni.pts = mni_PTS.inputfield.text;
-        myPat.mni.setNbMesh(mni_nbMesh.options[mni_nbMesh.value].text);
-        myPat.mni.setEegTech(mni_eegTech.options[mni_eegTech.value].text);
+        //myPat.mni.lhemi = mni_LHemi.inputfield.text;
+        //myPat.mni.rhemi = mni_RHemi.inputfield.text;
+        //myPat.mni.pts = mni_PTS.inputfield.text;
+        //myPat.mni.setNbMesh(mni_nbMesh.options[mni_nbMesh.value].text);
+        //myPat.mni.setEegTech(mni_eegTech.options[mni_eegTech.value].text);
 
-        myPat.pat.lhemi = pat_LHemi.inputfield.text;
-        myPat.pat.rhemi = pat_RHemi.inputfield.text;
-        myPat.pat.pts = pat_PTS.inputfield.text;
-        myPat.pat.atlasCSV = pat_Atlas.inputfield.text;
-        myPat.pat.setNbMesh(pat_nbMesh.options[pat_nbMesh.value].text);
-        myPat.pat.setEegTech(pat_eegTech.options[pat_eegTech.value].text);
+        myPat.mni = new BrainDataContainer(mni_LHemi.inputfield.text, mni_RHemi.inputfield.text, "", mni_PTS.inputfield.text);
+        //mni.MeshConfiguration = mni_nbMesh.options[mni_nbMesh.value].text;           //TODO : see when there is enum in UI 
+        //mni.EegTechnology = mni_eegTech.options[mni_eegTech.value].text;             //TODO : see when there is enum in UI 
+
+
+        //myPat.pat.lhemi = pat_LHemi.inputfield.text;
+        //myPat.pat.rhemi = pat_RHemi.inputfield.text;
+        //myPat.pat.pts = pat_PTS.inputfield.text;
+        //myPat.pat.atlasCSV = pat_Atlas.inputfield.text;
+        //myPat.pat.setNbMesh(pat_nbMesh.options[pat_nbMesh.value].text);
+        //myPat.pat.setEegTech(pat_eegTech.options[pat_eegTech.value].text);
+
+        myPat.pat = new BrainDataContainer(pat_LHemi.inputfield.text, pat_RHemi.inputfield.text, "", pat_PTS.inputfield.text, pat_Atlas.inputfield.text);
+        //pat.MeshConfiguration = pat_nbMesh.options[mni_nbMesh.value].text;           //TODO : see when there is enum in UI 
+        //pat.EegTechnology = pat_eegTech.options[mni_eegTech.value].text;             //TODO : see when there is enum in UI 
 
         for (int i = 0; i < 6; i++)
             myPat.smFiles[i] = eegFile[i].inputfield.text;
@@ -121,41 +130,41 @@ public class PatientGUIManager : MonoBehaviour
 
     public void setPatientGUI(Patient myPat)
     {
-        mni_LHemi.inputfield.text = myPat.mni.lhemi;
-        mni_RHemi.inputfield.text = myPat.mni.rhemi;
-        mni_PTS.inputfield.text = myPat.mni.pts;
-        mni_nbMesh.value = (int)myPat.mni.GetMeshNb;
-        mni_eegTech.value = (int)myPat.mni.GetEegTech;
+        mni_LHemi.inputfield.text = myPat.mni.LeftHemisphere;
+        mni_RHemi.inputfield.text = myPat.mni.RightHemisphere;
+        mni_PTS.inputfield.text = myPat.mni.Pts;
+        mni_nbMesh.value = (int)myPat.mni.MeshConfiguration;
+        mni_eegTech.value = (int)myPat.mni.EegTechnology;
 
-        if (myPat.mni.GetMeshNb == mesh_Configuration.leftright)
+        if (myPat.mni.MeshConfiguration == MeshConfiguration.LeftRight)
         {
             mni_LHemi.gameObject.SetActive(true);
             mni_LHemi.inputfield.placeholder.GetComponent<Text>().text = "LHemi File";
             mni_RHemi.gameObject.SetActive(true);
             mni_RHemi.inputfield.placeholder.GetComponent<Text>().text = "RHemi File";
         }
-        else if (myPat.mni.GetMeshNb == mesh_Configuration.single)
+        else if (myPat.mni.MeshConfiguration == MeshConfiguration.Single)
         {
             mni_LHemi.gameObject.SetActive(true);
             mni_LHemi.inputfield.placeholder.GetComponent<Text>().text = "Single File";
             mni_RHemi.gameObject.SetActive(false);
         }
 
-        pat_LHemi.inputfield.text = myPat.pat.lhemi;
-        pat_RHemi.inputfield.text = myPat.pat.rhemi;
-        pat_PTS.inputfield.text = myPat.pat.pts;
-        pat_Atlas.inputfield.text = myPat.pat.atlasCSV;
-        pat_nbMesh.value = (int)myPat.pat.GetMeshNb;
-        pat_eegTech.value = (int)myPat.pat.GetEegTech;
+        pat_LHemi.inputfield.text = myPat.pat.LeftHemisphere;
+        pat_RHemi.inputfield.text = myPat.pat.RightHemisphere;
+        pat_PTS.inputfield.text = myPat.pat.Pts;
+        pat_Atlas.inputfield.text = myPat.pat.Atlas;
+        pat_nbMesh.value = (int)myPat.pat.MeshConfiguration;
+        pat_eegTech.value = (int)myPat.pat.EegTechnology;
 
-        if (myPat.pat.GetMeshNb == mesh_Configuration.leftright)
+        if (myPat.pat.MeshConfiguration == MeshConfiguration.LeftRight)
         {
             pat_LHemi.gameObject.SetActive(true);
             pat_LHemi.inputfield.placeholder.GetComponent<Text>().text = "LHemi File";
             pat_RHemi.gameObject.SetActive(true);
             pat_RHemi.inputfield.placeholder.GetComponent<Text>().text = "RHemi File";
         }
-        else if (myPat.pat.GetMeshNb == mesh_Configuration.single)
+        else if (myPat.pat.MeshConfiguration == MeshConfiguration.Single)
         {
             pat_LHemi.gameObject.SetActive(true);
             pat_LHemi.inputfield.placeholder.GetComponent<Text>().text = "Single File";

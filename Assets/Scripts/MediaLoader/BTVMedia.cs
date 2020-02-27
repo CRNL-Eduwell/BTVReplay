@@ -310,7 +310,7 @@ public class BTVMedia : MonoBehaviour
             LoaderToBrainMessage message = new LoaderToBrainMessage
             {
                 HasAnatomy = false,
-                Techno = myPat.mni.GetEegTech
+                Techno = myPat.mni.EegTechnology
             };
             Messenger.Default.Send(message, MessageContext.LoaderToBrain);
         }
@@ -402,14 +402,14 @@ public class BTVMedia : MonoBehaviour
 
         ReloadMedia r = reloadGameObject.GetComponent<ReloadMedia>();
 
-        r.lhemi_MNI = myPat.mni.lhemi;
-        r.rhemi_MNI = myPat.mni.rhemi;
-        r.pts_MNI = myPat.mni.pts;
+        r.lhemi_MNI = myPat.mni.LeftHemisphere;
+        r.rhemi_MNI = myPat.mni.RightHemisphere;
+        r.pts_MNI = myPat.mni.Pts;
 
-        r.lhemi_PAT = myPat.pat.lhemi;
-        r.rhemi_PAT = myPat.pat.rhemi;
-        r.pts_PAT = myPat.pat.pts;
-        r.atlas_PAT = myPat.pat.atlasCSV;
+        r.lhemi_PAT = myPat.pat.LeftHemisphere;
+        r.rhemi_PAT = myPat.pat.RightHemisphere;
+        r.pts_PAT = myPat.pat.Pts;
+        r.atlas_PAT = myPat.pat.Atlas;
 
         r.sm0 = myPat.smFiles[0];
         r.sm250 = myPat.smFiles[1];

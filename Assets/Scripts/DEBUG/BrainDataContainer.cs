@@ -1,8 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Runtime.Serialization;
-using UnityEngine;
 
 public class BrainDataContainer
 {
@@ -54,17 +51,21 @@ public class BrainDataContainer
             return false;
         }
     }
-    public string LeftHemisphere { get { return m_LHemisphere; } }
-    public string RightHemisphere { get { return m_RightHemisphere; } }
-    public string Pts { get { return m_Pts; } }
-    public string Atlas { get { return m_AtlasCsv; } }
+    public string LeftHemisphere { get { return m_LHemisphere; } set { m_LHemisphere = value; } }
+    public string RightHemisphere { get { return m_RightHemisphere; } set { m_RightHemisphere = value; } }
+    public string Transformation { get { return Transformation; } set { m_Transformation = value; } }
+    public string Pts { get { return m_Pts; } set { m_Pts = value; } }
+    public string Atlas { get { return m_AtlasCsv; } set { m_AtlasCsv = value; } }
     public MeshConfiguration MeshConfiguration { get { return m_MeshConfiguration; } set { m_MeshConfiguration = value; } }
     public EegTechnology EegTechnology { get { return m_EegTechnology; } set { m_EegTechnology = value; } }
 
-    public BrainDataContainer(string lhemi, string rhemi, string pts, string atlas = "")
+    public BrainDataContainer() { }
+
+    public BrainDataContainer(string lhemi, string rhemi, string trm, string pts, string atlas = "")
     {
         m_LHemisphere = lhemi;
         m_RightHemisphere = rhemi;
+        m_Transformation = trm;
         m_Pts = pts;
         m_AtlasCsv = atlas;
     }
@@ -73,6 +74,8 @@ public class BrainDataContainer
     private string m_LHemisphere = "";
     [DataMember(Name = "RHemi")]
     private string m_RightHemisphere = "";
+    [DataMember(Name = "Trm")]
+    private string m_Transformation = "";
     [DataMember(Name = "Pts")]
     private string m_Pts = "";
     [DataMember(Name = "Atlas")]

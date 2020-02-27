@@ -2,6 +2,9 @@
 using System.Reflection;
 using System.ComponentModel;
 
+/// <summary>
+/// Class that allows to set a user friendly string for an enum
+/// </summary>
 public class EnumDescriptionTypeConverter : EnumConverter
 {
     public EnumDescriptionTypeConverter(Type type) : base(type)
