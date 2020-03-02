@@ -6,9 +6,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class TracesDisplayer : MonoBehaviour
+public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField]
     private BTVMedia media = null;
@@ -17,11 +18,11 @@ public class TracesDisplayer : MonoBehaviour
     [SerializeField]
     private LineRenderer m_LineRenderer = null;
     [SerializeField]
-    private SelectableLabel m_ElectrodeLabel = null;
+    private TextToggle m_ElectrodeLabel = null;
     [SerializeField]
-    private SelectableLabel m_GainLabel = null;
+    private TextToggle m_GainLabel = null;
     [SerializeField]
-    private SelectableLabel m_FileLabel = null;
+    private TextToggle m_FileLabel = null;
 
 
     float MaxValue { get; set; } = 150;
@@ -33,6 +34,7 @@ public class TracesDisplayer : MonoBehaviour
     private Vector3[] m_dataArray = null;
     protected RectTransform m_rectTransform = null;
 
+    private bool m_IsBig = false;
     private int m_currentElectrodeID = 0;
     private float m_Gain = 1;
     private int m_ContainerId = 0;
@@ -52,25 +54,21 @@ public class TracesDisplayer : MonoBehaviour
     private void OnRectTransformDimensionsChange()
     {
         UpdateHorizontalScale();
+        UpdateDraw(m_ParentLayoutElement.minHeight);
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if ((eventData.button == PointerEventData.InputButton.Left) && (eventData.clickCount == 2))
+        {
+            m_IsBig = !m_IsBig;
+            UpdateState(m_IsBig);
+            m_ParentLayoutElement.minHeight = m_IsBig ? 120 : 30;
+        }
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            UpdateDraw(m_ParentLayoutElement.minHeight);
-        }
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            m_ParentLayoutElement.minHeight = 120;
-            UpdateDraw(m_ParentLayoutElement.minHeight);
-        }
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            m_ParentLayoutElement.minHeight = 30;
-            UpdateDraw(m_ParentLayoutElement.minHeight);
-        }
-
         //zoom scroll mouse
         Vector2 scrollDelta = Input.mouseScrollDelta;
         if (scrollDelta.y != 0)
@@ -83,7 +81,7 @@ public class TracesDisplayer : MonoBehaviour
             else if (m_GainLabel.HasFocus)
             {
                 m_Gain = scrollDelta.y < 0 ? m_Gain - 0.25f : m_Gain + 0.25f;
-                m_GainLabel.Text.text = m_Gain.ToString();
+                m_GainLabel.Label = m_Gain.ToString();
             }
             else if (m_FileLabel.HasFocus)
             {
@@ -98,23 +96,35 @@ public class TracesDisplayer : MonoBehaviour
     private void Init()
     {
         FileHandle = EegFileService.ReturnFirstValidContainer();
-
         m_currentElectrodeID = 0;
         Channel = FileHandle.Channels[m_currentElectrodeID];
-
+        //==
         m_dataArray = new Vector3[Channel.NumberOfSample];
         m_LineRenderer.positionCount = Channel.NumberOfSample;
         m_LineRenderer.startWidth = 0.02f;
         m_LineRenderer.endWidth = 0.02f;
-
+        //==
         UpdateElectrode(m_currentElectrodeID);
-        //==
-        m_GainLabel.Text.text = m_Gain.ToString();
-        //==
+        m_GainLabel.Label = m_Gain.ToString();
         UpdateFile(-1);
+        //==
+        UpdateState(m_IsBig);
         //==
         UpdateHorizontalScale();
         UpdateDraw(m_ParentLayoutElement.minHeight);
+    }
+
+    private void UpdateState(bool isBig)
+    {
+        m_ElectrodeLabel.IsVisible = isBig;
+        m_GainLabel.IsVisible = isBig;
+        m_FileLabel.IsVisible = isBig;
+        if (isBig == false)
+        {
+            m_ElectrodeLabel.HasFocus = false;
+            m_GainLabel.HasFocus = false;
+            m_FileLabel.HasFocus = false;
+        }
     }
 
     private void UpdateHorizontalScale()
@@ -122,7 +132,6 @@ public class TracesDisplayer : MonoBehaviour
         if (m_rectTransform == null) return;
         if (m_dataArray == null) return;
 
-        UnityEngine.Debug.Log("Update HorizontalScale");
         float widthOfGameObject = m_rectTransform.rect.width;
         float horizontalScale = widthOfGameObject / m_dataArray.Length;
         for (int i = 0; i < m_dataArray.Length; i++)
@@ -134,6 +143,10 @@ public class TracesDisplayer : MonoBehaviour
 
     private void UpdateDraw(float height)
     {
+        if (m_LineRenderer == null) return;
+        if (m_dataArray == null) return;
+        if (Channel == null) return;
+        
         float limitVal = height / 2;
 
         for (int i = 0; i < m_dataArray.Length; i++)
@@ -161,7 +174,7 @@ public class TracesDisplayer : MonoBehaviour
         {
             m_currentElectrodeID = Index;
             Channel = FileHandle.Channels[m_currentElectrodeID];
-            m_ElectrodeLabel.Text.text = Channel.Label;
+            m_ElectrodeLabel.Label = Channel.Label;
         }
     }
 
@@ -183,6 +196,7 @@ public class TracesDisplayer : MonoBehaviour
         }
         FileHandle = EegFileService.ChangeContainerHandle(FileHandle, m_ContainerId);
         Channel = FileHandle.Channels[m_currentElectrodeID];
-        m_FileLabel.Text.text = "File " + m_ContainerId.ToString();
+        m_FileLabel.Label = "File " + m_ContainerId.ToString();
     }
+
 }
