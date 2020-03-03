@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -96,27 +97,8 @@ public class PatientGUIManager : MonoBehaviour
     {
         Patient myPat = new Patient();
 
-        //myPat.mni.lhemi = mni_LHemi.inputfield.text;
-        //myPat.mni.rhemi = mni_RHemi.inputfield.text;
-        //myPat.mni.pts = mni_PTS.inputfield.text;
-        //myPat.mni.setNbMesh(mni_nbMesh.options[mni_nbMesh.value].text);
-        //myPat.mni.setEegTech(mni_eegTech.options[mni_eegTech.value].text);
-
-        myPat.mni = new BrainDataContainer(mni_LHemi.inputfield.text, mni_RHemi.inputfield.text, "", mni_PTS.inputfield.text);
-        //mni.MeshConfiguration = mni_nbMesh.options[mni_nbMesh.value].text;           //TODO : see when there is enum in UI 
-        //mni.EegTechnology = mni_eegTech.options[mni_eegTech.value].text;             //TODO : see when there is enum in UI 
-
-
-        //myPat.pat.lhemi = pat_LHemi.inputfield.text;
-        //myPat.pat.rhemi = pat_RHemi.inputfield.text;
-        //myPat.pat.pts = pat_PTS.inputfield.text;
-        //myPat.pat.atlasCSV = pat_Atlas.inputfield.text;
-        //myPat.pat.setNbMesh(pat_nbMesh.options[pat_nbMesh.value].text);
-        //myPat.pat.setEegTech(pat_eegTech.options[pat_eegTech.value].text);
-
-        myPat.pat = new BrainDataContainer(pat_LHemi.inputfield.text, pat_RHemi.inputfield.text, "", pat_PTS.inputfield.text, pat_Atlas.inputfield.text);
-        //pat.MeshConfiguration = pat_nbMesh.options[mni_nbMesh.value].text;           //TODO : see when there is enum in UI 
-        //pat.EegTechnology = pat_eegTech.options[mni_eegTech.value].text;             //TODO : see when there is enum in UI 
+        myPat.mni = new BrainDataContainer(mni_LHemi.inputfield.text, mni_RHemi.inputfield.text, "", mni_PTS.inputfield.text, mni_nbMesh.options[mni_nbMesh.value].text, mni_eegTech.options[mni_eegTech.value].text);
+        myPat.pat = new BrainDataContainer(pat_LHemi.inputfield.text, pat_RHemi.inputfield.text, "", pat_PTS.inputfield.text, pat_Atlas.inputfield.text, pat_nbMesh.options[pat_nbMesh.value].text, pat_eegTech.options[pat_eegTech.value].text);
 
         for (int i = 0; i < 6; i++)
             myPat.smFiles[i] = eegFile[i].inputfield.text;

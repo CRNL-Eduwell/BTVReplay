@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.ComponentModel;
+using System.IO;
+using System.Reflection;
 using System.Runtime.Serialization;
 
 public class BrainDataContainer
@@ -7,19 +10,19 @@ public class BrainDataContainer
     {
         get
         {
-            switch (m_MeshConfiguration)
+            switch (MeshConfiguration)
             {
                 case MeshConfiguration.LeftRight:
                     {
-                        if (m_LHemisphere != "" && m_RightHemisphere != "" && m_Pts != "")
+                        if (LeftHemisphere != "" && RightHemisphere != "" && Pts != "")
                         {
-                            FileInfo lhemiFileInfo = new FileInfo(m_LHemisphere);
+                            FileInfo lhemiFileInfo = new FileInfo(LeftHemisphere);
                             bool isLhemiOk = lhemiFileInfo.Exists && (lhemiFileInfo.Extension == ".tri" || lhemiFileInfo.Extension == ".gii");
                             if (!isLhemiOk) return false;
-                            FileInfo rhemiFileInfo = new FileInfo(m_RightHemisphere);
+                            FileInfo rhemiFileInfo = new FileInfo(RightHemisphere);
                             bool isRhemiOk = rhemiFileInfo.Exists && (rhemiFileInfo.Extension == ".tri" || rhemiFileInfo.Extension == ".gii");
                             if (!isRhemiOk) return false;
-                            FileInfo ptsFileInfo = new FileInfo(m_Pts);
+                            FileInfo ptsFileInfo = new FileInfo(Pts);
                             bool isPtsOk = ptsFileInfo.Exists && ptsFileInfo.Extension == ".pts";
                             return isPtsOk;
                         }
@@ -30,12 +33,12 @@ public class BrainDataContainer
                     }
                 case MeshConfiguration.Single:
                     {
-                        if (m_LHemisphere != "" && m_Pts != "")
+                        if (LeftHemisphere != "" && Pts != "")
                         {
-                            FileInfo lhemiFileInfo = new FileInfo(m_LHemisphere);
+                            FileInfo lhemiFileInfo = new FileInfo(LeftHemisphere);
                             bool isLhemiOk = lhemiFileInfo.Exists && (lhemiFileInfo.Extension == ".tri" || lhemiFileInfo.Extension == ".gii");
                             if (!isLhemiOk) return false;
-                            FileInfo ptsFileInfo = new FileInfo(m_Pts);
+                            FileInfo ptsFileInfo = new FileInfo(Pts);
                             bool isPtsOk = ptsFileInfo.Exists && ptsFileInfo.Extension == ".pts";
                             return isPtsOk;
                         }
@@ -51,37 +54,45 @@ public class BrainDataContainer
             return false;
         }
     }
-    public string LeftHemisphere { get { return m_LHemisphere; } set { m_LHemisphere = value; } }
-    public string RightHemisphere { get { return m_RightHemisphere; } set { m_RightHemisphere = value; } }
-    public string Transformation { get { return Transformation; } set { m_Transformation = value; } }
-    public string Pts { get { return m_Pts; } set { m_Pts = value; } }
-    public string Atlas { get { return m_AtlasCsv; } set { m_AtlasCsv = value; } }
-    public MeshConfiguration MeshConfiguration { get { return m_MeshConfiguration; } set { m_MeshConfiguration = value; } }
-    public EegTechnology EegTechnology { get { return m_EegTechnology; } set { m_EegTechnology = value; } }
+    public string LeftHemisphere { get; set; } = "";
+    public string RightHemisphere { get; set; } = "";
+    public string Transformation { get; set; } = "";
+    public string Pts { get; set; } = "";
+    public string Atlas { get; set; } = "";
+    public MeshConfiguration MeshConfiguration { get; set; } = MeshConfiguration.LeftRight;
+    public EegTechnology EegTechnology { get; set; } = EegTechnology.Intra;
 
     public BrainDataContainer() { }
 
-    public BrainDataContainer(string lhemi, string rhemi, string trm, string pts, string atlas = "")
+    public BrainDataContainer(string lhemi, string rhemi, string trm, string pts, string atlas = "", string meshConfiguration = "", string eegTechnology = "")
     {
-        m_LHemisphere = lhemi;
-        m_RightHemisphere = rhemi;
-        m_Transformation = trm;
-        m_Pts = pts;
-        m_AtlasCsv = atlas;
+        LeftHemisphere = lhemi;
+        RightHemisphere = rhemi;
+        Transformation = trm;
+        Pts = pts;
+        Atlas = atlas;
+        MeshConfiguration = EnumExtensions.GetValueFromDescription<MeshConfiguration>(meshConfiguration);
+        EegTechnology = EnumExtensions.GetValueFromDescription<EegTechnology>(eegTechnology);
     }
 
-    [DataMember(Name = "LHemi")]
-    private string m_LHemisphere = "";
-    [DataMember(Name = "RHemi")]
-    private string m_RightHemisphere = "";
-    [DataMember(Name = "Trm")]
-    private string m_Transformation = "";
-    [DataMember(Name = "Pts")]
-    private string m_Pts = "";
-    [DataMember(Name = "Atlas")]
-    private string m_AtlasCsv = "";
-    [DataMember(Name = "Mesh")]
-    private MeshConfiguration m_MeshConfiguration = MeshConfiguration.LeftRight;
-    [DataMember(Name = "Eeg")]
-    private EegTechnology m_EegTechnology = EegTechnology.Intra;
+    public BrainDataContainer(BrainDataContainer containerToCopy)
+    {
+        LeftHemisphere = containerToCopy.LeftHemisphere;
+        RightHemisphere = containerToCopy.RightHemisphere;
+        Transformation = containerToCopy.Transformation;
+        Pts = containerToCopy.Pts;
+        Atlas = containerToCopy.Atlas;
+        MeshConfiguration = containerToCopy.MeshConfiguration;
+        EegTechnology = containerToCopy.EegTechnology;
+    }
+
+    public void SetMeshConfigurationFromString(string str)
+    {
+        MeshConfiguration = EnumExtensions.GetValueFromDescription<MeshConfiguration>(str);
+    }
+
+    public void SetEegTechnologyFromString(string str)
+    {
+        EegTechnology = EnumExtensions.GetValueFromDescription<EegTechnology>(str);
+    }
 }

@@ -18,7 +18,7 @@ public class DBFile : IPatientsContext
         if (File.Exists(FilePath))
             Load(FilePath);
         else
-            Debug.LogError("PosFile => Filepath : " + FilePath + " does not exist ");
+            Debug.LogError("DBFile => Filepath : " + FilePath + " does not exist ");
     }
 
     private int Load(string FilePath)
@@ -75,14 +75,14 @@ public class DBFile : IPatientsContext
                 else if (data.Length > 1) patient.mni.RightHemisphere = data[1];
                 break;
             case "PTS_MNI": if (data.Length > 1) patient.mni.Pts = data[1]; break;
-            case "MESH_MNI": if (data.Length > 1) patient.mni.MeshConfiguration = Enum.TryParse(data[1], false, out MeshConfiguration meshConfiguration) ? meshConfiguration : MeshConfiguration.LeftRight; break;
-            case "EEG_MNI": if (data.Length > 1) patient.mni.EegTechnology = Enum.TryParse(data[1], false, out EegTechnology eegTechnology) ? eegTechnology : EegTechnology.Intra; break;
+            case "MESH_MNI": if (data.Length > 1) patient.mni.SetMeshConfigurationFromString(data[1]); break;
+            case "EEG_MNI": if (data.Length > 1) patient.mni.SetEegTechnologyFromString(data[1]); break;
             case "LH_PAT": if (data.Length > 1) patient.pat.LeftHemisphere = data[1]; break;
             case "RH_PAT": if (data.Length > 1) patient.pat.RightHemisphere = data[1]; break;
             case "PTS_PAT": if (data.Length > 1) patient.pat.Pts = data[1]; break;
             case "ATLAS_PAT": if (data.Length > 1) patient.pat.Atlas = data[1]; break;
-            case "MESH_PAT": if (data.Length > 1) patient.pat.MeshConfiguration = Enum.TryParse(data[1], false, out MeshConfiguration meshConfiguration) ? meshConfiguration : MeshConfiguration.LeftRight; break;
-            case "EEG_PAT": if (data.Length > 1) patient.pat.EegTechnology = Enum.TryParse(data[1], false, out EegTechnology eegTechnology) ? eegTechnology : EegTechnology.Intra; break;
+            case "MESH_PAT": if (data.Length > 1) patient.pat.SetMeshConfigurationFromString(data[1]); break;
+            case "EEG_PAT": if (data.Length > 1) patient.pat.SetEegTechnologyFromString(data[1]); break;
             case "SM0": if (data.Length > 1) patient.smFiles[0] = data[1]; break;
             case "SM250": if (data.Length > 1) patient.smFiles[1] = data[1]; break;
             case "SM500": if (data.Length > 1) patient.smFiles[2] = data[1]; break;
