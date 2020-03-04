@@ -10,7 +10,12 @@ namespace BTV.Services.EegFileService
 {
     public static class EegFileService
     {
-        private static BtvProgram[] m_EegFiles = new BtvProgram[6];
+        private static BtvProgram[] m_EegFiles = new BtvProgram[6] { null, null, null, null, null, null };
+
+        public static void Reset()
+        {
+            m_EegFiles = new BtvProgram[6] { null, null, null, null, null, null };
+        }
 
         public static IEnumerator c_Load(string FilePath, File.FileType Type, int FileID)
         {
@@ -56,8 +61,8 @@ namespace BTV.Services.EegFileService
 
         public static bool IsFileIdValid(int FileID)
         {
-            if (FileID >= 6)
-                throw new ArgumentException("There is only 6 possible file, fileID argument is wrong => " + FileID);
+            if (FileID < 0) return false;
+            if (FileID >= 6) return false;
 
             return m_EegFiles[FileID] != null;
         }

@@ -46,6 +46,8 @@ public class ReloadMedia : MonoBehaviour
             BTVMedia media = mediaGameObject.GetComponent<BTVMedia>();
             if (media != null)
             {
+                ApplicationState.ResetAllServices();
+
                 addPatientPanel = media.transform.gameObject.transform.GetChild(0).GetChild(1).GetChild(0);
 
                 addPatientPanel.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetComponent<browseButton>().inputfield.text = lhemi_MNI;

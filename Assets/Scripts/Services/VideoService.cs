@@ -90,6 +90,13 @@ namespace BTV.Services.VideoService
             }
         }
 
+        public static void Reset()
+        {
+            m_ProcessedAudio = null;
+            m_RawAudioData = null;
+            FilteredDataLoaded = false;
+        }
+
         #region AudioProcessing
         public static IEnumerator c_ExtractAudio(string AudioFilePath, string VideoFilePath)
         {
