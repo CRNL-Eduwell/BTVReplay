@@ -72,7 +72,7 @@ public class ReloadMedia : MonoBehaviour
                 //m.InstantiateDB();
                 media.pm.idCurrentPatientLoaded = id;
                 media.gameObject.SetActive(true);
-                media.loadMedia(media.pm.currentPatients[media.pm.idCurrentPatientLoaded]);
+                media.loadMedia(media.pm.Subjects[media.pm.idCurrentPatientLoaded]);
                 Destroy(gameObject);
             }
         }

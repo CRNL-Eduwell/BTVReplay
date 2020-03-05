@@ -12,6 +12,20 @@ namespace BTV.Services.EegFileService
     {
         private static BtvProgram[] m_EegFiles = new BtvProgram[6];
 
+        public static IEnumerator c_Load(File.FileType Type, int FileID, params string[] paths)
+        {
+            if (FileID >= 6)
+                throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
+
+            if (System.IO.File.Exists(paths[0]))
+            {
+                IEegDataContainer container = new IEegDataContainer(FilePath, Type);
+                m_EegFiles[FileID] = new BtvProgram(container);
+            }
+
+            yield return null;
+        }
+
         public static IEnumerator c_Load(string FilePath, File.FileType Type, int FileID)
         {
             if (FileID >= 6)

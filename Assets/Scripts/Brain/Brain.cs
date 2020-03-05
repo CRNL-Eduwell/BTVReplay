@@ -110,12 +110,14 @@ public class Brain : MonoBehaviour
             case 0:
                 m_LeftHemiBrain.gameObject.SetActive(true);
                 m_RightHemiBrain.gameObject.SetActive(true);
-                UpdateBrainMesh(ApplicationState.Module3D.Patient.mni);
+                ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+                UpdateBrainMesh(mniContainer);
                 break;
             case 1:
                 m_LeftHemiBrain.gameObject.SetActive(true);
                 m_RightHemiBrain.gameObject.SetActive(true);
-                UpdateBrainMesh(ApplicationState.Module3D.Patient.pat);
+                ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+                UpdateBrainMesh(patContainer);
                 break;
             case 2:
                 m_LeftHemiBrain.gameObject.SetActive(false);

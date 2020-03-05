@@ -35,10 +35,12 @@ namespace BTV.UI.Module3D.Tools
             switch (VisuID)
             {
                 case 0:
-                    ChangeReferentialSafely(ApplicationState.Module3D.Patient.HasMNI, VisuID);
+                    ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+                    ChangeReferentialSafely(mniContainer.HasAnat, VisuID);
                     break;
                 case 1:
-                    ChangeReferentialSafely(ApplicationState.Module3D.Patient.HasPAT, VisuID);
+                    ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+                    ChangeReferentialSafely(patContainer.HasAnat, VisuID);
                     break;
                 case 2:
                     needToChangeBrain.Invoke(VisuID);
