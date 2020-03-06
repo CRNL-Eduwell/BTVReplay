@@ -71,7 +71,7 @@ public class DBFile2 : ISubjectsContext
             {
                 LeftHemisphere = patient.mni.LeftHemisphere,
                 RightHemisphere = patient.mni.RightHemisphere,
-                Transformation = "Voir avec Benoit",
+                Transformation = Application.dataPath + "/Config/Data/MNI/transfo_mni.trm",
                 Pts = patient.mni.Pts,
                 Atlas = patient.mni.Atlas,
                 MeshConfiguration = patient.mni.MeshConfiguration
@@ -82,7 +82,7 @@ public class DBFile2 : ISubjectsContext
             {
                 LeftHemisphere = patient.pat.LeftHemisphere,
                 RightHemisphere = patient.pat.RightHemisphere,
-                Transformation = "Voir avec Benoit",
+                Transformation = "",
                 Pts = patient.pat.Pts,
                 Atlas = patient.pat.Atlas,
                 MeshConfiguration = patient.pat.MeshConfiguration

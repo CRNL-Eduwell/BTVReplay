@@ -25,7 +25,7 @@ public class PatientGUIManager : MonoBehaviour
             eegFile[i + 3] = EEG.transform.GetChild(1).GetChild(1).GetChild(i).GetComponent<browseButton>();
         }
         //==
-        video = EventAndVideo.transform.GetChild(1).GetChild(1).GetChild(0).GetComponent<browseButton>();
+        video = EventAndVideo.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<browseButton>();
     }
 
     void OnDestroy()

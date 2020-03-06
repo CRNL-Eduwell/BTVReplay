@@ -18,8 +18,9 @@ public class BrainAnatGUIManager : MonoBehaviour
     {
         m_IsMni = _Label != null && _Label.text.Contains("MNI");
 
-        _LeftHemi.inputfield.text = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri";
-        _RightHemi.inputfield.text = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri";
+        _LeftHemi.inputfield.text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri" : "";
+        _RightHemi.inputfield.text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri" : "";
+        _Transform.inputfield.text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/transfo_mni.trm" : "";
         _MeshConfiguration.onValueChanged.AddListener(OnMeshConfigurationValueChanged);
     }
 
@@ -39,6 +40,10 @@ public class BrainAnatGUIManager : MonoBehaviour
             _RightHemi.gameObject.SetActive(true);
             _RightHemi.inputfield.placeholder.GetComponent<Text>().text = "RHemi File";
             _RightHemi.inputfield.text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri" : "";
+            //==
+            _Transform.gameObject.SetActive(true);
+            _Transform.inputfield.placeholder.GetComponent<Text>().text = "Transformation File";
+            _Transform.inputfield.text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/transfo_mni.trm" : "";
         }
         else
         {
@@ -48,6 +53,8 @@ public class BrainAnatGUIManager : MonoBehaviour
             //==
             _RightHemi.gameObject.SetActive(false);
             _RightHemi.inputfield.text = "";
+            //==
+            _Transform.inputfield.text = "";
         }
     }
 
@@ -56,7 +63,7 @@ public class BrainAnatGUIManager : MonoBehaviour
         BrainDataContainer container = new BrainDataContainer();
         container.LeftHemisphere = _LeftHemi.inputfield.text;
         container.RightHemisphere = _RightHemi.inputfield.text;
-        container.Transformation = _Transform != null ? _Transform.inputfield.text : "";
+        container.Transformation = _Transform.inputfield.text;
         container.Pts = _Pts.inputfield.text;
         container.Atlas = _Atlas != null ? _Atlas.inputfield.text : "";
         container.SetMeshConfigurationFromString(_MeshConfiguration.captionText.text);
@@ -73,7 +80,7 @@ public class BrainAnatGUIManager : MonoBehaviour
         _EegTechnology.value = (int)container.EegTechnology;
         _LeftHemi.inputfield.text = container.LeftHemisphere;
         _RightHemi.inputfield.text = container.RightHemisphere;
-        if(_Transform != null) _Transform.inputfield.text = container.Transformation;
+        _Transform.inputfield.text = container.Transformation;
         _Pts.inputfield.text = container.Pts;
         if (_Atlas != null) _Atlas.inputfield.text = container.Atlas;
     }
