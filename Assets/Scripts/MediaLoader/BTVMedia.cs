@@ -350,78 +350,49 @@ public class BTVMedia : MonoBehaviour
 
         yield return Ninja.JumpToUnity;
         loadingCircle.Set(0, "Finding files");
+
         loadingCircle.Set(0.1f, "Loading File 1");
         yield return Ninja.JumpBack;
-
-        KeyValuePair<string, IEegFileInfo> kvp = subject.Files.ElementAtOrDefault(0);
-        if (!kvp.Equals(default(KeyValuePair<string, IEegFileInfo>)))
-        {        
-            yield return Process(kvp.Value, 0);
-        }
+        yield return Process(subject, 0);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.2f, "Loading File 2");
         yield return Ninja.JumpBack;
-        //yield return Process(subject.smFiles[1], 1);      ==> TODO TODO TODO
+        yield return Process(subject, 1);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.4f, "Loading File 3");
         yield return Ninja.JumpBack;
-        //yield return Process(subject.smFiles[2], 2);      ==> TODO TODO TODO
+        yield return Process(subject, 2);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.6f, "Loading File 4");
         yield return Ninja.JumpBack;
-        //yield return Process(subject.smFiles[3], 3);      ==> TODO TODO TODO
+        yield return Process(subject, 3);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.8f, "Loading File 5");
         yield return Ninja.JumpBack;
-        //yield return Process(subject.smFiles[4], 4);      ==> TODO TODO TODO
+        yield return Process(subject, 4);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(1.0f, "Loading File 6");
         yield return Ninja.JumpBack;
-        //yield return Process(subject.smFiles[5], 5);      ==> TODO TODO TODO
+        yield return Process(subject, 5);
         yield return Ninja.JumpToUnity;
     }
 
-    YieldInstruction Process(string filePath, int FileID)
+    YieldInstruction Process(Subject subject, int FileID)
     {
-        if (filePath == "") return null;
-
-        Tools.CSharp.EEG.File.FileType fileType;
-        FileInfo file = new FileInfo(filePath);
-        switch (file.Extension.ToLower())
+        KeyValuePair<string, IEegFileInfo> kvp = subject.Files.ElementAtOrDefault(FileID);
+        if (!kvp.Equals(default(KeyValuePair<string, IEegFileInfo>)))
         {
-            case ".trc":
-                fileType = Tools.CSharp.EEG.File.FileType.Micromed;
-                break;
-            case ".eeg":
-                fileType = Tools.CSharp.EEG.File.FileType.ELAN;
-                break;
-            case ".vhdr":
-                fileType = Tools.CSharp.EEG.File.FileType.BrainVision;
-                break;
-            case ".edf":
-                fileType = Tools.CSharp.EEG.File.FileType.EDF;
-                break;
-            default:
-                UnityEngine.Debug.LogError("Fileformat " + file.Extension + " not supported");
-                return null;
+            // I give my callback to the process
+            // Async needed for another thread and not freezing/laging UI
+            return this.StartCoroutineAsync(EegFileService.c_Load(kvp.Value, FileID));
         }
 
-        // I give my callback to the process
-        // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(EegFileService.c_Load(file.FullName, fileType, FileID));
-    }
-
-    YieldInstruction Process(IEegFileInfo fileInfo, int FileID)
-    {
-
-        // I give my callback to the process
-        // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(EegFileService.c_Load(fileInfo.FileType, FileID, fileInfo.Files));
+        return null;
     }
 
     IEnumerator c_loadVideo(string videoPath)

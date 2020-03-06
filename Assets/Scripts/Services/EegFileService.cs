@@ -12,42 +12,28 @@ namespace BTV.Services.EegFileService
     {
         private static BtvProgram[] m_EegFiles = new BtvProgram[6];
 
-        public static IEnumerator c_Load(File.FileType Type, int FileID, params string[] paths)
+        public static IEnumerator c_Load(IEegFileInfo fileInfo, int FileID)
         {
             if (FileID >= 6)
                 throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
 
-            if (System.IO.File.Exists(paths[0]))
+            if (fileInfo.Files.Length > 0 && System.IO.File.Exists(fileInfo.Files[0]))
             {
-                IEegDataContainer container = new IEegDataContainer(FilePath, Type);
+                IEegDataContainer container = new IEegDataContainer(fileInfo);
                 m_EegFiles[FileID] = new BtvProgram(container);
             }
 
             yield return null;
         }
 
-        public static IEnumerator c_Load(string FilePath, File.FileType Type, int FileID)
+        public static void Load(IEegFileInfo fileInfo, int FileID)
         {
             if (FileID >= 6)
                 throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
 
-            if (System.IO.File.Exists(FilePath))
+            if (fileInfo.Files.Length > 0 && System.IO.File.Exists(fileInfo.Files[0]))
             {
-                IEegDataContainer container = new IEegDataContainer(FilePath, Type);
-                m_EegFiles[FileID] = new BtvProgram(container);
-            }
-
-            yield return null;
-        }
-
-        public static void Load(string FilePath, File.FileType Type, int FileID)
-        {
-            if (FileID >= 6)
-                throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
-
-            if (System.IO.File.Exists(FilePath))
-            {
-                IEegDataContainer container = new IEegDataContainer(FilePath, Type);
+                IEegDataContainer container = new IEegDataContainer(fileInfo);
                 m_EegFiles[FileID] = new BtvProgram(container);
             }
         }
