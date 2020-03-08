@@ -164,7 +164,7 @@ public class BTVMedia : MonoBehaviour
                 pm.Subjects[i / 2] = guiPat.GetSubjectsFromGUI();
             }
 
-            var extensionList = new[] { new ExtensionFilter("BrainTV BDD File", "txt")};
+            var extensionList = new[] { new ExtensionFilter("BrainTV BDD File", "dbtv")};
             string bddFilePath = FileBrowser.GetSavedFileName(extensionList, "Save to a bdd File", Application.dataPath + @"/Config/PatientBase");
             if (bddFilePath != "")
             {
