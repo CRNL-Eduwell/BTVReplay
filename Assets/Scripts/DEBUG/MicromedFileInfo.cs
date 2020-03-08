@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 
 public class MicromedFileInfo : IEegFileInfo
@@ -11,8 +12,9 @@ public class MicromedFileInfo : IEegFileInfo
             return Tools.CSharp.EEG.File.FileType.Micromed;
         }
     }
-    public string[] Files { get { return new string[] { Trc }; } }
     public string Trc { get; private set; } = "";
+    [JsonIgnore]
+    public string[] Files { get { return new string[] { Trc }; } }
     #endregion
 
     public MicromedFileInfo(string trc)

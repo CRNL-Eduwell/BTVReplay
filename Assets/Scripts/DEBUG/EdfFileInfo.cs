@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 
 public class EdfFileInfo : IEegFileInfo
@@ -11,8 +12,9 @@ public class EdfFileInfo : IEegFileInfo
             return Tools.CSharp.EEG.File.FileType.EDF;
         }
     }
-    public string[] Files { get { return new string[] { Edf }; } }
     public string Edf { get; private set; } = "";
+    [JsonIgnore]
+    public string[] Files { get { return new string[] { Edf }; } }
     #endregion
 
     public EdfFileInfo(string edf)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 
 public class BrainvisionFileInfo : IEegFileInfo
@@ -11,8 +12,9 @@ public class BrainvisionFileInfo : IEegFileInfo
             return Tools.CSharp.EEG.File.FileType.BrainVision;
         }
     }
-    public string[] Files { get { return new string[] { Header }; } }
     public string Header { get; private set; } = "";
+    [JsonIgnore]
+    public string[] Files { get { return new string[] { Header }; } }
     #endregion
 
     public BrainvisionFileInfo(string bvheader)

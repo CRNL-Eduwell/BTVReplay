@@ -7,7 +7,7 @@ public class DBManager
     public List<Subject> Subjects = new List<Subject>();
     public int idCurrentPatientLoaded = 0;
     public string pathFile { get; private set; }
-    string pathBUFile { get { return pathFile.Replace(".txt", "BU.txt"); } }
+    string pathBUFile { get { return pathFile.Replace(".dbtv", "BU.dbtv"); } }
 
     private ISubjectsContext m_fileContext = null;
 

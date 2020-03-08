@@ -79,7 +79,7 @@ public class BTVMedia : MonoBehaviour
         saveBase.onClick.AddListener(() => { SaveDB(); });
         loadBase.onClick.AddListener(() => 
         {
-            string bddFilePath = FileBrowser.GetExistingFileName(new string[] { "txt" }, "Select a bdd file", Application.dataPath + @"/Config/PatientBase");
+            string bddFilePath = FileBrowser.GetExistingFileName(new string[] { "txt", "dbtv" }, "Select a bdd file", Application.dataPath + @"/Config/PatientBase");
             if (bddFilePath != "")
             {
                 pm.LoadList(false, bddFilePath);
@@ -88,7 +88,7 @@ public class BTVMedia : MonoBehaviour
         });
         loadBUBase.onClick.AddListener(() => 
         {
-            string bddFilePath = FileBrowser.GetExistingFileName(new string[] { "txt" }, "Select a bdd backup file", Application.dataPath + @"/Config/PatientBase");
+            string bddFilePath = FileBrowser.GetExistingFileName(new string[] { "txt", "dbtv" }, "Select a bdd backup file", Application.dataPath + @"/Config/PatientBase");
             if (bddFilePath != "")
             {
                 pm.LoadList(true, bddFilePath);

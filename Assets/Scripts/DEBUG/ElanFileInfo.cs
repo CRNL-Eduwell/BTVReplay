@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 
 public class ElanFileInfo : IEegFileInfo
@@ -15,6 +16,7 @@ public class ElanFileInfo : IEegFileInfo
     public string Ent { get { return Eeg + ".ent"; } }
     public string Pos { get; set; } = "";
     public string Notes { get; set; } = "";
+    [JsonIgnore]
     public string[] Files { get { return new string[] { Eeg, Pos, Notes }; } }
     #endregion
 
