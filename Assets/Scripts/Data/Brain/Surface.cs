@@ -1,19 +1,18 @@
 ﻿using System;
 using System.IO;
-using System.Text;
-using System.Linq;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;   //List<T>
-using System.Collections; //IEnumerator
-
 using UnityEngine;
 
+//TODO : Look Update the c++ dll part to have surface being an empty container
+//       with function to load different type of file 
 public class Surface : CppDLLImportBase
 {
     public List<Vector3> Vertices = new List<Vector3>();          //List of X-Y-Z Coordinates : each element is one vetice (point)
     public int[] TriangleIds;                                     //List of Index number : three vertices used to make one triangle
     //===
     private string m_filePath = "";
+    private string m_trmFilePath = "";
 
     public Surface[] SplitToSurfaces(int nbSubSurfaces)
     {
@@ -42,9 +41,17 @@ public class Surface : CppDLLImportBase
 
     #region memory_management
 
-    public Surface(string pathSurfaceFile) : base(pathSurfaceFile)
+    public Surface(string pathSurfaceFile, string transformationFile = "") : base()
     {
-        CopyVerticesAndTriangles(this);
+        m_filePath = pathSurfaceFile;
+        m_trmFilePath = transformationFile;
+
+        if (!string.IsNullOrEmpty(m_filePath))
+        {
+            FileInfo fileInfo = new FileInfo(m_filePath);
+            _handle = new HandleRef(this, read_file_to_surface(m_filePath, m_trmFilePath, fileInfo.Extension.Replace(".", string.Empty).ToUpper()));
+            CopyVerticesAndTriangles(this);
+        }
     }
 
     public Surface(IntPtr surfaceHandle) : base(surfaceHandle) { }
@@ -52,35 +59,6 @@ public class Surface : CppDLLImportBase
     protected override void createDLLClass()
     {
 
-    }
-
-    protected override void createDLLClass(string str)
-    {
-        m_filePath = str;
-        //==
-        string[] pathSurfaceFileSplit = m_filePath.Split(new char[] { '.' });
-        string fileExtention = pathSurfaceFileSplit[pathSurfaceFileSplit.Length - 1].ToUpper();
-        //==
-        string workingdir = Path.GetDirectoryName(m_filePath);
-
-        string[] files;
-        if (fileExtention == "TRI")
-            files = System.IO.Directory.GetFiles(workingdir, "transfo_mni.trm");
-        else if (fileExtention == "GII")
-            files = System.IO.Directory.GetFiles(workingdir, "*_Scanner_Based.trm");
-        else
-            files = new string[] { "" };
-
-        if (files.Length > 0)
-        {
-            files[0].Replace('\\', '/');
-            _handle = new HandleRef(this, read_file_to_surface(m_filePath, files[0], fileExtention));
-        }
-        else
-        {
-            _handle = new HandleRef(this, read_file_to_surface(m_filePath, "", fileExtention));
-        }
-        //==
     }
 
     protected override void deleteDLLClass()

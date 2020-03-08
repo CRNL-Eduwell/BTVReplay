@@ -34,11 +34,6 @@ public abstract class CppDLLImportBase : IDisposable
         createDLLClass();
     }
 
-    public CppDLLImportBase(string str)
-    {
-        createDLLClass(str);
-    }
-
     /// <summary>
     /// CppDLLImportBase constructor with an already allocated dll class
     /// </summary>
@@ -60,11 +55,6 @@ public abstract class CppDLLImportBase : IDisposable
     /// Allocate DLL memory
     /// </summary>
     abstract protected void createDLLClass();
-
-    /// <summary>
-    /// Allocate DLL memory
-    /// </summary>
-    abstract protected void createDLLClass(string str);
 
     /// <summary>
     /// Clean DLL memory

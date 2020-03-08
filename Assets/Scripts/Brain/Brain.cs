@@ -38,11 +38,11 @@ public class Brain : MonoBehaviour
 
     private void LoadBrainAndElectrodes(BrainDataContainer brainToLoad)
     {
-        m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.LeftHemisphere);
+        m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.LeftHemisphere, brainToLoad.Transformation);
 
         if (brainToLoad.MeshConfiguration == MeshConfiguration.LeftRight)
         {
-            m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.RightHemisphere);
+            m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.RightHemisphere, brainToLoad.Transformation);
         }
         else
         {
@@ -133,12 +133,12 @@ public class Brain : MonoBehaviour
     private void UpdateBrainMesh(BrainDataContainer brainToLoad)
     {
         Destroy(GameObject.Find("LeftHemi"));
-        m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.LeftHemisphere);
+        m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.LeftHemisphere, brainToLoad.Transformation);
 
         if (brainToLoad.MeshConfiguration == MeshConfiguration.LeftRight)
         {
             Destroy(GameObject.Find("RightHemi"));
-            m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.RightHemisphere);
+            m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.RightHemisphere, brainToLoad.Transformation);
         }
         else
         {
@@ -155,7 +155,7 @@ public class Brain : MonoBehaviour
 
     //Left : sibling 0
     //Right : sibling 1
-    private GameObject UpdateOneHemisphere(string HemisphereName, int SiblingIndex, string FilePath)
+    private GameObject UpdateOneHemisphere(string HemisphereName, int SiblingIndex, string FilePath, string trmFilePath)
     {
         GameObject newHemisphere = new GameObject(HemisphereName, new System.Type[] { typeof(Hemisphere) });
         newHemisphere.transform.parent = gameObject.transform;
@@ -165,7 +165,7 @@ public class Brain : MonoBehaviour
         newHemisphere.layer = gameObject.layer;
 
         Hemisphere hemi = newHemisphere.GetComponent<Hemisphere>();
-        hemi.InitializeData(FilePath);
+        hemi.InitializeData(FilePath, trmFilePath);
         for (int i = 0; i < hemi.MeshesGameObjects.Count; i++)
         {
             hemi.MeshesGameObjects[i].transform.parent = newHemisphere.transform;
