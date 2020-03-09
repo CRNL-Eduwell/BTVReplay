@@ -54,7 +54,7 @@ public class PatientGUIManager : MonoBehaviour
     {
         string subjectName = "";
         int indexToLook = transform.GetSiblingIndex() - 1;
-        if (indexToLook >= 0 && indexToLook < transform.childCount)
+        if (indexToLook >= 0 && indexToLook < transform.parent.childCount)
         {
             Transform t = transform.parent.GetChild(indexToLook);
             subjectName = t.GetChild(1).GetComponent<InputField>().text;
@@ -65,7 +65,7 @@ public class PatientGUIManager : MonoBehaviour
     private void SetHeadertext(string subjectName)
     {
         int indexToLook = transform.GetSiblingIndex() - 1;
-        if (indexToLook >= 0 && indexToLook < transform.childCount)
+        if (indexToLook >= 0 && indexToLook < transform.parent.childCount)
         {
             Transform t = transform.parent.GetChild(indexToLook);
             t.GetChild(1).GetComponent<InputField>().text = subjectName;
