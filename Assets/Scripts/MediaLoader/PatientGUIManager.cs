@@ -13,14 +13,10 @@ public class PatientGUIManager : MonoBehaviour
     [SerializeField] EegInfoGUIManager[] _EegFiles = new EegInfoGUIManager[6] { null, null, null, null, null, null, };
     [SerializeField] browseButton _Video = null;
 
-    //Need to be abble to modify that in the UI if we want to
-    private string m_PatientName = "";
-
     public Subject GetSubjectsFromGUI()
     {
         Subject myPat = new Subject();
 
-        //myPat.PatientName = m_PatientName;
         myPat.PatientName = GetHeaderText();
 
         myPat.AnatomicalSpaces.Add("MNI", _MniGUIManager.GetDataContainer());
@@ -39,7 +35,6 @@ public class PatientGUIManager : MonoBehaviour
 
     public void SetSubjectToGUI(Subject subject)
     {
-        //m_PatientName = subject.PatientName;
         SetHeadertext(subject.PatientName);
 
         bool mniFound = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);

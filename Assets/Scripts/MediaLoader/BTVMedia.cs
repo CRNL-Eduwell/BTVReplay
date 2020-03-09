@@ -175,7 +175,7 @@ public class BTVMedia : MonoBehaviour
         }
     }
 
-    void InstantiateDB()
+    public void InstantiateDB()
     {
         if (patientContent.childCount > 0)
         {
@@ -256,7 +256,7 @@ public class BTVMedia : MonoBehaviour
     public void loadMedia(Subject subject)
     {
         if (loaded == true)
-            resetValue(subject);
+            ResetValues(subject);
         else
             StartCoroutine(c_load(subject));
     }
@@ -404,36 +404,16 @@ public class BTVMedia : MonoBehaviour
         yield return null;
     }
 
-    void resetValue(Subject subject)
+    private void ResetValues(Subject subject)
     {
         GameObject reloadGameObject = Instantiate(Resources.Load("Prefabs/Media-Reload", typeof(GameObject))) as GameObject;
         reloadGameObject.name = "ReloadMedia";
 
         ReloadMedia r = reloadGameObject.GetComponent<ReloadMedia>();
-
-        bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
-        bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
-
-        r.lhemi_MNI = mniContainer.LeftHemisphere;
-        r.rhemi_MNI = mniContainer.RightHemisphere;
-        r.pts_MNI = mniContainer.Pts;
-
-        r.lhemi_PAT = patContainer.LeftHemisphere;
-        r.rhemi_PAT = patContainer.RightHemisphere;
-        r.pts_PAT = patContainer.Pts;
-        r.atlas_PAT = patContainer.Atlas;
-
-        //r.sm0 = subject.smFiles[0];
-        //r.sm250 = subject.smFiles[1];
-        //r.sm500 = subject.smFiles[2];
-        //r.sm1000 = subject.smFiles[3];
-        //r.sm2500 = subject.smFiles[4];
-        //r.sm5000 = subject.smFiles[5];
-
-        r.video = subject.Video;
-        r.id = pm.idCurrentPatientLoaded;
-        r.path = pm.pathFile;
-
+        r.SubjectToReload = new Subject(subject);
+        r.Id = pm.idCurrentPatientLoaded;
+        r.Path = string.Copy(pm.pathFile);
+        r.TriggerReload = true;
         SceneManager.LoadScene("_main");
     }
 }
