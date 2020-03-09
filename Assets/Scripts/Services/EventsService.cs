@@ -11,6 +11,11 @@ namespace BTV.Services.EventsService
     {
         public static List<BtvEvent> Events { get; set; } = new List<BtvEvent>();
 
+        public static void Reset()
+        {
+            Events = new List<BtvEvent>();
+        }
+
         public static void Load(string filePath, int samplingFrequency = 0)
         {
             if (File.Exists(filePath))

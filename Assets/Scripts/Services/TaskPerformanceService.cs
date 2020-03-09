@@ -11,9 +11,11 @@ namespace BTV.Services.TaskPerformanceService
 {
     public static class TaskPerformanceService
     {
-        public static List<EegTrigger> ProcessedTriggers
+        public static List<EegTrigger> ProcessedTriggers { get; private set; } = null;
+
+        public static void Reset()
         {
-            get; private set;
+            ProcessedTriggers = null;
         }
 
         //calculateReactionTime in old pos.cs

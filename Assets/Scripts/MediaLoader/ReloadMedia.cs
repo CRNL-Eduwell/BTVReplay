@@ -24,8 +24,11 @@ public class ReloadMedia : MonoBehaviour
             BTVMedia media = mediaGameObject.GetComponent<BTVMedia>();
             if (media != null)
             {
+
                 PatientGUIManager patManager = media.transform.gameObject.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<PatientGUIManager>();
                 patManager.SetSubjectToGUI(SubjectToReload);
+                //==
+                ApplicationState.ResetAllServices();
                 //==
                 media.pm.LoadList(false, Path);
                 media.pm.idCurrentPatientLoaded = Id;
