@@ -207,7 +207,7 @@ public class BTVMedia : MonoBehaviour
     {
         #region UIMembers
         Button currentShowMe = null;
-        Text myName = null;
+        InputField myName = null;
         Image myPic = null;
         Button loadMe = null;
         Button deleteMe = null;
@@ -216,7 +216,7 @@ public class BTVMedia : MonoBehaviour
         #region getObjectFromScene
         currentShowMe = patientBar.transform.GetChild(0).GetComponent<Button>();
         myPic = patientBar.transform.GetChild(0).GetComponent<Image>();
-        myName = patientBar.transform.GetChild(1).GetComponent<Text>();
+        myName = patientBar.transform.GetChild(1).GetComponent<InputField>();
         myName.text = pm.Subjects[idPat].PatientName;
         loadMe = patientBar.transform.GetChild(2).GetComponent<Button>();
         deleteMe = patientBar.transform.GetChild(3).GetComponent<Button>();

@@ -20,7 +20,9 @@ public class PatientGUIManager : MonoBehaviour
     {
         Subject myPat = new Subject();
 
-        myPat.PatientName = m_PatientName;
+        //myPat.PatientName = m_PatientName;
+        myPat.PatientName = GetHeaderText();
+
         myPat.AnatomicalSpaces.Add("MNI", _MniGUIManager.GetDataContainer());
         myPat.AnatomicalSpaces.Add("PAT", _PatGUIManager.GetDataContainer());
         int fileCount = _EegFiles.Length;
@@ -37,7 +39,8 @@ public class PatientGUIManager : MonoBehaviour
 
     public void SetSubjectToGUI(Subject subject)
     {
-        m_PatientName = subject.PatientName;
+        //m_PatientName = subject.PatientName;
+        SetHeadertext(subject.PatientName);
 
         bool mniFound = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
         if(mniFound) _MniGUIManager.SetDataConainerInUI(mniContainer);
@@ -50,5 +53,27 @@ public class PatientGUIManager : MonoBehaviour
             _EegFiles[i].SetEegFileInfoToGUI(subject.Files.ElementAtOrDefault(i));
 
         _Video.inputfield.text = subject.Video;
+    }
+
+    private string GetHeaderText()
+    {
+        string subjectName = "";
+        int indexToLook = transform.GetSiblingIndex() - 1;
+        if (indexToLook >= 0 && indexToLook < transform.childCount)
+        {
+            Transform t = transform.parent.GetChild(indexToLook);
+            subjectName = t.GetChild(1).GetComponent<InputField>().text;
+        }
+        return subjectName;
+    }
+
+    private void SetHeadertext(string subjectName)
+    {
+        int indexToLook = transform.GetSiblingIndex() - 1;
+        if (indexToLook >= 0 && indexToLook < transform.childCount)
+        {
+            Transform t = transform.parent.GetChild(indexToLook);
+            t.GetChild(1).GetComponent<InputField>().text = subjectName;
+        }
     }
 }
