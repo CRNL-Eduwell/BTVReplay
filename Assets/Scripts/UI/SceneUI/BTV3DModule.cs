@@ -9,7 +9,7 @@ public class BTV3DModule : MonoBehaviour
     public Trace Window2 { get { return m_Window2; } }
     public TaskPerformanceTrace TaskPerformanceWindow { get { return m_TaskPerformanceWindow; } }
 
-    public Patient Patient { get; set; }
+    public Subject Patient { get; set; }
     public BtvEvent MemoryEvent { get; set; }
     //For the moment , only the file paths
     //later , will load the audio clips only once

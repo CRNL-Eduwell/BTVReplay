@@ -14,11 +14,11 @@ public class Hemisphere : MonoBehaviour
     private Material BaseMaterialDepth = null;
     private Material BaseMaterialTransparency = null;
 
-    public void InitializeData(string triFilePath)
+    public void InitializeData(string triFilePath, string trmFilePath = "")
     {
         BaseMaterialDepth = Resources.Load("Materials/Brain-DepthStencil", typeof(Material)) as Material; //Recherche dans Assets\Ressources 
         BaseMaterialTransparency = Resources.Load("Materials/Brain-TransparencyStencil", typeof(Material)) as Material;
-        Surface baseSurface = new Surface(triFilePath);
+        Surface baseSurface = new Surface(triFilePath, trmFilePath);
 
         int nbSurface = ((baseSurface.Vertices.Count * 3) / 65000) + 1;
         if (nbSurface > 1)

@@ -4,12 +4,12 @@ using Assets.Scripts.Data.Factory;
 
 public class DBManager
 {
-    public List<Patient> currentPatients = new List<Patient>();
+    public List<Subject> Subjects = new List<Subject>();
     public int idCurrentPatientLoaded = 0;
     public string pathFile { get; private set; }
-    string pathBUFile { get { return pathFile.Replace(".txt", "BU.txt"); } }
+    string pathBUFile { get { return pathFile.Replace(".dbtv", "BU.dbtv"); } }
 
-    private IPatientsContext m_fileContext = null;
+    private ISubjectsContext m_fileContext = null;
 
     public void SaveList(string dbPath = "")
     {
@@ -22,14 +22,14 @@ public class DBManager
         if (dbFileExist && dbBUExist)
         {
             File.Copy(pathFile, pathBUFile, true);
-            PatientsFactory.SavePatients(pathFile, currentPatients);
+            SubjectsFactory.SaveSubjects(pathFile, Subjects);
         }
         else
         {
             File.Create(pathFile).Dispose();
             File.Create(pathBUFile).Dispose();
-            PatientsFactory.SavePatients(pathFile, currentPatients);
-            PatientsFactory.SavePatients(pathBUFile, currentPatients);
+            SubjectsFactory.SaveSubjects(pathFile, Subjects);
+            SubjectsFactory.SaveSubjects(pathBUFile, Subjects);
         }
     }
 
@@ -45,20 +45,20 @@ public class DBManager
         if (backUp)
             fileToLoad = pathBUFile;
 
-        m_fileContext = PatientsFactory.GetPatientsContext(fileToLoad);
-        currentPatients = new List<Patient>(m_fileContext.Patients);
+        m_fileContext = SubjectsFactory.GetSubjectsContext(fileToLoad);
+        Subjects = new List<Subject>(m_fileContext.Subjects);
     }
 
-    public void addPat(Patient thisPatient)
+    public void AddSubject(Subject subject)
     {
-        currentPatients.Add(new Patient(thisPatient));
+        Subjects.Add(new Subject(subject));
     }
 
-    public void removePatientAt(int index)
+    public void RemoveSubjectAt(int index)
     {
-        if (currentPatients.Count > 0)
+        if (Subjects.Count > 0)
         {
-            currentPatients.Remove(currentPatients[index]);
+            Subjects.Remove(Subjects[index]);
         }
     }
 }

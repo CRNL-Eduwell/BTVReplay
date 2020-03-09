@@ -182,7 +182,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     {
         if (yDelta < 0)
         {
-            if (m_ContainerId - 1 >= 0 && EegFileService.IsFileIdValid(m_ContainerId - 1))
+            if (EegFileService.IsFileIdValid(m_ContainerId - 1))
             {
                 m_ContainerId -= 1;
             }

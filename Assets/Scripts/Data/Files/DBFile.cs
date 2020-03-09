@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using Assets.Scripts.Data.Factory;
 using UnityEngine;
@@ -17,7 +18,7 @@ public class DBFile : IPatientsContext
         if (File.Exists(FilePath))
             Load(FilePath);
         else
-            Debug.LogError("PosFile => Filepath : " + FilePath + " does not exist ");
+            Debug.LogError("DBFile => Filepath : " + FilePath + " does not exist ");
     }
 
     private int Load(string FilePath)
@@ -66,22 +67,22 @@ public class DBFile : IPatientsContext
         switch (data[0])
         {
             case "LH_MNI":
-                if (data.Length == 1) patient.mni.lhemi = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri";
-                else if (data.Length > 1) patient.mni.lhemi = data[1];
+                if (data.Length == 1) patient.mni.LeftHemisphere = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri";
+                else if (data.Length > 1) patient.mni.LeftHemisphere = data[1];
                 break;
             case "RH_MNI":
-                if (data.Length == 1) patient.mni.rhemi = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri";
-                else if (data.Length > 1) patient.mni.rhemi = data[1];
+                if (data.Length == 1) patient.mni.RightHemisphere = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri";
+                else if (data.Length > 1) patient.mni.RightHemisphere = data[1];
                 break;
-            case "PTS_MNI": if (data.Length > 1) patient.mni.pts = data[1]; break;
-            case "MESH_MNI": if (data.Length > 1) patient.mni.setNbMesh(data[1]); break;
-            case "EEG_MNI": if (data.Length > 1) patient.mni.setEegTech(data[1]); break;
-            case "LH_PAT": if (data.Length > 1) patient.pat.lhemi = data[1]; break;
-            case "RH_PAT": if (data.Length > 1) patient.pat.rhemi = data[1]; break;
-            case "PTS_PAT": if (data.Length > 1) patient.pat.pts = data[1]; break;
-            case "ATLAS_PAT": if (data.Length > 1) patient.pat.atlasCSV = data[1]; break;
-            case "MESH_PAT": if (data.Length > 1) patient.pat.setNbMesh(data[1]); break;
-            case "EEG_PAT": if (data.Length > 1) patient.pat.setEegTech(data[1]); break;
+            case "PTS_MNI": if (data.Length > 1) patient.mni.Pts = data[1]; break;
+            case "MESH_MNI": if (data.Length > 1) patient.mni.SetMeshConfigurationFromString(data[1]); break;
+            case "EEG_MNI": if (data.Length > 1) patient.mni.SetEegTechnologyFromString(data[1]); break;
+            case "LH_PAT": if (data.Length > 1) patient.pat.LeftHemisphere = data[1]; break;
+            case "RH_PAT": if (data.Length > 1) patient.pat.RightHemisphere = data[1]; break;
+            case "PTS_PAT": if (data.Length > 1) patient.pat.Pts = data[1]; break;
+            case "ATLAS_PAT": if (data.Length > 1) patient.pat.Atlas = data[1]; break;
+            case "MESH_PAT": if (data.Length > 1) patient.pat.SetMeshConfigurationFromString(data[1]); break;
+            case "EEG_PAT": if (data.Length > 1) patient.pat.SetEegTechnologyFromString(data[1]); break;
             case "SM0": if (data.Length > 1) patient.smFiles[0] = data[1]; break;
             case "SM250": if (data.Length > 1) patient.smFiles[1] = data[1]; break;
             case "SM500": if (data.Length > 1) patient.smFiles[2] = data[1]; break;
@@ -101,17 +102,17 @@ public class DBFile : IPatientsContext
         {
             for (int i = 0; i < patients.Count; i++)
             {
-                sw.WriteLine("LH_MNI : " + patients[i].mni.lhemi);
-                sw.WriteLine("RH_MNI : " + patients[i].mni.rhemi);
-                sw.WriteLine("PTS_MNI : " + patients[i].mni.pts);
-                sw.WriteLine("MESH_MNI : " + patients[i].mni.getMeshNb());
-                sw.WriteLine("EEG_MNI : " + patients[i].mni.getEegTech());
-                sw.WriteLine("LH_PAT : " + patients[i].pat.lhemi);
-                sw.WriteLine("RH_PAT : " + patients[i].pat.rhemi);
-                sw.WriteLine("PTS_PAT : " + patients[i].pat.pts);
-                sw.WriteLine("ATLAS_PAT : " + patients[i].pat.atlasCSV);
-                sw.WriteLine("MESH_PAT : " + patients[i].pat.getMeshNb());
-                sw.WriteLine("EEG_PAT : " + patients[i].pat.getEegTech());
+                sw.WriteLine("LH_MNI : " + patients[i].mni.LeftHemisphere);
+                sw.WriteLine("RH_MNI : " + patients[i].mni.RightHemisphere);
+                sw.WriteLine("PTS_MNI : " + patients[i].mni.Pts);
+                sw.WriteLine("MESH_MNI : " + patients[i].mni.MeshConfiguration.GetDescription());
+                sw.WriteLine("EEG_MNI : " + patients[i].mni.EegTechnology.GetDescription());
+                sw.WriteLine("LH_PAT : " + patients[i].pat.LeftHemisphere);
+                sw.WriteLine("RH_PAT : " + patients[i].pat.RightHemisphere);
+                sw.WriteLine("PTS_PAT : " + patients[i].pat.Pts);
+                sw.WriteLine("ATLAS_PAT : " + patients[i].pat.Atlas);
+                sw.WriteLine("MESH_PAT : " + patients[i].pat.MeshConfiguration.GetDescription());
+                sw.WriteLine("EEG_PAT : " + patients[i].pat.EegTechnology.GetDescription());
                 sw.WriteLine("SM0 : " + patients[i].smFiles[0]);
                 sw.WriteLine("SM250 : " + patients[i].smFiles[1]);
                 sw.WriteLine("SM500 : " + patients[i].smFiles[2]);

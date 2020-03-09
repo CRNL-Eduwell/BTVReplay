@@ -12,13 +12,13 @@ class LoaderToBrainMessage
         set;
     }
 
-    public brain_anat Anatomy
+    public BrainDataContainer Anatomy
     {
         get;
         set;
     }
 
-    public eeg_Technology Techno
+    public EegTechnology Techno
     {
         get;
         set;

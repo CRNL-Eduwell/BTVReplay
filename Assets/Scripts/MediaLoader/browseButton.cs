@@ -21,7 +21,7 @@ public class browseButton : MonoBehaviour
     private void loadFile()
     {
         if (open)
-            inputfield.text = FileBrowser.GetExistingFileName(new string[] { "tri", "gii", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni", "csv" });
+            inputfield.text = FileBrowser.GetExistingFileName(new string[] { "tri", "gii", "trm", "pts", "trc", "eeg", "avi", "mp4", "prov", "pos", "mni", "csv" });
         else
         {
             var extensionList = new[] { new ExtensionFilter("Video File", "mp4") };

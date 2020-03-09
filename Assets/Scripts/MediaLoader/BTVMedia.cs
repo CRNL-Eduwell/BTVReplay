@@ -9,6 +9,8 @@ using SFB;
 using BTV.Data;
 using CielaSpike;
 using BTV.Services.EegFileService;
+using System.Linq;
+using System.Collections.Generic;
 
 public delegate void mediaLoadedEventHandler();
 public delegate void initTrace();
@@ -77,7 +79,7 @@ public class BTVMedia : MonoBehaviour
         saveBase.onClick.AddListener(() => { SaveDB(); });
         loadBase.onClick.AddListener(() => 
         {
-            string bddFilePath = FileBrowser.GetExistingFileName(new string[] { "txt" }, "Select a bdd file", Application.dataPath + @"/Config/PatientBase");
+            string bddFilePath = FileBrowser.GetExistingFileName(new string[] { "txt", "dbtv" }, "Select a bdd file", Application.dataPath + @"/Config/PatientBase");
             if (bddFilePath != "")
             {
                 pm.LoadList(false, bddFilePath);
@@ -86,7 +88,7 @@ public class BTVMedia : MonoBehaviour
         });
         loadBUBase.onClick.AddListener(() => 
         {
-            string bddFilePath = FileBrowser.GetExistingFileName(new string[] { "txt" }, "Select a bdd backup file", Application.dataPath + @"/Config/PatientBase");
+            string bddFilePath = FileBrowser.GetExistingFileName(new string[] { "txt", "dbtv" }, "Select a bdd backup file", Application.dataPath + @"/Config/PatientBase");
             if (bddFilePath != "")
             {
                 pm.LoadList(true, bddFilePath);
@@ -130,7 +132,7 @@ public class BTVMedia : MonoBehaviour
         if (gameObject.activeSelf)
         {
             gameObject.SetActive(false);
-            addPatientPanel.setPatientGUI(new Patient());
+            addPatientPanel.SetSubjectToGUI(new Subject());
         }
         else
         {
@@ -140,16 +142,16 @@ public class BTVMedia : MonoBehaviour
 
     void addPatientToDB()
     {
-        pm.addPat(addPatientPanel.getPatientGUI());
+        pm.AddSubject(addPatientPanel.GetSubjectsFromGUI());
         if (patientContent.childCount == 0)
             InstantiateDB();
         else
-            loadOnePatient(pm.currentPatients.Count - 1); 
+            loadOnePatient(pm.Subjects.Count - 1); 
     }
 
     void loadPatientGUI()
     {
-        loadMedia(addPatientPanel.getPatientGUI());
+        loadMedia(addPatientPanel.GetSubjectsFromGUI());
     }
 
     void SaveDB()
@@ -159,10 +161,10 @@ public class BTVMedia : MonoBehaviour
             for (int i = 0; i < patientContent.childCount; i += 2)
             {
                 PatientGUIManager guiPat = patientContent.transform.GetChild(i + 1).GetComponent<PatientGUIManager>();
-                pm.currentPatients[i / 2] = guiPat.getPatientGUI();
+                pm.Subjects[i / 2] = guiPat.GetSubjectsFromGUI();
             }
 
-            var extensionList = new[] { new ExtensionFilter("BrainTV BDD File", "txt")};
+            var extensionList = new[] { new ExtensionFilter("BrainTV BDD File", "dbtv")};
             string bddFilePath = FileBrowser.GetSavedFileName(extensionList, "Save to a bdd File", Application.dataPath + @"/Config/PatientBase");
             if (bddFilePath != "")
             {
@@ -173,7 +175,7 @@ public class BTVMedia : MonoBehaviour
         }
     }
 
-    void InstantiateDB()
+    public void InstantiateDB()
     {
         if (patientContent.childCount > 0)
         {
@@ -181,7 +183,7 @@ public class BTVMedia : MonoBehaviour
                 Destroy(patientContent.GetChild(i).gameObject);
         }
 
-        for (int i = 0; i < pm.currentPatients.Count; i++)
+        for (int i = 0; i < pm.Subjects.Count; i++)
             loadOnePatient(i);
     }
 
@@ -205,7 +207,7 @@ public class BTVMedia : MonoBehaviour
     {
         #region UIMembers
         Button currentShowMe = null;
-        Text myName = null;
+        InputField myName = null;
         Image myPic = null;
         Button loadMe = null;
         Button deleteMe = null;
@@ -214,8 +216,8 @@ public class BTVMedia : MonoBehaviour
         #region getObjectFromScene
         currentShowMe = patientBar.transform.GetChild(0).GetComponent<Button>();
         myPic = patientBar.transform.GetChild(0).GetComponent<Image>();
-        myName = patientBar.transform.GetChild(1).GetComponent<Text>();
-        myName.text = pm.currentPatients[idPat].PatientName;
+        myName = patientBar.transform.GetChild(1).GetComponent<InputField>();
+        myName.text = pm.Subjects[idPat].PatientName;
         loadMe = patientBar.transform.GetChild(2).GetComponent<Button>();
         deleteMe = patientBar.transform.GetChild(3).GetComponent<Button>();
         #endregion
@@ -237,36 +239,36 @@ public class BTVMedia : MonoBehaviour
         loadMe.onClick.AddListener(() =>
         {
             pm.idCurrentPatientLoaded = idPat;
-            loadMedia(pm.currentPatients[idPat]);
+            loadMedia(pm.Subjects[idPat]);
         });
 
         deleteMe.onClick.AddListener(() =>
         {
             ApplicationState.displayConfirmation("Deleting Patient", "Are You Sure You Want To Delete This Patient From The Base ?",
-                () => { pm.removePatientAt(idPat); InstantiateDB(); },
+                () => { pm.RemoveSubjectAt(idPat); InstantiateDB(); },
                 () => { });
         });
         #endregion
 
-        patientDetails.GetComponent<PatientGUIManager>().setPatientGUI(pm.currentPatients[idPat]);
+        patientDetails.GetComponent<PatientGUIManager>().SetSubjectToGUI(pm.Subjects[idPat]);
     }
 
-    public void loadMedia(Patient myPat)
+    public void loadMedia(Subject subject)
     {
         if (loaded == true)
-            resetValue(myPat);
+            ResetValues(subject);
         else
-            StartCoroutine(c_load(myPat));
+            StartCoroutine(c_load(subject));
     }
 
-    IEnumerator c_load(Patient myPat)
+    IEnumerator c_load(Subject subject)
     {
-        ApplicationState.Module3D.Patient = myPat;
+        ApplicationState.Module3D.Patient = subject;
 
-        yield return StartCoroutine(c_loadEEGFile(myPat));
+        yield return StartCoroutine(c_loadEEGFile(subject));
         mediaLoaded();
-        yield return StartCoroutine(c_loadVideo(myPat.video));
-        yield return StartCoroutine(c_LoadBrainAnatomy(myPat));
+        yield return StartCoroutine(c_loadVideo(subject.Video));
+        yield return StartCoroutine(c_LoadBrainAnatomy(subject));
         loadTrace();
 
         //When everything is loaded we close the loading brain and media panel
@@ -274,21 +276,44 @@ public class BTVMedia : MonoBehaviour
         gameObject.SetActive(false);
         loaded = true;
         Text PatientNameHeader = GameObject.Find("HeaderDisplay").transform.GetChild(0).GetComponent<Text>();
-        PatientNameHeader.text = myPat.PatientName;
+        PatientNameHeader.text = subject.PatientName;
         ApplicationState.init();
         yield return new WaitForSeconds(0.1f);
     }
 
-    IEnumerator c_LoadBrainAnatomy(Patient myPat)
+    IEnumerator c_LoadBrainAnatomy(Subject subject)
     {
-        bool ShouldLoadMniFirst = (myPat.HasMNI && !myPat.HasPAT) || (myPat.HasMNI && myPat.HasPAT);
-        bool ShouldLoadPatFirst = !myPat.HasMNI && myPat.HasPAT;
+        bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+        bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+
+        bool ShouldLoadMniFirst = false, ShouldLoadPatFirst = false;
+        if (hasMniContainer && hasPatContainer)
+        {
+            ShouldLoadMniFirst = (mniContainer.HasAnat && !patContainer.HasAnat) || (mniContainer.HasAnat && patContainer.HasAnat);
+            ShouldLoadPatFirst = !mniContainer.HasAnat && patContainer.HasAnat;
+        }
+        else if (hasMniContainer && !hasPatContainer)
+        {
+            ShouldLoadMniFirst = mniContainer.HasAnat;
+            ShouldLoadPatFirst = false;
+        }
+        else if (!hasMniContainer && hasPatContainer)
+        {
+            ShouldLoadMniFirst = false;
+            ShouldLoadPatFirst = patContainer.HasAnat;
+        }
+        else
+        {
+            ShouldLoadMniFirst = false;
+            ShouldLoadPatFirst = false;
+        }
+
         if (ShouldLoadMniFirst)
         {
             LoaderToBrainMessage message = new LoaderToBrainMessage
             {
                 HasAnatomy = true,
-                Anatomy = myPat.mni
+                Anatomy = mniContainer
             };
             Messenger.Default.Send(message, MessageContext.LoaderToBrain);
         }
@@ -297,7 +322,7 @@ public class BTVMedia : MonoBehaviour
             LoaderToBrainMessage message = new LoaderToBrainMessage
             {
                 HasAnatomy = true,
-                Anatomy = myPat.pat
+                Anatomy = patContainer
             };
             Messenger.Default.Send(message, MessageContext.LoaderToBrain);
         }
@@ -310,7 +335,7 @@ public class BTVMedia : MonoBehaviour
             LoaderToBrainMessage message = new LoaderToBrainMessage
             {
                 HasAnatomy = false,
-                Techno = myPat.mni.GetEegTech
+                Techno = EegTechnology.Intra
             };
             Messenger.Default.Send(message, MessageContext.LoaderToBrain);
         }
@@ -318,72 +343,56 @@ public class BTVMedia : MonoBehaviour
         yield return null;
     }
 
-    IEnumerator c_loadEEGFile(Patient myPat)
+    IEnumerator c_loadEEGFile(Subject subject)
     {
         loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, GameObject.Find("CircleWindow").transform) as GameObject).GetComponent<LoadingCircle>();
         loadingCircle.transform.localPosition = new Vector3(0, 0, 0);
 
         yield return Ninja.JumpToUnity;
         loadingCircle.Set(0, "Finding files");
+
         loadingCircle.Set(0.1f, "Loading File 1");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[0], 0);
+        yield return Process(subject, 0);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.2f, "Loading File 2");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[1], 1);
+        yield return Process(subject, 1);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.4f, "Loading File 3");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[2], 2);
+        yield return Process(subject, 2);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.6f, "Loading File 4");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[3], 3);
+        yield return Process(subject, 3);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(0.8f, "Loading File 5");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[4], 4);
+        yield return Process(subject, 4);
         yield return Ninja.JumpToUnity;
 
         loadingCircle.Set(1.0f, "Loading File 6");
         yield return Ninja.JumpBack;
-        yield return Process(myPat.smFiles[5], 5);
+        yield return Process(subject, 5);
         yield return Ninja.JumpToUnity;
     }
 
-    YieldInstruction Process(string filePath, int FileID)
+    YieldInstruction Process(Subject subject, int FileID)
     {
-        if (filePath == "") return null;
-
-        Tools.CSharp.EEG.File.FileType fileType;
-        FileInfo file = new FileInfo(filePath);
-        switch (file.Extension.ToLower())
+        KeyValuePair<string, IEegFileInfo> kvp = subject.Files.ElementAtOrDefault(FileID);
+        if (!kvp.Equals(default(KeyValuePair<string, IEegFileInfo>)))
         {
-            case ".trc":
-                fileType = Tools.CSharp.EEG.File.FileType.Micromed;
-                break;
-            case ".eeg":
-                fileType = Tools.CSharp.EEG.File.FileType.ELAN;
-                break;
-            case ".vhdr":
-                fileType = Tools.CSharp.EEG.File.FileType.BrainVision;
-                break;
-            case ".edf":
-                fileType = Tools.CSharp.EEG.File.FileType.EDF;
-                break;
-            default:
-                UnityEngine.Debug.LogError("Fileformat " + file.Extension + " not supported");
-                return null;
+            // I give my callback to the process
+            // Async needed for another thread and not freezing/laging UI
+            return this.StartCoroutineAsync(EegFileService.c_Load(kvp.Value, FileID));
         }
 
-        // I give my callback to the process
-        // Async needed for another thread and not freezing/laging UI
-        return this.StartCoroutineAsync(EegFileService.c_Load(file.FullName, fileType, FileID));
+        return null;
     }
 
     IEnumerator c_loadVideo(string videoPath)
@@ -395,35 +404,16 @@ public class BTVMedia : MonoBehaviour
         yield return null;
     }
 
-    void resetValue(Patient myPat)
+    private void ResetValues(Subject subject)
     {
         GameObject reloadGameObject = Instantiate(Resources.Load("Prefabs/Media-Reload", typeof(GameObject))) as GameObject;
         reloadGameObject.name = "ReloadMedia";
 
         ReloadMedia r = reloadGameObject.GetComponent<ReloadMedia>();
-
-        r.lhemi_MNI = myPat.mni.lhemi;
-        r.rhemi_MNI = myPat.mni.rhemi;
-        r.pts_MNI = myPat.mni.pts;
-
-        r.lhemi_PAT = myPat.pat.lhemi;
-        r.rhemi_PAT = myPat.pat.rhemi;
-        r.pts_PAT = myPat.pat.pts;
-        r.atlas_PAT = myPat.pat.atlasCSV;
-
-        r.sm0 = myPat.smFiles[0];
-        r.sm250 = myPat.smFiles[1];
-        r.sm500 = myPat.smFiles[2];
-        r.sm1000 = myPat.smFiles[3];
-        r.sm2500 = myPat.smFiles[4];
-        r.sm5000 = myPat.smFiles[5];
-
-        r.pos = myPat.pos;
-        r.prov = myPat.prov;
-        r.video = myPat.video;
-        r.id = pm.idCurrentPatientLoaded;
-        r.path = pm.pathFile;
-
+        r.SubjectToReload = new Subject(subject);
+        r.Id = pm.idCurrentPatientLoaded;
+        r.Path = string.Copy(pm.pathFile);
+        r.TriggerReload = true;
         SceneManager.LoadScene("_main");
     }
 }

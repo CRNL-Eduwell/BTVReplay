@@ -19,15 +19,15 @@ public class Patient
     }
     public bool HasMNI
     {
-        get { return mni.hasAnat; }
+        get { return mni.HasAnat; }
     }
     public bool HasPAT
     {
-        get { return pat.hasAnat; }
+        get { return pat.HasAnat; }
     }
 
-    public brain_anat mni;
-    public brain_anat pat;
+    public BrainDataContainer mni { get; set; } = new BrainDataContainer();
+    public BrainDataContainer pat { get; set; } = new BrainDataContainer();
     public string[] smFiles = new string[6] { "", "", "", "", "", "" };
     public string pos = "";
     public string prov = "";
@@ -37,8 +37,8 @@ public class Patient
     #region Constructors
     public Patient()
     {
-        mni = new brain_anat();
-        pat = new brain_anat();
+        //mni = new brain_anat();
+        //pat = new brain_anat();
     }
     public Patient(Patient thisPat)
     {
