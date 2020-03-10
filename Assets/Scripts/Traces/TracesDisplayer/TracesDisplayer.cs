@@ -69,28 +69,31 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     private void Update()
     {
-        //zoom scroll mouse
-        Vector2 scrollDelta = Input.mouseScrollDelta;
-        if (scrollDelta.y != 0)
+        bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
+        if (isOver)
         {
-            if (m_ElectrodeLabel.HasFocus)
+            //zoom scroll mouse
+            Vector2 scrollDelta = Input.mouseScrollDelta;
+            if (scrollDelta.y != 0)
             {
-                int newId = scrollDelta.y < 0 ? m_currentElectrodeID - 1 : m_currentElectrodeID + 1;
-                UpdateElectrode(newId);
-            }
-            else if (m_GainLabel.HasFocus)
-            {
-                m_Gain = scrollDelta.y < 0 ? m_Gain - 0.25f : m_Gain + 0.25f;
-                m_GainLabel.Label = m_Gain.ToString();
-            }
-            else if (m_FileLabel.HasFocus)
-            {
-                UpdateFile(scrollDelta.y);
-            }
+                if (m_ElectrodeLabel.HasFocus)
+                {
+                    int newId = scrollDelta.y < 0 ? m_currentElectrodeID - 1 : m_currentElectrodeID + 1;
+                    UpdateElectrode(newId);
+                }
+                else if (m_GainLabel.HasFocus)
+                {
+                    m_Gain = scrollDelta.y < 0 ? m_Gain - 0.25f : m_Gain + 0.25f;
+                    m_GainLabel.Label = m_Gain.ToString();
+                }
+                else if (m_FileLabel.HasFocus)
+                {
+                    UpdateFile(scrollDelta.y);
+                }
 
-            UpdateDraw(m_ParentLayoutElement.minHeight);
+                UpdateDraw(m_ParentLayoutElement.minHeight);
+            }
         }
-
     }
 
     private void Init()
