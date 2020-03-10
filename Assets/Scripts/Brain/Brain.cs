@@ -36,13 +36,13 @@ public class Brain : MonoBehaviour
         }
     }
 
-    private void LoadBrainAndElectrodes(brain_anat brainToLoad)
+    private void LoadBrainAndElectrodes(BrainDataContainer brainToLoad)
     {
-        m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.lhemi);
+        m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.LeftHemisphere, brainToLoad.Transformation);
 
-        if (brainToLoad.GetMeshNb == mesh_Configuration.leftright)
+        if (brainToLoad.MeshConfiguration == MeshConfiguration.LeftRight)
         {
-            m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.rhemi);
+            m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.RightHemisphere, brainToLoad.Transformation);
         }
         else
         {
@@ -53,16 +53,16 @@ public class Brain : MonoBehaviour
 
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
-        m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.GetEegTech);
-        m_ElectrodesContext.LoadElectrodes(brainToLoad.pts);
-        m_ElectrodesContext.LoadAtlasData(brainToLoad.atlasCSV);
+        m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.EegTechnology);
+        m_ElectrodesContext.LoadElectrodes(brainToLoad.Pts);
+        m_ElectrodesContext.LoadAtlasData(brainToLoad.Atlas);
         m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         m_BrainCamera.InitCameraPosition();
     }
 
-    private void LoadElectrodesDefault(eeg_Technology eeg)
+    private void LoadElectrodesDefault(EegTechnology eeg)
     {
         m_LeftHemiBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
         m_LeftHemiBrain.transform.parent = gameObject.transform;
@@ -110,12 +110,14 @@ public class Brain : MonoBehaviour
             case 0:
                 m_LeftHemiBrain.gameObject.SetActive(true);
                 m_RightHemiBrain.gameObject.SetActive(true);
-                UpdateBrainMesh(ApplicationState.Module3D.Patient.mni);
+                ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+                UpdateBrainMesh(mniContainer);
                 break;
             case 1:
                 m_LeftHemiBrain.gameObject.SetActive(true);
                 m_RightHemiBrain.gameObject.SetActive(true);
-                UpdateBrainMesh(ApplicationState.Module3D.Patient.pat);
+                ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+                UpdateBrainMesh(patContainer);
                 break;
             case 2:
                 m_LeftHemiBrain.gameObject.SetActive(false);
@@ -128,15 +130,15 @@ public class Brain : MonoBehaviour
         }
     }
 
-    private void UpdateBrainMesh(brain_anat brainToLoad)
+    private void UpdateBrainMesh(BrainDataContainer brainToLoad)
     {
         Destroy(GameObject.Find("LeftHemi"));
-        m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.lhemi);
+        m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.LeftHemisphere, brainToLoad.Transformation);
 
-        if (brainToLoad.GetMeshNb == mesh_Configuration.leftright)
+        if (brainToLoad.MeshConfiguration == MeshConfiguration.LeftRight)
         {
             Destroy(GameObject.Find("RightHemi"));
-            m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.rhemi);
+            m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.RightHemisphere, brainToLoad.Transformation);
         }
         else
         {
@@ -146,14 +148,14 @@ public class Brain : MonoBehaviour
         }
 
         //TODO : in case of a change beetween ieeg and scalp eeg it will probably not work
-        m_ElectrodesContext.LoadElectrodes(brainToLoad.pts);
-        m_ElectrodesContext.LoadAtlasData(brainToLoad.atlasCSV);
+        m_ElectrodesContext.LoadElectrodes(brainToLoad.Pts);
+        m_ElectrodesContext.LoadAtlasData(brainToLoad.Atlas);
         m_ElectrodesContext.UpdateElectrodesPosition(m_Electrodes);
     }
 
     //Left : sibling 0
     //Right : sibling 1
-    private GameObject UpdateOneHemisphere(string HemisphereName, int SiblingIndex, string FilePath)
+    private GameObject UpdateOneHemisphere(string HemisphereName, int SiblingIndex, string FilePath, string trmFilePath)
     {
         GameObject newHemisphere = new GameObject(HemisphereName, new System.Type[] { typeof(Hemisphere) });
         newHemisphere.transform.parent = gameObject.transform;
@@ -163,7 +165,7 @@ public class Brain : MonoBehaviour
         newHemisphere.layer = gameObject.layer;
 
         Hemisphere hemi = newHemisphere.GetComponent<Hemisphere>();
-        hemi.InitializeData(FilePath);
+        hemi.InitializeData(FilePath, trmFilePath);
         for (int i = 0; i < hemi.MeshesGameObjects.Count; i++)
         {
             hemi.MeshesGameObjects[i].transform.parent = newHemisphere.transform;

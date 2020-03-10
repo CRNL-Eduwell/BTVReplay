@@ -7,9 +7,9 @@ namespace BTV.Data
 {
     public class IEegDataContainer : DataContainer
     {
-        public IEegDataContainer(string path, File.FileType Type) : base(path)
+        public IEegDataContainer(IEegFileInfo fileInfo) : base(fileInfo.Files[0])
         {
-            File file = new File(Type, true, FilePath);
+            File file = new File(fileInfo.FileType, true, fileInfo.Files);
             List<Electrode> channels = file.Electrodes;
             foreach (var channel in channels)
             {

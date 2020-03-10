@@ -1,0 +1,170 @@
+[
+  {
+    "PatientName": "LYONNEURO_2017_DAMa_BTV",
+    "AnatomicalSpaces": {
+      "MNI": {
+        "HasAnat": true,
+        "LeftHemisphere": "D:\\Users\\Florian\\Documents\\Arbeit\\Repository\\Unity\\BTVReplay\\Assets\\Config\\Data\\MNI\\MNI_single_hight_Lhemi.tri",
+        "RightHemisphere": "D:\\Users\\Florian\\Documents\\Arbeit\\Repository\\Unity\\BTVReplay\\Assets\\Config\\Data\\MNI\\MNI_single_hight_Rhemi.tri",
+        "Transformation": "D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/transfo_mni.trm",
+        "Pts": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\MNI\\LYONNEURO_2017_DAMa_MNI.pts",
+        "Atlas": "",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      },
+      "PAT": {
+        "HasAnat": true,
+        "LeftHemisphere": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\PAT\\LYONNEURO_2017_DAMa_Lhemi.gii",
+        "RightHemisphere": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\PAT\\LYONNEURO_2017_DAMa_Rhemi.gii",
+        "Transformation": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\PAT\\RawT1-LYONNEURO_2017_DAMa_T1pre_2017-9-28_TO_Scanner_Based.trm",
+        "Pts": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\PAT\\LYONNEURO_2017_DAMa.pts",
+        "Atlas": "",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      }
+    },
+    "Files": {
+      "sm0": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\LYONNEURO_2017_DAMa_BTV_f50f150\\LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm0.eeg",
+        "Ent": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\LYONNEURO_2017_DAMa_BTV_f50f150\\LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm0.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      },
+      "sm250": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\LYONNEURO_2017_DAMa_BTV_f50f150\\LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm250.eeg",
+        "Ent": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\LYONNEURO_2017_DAMa_BTV_f50f150\\LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm250.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      }
+    },
+    "Video": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\LYONNEURO_2017_DAMa_BTV.mp4"
+  },
+  {
+    "PatientName": "LYONNEURO_2017_DAMa_MVIS",
+    "AnatomicalSpaces": {
+      "MNI": {
+        "HasAnat": true,
+        "LeftHemisphere": "D:\\Users\\Florian\\Documents\\Arbeit\\Repository\\Unity\\BTVReplay\\Assets\\Config\\Data\\MNI\\MNI_single_hight_Lhemi.tri",
+        "RightHemisphere": "D:\\Users\\Florian\\Documents\\Arbeit\\Repository\\Unity\\BTVReplay\\Assets\\Config\\Data\\MNI\\MNI_single_hight_Rhemi.tri",
+        "Transformation": "D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/transfo_mni.trm",
+        "Pts": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\BTV\\LYONNEURO_2017_DAMa_BTV\\MNI\\LYONNEURO_2017_DAMa_MNI.pts",
+        "Atlas": "",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      },
+      "PAT": {
+        "HasAnat": false,
+        "LeftHemisphere": "",
+        "RightHemisphere": "",
+        "Transformation": "",
+        "Pts": "",
+        "Atlas": "",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      }
+    },
+    "Files": {
+      "sm0": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\Loca\\LYONNEURO_2017_DAMa\\LYONNEURO_2017_DAMa_MVIS\\LYONNEURO_2017_DAMa_MVIS_f50f150\\LYONNEURO_2017_DAMa_MVIS_f50f150_ds16_sm0.eeg",
+        "Ent": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\Loca\\LYONNEURO_2017_DAMa\\LYONNEURO_2017_DAMa_MVIS\\LYONNEURO_2017_DAMa_MVIS_f50f150\\LYONNEURO_2017_DAMa_MVIS_f50f150_ds16_sm0.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      },
+      "sm250": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\Loca\\LYONNEURO_2017_DAMa\\LYONNEURO_2017_DAMa_MVIS\\LYONNEURO_2017_DAMa_MVIS_f50f150\\LYONNEURO_2017_DAMa_MVIS_f50f150_ds16_sm500.eeg",
+        "Ent": "D:\\Users\\Florian\\Documents\\Arbeit\\Data Patient\\Loca\\LYONNEURO_2017_DAMa\\LYONNEURO_2017_DAMa_MVIS\\LYONNEURO_2017_DAMa_MVIS_f50f150\\LYONNEURO_2017_DAMa_MVIS_f50f150_ds16_sm500.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      }
+    },
+    "Video": ""
+  },
+  {
+    "PatientName": "LYONNEURO_2019_IBRa_ASMR",
+    "AnatomicalSpaces": {
+      "MNI": {
+        "HasAnat": false,
+        "LeftHemisphere": "D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Lhemi.tri",
+        "RightHemisphere": "D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Rhemi.tri",
+        "Transformation": "D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/transfo_mni.trm",
+        "Pts": "",
+        "Atlas": "",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      },
+      "PAT": {
+        "HasAnat": false,
+        "LeftHemisphere": "",
+        "RightHemisphere": "",
+        "Transformation": "",
+        "Pts": "",
+        "Atlas": "",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      }
+    },
+    "Files": {
+      "sm0": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "D:\\Users\\Florian\\Desktop\\LYONNEURO_2019_IBRa_ASMR\\LYONNEURO_2019_IBRa_ASMR_f50f150\\LYONNEURO_2019_IBRa_ASMR_f50f150_ds8_sm0.eeg",
+        "Ent": "D:\\Users\\Florian\\Desktop\\LYONNEURO_2019_IBRa_ASMR\\LYONNEURO_2019_IBRa_ASMR_f50f150\\LYONNEURO_2019_IBRa_ASMR_f50f150_ds8_sm0.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      },
+      "sm250": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "D:\\Users\\Florian\\Desktop\\LYONNEURO_2019_IBRa_ASMR\\LYONNEURO_2019_IBRa_ASMR_f50f150\\LYONNEURO_2019_IBRa_ASMR_f50f150_ds8_sm250.eeg",
+        "Ent": "D:\\Users\\Florian\\Desktop\\LYONNEURO_2019_IBRa_ASMR\\LYONNEURO_2019_IBRa_ASMR_f50f150\\LYONNEURO_2019_IBRa_ASMR_f50f150_ds8_sm250.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      }
+    },
+    "Video": "D:\\Users\\Florian\\Desktop\\LYONNEURO_2019_IBRa_ASMR\\LYONNEURO_2019_IBRa_ASMR.mp4"
+  },
+  {
+    "PatientName": "LYONNEURO_2020_LAMm_BenTV",
+    "AnatomicalSpaces": {
+      "MNI": {
+        "HasAnat": true,
+        "LeftHemisphere": "D:\\Users\\Florian\\Documents\\Arbeit\\Repository\\Unity\\BTVReplay\\Assets\\Config\\Data\\MNI\\MNI_single_hight_Lhemi.tri",
+        "RightHemisphere": "D:\\Users\\Florian\\Documents\\Arbeit\\Repository\\Unity\\BTVReplay\\Assets\\Config\\Data\\MNI\\MNI_single_hight_Rhemi.tri",
+        "Transformation": "D:/Users/Florian/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/transfo_mni.trm",
+        "Pts": "D:\\Users\\Florian\\Desktop\\pat_son\\anat\\LYONNEURO_2020_LAMm_MNI.pts",
+        "Atlas": "",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      },
+      "PAT": {
+        "HasAnat": true,
+        "LeftHemisphere": "D:\\Users\\Florian\\Desktop\\pat_son\\anat\\LYONNEURO_2020_LAMm_Lhemi.gii",
+        "RightHemisphere": "D:\\Users\\Florian\\Desktop\\pat_son\\anat\\LYONNEURO_2020_LAMm_Rhemi.gii",
+        "Transformation": "",
+        "Pts": "D:\\Users\\Florian\\Desktop\\pat_son\\anat\\LYONNEURO_2020_LAMm.pts",
+        "Atlas": "D:\\Users\\Florian\\Desktop\\pat_son\\anat\\LYONNEURO_2020_LAMm.csv",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      }
+    },
+    "Files": {
+      "sm0": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "D:\\Users\\Florian\\Desktop\\pat_son\\LYONNEURO_2020_LAMm_BenTV\\LYONNEURO_2020_LAMm_BenTV_f50f150\\LYONNEURO_2020_LAMm_BenTV_f50f150_ds8_sm0.eeg",
+        "Ent": "D:\\Users\\Florian\\Desktop\\pat_son\\LYONNEURO_2020_LAMm_BenTV\\LYONNEURO_2020_LAMm_BenTV_f50f150\\LYONNEURO_2020_LAMm_BenTV_f50f150_ds8_sm0.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      }
+    },
+    "Video": "D:\\Users\\Florian\\Desktop\\pat_son\\LYONNEURO_2020_LAMm_BenTV\\LYONNEURO_2020_LAMm_BenTV.mp4"
+  }
+]

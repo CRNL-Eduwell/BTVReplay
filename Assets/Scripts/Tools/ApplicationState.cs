@@ -6,6 +6,8 @@ using UnityEngine.Events;
 using CielaSpike;
 using BTV.UI.Module3D;
 using BTV.Services.EventsService;
+using BTV.Services.EegFileService;
+using BTV.Services.VideoService;
 
 public static class ApplicationState
 {
@@ -27,6 +29,13 @@ public static class ApplicationState
             coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
         if (messageWindow == null)
             messageWindow = GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<MessageWindow>();
+    }
+
+    public static void ResetAllServices()
+    {
+        EegFileService.Reset();
+        VideoService.Reset();
+        EventsService.Reset();
     }
 
     // If in coroutine, need to be as such, otherwise it trigger error : "StartCoroutine_Auto_Internal can only be called from the main thread"

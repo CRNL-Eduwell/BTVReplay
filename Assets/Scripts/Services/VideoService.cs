@@ -25,7 +25,7 @@ namespace BTV.Services.VideoService
         {
             get
             {
-                return ApplicationState.Module3D.Patient.video;
+                return ApplicationState.Module3D.Patient.Video;
             }
         }
         public static string AudioFromVideoPath
@@ -88,6 +88,13 @@ namespace BTV.Services.VideoService
                     return "";
                 }
             }
+        }
+
+        public static void Reset()
+        {
+            m_ProcessedAudio = null;
+            m_RawAudioData = null;
+            FilteredDataLoaded = false;
         }
 
         #region AudioProcessing

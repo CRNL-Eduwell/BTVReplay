@@ -98,10 +98,10 @@ public class MarsAtlas : CppDLLImportBase
     /// <summary>
     /// Allocate DLL memory
     /// </summary>
-    protected override void createDLLClass(string str)
-    {
+    //protected override void createDLLClass(string str)
+    //{
 
-    }
+    //}
 
     /// <summary>
     /// Clean DLL memory

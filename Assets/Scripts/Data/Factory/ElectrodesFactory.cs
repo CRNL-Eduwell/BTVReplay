@@ -8,13 +8,13 @@ namespace Assets.Scripts.Data.Factory
 {
     public class ElectrodesFactory
     {
-        public static IElectrodesContext GetElectrodeContext(eeg_Technology eeg)
+        public static IElectrodesContext GetElectrodeContext(EegTechnology eeg)
         {
             switch (eeg)
             {
-                case eeg_Technology.intra:
+                case EegTechnology.Intra:
                     return new IntraContext();
-                case eeg_Technology.scalp:
+                case EegTechnology.Scalp:
                     return new ScalpContext();
                 default:
                     throw new ArgumentException("ElectrodesFactory.GetElectrodeContext : eeg_Technology value unknown => " + eeg);
