@@ -142,11 +142,15 @@ public class BTVMedia : MonoBehaviour
 
     void addPatientToDB()
     {
-        pm.AddSubject(addPatientPanel.GetSubjectsFromGUI());
-        if (patientContent.childCount == 0)
-            InstantiateDB();
-        else
-            loadOnePatient(pm.Subjects.Count - 1); 
+        Subject newSubject = addPatientPanel.GetSubjectsFromGUI();
+        if (newSubject != null)
+        {
+            pm.AddSubject(newSubject);
+            if (patientContent.childCount == 0)
+                InstantiateDB();
+            else
+                loadOnePatient(pm.Subjects.Count - 1);
+        }
     }
 
     void loadPatientGUI()
