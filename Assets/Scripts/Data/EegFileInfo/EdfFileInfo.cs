@@ -29,4 +29,42 @@ public class EdfFileInfo : IEegFileInfo
 
         Edf = fileInfo.FullName;
     }
+
+    #region operators
+    public override bool Equals(object obj)
+    {
+        if (obj is EdfFileInfo baseData)
+        {
+            return string.Equals(Edf, baseData.Edf);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public static bool operator ==(EdfFileInfo a, EdfFileInfo b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (((object)a == null) || ((object)b == null))
+        {
+            return false;
+        }
+
+        return a.Equals(b);
+    }
+    public static bool operator !=(EdfFileInfo a, EdfFileInfo b)
+    {
+        return !(a == b);
+    }
+    #endregion
 }

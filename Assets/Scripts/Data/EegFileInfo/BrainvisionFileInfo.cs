@@ -29,4 +29,43 @@ public class BrainvisionFileInfo : IEegFileInfo
 
         Header = fileInfo.FullName;
     }
+
+
+    #region operators
+    public override bool Equals(object obj)
+    {
+        if (obj is BrainvisionFileInfo baseData)
+        {
+            return string.Equals(Header, baseData.Header);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public static bool operator ==(BrainvisionFileInfo a, BrainvisionFileInfo b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (((object)a == null) || ((object)b == null))
+        {
+            return false;
+        }
+
+        return a.Equals(b);
+    }
+    public static bool operator !=(BrainvisionFileInfo a, BrainvisionFileInfo b)
+    {
+        return !(a == b);
+    }
+    #endregion
 }

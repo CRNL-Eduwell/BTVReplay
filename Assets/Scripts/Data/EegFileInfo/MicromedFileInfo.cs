@@ -29,4 +29,42 @@ public class MicromedFileInfo : IEegFileInfo
 
         Trc = fileInfo.FullName;
     }
+
+    #region operators
+    public override bool Equals(object obj)
+    {
+        if (obj is MicromedFileInfo baseData)
+        {
+            return string.Equals(Trc, baseData.Trc);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public static bool operator ==(MicromedFileInfo a, MicromedFileInfo b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (((object)a == null) || ((object)b == null))
+        {
+            return false;
+        }
+
+        return a.Equals(b);
+    }
+    public static bool operator !=(MicromedFileInfo a, MicromedFileInfo b)
+    {
+        return !(a == b);
+    }
+    #endregion
 }

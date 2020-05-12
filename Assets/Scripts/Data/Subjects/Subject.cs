@@ -1,11 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-public class Subject
+public class Subject : ViewModelBase
 {
-    public string PatientName { get; set; } = "";
+    public string PatientName
+    {
+        get
+        {
+            return m_PatientName;
+        }
+        set
+        {
+            if (m_PatientName != value)
+            {
+                m_PatientName = value;
+                RaisePropertyChanged("PatientName");
+            }
+        }
+    }
     public Dictionary<string, BrainDataContainer> AnatomicalSpaces { get; set; } = new Dictionary<string, BrainDataContainer>();
     public Dictionary<string, IEegFileInfo> Files { get; set; } = new Dictionary<string, IEegFileInfo>();
     public string Video { get; set; } = "";
+
+    [JsonIgnore]
+    private string m_PatientName = "";
 
     public Subject()
     {
@@ -34,4 +54,46 @@ public class Subject
         }
         return false;
     }
+
+    #region operators
+    public override bool Equals(object obj)
+    {
+        if (obj is Subject subject)
+        {
+            bool sameName = PatientName == subject.PatientName;
+            bool sameAnat = AnatomicalSpaces.All(k => subject.AnatomicalSpaces.Contains(k));
+            bool sameEeg = Files.All(k => subject.Files.Contains(k));
+            bool sameVideo = Video == subject.Video;
+            return sameName && sameAnat && sameEeg && sameVideo;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public static bool operator ==(Subject a, Subject b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (((object)a == null) || ((object)b == null))
+        {
+            return false;
+        }
+
+        return a.Equals(b);
+    }
+    public static bool operator !=(Subject a, Subject b)
+    {
+        return !(a == b);
+    }
+    #endregion
 }
