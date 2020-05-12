@@ -42,7 +42,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    [SerializeField] BTVMedia media = null;
     [SerializeField] EegSignal eegSignal = null;
     [SerializeField] AudioSignal audioSignal = null;
     [SerializeField] GraphLabel graphLabel = null;
@@ -78,7 +77,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         m_signalWindow1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
         m_signalWindow2 = GameObject.Find("Trace2Window").GetComponent<Trace>();
 
-        media.loadTrace += new initTrace(init);
+        //media.loadTrace += new initTrace(init);
+        Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
         Messenger.Default.Register<UiToTraceMessage>(this, OnTraceParametersMessage, MessageContext.UiToTrace);
         Messenger.Default.Register<UiToVideoMessage>(this, OnVideoParametersMessage, MessageContext.UiToVideo);
         Messenger.Default.Register<EventsToTraceMessage>(this, OnEventsToTraceMessage, MessageContext.EventsToTraceMessage);
@@ -88,13 +88,14 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     void OnDestroy()
     {
-        media.loadTrace -= new initTrace(init);
+        //media.loadTrace -= new initTrace(init);
         if (m_initDone)
         {
             //hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeById);
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
             //hub.traceRemotes[traceID].deleteElectrodeInPanel();
 
+            Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
             Messenger.Default.Unregister(this, MessageContext.UiToTrace);
             Messenger.Default.Unregister(this, MessageContext.UiToVideo);
             Messenger.Default.Unregister(this, MessageContext.EventsToTraceMessage);
@@ -115,6 +116,14 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 else
                     updateElectrodeById(eegSignal.ElectrodeID + 1);
             }
+        }
+    }
+
+    private void OnLoaderMessage(LoaderMessage message)
+    {
+        if (message.Task == LoaderMessage.LoaderTask.LoadTrace)
+        {
+            init();
         }
     }
 

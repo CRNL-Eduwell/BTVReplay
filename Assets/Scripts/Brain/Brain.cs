@@ -13,26 +13,29 @@ public class Brain : MonoBehaviour
 
     void Awake()
     {
-        Messenger.Default.Register<LoaderToBrainMessage>(this, OnBrainLoaderMessage, MessageContext.LoaderToBrain);
+        Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
         Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
     }
 
     void OnDestroy()
     {
-        Messenger.Default.Unregister(this, MessageContext.LoaderToBrain);
+        Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
     }
 
-    private void OnBrainLoaderMessage(LoaderToBrainMessage message)
+    private void OnLoaderMessage(LoaderMessage message)
     {
-        UnityEngine.Debug.Log("Onbrainloadermessage");
-        if (message.HasAnatomy)
+        if (message.Task == LoaderMessage.LoaderTask.LoadBrain)
         {
-            LoadBrainAndElectrodes(message.Anatomy);
-        }
-        else
-        {
-            LoadElectrodesDefault(message.Techno);
+            UnityEngine.Debug.Log("OnLoader Message => LoadBrain");
+            if (message.HasAnatomy)
+            {
+                LoadBrainAndElectrodes(message.Anatomy);
+            }
+            else
+            {
+                LoadElectrodesDefault(message.Techno);
+            }
         }
     }
 

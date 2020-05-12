@@ -6,12 +6,12 @@ using UnityEngine.UI;
 
 public class EegInfoGUIManager : MonoBehaviour
 {
-    [SerializeField] browseButton _EegFile = null;
+    [SerializeField] BrowseWidget _EegFile = null;
     [SerializeField] InputField _KeyField = null;
 
     public KeyValuePair<string, IEegFileInfo> GetEegFileInfoFromGUI()
     {
-        string path = _EegFile.inputfield.text;
+        string path = _EegFile._InputField.text;
         if (!string.IsNullOrEmpty(path))
         {
             string key = _KeyField.text;
@@ -40,7 +40,7 @@ public class EegInfoGUIManager : MonoBehaviour
     public void SetEegFileInfoToGUI(KeyValuePair<string, IEegFileInfo> kvp)
     {
         bool isDefaultValue = kvp.Equals(default(KeyValuePair<string, IEegFileInfo>));
-        _EegFile.inputfield.text = isDefaultValue ? "" : kvp.Value.Files[0];
+        _EegFile._InputField.text = isDefaultValue ? "" : kvp.Value.Files[0];
         _KeyField.text = isDefaultValue ? "" : kvp.Key;
     }
 }

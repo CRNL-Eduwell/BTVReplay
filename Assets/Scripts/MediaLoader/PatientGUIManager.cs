@@ -8,16 +8,18 @@ using UnityEngine.UI;
 
 public class PatientGUIManager : MonoBehaviour
 {
+    public Subject LastSubject { get; private set; } = null;
+
     [SerializeField] BrainAnatGUIManager _MniGUIManager = null;
     [SerializeField] BrainAnatGUIManager _PatGUIManager = null;
     [SerializeField] EegInfoGUIManager[] _EegFiles = new EegInfoGUIManager[6] { null, null, null, null, null, null, };
-    [SerializeField] browseButton _Video = null;
+    [SerializeField] BrowseWidget _Video = null;
 
     public Subject GetSubjectsFromGUI()
     {
         Subject myPat = new Subject();
 
-        myPat.PatientName = GetHeaderText();
+        //myPat.PatientName = GetHeaderText();
 
         myPat.AnatomicalSpaces.Add("MNI", _MniGUIManager.GetDataContainer());
         myPat.AnatomicalSpaces.Add("PAT", _PatGUIManager.GetDataContainer());
@@ -43,14 +45,30 @@ public class PatientGUIManager : MonoBehaviour
                 }
             }
         }
-        myPat.Video = _Video.inputfield.text;
+        myPat.Video = _Video._InputField.text;
 
         return myPat;
     }
 
+    public void SetToDefault()
+    {
+        LastSubject = GetSubjectsFromGUI();
+
+        _MniGUIManager.SetDataConainerInUI(new BrainDataContainer());
+        _PatGUIManager.SetDataConainerInUI(new BrainDataContainer());
+
+        int fileCount = _EegFiles.Length;
+        for (int i = 0; i < fileCount; i++)
+            _EegFiles[i].SetEegFileInfoToGUI(default);
+
+        _Video._InputField.text = "";
+    }
+
     public void SetSubjectToGUI(Subject subject)
     {
-        SetHeadertext(subject.PatientName);
+        LastSubject = GetSubjectsFromGUI();
+
+        //SetHeadertext(subject.PatientName);
 
         bool mniFound = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
         if(mniFound) _MniGUIManager.SetDataConainerInUI(mniContainer);
@@ -62,28 +80,6 @@ public class PatientGUIManager : MonoBehaviour
         for (int i = 0; i < fileCount; i++)
             _EegFiles[i].SetEegFileInfoToGUI(subject.Files.ElementAtOrDefault(i));
 
-        _Video.inputfield.text = subject.Video;
-    }
-
-    private string GetHeaderText()
-    {
-        string subjectName = "";
-        int indexToLook = transform.GetSiblingIndex() - 1;
-        if (indexToLook >= 0 && indexToLook < transform.parent.childCount)
-        {
-            Transform t = transform.parent.GetChild(indexToLook);
-            subjectName = t.GetChild(1).GetComponent<InputField>().text;
-        }
-        return subjectName;
-    }
-
-    private void SetHeadertext(string subjectName)
-    {
-        int indexToLook = transform.GetSiblingIndex() - 1;
-        if (indexToLook >= 0 && indexToLook < transform.parent.childCount)
-        {
-            Transform t = transform.parent.GetChild(indexToLook);
-            t.GetChild(1).GetComponent<InputField>().text = subjectName;
-        }
+        _Video._InputField.text = subject.Video;
     }
 }

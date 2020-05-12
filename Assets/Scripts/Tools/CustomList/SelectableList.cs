@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
 {
+    /// WARNING : In case of issue => OnSelectionChangeCallBack() commented line 130 , was not in the original version in case of issue
     public class SelectableList<T> : List<T>, ISelectionCountable
     {
         #region Properties
@@ -125,7 +126,7 @@ namespace Tools.Unity.Lists
             {
                 (item as SelectableItem<T>).Select(false, transition);
             }
-            OnSelectionChangeCallBack();
+            //OnSelectionChangeCallBack();
         }
         public virtual void Deselect(IEnumerable<T> objectsToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {

@@ -8,6 +8,7 @@ using BTV.UI.Module3D;
 using BTV.Services.EventsService;
 using BTV.Services.EegFileService;
 using BTV.Services.VideoService;
+using BTV.UI;
 
 public static class ApplicationState
 {
@@ -23,8 +24,12 @@ public static class ApplicationState
     }
     #endregion
 
+    private static GameObject m_InputFieldWindowPrefabs = null;
+
     public static void init()
     {
+        m_InputFieldWindowPrefabs = Resources.Load("Prefabs/UIElements/InputFieldWindow", typeof(GameObject)) as GameObject;
+
         if (coroutineManager == null)
             coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
         if (messageWindow == null)
@@ -63,5 +68,15 @@ public static class ApplicationState
         yield return Ninja.JumpBack;
 
         yield return null;
+    }
+
+    public static InputFieldWindow SpawFrequencyChoiceWindow()
+    {
+        m_InputFieldWindowPrefabs = Resources.Load("Prefabs/UIElements/InputFieldWindow", typeof(GameObject)) as GameObject; //enlever d'ici quand le debug de la nouvelle db est finis
+
+        GameObject viewGameObject = GameObject.Find("Canvas");
+        GameObject inputField = GameObject.Instantiate(m_InputFieldWindowPrefabs, viewGameObject.transform);
+        InputFieldWindow window = inputField.GetComponent<InputFieldWindow>();
+        return window;
     }
 }

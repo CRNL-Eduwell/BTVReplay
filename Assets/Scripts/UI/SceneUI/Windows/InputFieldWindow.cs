@@ -11,7 +11,7 @@ namespace BTV.UI
     public class InputFieldWindow : MonoBehaviour
     {
         public bool IsClosed { get; private set; } = false;
-        public string StringValue { get { return m_InputField.text; } }
+        public string StringValue { get { return m_InputField.text; } set { m_InputField.text = value; } }
         public int IntValue { get { return StringValue.TryParseInt(out int result) ? result : 0; } }
 
         [SerializeField]

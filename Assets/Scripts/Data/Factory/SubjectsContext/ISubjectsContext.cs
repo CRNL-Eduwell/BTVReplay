@@ -11,6 +11,7 @@ namespace Assets.Scripts.Data.Factory
         string FilePath
         {
             get;
+            set;
         }
     }
 }

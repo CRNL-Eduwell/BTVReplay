@@ -14,29 +14,43 @@ public class ReloadMedia : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    //private void Update()
+    //{
+    //    if (TriggerReload)
+    //    {
+    //        GameObject mediaGameObject = GameObject.Find("Canvas").transform.GetChild(1).gameObject;
+    //        mediaGameObject.SetActive(true);
+    //        mediaGameObject.SetActive(false);
+    //        BTVMedia media = mediaGameObject.GetComponent<BTVMedia>();
+    //        if (media != null)
+    //        {
+
+    //            PatientGUIManager patManager = media.transform.gameObject.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<PatientGUIManager>();
+    //            patManager.SetSubjectToGUI(SubjectToReload);
+    //            //==
+    //            ApplicationState.ResetAllServices();
+    //            //==
+    //            media.pm.LoadList(false, Path);
+    //            media.pm.idCurrentPatientLoaded = Id;
+    //            media.gameObject.SetActive(true);
+    //            media.InstantiateDB();
+    //            media.loadMedia(media.pm.Subjects[media.pm.idCurrentPatientLoaded]);
+    //            Destroy(gameObject);
+    //        }
+    //    }
+    //}
+
     private void Update()
     {
         if (TriggerReload)
         {
-            GameObject mediaGameObject = GameObject.Find("Canvas").transform.GetChild(1).gameObject;
-            mediaGameObject.SetActive(true);
-            mediaGameObject.SetActive(false);
-            BTVMedia media = mediaGameObject.GetComponent<BTVMedia>();
-            if (media != null)
+            ApplicationState.ResetAllServices();
+            LoadSubjectMessage message = new LoadSubjectMessage
             {
-
-                PatientGUIManager patManager = media.transform.gameObject.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<PatientGUIManager>();
-                patManager.SetSubjectToGUI(SubjectToReload);
-                //==
-                ApplicationState.ResetAllServices();
-                //==
-                media.pm.LoadList(false, Path);
-                media.pm.idCurrentPatientLoaded = Id;
-                media.gameObject.SetActive(true);
-                media.InstantiateDB();
-                media.loadMedia(media.pm.Subjects[media.pm.idCurrentPatientLoaded]);
-                Destroy(gameObject);
-            }
+                subject = new Subject(SubjectToReload)
+            };
+            Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
+            Destroy(gameObject);
         }
     }
 }

@@ -12,8 +12,6 @@ using UnityEngine.UI;
 public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField]
-    private BTVMedia media = null;
-    [SerializeField]
     private LayoutElement m_ParentLayoutElement = null;
     [SerializeField]
     private RawImage m_TextureRawImage = null;
@@ -52,7 +50,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     {
         m_rectTransform = gameObject.transform.GetComponent<RectTransform>();
 
-        media.loadTrace += new initTrace(Init);
+        Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
     }
 
     private void Start()
@@ -64,13 +62,21 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     private void OnDestroy()
     {
-        media.loadTrace -= new initTrace(Init);
+        Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
     }
 
     private void OnRectTransformDimensionsChange()
     {
         UpdateHorizontalScale();
         UpdateDraw(m_ParentLayoutElement.minHeight);
+    }
+
+    private void OnLoaderMessage(LoaderMessage message)
+    {
+        if (message.Task == LoaderMessage.LoaderTask.LoadTrace)
+        {
+            Init();
+        }
     }
 
     public void OnPointerClick(PointerEventData eventData)

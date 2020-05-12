@@ -18,5 +18,10 @@ enum MessageContext
     BrainWardenToElectrodePointerMessage,
     BrainWardenToTraceMessage,
     ModulesToVideoMessage,
-    VideoToModulesMessage
+    VideoToModulesMessage,
+    FileMenuMessage,
+    EditMenuMessage,
+    LoadSubjectMessage,
+    LoaderMessage,
+    ShowWindowMessage
 }

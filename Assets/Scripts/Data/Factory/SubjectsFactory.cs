@@ -7,6 +7,11 @@ namespace Assets.Scripts.Data.Factory
 {
     public class SubjectsFactory
     {
+        public static ISubjectsContext GetEmptyContext()
+        {
+            return new DBFile2();
+        }
+
         public static ISubjectsContext GetSubjectsContext(string FilePath)
         {
             FileInfo fileInfo = new FileInfo(FilePath);
