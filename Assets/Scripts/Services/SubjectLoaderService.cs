@@ -185,7 +185,7 @@ public class SubjectLoaderService : MonoBehaviour
         {
             // I give my callback to the process
             // Async needed for another thread and not freezing/laging UI
-            return this.StartCoroutineAsync(EegFileService.c_Load(kvp.Value, FileID));
+            return this.StartCoroutineAsync(EegFileService.c_Load(kvp.Value, FileID, kvp.Key));
         }
 
         return null;

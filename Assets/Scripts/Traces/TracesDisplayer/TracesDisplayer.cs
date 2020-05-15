@@ -221,7 +221,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         }
         FileHandle = EegFileService.ChangeContainerHandle(FileHandle, m_ContainerId);
         Channel = FileHandle.Channels[m_currentElectrodeID];
-        m_FileLabel.Label = "File " + m_ContainerId.ToString();
+        m_FileLabel.Label = FileHandle.Description;
     }
 
     public void AddEvents(List<BtvEvent> btvEvents)

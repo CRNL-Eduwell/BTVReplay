@@ -17,7 +17,7 @@ namespace BTV.Services.EegFileService
             m_EegFiles = new BtvProgram[6] { null, null, null, null, null, null };
         }
 
-        public static IEnumerator c_Load(IEegFileInfo fileInfo, int FileID)
+        public static IEnumerator c_Load(IEegFileInfo fileInfo, int FileID, string description)
         {
             if (FileID >= 6)
                 throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
@@ -25,13 +25,13 @@ namespace BTV.Services.EegFileService
             if (fileInfo.Files.Length > 0 && System.IO.File.Exists(fileInfo.Files[0]))
             {
                 IEegDataContainer container = new IEegDataContainer(fileInfo);
-                m_EegFiles[FileID] = new BtvProgram(container);
+                m_EegFiles[FileID] = new BtvProgram(container, description);
             }
 
             yield return null;
         }
 
-        public static void Load(IEegFileInfo fileInfo, int FileID)
+        public static void Load(IEegFileInfo fileInfo, int FileID, string description)
         {
             if (FileID >= 6)
                 throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
@@ -39,7 +39,7 @@ namespace BTV.Services.EegFileService
             if (fileInfo.Files.Length > 0 && System.IO.File.Exists(fileInfo.Files[0]))
             {
                 IEegDataContainer container = new IEegDataContainer(fileInfo);
-                m_EegFiles[FileID] = new BtvProgram(container);
+                m_EegFiles[FileID] = new BtvProgram(container, description);
             }
         }
 

@@ -31,6 +31,7 @@ namespace BTV.Data
                 return Channels.Count > 0 ? Channels[0].NumberOfSample : 0;
             }
         }
+        public string Description { get; private set; } = "";
         public List<BtvChannel> Channels { get; private set; } = new List<BtvChannel>();
         public Frequency Frequency { get; set; } = new Frequency();
         public string Directory
@@ -42,7 +43,7 @@ namespace BTV.Data
         }
         private readonly string m_FilePath = "";
 
-        public BtvProgram(DataContainer container)
+        public BtvProgram(DataContainer container, string description = "")
         {
             int count = 0;
             foreach (KeyValuePair<string, float[]> pair in container.ValuesByChannel)
@@ -52,6 +53,7 @@ namespace BTV.Data
             }
             Frequency = container.Frequency;
             m_FilePath = container.FilePath;
+            Description = description;
         }
 
         public int GetElectrodeIDFromElectrodeName(string Name, bool IsLowerCaseName = false)
