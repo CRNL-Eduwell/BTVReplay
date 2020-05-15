@@ -20,6 +20,7 @@ public class SubjectList : Tools.Unity.Lists.SelectableList<Subject>
         {
             AddElement(subject);
         }
+        Refresh();
     }
 
     public void AddElement(Subject subject)
@@ -50,7 +51,6 @@ public class SubjectList : Tools.Unity.Lists.SelectableList<Subject>
         {
             m_SelectedStateByObject.Remove(oldSubject);
             m_SelectedStateByObject.Add(newSubject, false);
-            //==
             m_Objects[index] = newSubject;
             OnSelectionChangeCallBack();
             Refresh();

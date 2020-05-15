@@ -110,5 +110,14 @@ namespace BTV.Services.DatabaseService
                 }
             }
         }
+
+        public static void UpdateSubjectFromDatabase(int dbIndex, Subject oldSubject, Subject newSubject)
+        {
+            if (dbIndex != -1)
+            {
+                UnityEngine.Debug.Log("Replace subject in " + dbIndex + " , Repository found");
+                Databases[dbIndex].Update(oldSubject, newSubject);
+            }
+        }
     }
 }

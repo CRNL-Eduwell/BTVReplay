@@ -15,6 +15,22 @@ public class PatientGUIManager : MonoBehaviour
     [SerializeField] EegInfoGUIManager[] _EegFiles = new EegInfoGUIManager[6] { null, null, null, null, null, null, };
     [SerializeField] BrowseWidget _Video = null;
 
+    private void Awake()
+    {
+        foreach (var eeg in _EegFiles)
+        {
+            eeg.onEndEditKey.AddListener((str)=> { IsKeyOk(str, eeg); });
+        }
+    }
+
+    private void OnDestroy()
+    {
+        foreach (var eeg in _EegFiles)
+        {
+            eeg.onEndEditKey.RemoveAllListeners();
+        }
+    }
+
     public Subject GetSubjectsFromGUI()
     {
         Subject myPat = new Subject();
@@ -32,12 +48,14 @@ public class PatientGUIManager : MonoBehaviour
                 if (string.IsNullOrEmpty(kvp.Key))
                 {
                     ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to define a key for the eeg file that is not a null/empty string");
-                    return null;
+                    //return null;
+                    continue;
                 }
                 else if (myPat.Files.ContainsKey(kvp.Key))
                 {
                     ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to have a different key for each eeg file");
-                    return null;
+                    continue;
+                    //return null;
                 }
                 else
                 {
@@ -45,9 +63,35 @@ public class PatientGUIManager : MonoBehaviour
                 }
             }
         }
-        myPat.Video = _Video._InputField.text;
+        myPat.Video = _Video.Text;
 
         return myPat;
+    }
+
+    private void IsKeyOk(string str, EegInfoGUIManager eeg)
+    {
+        if (string.IsNullOrEmpty(str))
+        {
+            ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to define a key for the eeg file that is not a null/empty string");
+            eeg.RevertKeyField();
+            return;
+        }
+
+        List<string> keys = new List<string>(); 
+        int fileCount = _EegFiles.Length;
+        for (int i = 0; i < fileCount; i++)
+        {
+            if (_EegFiles[i] == eeg) continue; //if this is the one modified , we don't want to take it into account
+            KeyValuePair<string, IEegFileInfo> kvp = _EegFiles[i].GetEegFileInfoFromGUI();
+            keys.Add(kvp.Key);
+        }
+
+        if (keys.Contains(str))
+        {
+            ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to have a different key for each eeg file");
+            eeg.RevertKeyField();
+            return;
+        }
     }
 
     public void SetToDefault()
@@ -61,7 +105,7 @@ public class PatientGUIManager : MonoBehaviour
         for (int i = 0; i < fileCount; i++)
             _EegFiles[i].SetEegFileInfoToGUI(default);
 
-        _Video._InputField.text = "";
+        _Video.Text = "";
     }
 
     public void SetSubjectToGUI(Subject subject)
@@ -80,6 +124,6 @@ public class PatientGUIManager : MonoBehaviour
         for (int i = 0; i < fileCount; i++)
             _EegFiles[i].SetEegFileInfoToGUI(subject.Files.ElementAtOrDefault(i));
 
-        _Video._InputField.text = subject.Video;
+        _Video.Text = subject.Video;
     }
 }

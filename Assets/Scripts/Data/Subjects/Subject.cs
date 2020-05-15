@@ -61,8 +61,8 @@ public class Subject : ViewModelBase
         if (obj is Subject subject)
         {
             bool sameName = PatientName == subject.PatientName;
-            bool sameAnat = AnatomicalSpaces.All(k => subject.AnatomicalSpaces.Contains(k));
-            bool sameEeg = Files.All(k => subject.Files.Contains(k));
+            bool sameAnat = AnatomicalSpaces.All(k => subject.AnatomicalSpaces.Contains(k)) && AnatomicalSpaces.Count == subject.AnatomicalSpaces.Count;
+            bool sameEeg = Files.All(k => subject.Files.Contains(k)) && Files.Count == subject.Files.Count;
             bool sameVideo = Video == subject.Video;
             return sameName && sameAnat && sameEeg && sameVideo;
         }

@@ -24,6 +24,7 @@ public class PatientBaseGUIManager : MonoBehaviour
 
     private SubjectRepository m_LastSelectedRepository = null;
     private Subject m_LastSelectedSUbject = null;
+    private bool m_dbSwitch = false;
 
     private void Start()
     {
@@ -41,53 +42,7 @@ public class PatientBaseGUIManager : MonoBehaviour
         m_SubjectList.OnSelectionChanged.AddListener(UpdateShownSubject);
         m_LoadSubject.onClick.AddListener(LoadSelectedPatient);
 
-        //TODO
-        m_DatabaseList.OnSelectionChanged.AddListener(OnDatabaseSelectionChanged);
         m_SubjectList.OnSelectionChanged.AddListener(OnSubjectSelectionChanged);
-
-    }
-
-    public void OnDatabaseSelectionChanged()
-    {
-        SubjectRepository[] list = m_DatabaseList.ObjectsSelected;
-        if (list.Length > 0)
-        {
-            m_LastSelectedRepository = list[0];
-        }
-        else
-        {
-            m_LastSelectedRepository = null;
-        }
-    }
-
-    public void OnSubjectSelectionChanged()
-    {
-        if (m_LastSelectedSUbject != null)
-        {
-            m_PatientManager.LastSubject.PatientName = m_LastSelectedSUbject.PatientName;
-            if (m_LastSelectedSUbject != m_PatientManager.LastSubject)
-            {
-                Subject old = new Subject(m_LastSelectedSUbject); //make a copy of the previously selected object before the selection change items
-                UnityEngine.Debug.Log("Need to check if " + m_LastSelectedSUbject.PatientName + " has been modified");
-                ApplicationState.displayConfirmation("Keep Modifications ?", "There seems to have been some modifications, do you want to save them ?",
-                    () =>
-                    {
-                        Subject replacement = new Subject(m_PatientManager.LastSubject);
-                        DatabaseService.UpdateSubjectFromDatabase(m_LastSelectedRepository, old, replacement);
-                    },
-                    () => { });
-            }
-        }
-
-        Subject[] list = m_SubjectList.ObjectsSelected;
-        if (list.Length > 0)
-        {
-            m_LastSelectedSUbject = list[0];
-        }
-        else
-        {
-            m_LastSelectedSUbject = null;
-        }
     }
 
     private void OnDestroy()
@@ -181,10 +136,16 @@ public class PatientBaseGUIManager : MonoBehaviour
                 }
             case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
                 {
-                    UnityEngine.Debug.Log("Replacing a Subject element : ");
-                    Subject itemToRemove = (Subject)e.OldItems[0];
-                    Subject itemToAdd = (Subject)e.NewItems[0];
-                    m_SubjectList.ReplaceElement(itemToRemove, itemToAdd);
+                    //We only need to update the element in the graphical object in case of 
+                    //a subject to subject switch, if it's a change of db we only need the 
+                    //underlying collection to be updated
+                    if (!m_dbSwitch)
+                    {
+                        UnityEngine.Debug.Log("Replacing a Subject element : ");
+                        Subject itemToRemove = (Subject)e.OldItems[0];
+                        Subject itemToAdd = (Subject)e.NewItems[0];
+                        m_SubjectList.ReplaceElement(itemToRemove, itemToAdd);
+                    }
                 }
                 break;
             case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
@@ -273,14 +234,20 @@ public class PatientBaseGUIManager : MonoBehaviour
         }
     }
 
+    //====================================================================================================================
     private void UpdateShownDatabase()
     {
+        m_dbSwitch = true;
         SubjectRepository[] SelectedElements = m_DatabaseList.ObjectsSelected;
         m_SubjectList.RemoveAllElements();
         if (SelectedElements.Length > 0)
         {
             m_SubjectList.AddElements(SelectedElements[0].Subjects.ToList());
+            //m_LastSelectedRepository = SelectedElements[0];
+            //OnDatabaseSelectionChanged();
         }
+        OnDatabaseSelectionChanged();
+        m_dbSwitch = false;
     }
 
     private void UpdateShownSubject()
@@ -294,7 +261,39 @@ public class PatientBaseGUIManager : MonoBehaviour
         {
             m_PatientManager.SetToDefault();
         }
+        //OnSubjectSelectionChanged();
     }
+
+    public void OnDatabaseSelectionChanged()
+    {
+        SubjectRepository[] SelectedElements = m_DatabaseList.ObjectsSelected;
+        m_LastSelectedRepository = (SelectedElements.Length > 0) ? SelectedElements[0] : null;
+    }
+
+    public void OnSubjectSelectionChanged()
+    {
+        if (m_LastSelectedRepository != null && m_LastSelectedSUbject != null)
+        {
+            m_PatientManager.LastSubject.PatientName = m_LastSelectedSUbject.PatientName;
+            if (m_LastSelectedSUbject != m_PatientManager.LastSubject)
+            {
+                int dd = DatabaseService.Databases.IndexOf(m_LastSelectedRepository);
+                Subject updated = new Subject(m_PatientManager.LastSubject);
+                Subject outdated = new Subject(m_LastSelectedSUbject);
+                ApplicationState.displayConfirmation("Keep Modifications ?", "There seems to have been some modifications, do you want to save them ?",
+                    () =>
+                    {
+                        DatabaseService.UpdateSubjectFromDatabase(dd, outdated, updated);
+                    },
+                    () => { });
+            }
+        }
+
+        Subject[] SelectedElements = m_SubjectList.ObjectsSelected;
+        m_LastSelectedSUbject = (SelectedElements.Length > 0) ? SelectedElements[0] : null;
+    }
+
+    //====================================================================================================================
 
     private void EditDatabaseName()
     {
