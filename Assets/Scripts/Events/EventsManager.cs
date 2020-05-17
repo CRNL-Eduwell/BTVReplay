@@ -331,14 +331,14 @@ public class EventsManager : MonoBehaviour
         }
     }
 
-    IEnumerator ProcessCorrelation(BtvEvent currentEvent)
+    private IEnumerator ProcessCorrelation(BtvEvent currentEvent)
     {
         yield return Ninja.JumpBack;
         this.StartCoroutineAsync(c_Correlation(currentEvent));
         yield return Ninja.JumpToUnity;
     }
 
-    IEnumerator c_Correlation(BtvEvent currentEvent)
+    private IEnumerator c_Correlation(BtvEvent currentEvent)
     {
         int samplingFrequency = ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
         int electrodeCount = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
@@ -384,18 +384,35 @@ public class EventsManager : MonoBehaviour
         yield return null;
     }
 
-    IEnumerator Process2dCorrelation(BtvEvent currentEvent)
+    private IEnumerator Process2dCorrelation(BtvEvent currentEvent)
     {
-        yield return Ninja.JumpBack;
-        this.StartCoroutineAsync(c_Correlation2d(currentEvent));
-        yield return Ninja.JumpToUnity;
+        yield return this.StartCoroutineAsync(c_Correlation2d(currentEvent), out Task AudioFilteringTask);
+        switch (AudioFilteringTask.State)
+        {
+            case TaskState.Error:
+                {
+                    yield return Ninja.JumpToUnity;
+                    ApplicationState.displayMessage("Error Processing Correlations", "NOK", AudioFilteringTask.Exception.Message.ToString());
+                    yield return Ninja.JumpBack;
+                    break;
+                }
+        }
     }
 
-    IEnumerator c_Correlation2d(BtvEvent currentEvent)
+    private IEnumerator c_Correlation2d(BtvEvent currentEvent)
     {
-        int samplingFrequency = ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
-        int electrodeCount = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
         int eventIndex = EventsService.GetEventId(currentEvent);
+
+        BtvProgram container1 = ApplicationState.Module3D.Window1.TraceEeg.FileHandle;
+        BtvProgram container2 = ApplicationState.Module3D.Window2.TraceEeg.FileHandle;
+
+        if (container1.Description != container2.Description && container1.NumberOfElectrodes != container2.NumberOfElectrodes)
+        {
+            throw new ArgumentException("c_Correlation2d : Number of electrode is not the same in the two files used");
+        }
+
+        int samplingFrequency = container2.Frequency.Value;
+        int electrodeCount = container2.NumberOfElectrodes;
 
         EventsService.Events[eventIndex].Correlation = null;
         EventsService.Events[eventIndex].Correlation2D = new float[electrodeCount][];
@@ -406,15 +423,14 @@ public class EventsManager : MonoBehaviour
         int durationInSample = (EventsService.Events[eventIndex].Duration / 1000) * samplingFrequency;
 
         int[] sizes = { beginTimeSample, durationInSample };
-        BtvProgram container = ApplicationState.Module3D.Window1.TraceEeg.FileHandle;
         for (int i = 0; i < electrodeCount; i++)
         {
             for (int j = 0; j < electrodeCount; j++)
             {
                 if (i == j)
                     continue;
-                float[] baseline = container.Channels[i].Data;
-                float[] channel = container.Channels[j].Data;
+                float[] baseline = container1.Channels[i].Data;
+                float[] channel = container2.Channels[j].Data;
                 EventsService.Events[eventIndex].Correlation2D[i][j] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
             }
         }

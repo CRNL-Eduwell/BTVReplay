@@ -66,7 +66,6 @@ public class SubjectLoaderService : MonoBehaviour
 
         //When everything is loaded we close the loading brain and media panel
         loadingCircle.Close();
-        gameObject.SetActive(false);
         loaded = true;
         Text PatientNameHeader = GameObject.Find("HeaderDisplay").transform.GetChild(0).GetComponent<Text>();
         PatientNameHeader.text = subject.PatientName;
