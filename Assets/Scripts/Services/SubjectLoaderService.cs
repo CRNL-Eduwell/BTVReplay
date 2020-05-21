@@ -212,8 +212,6 @@ public class SubjectLoaderService : MonoBehaviour
 
         ReloadMedia r = reloadGameObject.GetComponent<ReloadMedia>();
         r.SubjectToReload = new Subject(subject);
-        r.Id = 0;// pm.idCurrentPatientLoaded;
-        r.Path = "";// string.Copy(pm.pathFile);
         r.TriggerReload = true;
         SceneManager.LoadScene("_main");
     }

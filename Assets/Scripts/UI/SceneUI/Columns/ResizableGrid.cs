@@ -44,7 +44,6 @@ public class ResizableGrid : MonoBehaviour
     [SerializeField] private List<ColumnGUIManager> m_Columns = new List<ColumnGUIManager>();
 
     private float m_MinimumViewWidth = 35f;
-    private bool m_Init = false;
 
     private void Start()
     {

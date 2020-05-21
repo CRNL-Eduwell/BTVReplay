@@ -33,7 +33,7 @@ public static class ApplicationState
         if (coroutineManager == null)
             coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = GameObject.Find("Canvas").transform.GetChild(3).GetChild(0).GetComponent<MessageWindow>();
     }
 
     public static void ResetAllServices()
