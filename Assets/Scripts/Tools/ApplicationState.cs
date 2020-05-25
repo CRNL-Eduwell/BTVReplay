@@ -50,7 +50,7 @@ public static class ApplicationState
     public static void displayMessage(string HeaderMessage, string TypeMessage, string DetailledMessage)
     {
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = GameObject.Find("Canvas").transform.GetChild(3).GetChild(0).GetComponent<MessageWindow>();
         messageWindow.display(HeaderMessage, TypeMessage, DetailledMessage);
     }
 
