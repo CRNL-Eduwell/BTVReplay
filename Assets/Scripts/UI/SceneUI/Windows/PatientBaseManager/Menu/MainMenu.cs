@@ -11,12 +11,13 @@ namespace BTV.UI
 
         [SerializeField] private FileMenu m_FileMenu = null;
         [SerializeField] private EditMenu m_EditMenu = null;
+        [SerializeField] private OptionMenu m_Option = null;
 
         private bool IsOneMenuOpen
         {
             get
             {
-                return m_FileMenu.IsOpen || m_EditMenu.IsOpen;
+                return m_FileMenu.IsOpen || m_EditMenu.IsOpen || m_Option.IsOpen;
             }
         }
 
@@ -42,6 +43,16 @@ namespace BTV.UI
                 if (isHovered && IsOneMenuOpen)
                     m_EditMenu.Open();
             });
+            m_Option.OnChangeOpenState.AddListener((isOpen) =>
+            {
+                if (isOpen)
+                    Set(m_Option);
+            });
+            m_Option.OnHover.AddListener((isHovered) =>
+            {
+                if (isHovered && IsOneMenuOpen)
+                    m_Option.Open();
+            });
         }
 
         private void OnDestroy()
@@ -50,6 +61,8 @@ namespace BTV.UI
             m_FileMenu.OnHover.RemoveAllListeners();
             m_EditMenu.OnChangeOpenState.RemoveAllListeners();
             m_EditMenu.OnHover.RemoveAllListeners();
+            m_Option.OnChangeOpenState.RemoveAllListeners();
+            m_Option.OnHover.RemoveAllListeners();
         }
 
         private void Update()
@@ -75,12 +88,14 @@ namespace BTV.UI
         {
             m_FileMenu.Close();
             m_EditMenu.Close();
+            m_Option.Close();
         }
 
         private void Set(Menu menu)
         {
             if (menu != m_FileMenu) m_FileMenu.Close();
             if (menu != m_EditMenu) m_EditMenu.Close();
+            if (menu != m_Option) m_Option.Close();
         }
     }
 }

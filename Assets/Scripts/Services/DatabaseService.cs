@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using UnityEngine;
+using BTV.Services.UserPreferencesService;
 
 namespace BTV.Services.DatabaseService
 {
     public static class DatabaseService
     {
-        public static string DefaultPath { get { return Application.dataPath + "/Config/PatientBase/"; } }
+        public static string DefaultPath { get { return UserPreferencesService.UserPreferencesService.UserPreferences.DatabasePreferences.Path; } }
         public static ObservableCollection<SubjectRepository> Databases { get; private set; } = new ObservableCollection<SubjectRepository>();
 
         public static void CreateNewDatabase(string filePath)

@@ -1,12 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
+using BTV.Services.UserPreferencesService;
 
 public class ApplicationManager : MonoBehaviour
 {
     private void Awake()
     {
         ApplicationState.Module3D = FindObjectOfType<BTV3DModule>();
-        //get User preference here when implementing
+        
+        //===
+        UserPreferencesService.LoadPreferences();
     }
     private void OnDestroy()
     {
