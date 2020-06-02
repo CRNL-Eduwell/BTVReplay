@@ -7,6 +7,7 @@ namespace UnityEngine.Events
     [Serializable] public class IntEvent : UnityEvent<int> { }
     [Serializable] public class ColorEvent : UnityEvent<Color> { }
     [Serializable] public class Vector2Event : UnityEvent<Vector2> { }
+    [Serializable] public class StringEvent : UnityEvent<String> { }
     //[Serializable] public class Vector2ArrayEvent : UnityEvent<Vector2[]> { }
     //[Serializable] public class WindowArrayEvent : UnityEvent<Tools.CSharp.Window[]> { }
     //[Serializable] public class StringEvent : UnityEvent<String> { }

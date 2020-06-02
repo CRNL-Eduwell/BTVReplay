@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine;
 using BTV.Services.EventsService;
 using BTV.Services.EegFileService;
+using System.Collections.Generic;
 
 namespace BTV.UI.Module3D.Tools
 {
@@ -20,33 +21,40 @@ namespace BTV.UI.Module3D.Tools
 
         public override void Initialize()
         {
-            LoadFileNames();
-            Messenger.Default.Register<LoaderToBrainMessage>(this, OnBrainLoaderMessage, MessageContext.LoaderToBrain);
-            m_FileDropDown.onValueChanged.AddListener((id) => { UpdateEegFileID(id); });
+            Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
         }
 
-        //TODO : Need to be called when loading a patient with a list of valid file
-        //       because rigth now it's just loaded stupidely without knowing what is behind
-        //
-        //Load File Names and/or handle that are correct 
-        //ie : exists and / or abble to be loaded in memory
-        private void LoadFileNames()
+        private void OnDestroy()
         {
-            m_FileDropDown.options.Clear();
-            for (int i = 0; i < 6; i++)
+            Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
+        }
+
+        private void OnLoaderMessage(LoaderMessage message)
+        {
+            if (message.Task == LoaderMessage.LoaderTask.LoadBrain)
             {
-                m_FileDropDown.options.Add(new Dropdown.OptionData("File " + i));
+                if (!m_InitInteractableDone)
+                {
+                    SetFileLabels();
+                    SetFileInteractability();
+                    m_FileDropDown.onValueChanged.AddListener((id) => { UpdateEegFileID(id); });
+                }
             }
         }
 
-        //Ugly way to have a message from the loading phase , at this point when we are
-        //loading the brain it means the eeg data is already loaded and we can request informations
-        //
-        //TODO : Later implement some nice messages at the loading step to get this information
-        private void OnBrainLoaderMessage(LoaderToBrainMessage message)
+        //TODO : At one point create something of a Subject info service that returns info
+        //like the labels of the files and informations for which you don't need to have 
+        //access to the data structures
+        private void SetFileLabels()
         {
-            if(!m_InitInteractableDone)
-                SetFileInteractability();
+            Subject subject = ApplicationState.Module3D.Patient;
+
+            m_FileDropDown.options.Clear();
+            foreach (var item in subject.Files)
+            {
+                string label = item.Equals(default(KeyValuePair<string, IEegFileInfo>)) ? "NO FILE" : item.Key;
+                m_FileDropDown.options.Add(new Dropdown.OptionData(label));
+            }
         }
 
         private void SetFileInteractability()

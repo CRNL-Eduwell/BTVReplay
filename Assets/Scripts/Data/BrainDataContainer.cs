@@ -95,4 +95,45 @@ public class BrainDataContainer
     {
         EegTechnology = EnumExtensions.GetValueFromDescription<EegTechnology>(str);
     }
+
+    #region operators
+    public override bool Equals(object obj)
+    {
+        if (obj is BrainDataContainer baseData)
+        {
+            bool sameBrain = LeftHemisphere == baseData.LeftHemisphere && RightHemisphere == baseData.RightHemisphere && Transformation == baseData.Transformation;
+            bool sameAnat = Pts == baseData.Pts && Atlas == baseData.Atlas;
+            bool sameEnum = MeshConfiguration == baseData.MeshConfiguration && EegTechnology == baseData.EegTechnology;
+            return sameBrain && sameAnat && sameEnum;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public static bool operator ==(BrainDataContainer a, BrainDataContainer b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (((object)a == null) || ((object)b == null))
+        {
+            return false;
+        }
+
+        return a.Equals(b);
+    }
+    public static bool operator !=(BrainDataContainer a, BrainDataContainer b)
+    {
+        return !(a == b);
+    }
+    #endregion
 }

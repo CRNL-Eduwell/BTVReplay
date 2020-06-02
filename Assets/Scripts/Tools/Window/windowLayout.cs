@@ -3,9 +3,6 @@ using UnityEngine.EventSystems;
 
 public class windowLayout : MonoBehaviour, IDropHandler
 {
-    [SerializeField]
-    BTVMedia media = null;
-
     private RectTransform m_rectTransform = null;
     private Rect[] cells2by3 = new Rect[6];
     private Rect[] cells1by3 = new Rect[3];
@@ -22,20 +19,12 @@ public class windowLayout : MonoBehaviour, IDropHandler
 
     void Awake()
     {
-        media.mediaLoaded += new mediaLoadedEventHandler(() =>
-        {
-            loaded = true;
-            defineSizeGrid();
-        });
+        Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
     }
 
     void OnDestroy()
     {
-        media.mediaLoaded -= new mediaLoadedEventHandler(() =>
-        {
-            loaded = true;
-            defineSizeGrid();
-        });
+        Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
     }
 
     void OnRectTransformDimensionsChange()
@@ -44,6 +33,15 @@ public class windowLayout : MonoBehaviour, IDropHandler
             forceResize();
         else
             initResize();
+    }
+
+    private void OnLoaderMessage(LoaderMessage message)
+    {
+        if (message.Task == LoaderMessage.LoaderTask.MediaLoader)
+        {
+            loaded = true;
+            defineSizeGrid();
+        }
     }
 
     public void OnDrop(PointerEventData eventData)

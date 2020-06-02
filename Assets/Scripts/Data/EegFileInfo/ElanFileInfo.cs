@@ -52,4 +52,42 @@ public class ElanFileInfo : IEegFileInfo
         }
         Notes = notes;
     }
+
+    #region operators
+    public override bool Equals(object obj)
+    {
+        if (obj is ElanFileInfo baseData)
+        {
+            return string.Equals(Eeg, baseData.Eeg) && string.Equals(Ent, baseData.Ent) && string.Equals(Pos, baseData.Pos) && string.Equals(Notes, baseData.Notes);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public static bool operator ==(ElanFileInfo a, ElanFileInfo b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (((object)a == null) || ((object)b == null))
+        {
+            return false;
+        }
+
+        return a.Equals(b);
+    }
+    public static bool operator !=(ElanFileInfo a, ElanFileInfo b)
+    {
+        return !(a == b);
+    }
+    #endregion
 }

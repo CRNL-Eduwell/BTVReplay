@@ -13,7 +13,6 @@ public class CustomVideoPlayer : MonoBehaviour
     public IVideoPlayer VideoInterface { get; private set; }
 
     #region scene members
-    [SerializeField] BTVMedia _Media = null;
     [SerializeField] RawImage _VideoTexture = null;
     [SerializeField] Text _CurrentTime = null;
     [SerializeField] Text _TotalTime = null;
@@ -45,13 +44,13 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void Awake()
     {
-        _Media.loadVideo += new initVideo(Init);
+        Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
         Messenger.Default.Register<ModulesToVideoMessage>(this, OnModulesToVideoMessage, MessageContext.ModulesToVideoMessage);
     }
 
     private void OnDestroy()
     {
-        _Media.loadVideo -= new initVideo(Init);
+        Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
         Messenger.Default.Unregister(this, MessageContext.ModulesToVideoMessage);
         if (m_initDone)
         {
@@ -99,6 +98,14 @@ public class CustomVideoPlayer : MonoBehaviour
                     ForceMoveLoopScroll(0.05f);
             }
 
+        }
+    }
+
+    private void OnLoaderMessage(LoaderMessage message)
+    {
+        if (message.Task == LoaderMessage.LoaderTask.LoadVideo)
+        {
+            Init(message.VideoPath, message.totalFileDuration);
         }
     }
 

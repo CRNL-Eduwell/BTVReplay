@@ -42,7 +42,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    [SerializeField] BTVMedia media = null;
     [SerializeField] EegSignal eegSignal = null;
     [SerializeField] AudioSignal audioSignal = null;
     [SerializeField] GraphLabel graphLabel = null;
@@ -78,7 +77,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         m_signalWindow1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
         m_signalWindow2 = GameObject.Find("Trace2Window").GetComponent<Trace>();
 
-        media.loadTrace += new initTrace(init);
+        Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
         Messenger.Default.Register<UiToTraceMessage>(this, OnTraceParametersMessage, MessageContext.UiToTrace);
         Messenger.Default.Register<UiToVideoMessage>(this, OnVideoParametersMessage, MessageContext.UiToVideo);
         Messenger.Default.Register<EventsToTraceMessage>(this, OnEventsToTraceMessage, MessageContext.EventsToTraceMessage);
@@ -88,13 +87,11 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     void OnDestroy()
     {
-        media.loadTrace -= new initTrace(init);
         if (m_initDone)
         {
-            //hub.traceRemotes[traceID].idElecHasChanged -= new idElecChangedEventHandler(updateElectrodeById);
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
-            //hub.traceRemotes[traceID].deleteElectrodeInPanel();
 
+            Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
             Messenger.Default.Unregister(this, MessageContext.UiToTrace);
             Messenger.Default.Unregister(this, MessageContext.UiToVideo);
             Messenger.Default.Unregister(this, MessageContext.EventsToTraceMessage);
@@ -118,23 +115,26 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    private void OnLoaderMessage(LoaderMessage message)
+    {
+        if (message.Task == LoaderMessage.LoaderTask.LoadTrace)
+        {
+            init();
+        }
+    }
+
     void init()
     {
         m_rectTransform = gameObject.GetComponent<RectTransform>();
 
         eegSignal.init();
         audioSignal.init();
-        graphLabel.init(eegSignal.ElectrodeLabel);
+        graphLabel.Initialize(eegSignal.ElectrodeLabel, eegSignal.FileHandle.Description);
         graphGrid.init(eegSignal.PeriodInSeconds);
         graphEvent.init(this);
         graphSonif.init(this);
 
-        #region plugEvents
-        //hub.traceRemotes[traceID].idElecHasChanged += new idElecChangedEventHandler(updateElectrodeById);
         graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
-        //hub.traceRemotes[traceID].loadElectrodeInPanel(eegSignal.fileHandle.electrodes);
-        #endregion
-
         m_initDone = true;
     }
 
@@ -218,7 +218,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 2://Edit Events
                 bool ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
-                if(ind)
+                if (ind)
                     OpenEventModify(message.Event);
                 break;
             case 3://Add Event
@@ -295,6 +295,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     void changeFileID(int newId)
     {
         eegSignal.updateFileId(newId);
+        graphLabel.Description = eegSignal.FileHandle.Description;
         updateTimeResolution(eegSignal.PeriodInSeconds);
     }
 
@@ -310,14 +311,14 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     void UpdateTraceGain(float newGain)
     {
         eegSignal.updateGain(newGain);
-        graphLabel.setName(eegSignal.ElectrodeLabel);
+        graphLabel.Electrode = eegSignal.ElectrodeLabel;
     }
 
     void updateElectrodeById(int newId)
     {
         eegSignal.ElectrodeID = newId;
         eegSignal.updateOffset();
-        graphLabel.setName(eegSignal.ElectrodeLabel);
+        graphLabel.Electrode = eegSignal.ElectrodeLabel;
     }
 
     void updateTracesWidth()
@@ -328,7 +329,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     void updateColors(Color color)
     {
-        graphLabel.setColor(color);
+        graphLabel.Color = color;
         eegSignal.updateLineColor(color);
     }
 
@@ -404,7 +405,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         RaycastHit hit;
         if (Physics.Raycast(r, out hit))
         {
-            if (hit.collider.name == "ElecLabel" + (traceID + 1))
+            if (hit.collider.name == "Electrode_" + (traceID))
             {
                 manageFocusClick();
                 if (m_window.transform.position == m_handleOtherTrace.transform.position)
@@ -453,7 +454,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OpenEventDisplay(BtvEvent Event)
     {
-        if(m_PopUpDisplayWindow == null)
+        if (m_PopUpDisplayWindow == null)
         {
             m_PopUpDisplayWindow = Instantiate(m_DisplayEventWindowPrefabs);
 

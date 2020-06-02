@@ -8,7 +8,12 @@ using Newtonsoft.Json;
 public class DBFile2 : ISubjectsContext
 {
     public List<Subject> Subjects { get; set; } = new List<Subject>();
-    public string FilePath { get; private set; }
+    public string FilePath { get; set; } = "";
+
+    public DBFile2()
+    {
+
+    }
 
     public DBFile2(string filePath)
     {
