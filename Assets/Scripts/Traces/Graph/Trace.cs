@@ -34,6 +34,13 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             return graphEvent;
         }
     }
+    public GraphGrid GraphGrid
+    {
+        get
+        {
+            return graphGrid;
+        }
+    }
     public bool hasFocus
     {
         get

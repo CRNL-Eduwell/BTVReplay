@@ -4,6 +4,21 @@ using UnityEngine;
 
 public class GraphGrid : MonoBehaviour
 {
+    public bool IsOn
+    {
+        get
+        {
+            return m_display;
+        }
+        set
+        {
+            if (m_display != value)
+            {
+                m_display = value;
+                displayTimeGrid(value);
+            }
+        }
+    }
     [SerializeField] GameObject m_gridContainter = null;
 
     GameObject m_gridLineSec = null, m_gridLineMilliSec = null;
@@ -49,7 +64,6 @@ public class GraphGrid : MonoBehaviour
 
     public void displayTimeGrid(bool isGridOn)
     {
-        m_display = isGridOn;
         for (int i = 0; i < m_gridContainter.transform.childCount; i++)
             m_gridContainter.transform.GetChild(i).gameObject.SetActive(isGridOn);
     }

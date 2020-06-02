@@ -32,6 +32,10 @@ public abstract class SignalDisp : MonoBehaviour
         {
             return m_gain;
         }
+        set
+        {
+            m_gain = value;
+        }
     }
     public float widthOfGameObject
     {
@@ -50,6 +54,26 @@ public abstract class SignalDisp : MonoBehaviour
             return m_dataArray;
         }
     }
+    public float LineWidth
+    {
+        get
+        {
+            return lineRenderer.startWidth;
+        }
+        set
+        {
+            lineRenderer.startWidth = value;
+            lineRenderer.endWidth = value;
+        }
+    }
+    public Color Color
+    {
+        get
+        {
+            return lineRenderer.startColor;
+        }
+    }
+
 
     [SerializeField]
     protected LineRenderer lineRenderer = null;

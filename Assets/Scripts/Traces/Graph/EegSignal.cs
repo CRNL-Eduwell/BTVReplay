@@ -53,7 +53,17 @@ public class EegSignal : SignalDisp
             return m_Channel.GetSample(MostRecentSample, true);
         }
     }
-
+    public float Offset
+    {
+        get
+        {
+            return m_offsetCoefficient;
+        }
+        set
+        {
+            m_offsetCoefficient = value;
+        }
+    }
     [SerializeField] int m_currentElectrodeID = 0;
 
     private float m_offsetCoefficient = 0;

@@ -36,6 +36,7 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
 
     private int m_OptionsCounter = 1;
     private Color blue = new Color(0.6117f, 0.7058f, 0.7960f);
+    private Color transparent = new Color(0, 0, 0, 0);
 
     public void ResetToggle()
     {
@@ -46,7 +47,7 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
             m_OptionsCounter = 1;
             UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
         }
-        m_BackgroundImage.color = Color.black;
+        m_BackgroundImage.color = transparent;
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -75,7 +76,7 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
                         UnityEngine.Debug.Log("Decreasing counter " + m_OptionsCounter);
                     }
                 }
-                m_BackgroundImage.color = (m_OptionsCounter <= 1) ? Color.black : blue;
+                m_BackgroundImage.color = (m_OptionsCounter <= 1) ? transparent : blue;
                 UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
                 break;
         }
@@ -88,13 +89,13 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
             case PointerEventData.InputButton.Right:
                 if (m_OptionsCounter - 1 >= m_MinValue)
                     m_OptionsCounter -= 1;
-                m_BackgroundImage.color = (m_OptionsCounter <= 1) ? Color.black : blue;
+                m_BackgroundImage.color = (m_OptionsCounter <= 1) ? transparent : blue;
                 UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
                 break;
             case PointerEventData.InputButton.Left:
                 if (m_OptionsCounter + 1 <= m_MaxValue)
                     m_OptionsCounter += 1;
-                m_BackgroundImage.color = (m_OptionsCounter <= 1) ? Color.black : blue;
+                m_BackgroundImage.color = (m_OptionsCounter <= 1) ? transparent : blue;
                 UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
                 break;
         }
