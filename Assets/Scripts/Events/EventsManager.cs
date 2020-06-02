@@ -17,6 +17,7 @@ using UnityEngine;
 /// It is also used to send events to sub-modules :
 ///     - Traces
 ///     - EventsList
+///     - TracesDisplayer
 ///     - EventsTexture
 /// </remarks>
 public class EventsManager : MonoBehaviour
@@ -25,6 +26,8 @@ public class EventsManager : MonoBehaviour
     EventList m_EventsList = null;
     [SerializeField]
     EventsTexture m_EventsTexture = null;
+    [SerializeField]
+    TracesDisplayer m_TracesDisplayer = null;
     [SerializeField]
     CustomVideoPlayer m_videoPlayer = null;
 
@@ -233,6 +236,9 @@ public class EventsManager : MonoBehaviour
             //load in Scrollbar Texture
             m_EventsTexture.RemoveAllEvents();
             m_EventsTexture.AddEvents(EventsService.Events);
+            //load in TraceDisplayer Texture [TODO : might need to put some other messages or refactor existing one]
+            m_TracesDisplayer.RemoveAllEvents();
+            m_TracesDisplayer.AddEvents(EventsService.Events);
             //send events to traces
             for (int i = 0; i < EventsService.Events.Count; i++)
             {
@@ -261,6 +267,7 @@ public class EventsManager : MonoBehaviour
 
         m_EventsTexture.AddEvent(Event);
         m_EventsList.AddEvent(Event);
+        m_TracesDisplayer.AddEvent(Event);
 
         //Send message to Add to traces
         EventsToTraceMessage message = new EventsToTraceMessage
@@ -297,6 +304,7 @@ public class EventsManager : MonoBehaviour
 
         m_EventsTexture.RemoveEvent(Event);
         m_EventsList.DeleteEvent(id);
+        m_TracesDisplayer.RemoveEvent(Event);
 
         //Send message to delete from traces
         EventsToTraceMessage message = new EventsToTraceMessage

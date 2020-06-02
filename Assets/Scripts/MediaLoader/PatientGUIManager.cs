@@ -26,7 +26,22 @@ public class PatientGUIManager : MonoBehaviour
         {
             KeyValuePair<string, IEegFileInfo> kvp = _EegFiles[i].GetEegFileInfoFromGUI();
             if(!kvp.Equals(default(KeyValuePair<string, IEegFileInfo>)))
-                myPat.Files.Add(kvp.Key, kvp.Value);
+            {
+                if (string.IsNullOrEmpty(kvp.Key))
+                {
+                    ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to define a key for the eeg file that is not a null/empty string");
+                    return null;
+                }
+                else if (myPat.Files.ContainsKey(kvp.Key))
+                {
+                    ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to have a different key for each eeg file");
+                    return null;
+                }
+                else
+                {
+                    myPat.Files.Add(kvp.Key, kvp.Value);
+                }
+            }
         }
         myPat.Video = _Video.inputfield.text;
 
