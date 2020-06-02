@@ -28,7 +28,7 @@ public class EegSignal : SignalDisp
         {
             if (FileHandle != null)
             {
-                return m_gain >= 0 ? ElectrodeName : (" - " + ElectrodeName);
+                return Gain >= 0 ? ElectrodeName : (" - " + ElectrodeName);
             }
             else
             {
@@ -71,33 +71,33 @@ public class EegSignal : SignalDisp
     private int m_NumberSample = 0;
     private BtvChannel m_Channel = null;
 
-    public override void init()
+    public override void Initialize()
     {
         FileHandle = EegFileService.ReturnFirstValidContainer();
-        m_samplingFreq = FileHandle.Frequency.Value;
+        SamplingFrequency = FileHandle.Frequency.Value;
         m_NumberSample = FileHandle.Channels[m_currentElectrodeID].NumberOfSample;
-        m_numberPoint = m_samplingFreq * m_periodSec;
+        NumberOfPoint = SamplingFrequency * PeriodInSeconds;
         m_Channel = FileHandle.Channels[m_currentElectrodeID];
 
-        base.init();
+        base.Initialize();
     }
 
-    public void updateFileId(int newId)
+    public void UpdateFileId(int Id)
     {
-        FileHandle = EegFileService.ChangeContainerHandle(FileHandle, newId);
-        m_samplingFreq = FileHandle.Frequency.Value;
+        FileHandle = EegFileService.ChangeContainerHandle(FileHandle, Id);
+        SamplingFrequency = FileHandle.Frequency.Value;
         m_NumberSample = FileHandle.Channels[m_currentElectrodeID].NumberOfSample;
-        m_numberPoint = m_samplingFreq * m_periodSec;
+        NumberOfPoint = SamplingFrequency * PeriodInSeconds;
         m_Channel = FileHandle.Channels[m_currentElectrodeID];
     }
 
-    public void updateOffset(float newOffset)
+    public void UpdateOffset(float offset)
     {
-        m_offsetPerTen = newOffset;
+        m_offsetPerTen = offset;
         m_offsetCoefficient = (m_offsetPerTen / 10) * m_Channel.MaxValue;
     }
 
-    public void updateOffset()
+    public void UpdateOffset()
     {
         m_offsetCoefficient = (m_offsetPerTen / 10) * m_Channel.MaxValue;
     }
@@ -105,16 +105,16 @@ public class EegSignal : SignalDisp
     public override void UpdateDraw(int milliSecToLook)
     {
         MostRecentTimeInMilliSecs = milliSecToLook;
-        MostRecentSample = (int)(milliSecToLook * ((float)m_samplingFreq / 1000));
-        int posInArray = MostRecentSample - m_numberPoint;
+        MostRecentSample = (int)(milliSecToLook * ((float)SamplingFrequency / 1000));
+        int posInArray = MostRecentSample - NumberOfPoint;
         float limitVal = (m_parentRectTransform.rect.height - 6.5f) / 2;
 
-        for (int i = 0; i < m_numberPoint; i++)
+        for (int i = 0; i < NumberOfPoint; i++)
         {
             if (i + posInArray >= 0)
             {
                 float eegValue = m_Channel.GetSample(i + posInArray, true);
-                float value = m_gain * eegValue + m_offsetCoefficient;
+                float value = Gain * eegValue + m_offsetCoefficient;
                 if (value >= -limitVal && value <= limitVal)
                 {
                     m_dataArray[i].y = value;
@@ -132,6 +132,6 @@ public class EegSignal : SignalDisp
                 m_dataArray[i].y = 0;
             }
         }
-        lineRenderer.SetPositions(m_dataArray);
+        _LineRenderer.SetPositions(m_dataArray);
     }
 }

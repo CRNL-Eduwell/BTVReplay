@@ -134,8 +134,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         m_rectTransform = gameObject.GetComponent<RectTransform>();
 
-        eegSignal.init();
-        audioSignal.init();
+        eegSignal.Initialize();
+        audioSignal.Initialize();
         graphLabel.Initialize(eegSignal.ElectrodeLabel, eegSignal.FileHandle.Description);
         graphGrid.init(eegSignal.PeriodInSeconds);
         graphEvent.init(this);
@@ -158,7 +158,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 1:
                 Debug.Log("Update Trace Offset");
-                eegSignal.updateOffset(message.Offset);
+                eegSignal.UpdateOffset(message.Offset);
                 break;
             case 2:
                 Debug.Log("Toggle Grid");
@@ -196,7 +196,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         {
             case 0:
                 Debug.Log("Update Trace Gain");
-                audioSignal.updateGain(message.Gain);
+                audioSignal.UpdateGain(message.Gain);
                 break;
             case 1:
                 Debug.Log("Update Trace Offset");
@@ -301,43 +301,43 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     void changeFileID(int newId)
     {
-        eegSignal.updateFileId(newId);
+        eegSignal.UpdateFileId(newId);
         graphLabel.Description = eegSignal.FileHandle.Description;
         updateTimeResolution(eegSignal.PeriodInSeconds);
     }
 
     void updateTimeResolution(int newPeriod)
     {
-        eegSignal.updateTimeResolution(newPeriod);
-        eegSignal.updateHorizontalScale();
-        audioSignal.updateTimeResolution(newPeriod);
-        audioSignal.updateHorizontalScale();
+        eegSignal.UpdateTimeResolution(newPeriod);
+        eegSignal.UpdateHorizontalScale();
+        audioSignal.UpdateTimeResolution(newPeriod);
+        audioSignal.UpdateHorizontalScale();
         graphGrid.updateGridScale(newPeriod);
     }
 
     void UpdateTraceGain(float newGain)
     {
-        eegSignal.updateGain(newGain);
+        eegSignal.UpdateGain(newGain);
         graphLabel.Electrode = eegSignal.ElectrodeLabel;
     }
 
     void updateElectrodeById(int newId)
     {
         eegSignal.ElectrodeID = newId;
-        eegSignal.updateOffset();
+        eegSignal.UpdateOffset();
         graphLabel.Electrode = eegSignal.ElectrodeLabel;
     }
 
     void updateTracesWidth()
     {
-        eegSignal.updateLineWidth();
-        audioSignal.updateLineWidth();
+        eegSignal.UpdateLineWidth();
+        audioSignal.UpdateLineWidth();
     }
 
     void updateColors(Color color)
     {
         graphLabel.Color = color;
-        eegSignal.updateLineColor(color);
+        eegSignal.Color = color;
     }
 
     void plotClicked(GameObject plot)

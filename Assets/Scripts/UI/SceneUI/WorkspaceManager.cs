@@ -57,8 +57,8 @@ public class WorkspaceManager : MonoBehaviour
         trace.TraceEeg.Gain = traceParameters.Gain;
         trace.TraceEeg.Offset = traceParameters.Offset;
         trace.GraphGrid.IsOn = traceParameters.ShowGrid;
-        //trace.TraceEeg.updateTimeResolution(traceParameters.Window);
-        trace.TraceEeg.updateLineColor(traceParameters.Color);
+        trace.TraceEeg.UpdateTimeResolution(traceParameters.Window);
+        trace.TraceEeg.Color = traceParameters.Color;
         trace.TraceEeg.LineWidth = traceParameters.Width;
     }
 
