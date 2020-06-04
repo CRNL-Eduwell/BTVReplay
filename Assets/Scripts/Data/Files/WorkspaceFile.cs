@@ -39,7 +39,7 @@ public class WorkspaceFile : IWorkspaceContext
                 {
                     TypeNameHandling = TypeNameHandling.Auto,
                     TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                    Converters = new List<JsonConverter>() { new ColorConverter() } //need to add a color converter, otherwise not interpreted and triggers exceptions
+                    Converters = new List<JsonConverter>() { new ColorConverter(), new Vector2Converter(), new Vector3Converter() }
                 };
 
                 Workspace = JsonConvert.DeserializeObject<Workspace>(streamReader.ReadToEnd(), serializerSettings);
@@ -66,7 +66,7 @@ public class WorkspaceFile : IWorkspaceContext
                 {
                     TypeNameHandling = TypeNameHandling.Auto,
                     TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                    Converters = new List<JsonConverter>() { new ColorConverter() } //need to add a color converter, otherwise not interpreted and triggers exceptions
+                    Converters = new List<JsonConverter>() { new ColorConverter(), new Vector2Converter(), new Vector3Converter() }
                 };
 
                 string json = JsonConvert.SerializeObject(workspace, Formatting.Indented, serializerSettings );

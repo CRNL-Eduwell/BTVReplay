@@ -27,25 +27,11 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             return eegSignal;
         }
     }
-    public GraphEvents EventsEeg
-    {
-        get
-        {
-            return graphEvent;
-        }
-    }
     public GraphGrid GraphGrid
     {
         get
         {
             return graphGrid;
-        }
-    }
-    public bool hasFocus
-    {
-        get
-        {
-            return m_window.hasFocus;
         }
     }
 
@@ -90,6 +76,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         Messenger.Default.Register<EventsToTraceMessage>(this, OnEventsToTraceMessage, MessageContext.EventsToTraceMessage);
         Messenger.Default.Register<BrainWardenToTraceMessage>(this, OnBrainWardenToTraceMessage, MessageContext.BrainWardenToTraceMessage);
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
+        
     }
 
     void OnDestroy()
@@ -97,7 +84,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         if (m_initDone)
         {
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
-
+            
             Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
             Messenger.Default.Unregister(this, MessageContext.UiToTrace);
             Messenger.Default.Unregister(this, MessageContext.UiToVideo);

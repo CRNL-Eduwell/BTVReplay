@@ -19,6 +19,13 @@ public class TraceParameters
     /// Width of the trace
     /// </summary>
     public float Width { get; set; } = 0;
+    public Vector3 Position { get; set; } = new Vector3(0, 0, 0);
+    public Vector2 SizeDelta { get; set; } = new Vector2(0, 0);
+    public string Parent { get; set; } = null;
+    /// <summary>
+    /// Id of the trace for which those are the parameters
+    /// </summary>
+    public int Id { get; set; } = -1;
 
     public TraceParameters()
     {
@@ -43,5 +50,8 @@ public class TraceParameters
         Window = parameters.Window;
         Color = parameters.Color;
         Width = parameters.Width;
+        Position = parameters.Position;
+        Parent = parameters.Parent;
+        Id = parameters.Id;
     }
 }

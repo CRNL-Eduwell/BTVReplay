@@ -24,5 +24,6 @@ enum MessageContext
     EditMenuMessage,
     LoadSubjectMessage,
     LoaderMessage,
-    ShowWindowMessage
+    ShowWindowMessage,
+    ForceUpdateTraceMessage
 }

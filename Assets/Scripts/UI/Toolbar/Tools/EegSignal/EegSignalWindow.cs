@@ -29,7 +29,25 @@ namespace BTV.UI.Module3D.Tools
             m_WindowSize.onEndEdit.AddListener(UpdateTimePeriod);
         }
 
-        void UpdateTimePeriod(string UpdatedField)
+        public void SetIsOnWithoutNotifty(bool isOn)
+        {
+            m_ShowTimeGrid.SetIsOnWithoutNotify(isOn);
+        }
+
+        public void SetTimePeriodWithoutNotify(int period)
+        {
+            if (period > 0)
+            {
+                m_WindowSizeMemory = period <= 0 ? 10 : period;
+                m_WindowSize.text = m_WindowSizeMemory.ToString();
+            }
+            else
+            {
+                UpdateTimePeriod("10");
+            }
+        }
+
+        private void UpdateTimePeriod(string UpdatedField)
         {
             int.TryParse(UpdatedField, out int time);
             if (time <= 0)

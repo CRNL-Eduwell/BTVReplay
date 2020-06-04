@@ -57,11 +57,7 @@ public class EegSignal : SignalDisp
     {
         get
         {
-            return m_offsetCoefficient;
-        }
-        set
-        {
-            m_offsetCoefficient = value;
+            return m_offsetPerTen;
         }
     }
     [SerializeField] int m_currentElectrodeID = 0;
