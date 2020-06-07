@@ -33,7 +33,7 @@ public class ColumnGUIManager : MonoBehaviour
     /// GameObject to hide a minimized column
     /// </summary>
     [SerializeField]
-    private GameObject m_MinimizedGameObject;
+    private GameObject m_MinimizedGameObject = null;
 
     private RectTransform m_RectTransform = null;
     private const float MINIMIZED_THRESHOLD = 10.0f;

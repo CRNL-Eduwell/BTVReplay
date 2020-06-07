@@ -51,10 +51,9 @@ public class WorkspaceManager : MonoBehaviour
         _BrainWarden.IsMaxed = brainParameters.IsMaxed;
     }
 
-    //At this point, placement of the windows doesn't work when forced
-    //Need to improve that
     private void SetTraceLayoutParameters(Trace trace, TraceParameters traceParameters)
     {
+        //Update Option UI Display (without triggering events)
         ForceUpdateTraceMessage message = new ForceUpdateTraceMessage
         {
             TraceID = trace.TraceId,
@@ -66,26 +65,20 @@ public class WorkspaceManager : MonoBehaviour
         };
         Messenger.Default.Send(message, MessageContext.ForceUpdateTraceMessage);
 
+        //Update 3D Module with the data
         trace.TraceEeg.Gain = traceParameters.Gain;
         trace.TraceEeg.UpdateOffset(traceParameters.Offset);
         trace.GraphGrid.IsOn = traceParameters.ShowGrid;
         trace.TraceEeg.PeriodInSeconds = traceParameters.Window;
         trace.TraceEeg.Color = traceParameters.Color;
         trace.TraceEeg.LineWidth = traceParameters.Width;
-        //Window win = trace.GetComponent<Window>();
-        //if (win != null)
-        //{
-        //    win.OnBeginDrag();
-        //    GameObject Parent = GameObject.Find(traceParameters.Parent);
-        //    Parent.GetComponent<windowLayout>().OnDrop(null);
-        //    if (Parent != null)
-        //    {
-        //        win.transform.SetParent(Parent.transform);
-        //        win.gameObject.GetComponent<RectTransform>().sizeDelta = traceParameters.SizeDelta;
-        //        win.gameObject.GetComponent<RectTransform>().localPosition = traceParameters.Position;
-        //        win.windowId = traceParameters.Id;
-        //    }
-        //}
+
+        //Try to load the different positions of the traces
+        GameObject Parent = GameObject.Find(traceParameters.Parent);
+        if (Parent != null)
+        {
+            Parent.GetComponent<WindowLayout>().ForceDrop(trace.gameObject, traceParameters.GridLayout, traceParameters.Id);
+        }
     }
 
     private void SaveLayout(string path)
@@ -113,10 +106,9 @@ public class WorkspaceManager : MonoBehaviour
             Window = trace.TraceEeg.PeriodInSeconds,
             Color = trace.TraceEeg.Color,
             Width = trace.TraceEeg.LineWidth,
-            //Position = win != null ? win.gameObject.GetComponent<RectTransform>().localPosition : new Vector3(0, 0, 0),
-            //SizeDelta = win != null ? win.gameObject.GetComponent<RectTransform>().sizeDelta : new Vector2(0, 0),
-            //Parent = win != null ? win.transform.parent.name : null,
-            //Id = win != null ? win.windowId : -1
+            Parent = win != null ? win.transform.parent.name : null,
+            Id = win != null ? win.windowId : -1,
+            GridLayout = win != null ? win.GridLayout : GridLayout.TwoBy2
         };
         return param;
     }

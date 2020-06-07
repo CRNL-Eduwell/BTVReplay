@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using BrainTV.Tools.NumberExtensions;
 
 namespace BTV.UI.Module3D.Tools
 {
@@ -15,88 +17,72 @@ namespace BTV.UI.Module3D.Tools
         /// <summary>
         /// </summary>
         [SerializeField]
-        private Scrollbar m_ChangeOffset = null;
+        private InputField m_OffsetMinutes = null;
         /// <summary>
         /// </summary>
         [SerializeField]
-        private Text m_Label = null;
+        private InputField m_OffsetSeconds = null;
         /// <summary>
         /// </summary>
         [SerializeField]
-        private Button m_AddOffset = null;
+        private InputField m_OffsetMilliSeconds = null;
         /// <summary>
         /// </summary>
-        [SerializeField]
-        private Button m_RemoveOffset = null;
-        /// <summary>
-        /// </summary>
-        private float m_Offset = 1;
-        private EventTrigger m_EventTrigger = null;
+        private float m_OffsetMemory = 0;
 
         public override void Initialize()
         {
-            m_AddOffset.onClick.AddListener(AddOffset);
-            m_RemoveOffset.onClick.AddListener(RemoveOffset);
-            
-            //== Scrollbar callback
-            m_EventTrigger = m_ChangeOffset.gameObject.AddComponent<EventTrigger>();
-            EventTrigger.Entry entry = new EventTrigger.Entry();
-            entry.eventID = EventTriggerType.PointerUp;
-            entry.callback.AddListener((eventData) => { UpdateOffsetScrollbarCallback(); });
-            m_EventTrigger.triggers.Add(entry);
+            m_OffsetMinutes.text = "00";
+            m_OffsetSeconds.text = "00";
+            m_OffsetMilliSeconds.text = "00";
 
-            m_Label.text = "Offset : 00 m: 00 s: 00ms";
+            m_OffsetMinutes.onEndEdit.AddListener(CheckOffsetInput);
+            m_OffsetSeconds.onEndEdit.AddListener(CheckOffsetInput);
+            m_OffsetMilliSeconds.onEndEdit.AddListener(CheckOffsetInput);
         }
 
         private void OnDestroy()
         {
-            m_AddOffset.onClick.RemoveAllListeners();
-            m_RemoveOffset.onClick.RemoveAllListeners();
-
-            for (int i = 0; i < m_EventTrigger.triggers.Count; i++)
-                m_EventTrigger.triggers[i].callback.RemoveAllListeners();
+            m_OffsetMinutes.onEndEdit.RemoveAllListeners();
+            m_OffsetSeconds.onEndEdit.RemoveAllListeners();
+            m_OffsetMilliSeconds.onEndEdit.RemoveAllListeners();
         }
 
-        private void AddOffset()
+        private void CheckOffsetInput(string str)
         {
-            if (m_Offset + 10 <= 60000)
+            if (string.IsNullOrEmpty(str)) ConvertTotextValues(m_OffsetMemory);
+            bool isParsed = str.TryParseInt(out int result);
+            if (!isParsed) ConvertTotextValues(m_OffsetMemory);
+
+            m_OffsetMemory = GetMillisecondsValue();
+            offsetVideoHasChanged(m_OffsetMemory);
+        }
+
+        private void ConvertTotextValues(float milliSeconds)
+        {
+            int m = ((int)milliSeconds / 1000) / 60;
+            m_OffsetMinutes.text = m.ToString();
+            int s = ((int)milliSeconds / 1000) % 60;
+            m_OffsetSeconds.text = s.ToString();
+            int ms = (int)milliSeconds - (((int)milliSeconds / 1000) * 1000);
+            m_OffsetMilliSeconds.text = ms.ToString();
+        }
+
+        private int GetMillisecondsValue()
+        {
+            bool isMinOk = m_OffsetMinutes.text.TryParseInt(out int m);
+            bool isSecOk = m_OffsetSeconds.text.TryParseInt(out int s);
+            bool isMsOk = m_OffsetMilliSeconds.text.TryParseInt(out int ms);
+
+            if (isMinOk && isSecOk && isMsOk)
             {
-                m_Offset += 10;
-                m_ChangeOffset.value = ((m_Offset / 1000) / 120) + 0.5f;
-                UpdateOffset(m_Offset);
+                return (m * 60 * 1000) + (s * 1000) + ms;
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("offset value not correct, reseting to default 00mn:00sec:00ms");
+                return 0;
             }
         }
-
-        private void RemoveOffset()
-        {
-            if (m_Offset - 10 >= -60000)
-            {
-                m_Offset -= 10;
-                m_ChangeOffset.value = ((m_Offset / 1000) / 120) + 0.5f;
-                UpdateOffset(m_Offset);
-            }
-        }
-
-        private void UpdateOffset(float offset)
-        {
-            UpdateLabel(offset);
-            offsetVideoHasChanged(offset);
-        }
-
-        void UpdateOffsetScrollbarCallback()
-        {
-            float offsetBar = m_ChangeOffset.value - 0.5f;
-            m_Offset = (int)(offsetBar * 120) * 1000;
-            UpdateOffset(m_Offset);
-        }
-
-        void UpdateLabel(float milliSec)
-        {
-            int m = ((int)milliSec / 1000) / 60;
-            int s = ((int)milliSec / 1000) % 60;
-            int ms = (int)milliSec - (((int)milliSec / 1000) * 1000);
-            m_Label.text = "Offset : " + m + "m: " + s + "s:" + ms + "ms";
-        }
-
     }
 }

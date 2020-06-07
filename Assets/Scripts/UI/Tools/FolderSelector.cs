@@ -28,8 +28,6 @@ public class FolderSelector : MonoBehaviour
     [SerializeField]
     private InputField _InputField = null;
 
-    private bool m_MoveCaret = false;
-
     private void Awake()
     {
         _BrowseButton.onClick.AddListener(ChooseFolder);

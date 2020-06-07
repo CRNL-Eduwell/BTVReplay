@@ -7,7 +7,7 @@ public class BrainParameters
 
     public BrainParameters(bool isMaxed = false)
     {
-        IsMaxed = IsMaxed;
+        IsMaxed = isMaxed;
     }
 
     public BrainParameters(BrainParameters parameters)

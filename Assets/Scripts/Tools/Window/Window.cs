@@ -63,6 +63,10 @@ public class Window : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             m_idWin = value;
         }
     }
+    public GridLayout GridLayout
+    {
+        get;set;
+    }
     public bool hasFocus = false;
 
     //===
