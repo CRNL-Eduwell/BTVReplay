@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine.EventSystems;
 using System;
 
+//Note : Need to have an image or raw image component on the same level, otherwise capture of window doesn't work
 public class WindowLayout : MonoBehaviour, IDropHandler
 {
     [SerializeField]
