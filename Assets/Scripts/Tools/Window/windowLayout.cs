@@ -57,8 +57,11 @@ public class WindowLayout : MonoBehaviour, IDropHandler
             if (r != null && w != null)
             {
                 Rect cellRect = defaultPosition ? TwoBy2.Cells[w.windowId] : GetCellSize(r, w.windowId);
-                r.sizeDelta = new Vector2(cellRect.width, cellRect.height);
-                r.localPosition = new Vector3(cellRect.x, cellRect.y, r.localPosition.z);
+                if (!float.IsNaN(cellRect.width) && !float.IsNaN(cellRect.height) && !float.IsNaN(cellRect.x))
+                {
+                    r.sizeDelta = new Vector2(cellRect.width, cellRect.height);
+                    r.localPosition = new Vector3(cellRect.x, cellRect.y, r.localPosition.z);
+                }
             }
         }
     }

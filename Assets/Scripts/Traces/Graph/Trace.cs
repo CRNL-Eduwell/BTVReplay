@@ -295,9 +295,9 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     void updateTimeResolution(int newPeriod)
     {
-        eegSignal.UpdateTimeResolution(newPeriod);
+        eegSignal.PeriodInSeconds = newPeriod;
         eegSignal.UpdateHorizontalScale();
-        audioSignal.UpdateTimeResolution(newPeriod);
+        audioSignal.PeriodInSeconds = newPeriod;
         audioSignal.UpdateHorizontalScale();
         graphGrid.updateGridScale(newPeriod);
     }

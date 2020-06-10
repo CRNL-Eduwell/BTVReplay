@@ -267,8 +267,10 @@ public class Window : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     {
         if (dragAllowed)
         {
-            if (itemBeingDragged.transform.parent.name != "PanelL" &&
-            itemBeingDragged.transform.parent.name != "PanelR")
+            //if (itemBeingDragged.transform.parent.name != "PanelL" &&
+            //itemBeingDragged.transform.parent.name != "PanelR")
+            if (itemBeingDragged.transform.parent.name != "Pannel" &&
+            itemBeingDragged.transform.parent.name != "Video")
             {
                 itemBeingDragged.GetComponent<RectTransform>().SetParent(m_initialTransform);
                 itemBeingDragged.GetComponent<RectTransform>().localPosition = m_initialPanelPosition;

@@ -12,7 +12,7 @@ public class ColumnGUIManager : MonoBehaviour
         get
         {
             //return Mathf.Abs(m_RectTransform.rect.width - m_ResizableGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
-            return Mathf.Abs(RectTransform.rect.width - 35) <= MINIMIZED_THRESHOLD;
+            return Mathf.Abs(RectTransform.rect.width - 25) <= MINIMIZED_THRESHOLD;
         }
     }
     /// <summary>
@@ -36,7 +36,7 @@ public class ColumnGUIManager : MonoBehaviour
     private GameObject m_MinimizedGameObject = null;
 
     private RectTransform m_RectTransform = null;
-    private const float MINIMIZED_THRESHOLD = 10.0f;
+    private const float MINIMIZED_THRESHOLD = 100.0f;
     #endregion
 
     #region Private Methods
@@ -45,9 +45,14 @@ public class ColumnGUIManager : MonoBehaviour
         m_RectTransform = GetComponent<RectTransform>();
     }
 
-    private void OnRectTransformDimensionsChange()
+    private void Update()
     {
-        m_MinimizedGameObject.SetActive(IsMinimized);
+        if (m_RectTransform.hasChanged)
+        {
+            UnityEngine.Debug.Log("Recttransform changed minimed column");
+            m_MinimizedGameObject.SetActive(IsMinimized);
+            m_RectTransform.hasChanged = false;
+        }
     }
     #endregion
 }

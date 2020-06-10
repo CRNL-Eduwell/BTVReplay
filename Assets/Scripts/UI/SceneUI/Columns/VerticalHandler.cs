@@ -41,7 +41,8 @@ public class VerticalHandler : MonoBehaviour, IDragHandler, IPointerDownHandler,
             {
                 m_Position = MagneticPosition;
             }
-            m_Position = RoundAtPrecision(m_Position, 2 / m_ResizableGrid.RectTransform.rect.width);
+            //This round up make a change to the value, see with Benjamin why it was done in HiBoP
+            //m_Position = RoundAtPrecision(m_Position, 2 / m_ResizableGrid.RectTransform.rect.width);
             RectTransform handler = GetComponent<RectTransform>();
             handler.anchorMin = new Vector2(m_Position, handler.anchorMin.y);
             handler.anchorMax = new Vector2(m_Position, handler.anchorMax.y);

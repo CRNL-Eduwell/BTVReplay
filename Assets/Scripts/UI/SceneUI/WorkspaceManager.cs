@@ -4,11 +4,12 @@ using UnityEngine.UI;
 
 public class WorkspaceManager : MonoBehaviour
 {
+    [SerializeField] ResizableGrid m_grid = null;
     [SerializeField] BrainWarden _BrainWarden = null;
     [SerializeField] Trace _Trace1 = null;
     [SerializeField] Trace _Trace2 = null;
 
-    private void Awake()
+    private void Start()
     {
         Messenger.Default.Register<UiToLayoutsMessage>(this, OnUiToLayoutsMessage, MessageContext.UiToLayouts);
     }
@@ -16,6 +17,36 @@ public class WorkspaceManager : MonoBehaviour
     private void OnDestroy()
     {
         Messenger.Default.Unregister(this, MessageContext.UiToLayouts);
+    }
+
+    private void Update()
+    {
+        //Since we don't intantiate the workspace but it is already there, it is subjected to the rendering
+        //phase of unity , and therefore passes through stages where it's rect is 0,0 and has some NaN data
+        //we want to init the display only when the container is rendered. That is until we do the whole
+        //thing dynamically at the loading time, which should make the issue disapear because the area
+        //will already be rendered
+        bool hasGridBeenRendered = m_grid.RectTransform.rect.width > 0 && m_grid.RectTransform.rect.height > 0;
+        if (m_grid.InitDone == false && hasGridBeenRendered)
+            InitDisplay();
+    }
+
+    private void InitDisplay()
+    {
+        UnityEngine.Debug.Log("Init");
+        m_grid.Init();
+
+        m_grid.VerticalHandlers[0].MagneticPosition = 0.495f;
+        m_grid.VerticalHandlers[1].MagneticPosition = 0.99f;
+
+        m_grid.VerticalHandlers[0].Position = 0.495f;
+        m_grid.VerticalHandlers[1].Position = 0.99f;
+
+        m_grid.SetVerticalHandlersPosition(0);
+        m_grid.SetVerticalHandlersPosition(1);
+        //
+        m_grid.UpdateAnchors();
+        m_grid.InitDone = true;
     }
 
     private void OnUiToLayoutsMessage(UiToLayoutsMessage message)

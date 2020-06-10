@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public abstract class SignalDisp : MonoBehaviour
 {
-    public int PeriodInSeconds { get; set; } = 10;
+    public int PeriodInSeconds { get { return m_PeriodInSeconds; } set { m_PeriodInSeconds = value; UpdateTimeResolution(); } }
     public int SamplingFrequency { get; set; } = 64;
     public int NumberOfPoint { get; set; } = 64 * 10;
     public float Gain { get; set; } = 1;
@@ -47,6 +47,8 @@ public abstract class SignalDisp : MonoBehaviour
     protected float m_previousGain = 1;
     protected bool m_initDone = false;
 
+    private int m_PeriodInSeconds = 10;
+
     void Awake()
     {
         m_parentRectTransform = gameObject.transform.parent.GetComponent<RectTransform>();
@@ -54,7 +56,7 @@ public abstract class SignalDisp : MonoBehaviour
 
     public virtual void Initialize()
     {
-        NumberOfPoint = SamplingFrequency * PeriodInSeconds;
+        NumberOfPoint = SamplingFrequency * m_PeriodInSeconds;
         m_dataArray = new Vector3[NumberOfPoint];
         _LineRenderer.positionCount = NumberOfPoint;
         _LineRenderer.startWidth = 0.02f;
@@ -82,10 +84,10 @@ public abstract class SignalDisp : MonoBehaviour
         _LineRenderer.SetPositions(m_dataArray);
     }
 
-    public void UpdateTimeResolution(int period)
+    private void UpdateTimeResolution(/*int period*/)
     {
-        PeriodInSeconds = period;
-        NumberOfPoint = SamplingFrequency * PeriodInSeconds;
+        //PeriodInSeconds = period;
+        NumberOfPoint = SamplingFrequency * m_PeriodInSeconds;
         m_dataArray = new Vector3[NumberOfPoint];
         _LineRenderer.positionCount = NumberOfPoint;
         _LineRenderer.sortingOrder = -1;
