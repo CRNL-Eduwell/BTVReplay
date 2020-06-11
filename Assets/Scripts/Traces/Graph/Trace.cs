@@ -149,7 +149,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 2:
                 Debug.Log("Toggle Grid");
-                graphGrid.displayTimeGrid(message.IsGridOn);
+                graphGrid.IsOn = message.IsGridOn;
                 break;
             case 3:
                 Debug.Log("Update WIndow Period");

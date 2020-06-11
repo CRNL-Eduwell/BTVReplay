@@ -62,7 +62,7 @@ public class GraphGrid : MonoBehaviour
         }
     }
 
-    public void displayTimeGrid(bool isGridOn)
+    private void displayTimeGrid(bool isGridOn)
     {
         for (int i = 0; i < m_gridContainter.transform.childCount; i++)
             m_gridContainter.transform.GetChild(i).gameObject.SetActive(isGridOn);
