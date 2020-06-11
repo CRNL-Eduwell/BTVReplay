@@ -27,18 +27,11 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             return eegSignal;
         }
     }
-    public GraphEvents EventsEeg
+    public GraphGrid GraphGrid
     {
         get
         {
-            return graphEvent;
-        }
-    }
-    public bool hasFocus
-    {
-        get
-        {
-            return m_window.hasFocus;
+            return graphGrid;
         }
     }
 
@@ -83,6 +76,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         Messenger.Default.Register<EventsToTraceMessage>(this, OnEventsToTraceMessage, MessageContext.EventsToTraceMessage);
         Messenger.Default.Register<BrainWardenToTraceMessage>(this, OnBrainWardenToTraceMessage, MessageContext.BrainWardenToTraceMessage);
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
+        
     }
 
     void OnDestroy()
@@ -90,7 +84,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         if (m_initDone)
         {
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
-
+            
             Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
             Messenger.Default.Unregister(this, MessageContext.UiToTrace);
             Messenger.Default.Unregister(this, MessageContext.UiToVideo);
@@ -127,8 +121,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         m_rectTransform = gameObject.GetComponent<RectTransform>();
 
-        eegSignal.init();
-        audioSignal.init();
+        eegSignal.Initialize();
+        audioSignal.Initialize();
         graphLabel.Initialize(eegSignal.ElectrodeLabel, eegSignal.FileHandle.Description);
         graphGrid.init(eegSignal.PeriodInSeconds);
         graphEvent.init(this);
@@ -151,11 +145,11 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 1:
                 Debug.Log("Update Trace Offset");
-                eegSignal.updateOffset(message.Offset);
+                eegSignal.UpdateOffset(message.Offset);
                 break;
             case 2:
                 Debug.Log("Toggle Grid");
-                graphGrid.displayTimeGrid(message.IsGridOn);
+                graphGrid.IsOn = message.IsGridOn;
                 break;
             case 3:
                 Debug.Log("Update WIndow Period");
@@ -189,7 +183,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         {
             case 0:
                 Debug.Log("Update Trace Gain");
-                audioSignal.updateGain(message.Gain);
+                audioSignal.UpdateGain(message.Gain);
                 break;
             case 1:
                 Debug.Log("Update Trace Offset");
@@ -294,43 +288,43 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     void changeFileID(int newId)
     {
-        eegSignal.updateFileId(newId);
+        eegSignal.UpdateFileId(newId);
         graphLabel.Description = eegSignal.FileHandle.Description;
         updateTimeResolution(eegSignal.PeriodInSeconds);
     }
 
     void updateTimeResolution(int newPeriod)
     {
-        eegSignal.updateTimeResolution(newPeriod);
-        eegSignal.updateHorizontalScale();
-        audioSignal.updateTimeResolution(newPeriod);
-        audioSignal.updateHorizontalScale();
+        eegSignal.PeriodInSeconds = newPeriod;
+        eegSignal.UpdateHorizontalScale();
+        audioSignal.PeriodInSeconds = newPeriod;
+        audioSignal.UpdateHorizontalScale();
         graphGrid.updateGridScale(newPeriod);
     }
 
     void UpdateTraceGain(float newGain)
     {
-        eegSignal.updateGain(newGain);
+        eegSignal.UpdateGain(newGain);
         graphLabel.Electrode = eegSignal.ElectrodeLabel;
     }
 
     void updateElectrodeById(int newId)
     {
         eegSignal.ElectrodeID = newId;
-        eegSignal.updateOffset();
+        eegSignal.UpdateOffset();
         graphLabel.Electrode = eegSignal.ElectrodeLabel;
     }
 
     void updateTracesWidth()
     {
-        eegSignal.updateLineWidth();
-        audioSignal.updateLineWidth();
+        eegSignal.UpdateLineWidth();
+        audioSignal.UpdateLineWidth();
     }
 
     void updateColors(Color color)
     {
         graphLabel.Color = color;
-        eegSignal.updateLineColor(color);
+        eegSignal.Color = color;
     }
 
     void plotClicked(GameObject plot)

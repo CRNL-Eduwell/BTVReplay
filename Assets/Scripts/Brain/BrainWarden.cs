@@ -8,9 +8,24 @@ using BTV.Services.EventsService;
 
 public class BrainWarden : MonoBehaviour, IPointerClickHandler
 {
-    [SerializeField] Camera brainCam = null;
+    public bool IsMaxed
+    {
+        get
+        {
+            return m_IsMaxed;
+        }
+        set
+        {
+            m_IsMaxed = value;
+            if (m_IsMaxed)
+                BigBrain();
+            else
+                SmallBrain();
+        }
+    }
 
-    bool isMaxed = false;
+    [SerializeField] Camera brainCam = null;
+    private bool m_IsMaxed = false;
     RectTransform m_rectTransform = null;
     Vector2 m_startSize, m_BigSize;
     Vector3[] worldCornerOfBrainPanel = new Vector3[4];
@@ -59,12 +74,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         {
             if (eventData.clickCount == 2)
             {
-                if (!isMaxed)
-                    BigBrain();
-                else
-                    SmallBrain();
-
-                isMaxed = !isMaxed;
+                IsMaxed = !IsMaxed;
             }
 
             if (eventData.clickCount == 1 && (winTrace1.hasFocus || winTrace2.hasFocus))

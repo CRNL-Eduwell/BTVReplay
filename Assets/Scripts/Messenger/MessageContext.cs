@@ -12,6 +12,7 @@ enum MessageContext
     UiToTaskPerformanceMessage,
     UiToVideo,
     UiToEvents,
+    UiToLayouts,
     EventsToTraceMessage,
     EventsToTaskPerformanceMessage,
     EventsModificationMessage,
@@ -23,5 +24,6 @@ enum MessageContext
     EditMenuMessage,
     LoadSubjectMessage,
     LoaderMessage,
-    ShowWindowMessage
+    ShowWindowMessage,
+    ForceUpdateTraceMessage
 }

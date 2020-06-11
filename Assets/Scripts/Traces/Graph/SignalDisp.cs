@@ -5,72 +5,63 @@ using UnityEngine.UI;
 
 public abstract class SignalDisp : MonoBehaviour
 {
-    public int PeriodInSeconds
+    public int PeriodInSeconds { get { return m_PeriodInSeconds; } set { m_PeriodInSeconds = value; UpdateTimeResolution(); } }
+    public int SamplingFrequency { get; set; } = 64;
+    public int NumberOfPoint { get; set; } = 64 * 10;
+    public float Gain { get; set; } = 1;
+    public float WidthOfGameObject { get; set; }
+    public float HorizontalScale { get; set; }
+    public Vector3[] Data { get { return m_dataArray; } }
+    public float LineWidth
     {
         get
         {
-            return m_periodSec;
+            return _LineRenderer.startWidth;
+        }
+        set
+        {
+            _LineRenderer.startWidth = value;
+            _LineRenderer.endWidth = value;
         }
     }
-    public int SamplingFrequency
+    public Color Color
     {
         get
         {
-            return m_samplingFreq;
+            return _LineRenderer.startColor;
         }
-    }
-    public int numberOfPoint
-    {
-        get
+        set
         {
-            return m_numberPoint;
-        }
-    }
-    public float Gain
-    {
-        get
-        {
-            return m_gain;
-        }
-    }
-    public float widthOfGameObject
-    {
-        get;
-        set;
-    }
-    public float horizontalScale
-    {
-        get;
-        set;
-    }
-    public Vector3[] dataArray
-    {
-        get
-        {
-            return m_dataArray;
+            if (_LineRenderer.startColor != value && _LineRenderer.endColor != value)
+            {
+                _LineRenderer.startColor = value;
+                _LineRenderer.endColor = value;
+            }
         }
     }
 
     [SerializeField]
-    protected LineRenderer lineRenderer = null;
+    protected LineRenderer _LineRenderer = null;
     protected RectTransform m_parentRectTransform = null;
     protected Vector3[] m_dataArray;
-    protected float m_gain = 1, m_previousGain = 1;
-    protected int m_periodSec = 10, m_samplingFreq = 64, m_numberPoint = 64 * 10;
+    protected float m_previousGain = 1;
     protected bool m_initDone = false;
+
+    private int m_PeriodInSeconds = 10;
 
     void Awake()
     {
         m_parentRectTransform = gameObject.transform.parent.GetComponent<RectTransform>();
     }
 
-    public virtual void init()
+    public virtual void Initialize()
     {
-        m_dataArray = new Vector3[m_numberPoint];
-        lineRenderer.positionCount = m_numberPoint;
-        lineRenderer.startWidth = 0.02f;
-        lineRenderer.endWidth = 0.02f;
-        updateHorizontalScale();
+        NumberOfPoint = SamplingFrequency * m_PeriodInSeconds;
+        m_dataArray = new Vector3[NumberOfPoint];
+        _LineRenderer.positionCount = NumberOfPoint;
+        _LineRenderer.startWidth = 0.02f;
+        _LineRenderer.endWidth = 0.02f;
+        UpdateHorizontalScale();
 
         m_initDone = true;
     }
@@ -78,58 +69,52 @@ public abstract class SignalDisp : MonoBehaviour
     void OnRectTransformDimensionsChange()
     {
         if (m_parentRectTransform != null && m_initDone)
-            updateHorizontalScale();
+            UpdateHorizontalScale();
     }
 
-    public void updateHorizontalScale()
+    public void UpdateHorizontalScale()
     {
-        widthOfGameObject = m_parentRectTransform.rect.width - 10;
-        horizontalScale = widthOfGameObject / m_dataArray.Length;
+        WidthOfGameObject = m_parentRectTransform.rect.width - 10;
+        HorizontalScale = WidthOfGameObject / m_dataArray.Length;
         for (int i = 0; i < m_dataArray.Length; i++)
         {
-            m_dataArray[i].x = ((-widthOfGameObject / 2) + 1) + i * horizontalScale;
+            m_dataArray[i].x = ((-WidthOfGameObject / 2) + 1) + i * HorizontalScale;
             m_dataArray[i].y = 0;
         }
-        lineRenderer.SetPositions(m_dataArray);
+        _LineRenderer.SetPositions(m_dataArray);
     }
 
-    public void updateTimeResolution(int newPeriod)
+    private void UpdateTimeResolution(/*int period*/)
     {
-        m_periodSec = newPeriod;
-        m_numberPoint = m_samplingFreq * m_periodSec;
-        m_dataArray = new Vector3[m_numberPoint];
-        lineRenderer.positionCount = m_numberPoint;
-        lineRenderer.sortingOrder = -1;
+        //PeriodInSeconds = period;
+        NumberOfPoint = SamplingFrequency * m_PeriodInSeconds;
+        m_dataArray = new Vector3[NumberOfPoint];
+        _LineRenderer.positionCount = NumberOfPoint;
+        _LineRenderer.sortingOrder = -1;
     }
 
-    public void updateLineWidth()
+    public void UpdateLineWidth()
     {
-        if (lineRenderer.startWidth == 0.02f)
+        if (_LineRenderer.startWidth == 0.02f)
         {
-            lineRenderer.startWidth = 0.04f;
-            lineRenderer.endWidth = 0.04f;
+            _LineRenderer.startWidth = 0.04f;
+            _LineRenderer.endWidth = 0.04f;
         }
         else
         {
-            lineRenderer.startWidth = 0.02f;
-            lineRenderer.endWidth = 0.02f;
+            _LineRenderer.startWidth = 0.02f;
+            _LineRenderer.endWidth = 0.02f;
         }
     }
 
-    public void updateLineColor(Color color)
+    public void UpdateGain(float gain)
     {
-        lineRenderer.startColor = color;
-        lineRenderer.endColor = color;
-    }
+        m_previousGain = Gain;
+        Gain = gain;
 
-    public void updateGain(float newGain)
-    {
-        m_previousGain = m_gain;
-        m_gain = newGain;
-
-        for (int i = 0; i < m_numberPoint; i++)
-            m_dataArray[i].y = (m_dataArray[i].y / m_previousGain) * m_gain;
-        lineRenderer.SetPositions(m_dataArray);
+        for (int i = 0; i < NumberOfPoint; i++)
+            m_dataArray[i].y = (m_dataArray[i].y / m_previousGain) * Gain;
+        _LineRenderer.SetPositions(m_dataArray);
     }
 
     public abstract void UpdateDraw(int milliSecToLook);

@@ -45,6 +45,7 @@ namespace BTV.UI.Module3D.Tools
 
             m_ShowTrace.isOn = true;
             m_FileDropDown.onValueChanged.Invoke(0);
+            m_FileDropDown.captionText.text = m_FileDropDown.options[m_FileDropDown.value].text;
         }
     }
 }

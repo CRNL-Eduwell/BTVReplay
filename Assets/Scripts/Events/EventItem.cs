@@ -29,7 +29,7 @@ public class EventItem : Tools.Unity.Lists.SelectableItem<BtvEvent>
     #region Private Methods
     private void Start()
     {
-        m_video = GameObject.Find("PanelR").GetComponent<CustomVideoPlayer>();
+        m_video = GameObject.Find("Video").GetComponent<CustomVideoPlayer>();
     }
 
     private void OnDestroy()

@@ -20,6 +20,7 @@ namespace BTV.UI.Module3D
         [SerializeField] ExtendedToggle m_PerformanceToggle = null;
         [SerializeField] ExtendedToggle m_VideoToggle = null;
         [SerializeField] ExtendedToggle m_EventsToggle = null;
+        [SerializeField] ExtendedToggle m_WorkspaceToggle = null;
 
         private Dictionary<ExtendedToggle, Toolbar> m_Toolbars = new Dictionary<ExtendedToggle, Toolbar>();
 
@@ -31,6 +32,7 @@ namespace BTV.UI.Module3D
             m_Toolbars.Add(m_PerformanceToggle, m_ToolbarMenu.PerformanceToolBar);
             m_Toolbars.Add(m_VideoToggle, m_ToolbarMenu.VideoToolBar);
             m_Toolbars.Add(m_EventsToggle, m_ToolbarMenu.EventsToolBar);
+            m_Toolbars.Add(m_WorkspaceToggle, m_ToolbarMenu.LayoutsToolbar);
 
             AddListeners();
         }
@@ -72,6 +74,11 @@ namespace BTV.UI.Module3D
             {
                 UnityEngine.Debug.Log("Update Events Opt : " + UiOptionIndex);
                 ChangeToolbar(m_EventsToggle, UiOptionIndex);
+            });
+            m_WorkspaceToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
+            {
+                UnityEngine.Debug.Log("Update Workspace Opt : " + UiOptionIndex);
+                ChangeToolbar(m_WorkspaceToggle, UiOptionIndex);
             });
         }
 

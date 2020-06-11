@@ -32,6 +32,12 @@ namespace BTV.UI.Module3D.Tools
             m_RemoveGain.onClick.AddListener(RemoveGain);
         }
 
+        public void SetGainWithoutNotify(float gain)
+        {
+            m_Gain = gain;
+            m_Label.text = "Gain : " + m_Gain;
+        }
+
         private void AddGain()
         {
             if (m_Gain < 1 && m_Gain >= -1)

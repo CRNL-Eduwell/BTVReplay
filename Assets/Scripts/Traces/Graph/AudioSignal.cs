@@ -6,10 +6,10 @@ public class AudioSignal : SignalDisp
     public BtvChannel ChannelHandle { get; private set; } = null;
     public float OffsetInMilliseconds { get; set; } = 0;
 
-    public override void init()
+    public override void Initialize()
     {
-        lineRenderer.gameObject.SetActive(false);
-        base.init();
+        _LineRenderer.gameObject.SetActive(false);
+        base.Initialize();
     }
 
     public override void UpdateDraw(int milliSecToLook)
@@ -18,14 +18,14 @@ public class AudioSignal : SignalDisp
             return;
 
         int SamplePosition = ChannelHandle.Frequency.ConvertToCeiledNumberOfSamples((int)(milliSecToLook + OffsetInMilliseconds));
-        int PositionInArray = SamplePosition - m_numberPoint;
+        int PositionInArray = SamplePosition - NumberOfPoint;
         float limitVal = (m_parentRectTransform.rect.height - 6.5f) / 2;
 
         for (int i = 0; i < m_dataArray.Length; i++)
         {
             if ((i + PositionInArray >= 0) && (i + PositionInArray < ChannelHandle.NumberOfSample))
             {
-                float value = m_gain * ChannelHandle.GetSample(i + PositionInArray);
+                float value = Gain * ChannelHandle.GetSample(i + PositionInArray);
                 if (value >= -limitVal && value <= limitVal)
                 {
                     m_dataArray[i].y = value;
@@ -43,12 +43,12 @@ public class AudioSignal : SignalDisp
                 m_dataArray[i].y = 0;
             }
         }
-        lineRenderer.SetPositions(m_dataArray);
+        _LineRenderer.SetPositions(m_dataArray);
     }
 
     public void Show(bool show)
     {
-        lineRenderer.gameObject.SetActive(show);
+        _LineRenderer.gameObject.SetActive(show);
     }
 
     public void UpdateAudioID(int NewId)

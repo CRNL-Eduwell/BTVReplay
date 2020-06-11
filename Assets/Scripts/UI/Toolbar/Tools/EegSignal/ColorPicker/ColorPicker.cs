@@ -36,7 +36,7 @@ namespace BTV.UI.Module3D.Tools
             m_GreenSlider.Init();
             m_BlueSlider.Init();
             m_AlphaSlider.Init();
-            
+
             m_RedSlider.sliderColorChange += new colorSliderChanged(UpdateColorFromSliders);
             m_GreenSlider.sliderColorChange += new colorSliderChanged(UpdateColorFromSliders);
             m_BlueSlider.sliderColorChange += new colorSliderChanged(UpdateColorFromSliders);
@@ -52,6 +52,16 @@ namespace BTV.UI.Module3D.Tools
 
             //Get Initial Color
             m_PreviewColor.color = GetColorFromSliders();
+        }
+
+        public void SetColorWithoutNotify(Color color)
+        {
+            m_PreviewColor.color = color;
+
+            m_RedSlider.ColorValue = color.r;
+            m_GreenSlider.ColorValue = color.g;
+            m_BlueSlider.ColorValue = color.b;
+            m_AlphaSlider.ColorValue = color.a;
         }
 
         //1--2

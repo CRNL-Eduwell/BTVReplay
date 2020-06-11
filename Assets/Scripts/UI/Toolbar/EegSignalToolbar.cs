@@ -38,6 +38,29 @@ namespace BTV.UI.Module3D
         Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
 
         #region Private Methods
+        public new void Initialize()
+        {
+            base.Initialize();
+            Messenger.Default.Register<ForceUpdateTraceMessage>(this, OnForceUpdateTraceMessage, MessageContext.ForceUpdateTraceMessage);
+        }
+
+        private void OnDestroy()
+        {
+            Messenger.Default.Unregister(this, MessageContext.ForceUpdateTraceMessage);
+        }
+
+        private void OnForceUpdateTraceMessage(ForceUpdateTraceMessage message)
+        {
+            if (message.TraceID == m_TraceID)
+            {
+                m_Gain.SetGainWithoutNotify(message.Gain);
+                m_Offset.SetOffsetWithoutNotify(message.Offset);
+                m_Window.SetTimePeriodWithoutNotify(message.Period);
+                m_Window.SetIsOnWithoutNotifty(message.ShowGrid);
+                m_ColorPicker.SetColorWithoutNotify(message.Color);
+            }
+        }
+
         protected override void AddTools()
         {
             m_Tools.Add(m_Gain);

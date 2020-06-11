@@ -32,6 +32,12 @@ namespace BTV.UI.Module3D.Tools
             m_RemoveOffset.onClick.AddListener(RemoveOffset);
         }
 
+        public void SetOffsetWithoutNotify(float offset)
+        {
+            m_Offset = offset;
+            m_Label.text = "Offset : " + (m_Offset * 10) + "%";
+        }
+
         private void AddOffset()
         {
             if (m_Offset + 1 <= 5)
@@ -42,7 +48,7 @@ namespace BTV.UI.Module3D.Tools
             }
         }
 
-        void RemoveOffset()
+        private void RemoveOffset()
         {
             if (m_Offset - 1 >= -5)
             {

@@ -43,7 +43,7 @@ public class ResizableGrid : MonoBehaviour
     [SerializeField] private List<VerticalHandler> m_VerticalHandlers = new List<VerticalHandler>();
     [SerializeField] private List<ColumnGUIManager> m_Columns = new List<ColumnGUIManager>();
 
-    private float m_MinimumViewWidth = 35f;
+    private float m_MinimumViewWidth = 25f;
 
     private void Start()
     {
@@ -59,7 +59,6 @@ public class ResizableGrid : MonoBehaviour
 
     public void Init()
     {
-
         for (int i = 0; i < VerticalHandlerCount; i++)
         {
             m_VerticalHandlers[i].Init();
