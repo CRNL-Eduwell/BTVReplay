@@ -28,6 +28,8 @@ public class PatientBaseGUIManager : MonoBehaviour
 
     private void Start()
     {
+        m_PatientManager.IsInteractable = false;
+
         //Add element in service in they exist
         foreach (var item in DatabaseService.Databases)
         {
@@ -255,10 +257,12 @@ public class PatientBaseGUIManager : MonoBehaviour
         Subject[] SelectedElements = m_SubjectList.ObjectsSelected;
         if (SelectedElements.Length > 0)
         {
+            m_PatientManager.IsInteractable = true;
             m_PatientManager.SetSubjectToGUI(SelectedElements[0]);
         }
         else
         {
+            m_PatientManager.IsInteractable = false;
             m_PatientManager.SetToDefault();
         }
         //OnSubjectSelectionChanged();

@@ -9,6 +9,19 @@ public class EegInfoGUIManager : MonoBehaviour
 {
     public StringEvent onEndEditKey = new StringEvent();
 
+    public bool IsInteractable
+    {
+        get
+        {
+            return _EegFile.IsInteractable && _KeyField.interactable;
+        }
+        set
+        {
+            _EegFile.IsInteractable = value;
+            _KeyField.interactable = value;
+        }
+    }
+
     [SerializeField] BrowseWidget _EegFile = null;
     [SerializeField] InputField _KeyField = null;
     private string m_memory = "";

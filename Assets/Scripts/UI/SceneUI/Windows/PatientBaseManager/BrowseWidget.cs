@@ -7,6 +7,18 @@ public class BrowseWidget : MonoBehaviour
 {
     public StringEvent onEndEdit = new StringEvent();
 
+    public bool IsInteractable
+    {
+        get
+        {
+            return _BrowseButton.interactable && _InputField.interactable;
+        }
+        set
+        {
+            _BrowseButton.interactable = value;
+            _InputField.interactable = value;
+        }
+    }
     public string Text
     {
         get

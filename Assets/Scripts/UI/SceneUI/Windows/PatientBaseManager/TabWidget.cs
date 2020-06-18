@@ -33,8 +33,8 @@ public class TabWidget : MonoBehaviour
 
     private Button[] m_Buttons = null;
     private BrainAnatGUIManager[] m_Panels = null;
-    private Color normalColor = new Color(0.125490f, 0.125490f, 0.125490f, 1);
-    private Color selectedColor = new Color(0.203921f, 0.203921f, 0.203921f, 1);
+    private Color normalColor = new Color(0.203921f, 0.203921f, 0.203921f, 1); //52
+    private Color selectedColor = new Color(0.125490f, 0.125490f, 0.125490f, 1); //32
 
     private void Awake()
     {

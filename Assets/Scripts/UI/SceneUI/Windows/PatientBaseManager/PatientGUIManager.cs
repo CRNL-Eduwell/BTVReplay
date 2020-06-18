@@ -9,6 +9,21 @@ using UnityEngine.UI;
 public class PatientGUIManager : MonoBehaviour
 {
     public Subject LastSubject { get; private set; } = null;
+    public bool IsInteractable
+    {
+        get
+        {
+            return _MniGUIManager.IsInteractable;
+        }
+        set
+        {
+            _MniGUIManager.IsInteractable = value;
+            _PatGUIManager.IsInteractable = value;
+            foreach (var eeg in _EegFiles)
+                eeg.IsInteractable = value;
+            _Video.IsInteractable = value;
+        }
+    }
 
     [SerializeField] BrainAnatGUIManager _MniGUIManager = null;
     [SerializeField] BrainAnatGUIManager _PatGUIManager = null;

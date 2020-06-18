@@ -3,6 +3,24 @@ using UnityEngine.UI;
 
 public class BrainAnatGUIManager : MonoBehaviour
 {
+    public bool IsInteractable
+    {
+        get
+        {
+            return _LeftHemi.IsInteractable;
+        }
+        set
+        {
+            _LeftHemi.IsInteractable = value;
+            _RightHemi.IsInteractable = value;
+            _Transform.IsInteractable = value;
+            _Pts.IsInteractable = value;
+            if(_Atlas != null) _Atlas.IsInteractable = value;
+            _MeshConfiguration.interactable = value;
+            _EegTechnology.interactable = value;
+        }
+    }
+
     [SerializeField] Text _Label = null;
     [SerializeField] BrowseWidget _LeftHemi = null;
     [SerializeField] BrowseWidget _RightHemi = null;
