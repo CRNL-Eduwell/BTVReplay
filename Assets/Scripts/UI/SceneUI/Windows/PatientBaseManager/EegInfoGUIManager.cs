@@ -47,19 +47,19 @@ public class EegInfoGUIManager : MonoBehaviour
         FileInfo fileInfo = new FileInfo(path);
         if (fileInfo.Extension == ".TRC")
         {
-            return new KeyValuePair<string, IEegFileInfo>(key, new MicromedFileInfo(fileInfo.FullName));
+            return new KeyValuePair<string, IEegFileInfo>(key, new MicromedFileInfo(path));
         }
         else if (fileInfo.Extension == ".eeg")
         {
-            return new KeyValuePair<string, IEegFileInfo>(key, new ElanFileInfo(fileInfo.FullName));
+            return new KeyValuePair<string, IEegFileInfo>(key, new ElanFileInfo(path));
         }
         else if (fileInfo.Extension == ".vhdr")
         {
-            return new KeyValuePair<string, IEegFileInfo>(key, new BrainvisionFileInfo(fileInfo.FullName));
+            return new KeyValuePair<string, IEegFileInfo>(key, new BrainvisionFileInfo(path));
         }
         else if (fileInfo.Extension == ".edf")
         {
-            return new KeyValuePair<string, IEegFileInfo>(key, new EdfFileInfo(fileInfo.FullName));
+            return new KeyValuePair<string, IEegFileInfo>(key, new EdfFileInfo(path));
         }
         else
         {
