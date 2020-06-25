@@ -96,6 +96,17 @@ public class BrainDataContainer
         EegTechnology = EnumExtensions.GetValueFromDescription<EegTechnology>(str);
     }
 
+    public void Display()
+    {
+        UnityEngine.Debug.Log("Left Mesh Path : " + LeftHemisphere);
+        UnityEngine.Debug.Log("Right Mesg Path : " + RightHemisphere);
+        UnityEngine.Debug.Log("Transform Path : " + Transformation);
+        UnityEngine.Debug.Log("Pts Path : " + Pts);
+        UnityEngine.Debug.Log("Atlas Path : " + Atlas);
+        UnityEngine.Debug.Log("Mesh Configuration : " + EnumExtensions.GetDescription(MeshConfiguration));
+        UnityEngine.Debug.Log("Eeg Technology : " + EnumExtensions.GetDescription(EegTechnology));
+    }
+
     #region operators
     public override bool Equals(object obj)
     {

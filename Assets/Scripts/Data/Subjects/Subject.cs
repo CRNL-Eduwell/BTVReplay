@@ -55,6 +55,33 @@ public class Subject : ViewModelBase
         return false;
     }
 
+    public void Display()
+    {
+        UnityEngine.Debug.Log("");
+        UnityEngine.Debug.Log("Patient : " + PatientName);
+        UnityEngine.Debug.Log("MNI Referential");
+        if (HasAllInformationForSpace("MNI"))
+        {
+            if (AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer value))
+            {
+                value.Display();
+            }
+        }
+        UnityEngine.Debug.Log("Patient Referential");
+        if (HasAllInformationForSpace("PAT"))
+        {
+            if (AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer value))
+            {
+                value.Display();
+            }
+        }
+        foreach (var item in Files)
+        {
+            UnityEngine.Debug.Log("Key : " + item.Key + " - Path : " + item.Value.Files[0]);
+        }
+        UnityEngine.Debug.Log("Video : " + Video);
+        UnityEngine.Debug.Log("");
+    }
     #region operators
     public override bool Equals(object obj)
     {
