@@ -22,19 +22,20 @@ public class EegInfoGUIManager : MonoBehaviour
         }
     }
 
-    [SerializeField] BrowseWidget _EegFile = null;
-    [SerializeField] InputField _KeyField = null;
+    [SerializeField]
+    private BrowseWidget _EegFile = null;
+    [SerializeField]
+    private InputField _KeyField = null;
+
     private string m_memory = "";
 
     private void Awake()
     {
-        _EegFile.onEndEdit.AddListener(CheckEegFileInput);
         _KeyField.onEndEdit.AddListener((str) => { onEndEditKey.Invoke(str); m_memory = _KeyField.text; });
     }
 
     private void OnDestroy()
     {
-        _EegFile.onEndEdit.RemoveAllListeners();
         _KeyField.onEndEdit.RemoveAllListeners();
     }
 
@@ -70,33 +71,12 @@ public class EegInfoGUIManager : MonoBehaviour
     public void SetEegFileInfoToGUI(KeyValuePair<string, IEegFileInfo> kvp)
     {
         bool isDefaultValue = kvp.Equals(default(KeyValuePair<string, IEegFileInfo>));
-        _EegFile.Text = isDefaultValue ? "" : kvp.Value.Files[0];
+        _EegFile.TextWithoutPopUp = isDefaultValue ? "" : kvp.Value.Files[0];
         _KeyField.text = isDefaultValue ? "" : kvp.Key;
     }
 
     public void RevertKeyField()
     {
         _KeyField.text = m_memory;
-    }
-
-    private void CheckEegFileInput(string str)
-    {
-        if (!string.IsNullOrEmpty(str))
-        {
-            FileInfo fileInfo = new FileInfo(str);
-            if (fileInfo.Exists)
-            {
-                if (!((fileInfo.Extension == ".TRC") || (fileInfo.Extension == ".eeg") || (fileInfo.Extension == ".vhdr") || (fileInfo.Extension == ".edf")))
-                {
-                    ApplicationState.displayMessage("File extension is not supported", "NOK", "It seems the extension you specified is not supported yet, sorry :) ");
-                    _EegFile.RevertText();
-                }
-            }
-            else
-            {
-                ApplicationState.displayMessage("File does not exists", "NOK", "It seems the path you specified point to a non existing file, please check your input");
-                _EegFile.RevertText();
-            }
-        }
     }
 }

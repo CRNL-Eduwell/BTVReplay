@@ -2,9 +2,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public class Subject : ViewModelBase
 {
+    [JsonIgnore]
+    public bool IsLoadable
+    {
+        get
+        {
+            if (Files.Count == 0) return false;
+
+            int ErrorCount = 0;
+            foreach (var file in Files)
+            {
+                List<ArgumentException> errors = file.Value.ChecKForErrors();
+                if (errors != null) ErrorCount += errors.Count;
+            }
+            return ErrorCount == 0;
+        }
+    }
     public string PatientName
     {
         get
@@ -30,6 +47,25 @@ public class Subject : ViewModelBase
     public Subject()
     {
 
+    }
+
+    public Subject(string patientName)
+    {
+        PatientName = patientName;
+        BrainDataContainer mni = new BrainDataContainer
+        {
+            LeftHemisphere = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri",
+            RightHemisphere = Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri",
+            Transformation = Application.dataPath + "/Config/Data/MNI/transfo_mni.trm"
+        };
+        BrainDataContainer pat = new BrainDataContainer
+        {
+            LeftHemisphere = "",
+            RightHemisphere = "",
+            Transformation = ""
+        };
+        AnatomicalSpaces.Add("MNI", mni);
+        AnatomicalSpaces.Add("PAT", pat);
     }
 
     public Subject(Subject subjectToCopy)

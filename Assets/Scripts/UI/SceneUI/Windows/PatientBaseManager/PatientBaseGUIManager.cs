@@ -3,6 +3,7 @@ using BTV.Services.DatabaseService;
 using BTV.UI;
 using CielaSpike;
 using SFB;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -236,7 +237,6 @@ public class PatientBaseGUIManager : MonoBehaviour
         }
     }
 
-    //====================================================================================================================
     private void UpdateShownDatabase()
     {
         m_dbSwitch = true;
@@ -245,8 +245,6 @@ public class PatientBaseGUIManager : MonoBehaviour
         if (SelectedElements.Length > 0)
         {
             m_SubjectList.AddElements(SelectedElements[0].Subjects.ToList());
-            //m_LastSelectedRepository = SelectedElements[0];
-            //OnDatabaseSelectionChanged();
         }
         OnDatabaseSelectionChanged();
         m_dbSwitch = false;
@@ -265,7 +263,6 @@ public class PatientBaseGUIManager : MonoBehaviour
             m_PatientManager.IsInteractable = false;
             m_PatientManager.SetToDefault();
         }
-        //OnSubjectSelectionChanged();
     }
 
     public void OnDatabaseSelectionChanged()
@@ -278,16 +275,15 @@ public class PatientBaseGUIManager : MonoBehaviour
     {
         if (m_LastSelectedRepository != null && m_LastSelectedSUbject != null)
         {
-            m_PatientManager.LastSubject.PatientName = m_LastSelectedSUbject.PatientName;
             if (m_LastSelectedSUbject != m_PatientManager.LastSubject)
             {
-                int dd = DatabaseService.Databases.IndexOf(m_LastSelectedRepository);
+                int repoIndex = DatabaseService.Databases.IndexOf(m_LastSelectedRepository);
                 Subject updated = new Subject(m_PatientManager.LastSubject);
                 Subject outdated = new Subject(m_LastSelectedSUbject);
                 ApplicationState.displayConfirmation("Keep Modifications ?", "There seems to have been some modifications, do you want to save them ?",
                     () =>
                     {
-                        DatabaseService.UpdateSubjectFromDatabase(dd, outdated, updated);
+                        DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
                     },
                     () => { });
             }
@@ -296,8 +292,6 @@ public class PatientBaseGUIManager : MonoBehaviour
         Subject[] SelectedElements = m_SubjectList.ObjectsSelected;
         m_LastSelectedSUbject = (SelectedElements.Length > 0) ? SelectedElements[0] : null;
     }
-
-    //====================================================================================================================
 
     private void EditDatabaseName()
     {
@@ -382,12 +376,19 @@ public class PatientBaseGUIManager : MonoBehaviour
             Subject[] SelectedSubjects = m_SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                LoadSubjectMessage message = new LoadSubjectMessage
+                if (SelectedSubjects[0].IsLoadable)
                 {
-                    subject = new Subject(SelectedSubjects[0])
-                };
-                Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
-                Destroy(gameObject);
+                    LoadSubjectMessage message = new LoadSubjectMessage
+                    {
+                        subject = new Subject(SelectedSubjects[0])
+                    };
+                    Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    ApplicationState.displayMessage("Can not load Subject", "NOK", "Please check that all your eeg files exists at the given path and have the correct extensions");
+                }
             }
         }
     }

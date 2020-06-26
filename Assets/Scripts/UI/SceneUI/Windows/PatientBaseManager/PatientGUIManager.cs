@@ -60,7 +60,7 @@ public class PatientGUIManager : MonoBehaviour
         for (int i = 0; i < fileCount; i++)
             _EegFiles[i].SetEegFileInfoToGUI(default);
 
-        _Video.Text = "";
+        _Video.TextWithoutPopUp = "";
     }
 
     public void SetSubjectToGUI(Subject subject)
@@ -78,7 +78,7 @@ public class PatientGUIManager : MonoBehaviour
         for (int i = 0; i < fileCount; i++)
             _EegFiles[i].SetEegFileInfoToGUI(subject.Files.ElementAtOrDefault(i));
 
-        _Video.Text = subject.Video;
+        _Video.TextWithoutPopUp = subject.Video;
     }
 
     private void IsKeyOk(string str, EegInfoGUIManager eeg)
