@@ -33,20 +33,21 @@ public class TabWidget : MonoBehaviour
 
     private Button[] m_Buttons = null;
     private BrainAnatGUIManager[] m_Panels = null;
-    private Color normalColor = new Color(0.125490f, 0.125490f, 0.125490f, 1);
-    private Color selectedColor = new Color(0.203921f, 0.203921f, 0.203921f, 1);
+    private Color normalColor = new Color(0.203921f, 0.203921f, 0.203921f, 1); //52
+    private Color selectedColor = new Color(0.125490f, 0.125490f, 0.125490f, 1); //32
 
     private void Awake()
     {
         m_Buttons = header.transform.GetComponentsInChildren<Button>();
         m_Panels = content.transform.GetComponentsInChildren<BrainAnatGUIManager>(true);
         for (int i = 0; i < m_Buttons.Length; i++)
-            connectButton(i);
+            ConnectButton(i);
     }
 
     private void Start()
     {
         m_Buttons[0].transform.GetComponent<Image>().color = selectedColor;
+        SwitchTo(0);
     }
 
     private void OnDestroy()
@@ -57,15 +58,15 @@ public class TabWidget : MonoBehaviour
         }
     }
 
-    private void connectButton(int ID)
+    private void ConnectButton(int ID)
     {
         m_Buttons[ID].onClick.AddListener(() => 
         {
-            switchTo(ID);
+            SwitchTo(ID);
         }); 
     }
 
-    private void switchTo(int ID)
+    private void SwitchTo(int ID)
     {
         for (int i = 0; i < m_Panels.Length; i++)
         {

@@ -80,10 +80,7 @@ namespace BTV.Services.DatabaseService
             {
                 UnityEngine.Debug.Log("Add New Default Patient");
                 int index = Databases.IndexOf(element);
-                Subject subject = new Subject()
-                {
-                    PatientName = "Default Name"
-                };
+                Subject subject = new Subject("Default Name");
                 Databases[index].Add(subject);
             }
         }

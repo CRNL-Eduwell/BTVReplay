@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 public class ElanFileInfo : IEegFileInfo
 {
@@ -22,35 +24,50 @@ public class ElanFileInfo : IEegFileInfo
 
     public ElanFileInfo(string eeg, string pos = "", string notes = "")
     {
-        if (string.IsNullOrEmpty(eeg)) throw new ArgumentException("Elan file path should not be a null string");
-
-        FileInfo eegFileInfo = new FileInfo(eeg);
-        if (eegFileInfo.Extension != ".eeg")
-            throw new ArgumentException("File extension should be .eeg, i am seeing " + eegFileInfo.Extension);
-        if (!eegFileInfo.Exists)
-            throw new ArgumentException("It seems the given file does not exist, please check if the file is present at this path : " + eegFileInfo.FullName);
-
         Eeg = eeg;
-
-        if (!string.IsNullOrEmpty(pos))
-        {
-            FileInfo posFileInfo = new FileInfo(pos);
-            if (posFileInfo.Extension != ".pos")
-                throw new ArgumentException("File extension should be .pos, i am seeing " + posFileInfo.Extension);
-            if (!posFileInfo.Exists)
-                throw new ArgumentException("It seems the given file does not exist, please check if the file is present at this path : " + posFileInfo.FullName);
-        }
         Pos = pos;
-
-        if (!string.IsNullOrEmpty(notes))
-        {
-            FileInfo notesFileInfo = new FileInfo(notes);
-            if (notesFileInfo.Extension != ".txt")
-                throw new ArgumentException("File extension should be .txt, i am seeing " + notesFileInfo.Extension);
-            if (!notesFileInfo.Exists)
-                throw new ArgumentException("It seems the given file does not exist, please check if the file is present at this path : " + notesFileInfo.FullName);
-        }
         Notes = notes;
+    }
+
+    public List<ArgumentException> ChecKForErrors()
+    {
+        List<ArgumentException> Errors = new List<ArgumentException>();
+
+        if (string.IsNullOrEmpty(Eeg))
+            Errors.Add(new ArgumentException("Elan eeg file path should not be a null string"));
+
+        List<ArgumentException> eegErrors = CheckFileForError(Eeg, ".eeg");
+        if (eegErrors != null)
+            Errors = Errors.Concat(eegErrors).ToList();
+
+        if (!string.IsNullOrEmpty(Pos))
+        {
+            List<ArgumentException> posError = CheckFileForError(Pos, ".pos");
+            if (posError != null)
+                Errors = Errors.Concat(posError).ToList();
+        }
+        if (!string.IsNullOrEmpty(Notes))
+        {
+            List<ArgumentException> notesError = CheckFileForError(Notes, ".txt");
+            if (notesError != null)
+                Errors.Concat(notesError).ToList();
+        }
+
+        return Errors;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="extention">file extention, ie : .txt </param>
+    private List<ArgumentException> CheckFileForError(string path, string extention)
+    {
+        List<ArgumentException> Errors = new List<ArgumentException>();
+        FileInfo fileInfo = new FileInfo(path);
+        if (fileInfo.Extension != extention) Errors.Add(new ArgumentException("File extension should be " + extention + ", i am seeing " + fileInfo.Extension));
+        if (!fileInfo.Exists) Errors.Add(new ArgumentException("It seems the given file does not exist, please check if the file is present at this path : " + fileInfo.FullName));
+        return Errors;
     }
 
     #region operators

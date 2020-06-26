@@ -3,6 +3,24 @@ using UnityEngine.UI;
 
 public class BrainAnatGUIManager : MonoBehaviour
 {
+    public bool IsInteractable
+    {
+        get
+        {
+            return _LeftHemi.IsInteractable;
+        }
+        set
+        {
+            _LeftHemi.IsInteractable = value;
+            _RightHemi.IsInteractable = value;
+            _Transform.IsInteractable = value;
+            _Pts.IsInteractable = value;
+            if(_Atlas != null) _Atlas.IsInteractable = value;
+            _MeshConfiguration.interactable = value;
+            _EegTechnology.interactable = value;
+        }
+    }
+
     [SerializeField] Text _Label = null;
     [SerializeField] BrowseWidget _LeftHemi = null;
     [SerializeField] BrowseWidget _RightHemi = null;
@@ -78,10 +96,10 @@ public class BrainAnatGUIManager : MonoBehaviour
         //check that on value changed is not called two times
 
         _EegTechnology.value = (int)container.EegTechnology;
-        _LeftHemi.Text = container.LeftHemisphere;
-        _RightHemi.Text = container.RightHemisphere;
-        _Transform.Text = container.Transformation;
-        _Pts.Text = container.Pts;
-        if (_Atlas != null) _Atlas.Text = container.Atlas;
+        _LeftHemi.TextWithoutPopUp = container.LeftHemisphere;
+        _RightHemi.TextWithoutPopUp = container.RightHemisphere;
+        _Transform.TextWithoutPopUp = container.Transformation;
+        _Pts.TextWithoutPopUp = container.Pts;
+        if (_Atlas != null) _Atlas.TextWithoutPopUp = container.Atlas;
     }
 }

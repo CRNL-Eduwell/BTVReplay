@@ -9,11 +9,28 @@ using UnityEngine.UI;
 public class PatientGUIManager : MonoBehaviour
 {
     public Subject LastSubject { get; private set; } = null;
+    public bool IsInteractable
+    {
+        get
+        {
+            return _MniGUIManager.IsInteractable;
+        }
+        set
+        {
+            _MniGUIManager.IsInteractable = value;
+            _PatGUIManager.IsInteractable = value;
+            foreach (var eeg in _EegFiles)
+                eeg.IsInteractable = value;
+            _Video.IsInteractable = value;
+        }
+    }
 
     [SerializeField] BrainAnatGUIManager _MniGUIManager = null;
     [SerializeField] BrainAnatGUIManager _PatGUIManager = null;
     [SerializeField] EegInfoGUIManager[] _EegFiles = new EegInfoGUIManager[6] { null, null, null, null, null, null, };
     [SerializeField] BrowseWidget _Video = null;
+
+    private Subject m_Subject = null; /*!< Reference to the last inputed subject , used to keep track of the name of the subject */
 
     private void Awake()
     {
@@ -31,41 +48,37 @@ public class PatientGUIManager : MonoBehaviour
         }
     }
 
-    public Subject GetSubjectsFromGUI()
+    public void SetToDefault()
     {
-        Subject myPat = new Subject();
+        LastSubject = GetSubjectsFromGUI();
+        m_Subject = null;
 
-        //myPat.PatientName = GetHeaderText();
+        _MniGUIManager.SetDataConainerInUI(new BrainDataContainer());
+        _PatGUIManager.SetDataConainerInUI(new BrainDataContainer());
 
-        myPat.AnatomicalSpaces.Add("MNI", _MniGUIManager.GetDataContainer());
-        myPat.AnatomicalSpaces.Add("PAT", _PatGUIManager.GetDataContainer());
         int fileCount = _EegFiles.Length;
         for (int i = 0; i < fileCount; i++)
-        {
-            KeyValuePair<string, IEegFileInfo> kvp = _EegFiles[i].GetEegFileInfoFromGUI();
-            if(!kvp.Equals(default(KeyValuePair<string, IEegFileInfo>)))
-            {
-                if (string.IsNullOrEmpty(kvp.Key))
-                {
-                    ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to define a key for the eeg file that is not a null/empty string");
-                    //return null;
-                    continue;
-                }
-                else if (myPat.Files.ContainsKey(kvp.Key))
-                {
-                    ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to have a different key for each eeg file");
-                    continue;
-                    //return null;
-                }
-                else
-                {
-                    myPat.Files.Add(kvp.Key, kvp.Value);
-                }
-            }
-        }
-        myPat.Video = _Video.Text;
+            _EegFiles[i].SetEegFileInfoToGUI(default);
 
-        return myPat;
+        _Video.TextWithoutPopUp = "";
+    }
+
+    public void SetSubjectToGUI(Subject subject)
+    {
+        LastSubject = GetSubjectsFromGUI();
+        m_Subject = subject;
+
+        bool mniFound = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+        if (mniFound) _MniGUIManager.SetDataConainerInUI(mniContainer);
+
+        bool patFound = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+        if (patFound) _PatGUIManager.SetDataConainerInUI(patContainer);
+
+        int fileCount = _EegFiles.Length;
+        for (int i = 0; i < fileCount; i++)
+            _EegFiles[i].SetEegFileInfoToGUI(subject.Files.ElementAtOrDefault(i));
+
+        _Video.TextWithoutPopUp = subject.Video;
     }
 
     private void IsKeyOk(string str, EegInfoGUIManager eeg)
@@ -94,36 +107,37 @@ public class PatientGUIManager : MonoBehaviour
         }
     }
 
-    public void SetToDefault()
+    private Subject GetSubjectsFromGUI()
     {
-        LastSubject = GetSubjectsFromGUI();
+        Subject myPat = new Subject();
+        myPat.PatientName = m_Subject != null ? m_Subject.PatientName : "";
 
-        _MniGUIManager.SetDataConainerInUI(new BrainDataContainer());
-        _PatGUIManager.SetDataConainerInUI(new BrainDataContainer());
-
+        myPat.AnatomicalSpaces.Add("MNI", _MniGUIManager.GetDataContainer());
+        myPat.AnatomicalSpaces.Add("PAT", _PatGUIManager.GetDataContainer());
         int fileCount = _EegFiles.Length;
         for (int i = 0; i < fileCount; i++)
-            _EegFiles[i].SetEegFileInfoToGUI(default);
+        {
+            KeyValuePair<string, IEegFileInfo> kvp = _EegFiles[i].GetEegFileInfoFromGUI();
+            if (!kvp.Equals(default(KeyValuePair<string, IEegFileInfo>)))
+            {
+                if (string.IsNullOrEmpty(kvp.Key))
+                {
+                    ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to define a key for the eeg file that is not a null/empty string");
+                    continue;
+                }
+                else if (myPat.Files.ContainsKey(kvp.Key))
+                {
+                    ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to have a different key for each eeg file");
+                    continue;
+                }
+                else
+                {
+                    myPat.Files.Add(kvp.Key, kvp.Value);
+                }
+            }
+        }
+        myPat.Video = _Video.Text;
 
-        _Video.Text = "";
-    }
-
-    public void SetSubjectToGUI(Subject subject)
-    {
-        LastSubject = GetSubjectsFromGUI();
-
-        //SetHeadertext(subject.PatientName);
-
-        bool mniFound = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
-        if(mniFound) _MniGUIManager.SetDataConainerInUI(mniContainer);
-
-        bool patFound = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
-        if (patFound) _PatGUIManager.SetDataConainerInUI(patContainer);
-
-        int fileCount = _EegFiles.Length;
-        for (int i = 0; i < fileCount; i++)
-            _EegFiles[i].SetEegFileInfoToGUI(subject.Files.ElementAtOrDefault(i));
-
-        _Video.Text = subject.Video;
+        return myPat;
     }
 }

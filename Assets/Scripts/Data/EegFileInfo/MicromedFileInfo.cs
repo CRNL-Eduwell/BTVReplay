@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 public class MicromedFileInfo : IEegFileInfo
@@ -19,15 +20,17 @@ public class MicromedFileInfo : IEegFileInfo
 
     public MicromedFileInfo(string trc)
     {
-        if (string.IsNullOrEmpty(trc)) throw new ArgumentException("Trc file path should not be a null string");
+        Trc = trc;
+    }
 
-        FileInfo fileInfo = new FileInfo(trc);
-        if(fileInfo.Extension != ".TRC")
-            throw new ArgumentException("File extension should be .TRC, i am seeing " + fileInfo.Extension);
-        if (!fileInfo.Exists)
-            throw new ArgumentException("It seems the given file does not exist, please check if the file is present at this path : " + fileInfo.FullName);
-
-        Trc = fileInfo.FullName;
+    public List<ArgumentException> ChecKForErrors()
+    {
+        List<ArgumentException> Errors = new List<ArgumentException>();
+        if (string.IsNullOrEmpty(Trc)) Errors.Add(new ArgumentException("Trc file path should not be a null string"));
+        FileInfo fileInfo = new FileInfo(Trc);
+        if (fileInfo.Extension != ".TRC") Errors.Add(new ArgumentException("File extension should be .TRC, i am seeing " + fileInfo.Extension));
+        if (!fileInfo.Exists) Errors.Add(new ArgumentException("It seems the given file does not exist, please check if the file is present at this path : " + fileInfo.FullName));
+        return Errors;
     }
 
     #region operators
