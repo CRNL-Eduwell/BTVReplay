@@ -67,6 +67,8 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
     private Stopwatch m_internalTimer = null;
     private long m_internalLastTime = 0;
     private bool m_paused = true, m_playing = false;
+    private RectTransform m_parentRectTransform = null;
+    private float WidthToHeightRatio = 0.0f, HeightToWidthRatio = 0.0f;
     #endregion
 
     /// <summary>
@@ -81,9 +83,10 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
         m_VideoFilePath = path;
         m_EegFileDurationInSec = duration;
         m_TextureForVideo = texture;
-
         TotalVideoTime = duration * 1000;
         m_internalTimer = new Stopwatch();
+
+        m_parentRectTransform = transform.parent.GetComponent<RectTransform>();
     }
 
     public void Cleanup() { }
@@ -101,6 +104,13 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public void Play()
     {
+        if (!m_paused && !m_playing)
+        {
+            WidthToHeightRatio = (float)m_TextureForVideo.texture.width / m_TextureForVideo.texture.height;
+            HeightToWidthRatio = (float)m_TextureForVideo.texture.height / m_TextureForVideo.texture.width;
+            ResizeTexture();
+        }
+
         if (m_internalTimer != null)
             m_internalTimer.Start();
         else
@@ -142,4 +152,16 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
     public void SetVolume(float volume) { }
 
     public void SetVideoOffset(float newOffset) { }
+
+    private void ResizeTexture()
+    {
+        if (m_parentRectTransform == null) return;
+
+        float resizingWidth = m_parentRectTransform.rect.height * WidthToHeightRatio;
+        float resizingHeight = m_parentRectTransform.rect.width * HeightToWidthRatio;
+
+        float width = (resizingHeight >= m_parentRectTransform.rect.height) ? resizingWidth : m_parentRectTransform.rect.width;
+        float height = (resizingHeight >= m_parentRectTransform.rect.height) ? m_parentRectTransform.rect.height : resizingHeight;
+        m_TextureForVideo.rectTransform.sizeDelta = new Vector2(width, height);
+    }
 }
