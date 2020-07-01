@@ -91,7 +91,11 @@ public class BrowseWidget : MonoBehaviour
 
     private void LoadFile()
     {
-        _InputField.text = FileBrowser.GetExistingFileName(_FileExtensions);
+        string str = FileBrowser.GetExistingFileName(_FileExtensions);
+        if (!string.IsNullOrEmpty(str))
+        {
+            _InputField.text = str;
+        }
     }
 
     private void SaveFile()
