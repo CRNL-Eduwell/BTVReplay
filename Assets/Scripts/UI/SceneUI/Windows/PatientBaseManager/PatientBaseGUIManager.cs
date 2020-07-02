@@ -234,6 +234,16 @@ public class PatientBaseGUIManager : MonoBehaviour
                     RemoveSubjectFromDatabase();
                     break;
                 }
+            case 5:
+                {
+                    MoveSubjectsToDatabase(message.DestinationDatabase);
+                    break;
+                }
+            case 6:
+                {
+                    CopySubjectsToDatabase(message.DestinationDatabase);
+                    break;
+                }
         }
     }
 
@@ -364,6 +374,52 @@ public class PatientBaseGUIManager : MonoBehaviour
             if (SelectedSubjects.Length > 0)
             {
                 ApplicationState.displayConfirmation("Subject Deletion", "You are going to erase this subject, are you sure ?", () => { DatabaseService.RemoveSubjectFromDatabase(SelectedDB[0], SelectedSubjects[0]); }, () => { });
+            }
+        }
+    }
+
+    private void MoveSubjectsToDatabase(string database)
+    {
+        SubjectRepository[] SelectedDB = m_DatabaseList.ObjectsSelected;
+        if (SelectedDB.Length > 0)
+        {
+            Subject[] SelectedSubjects = m_SubjectList.ObjectsSelected;
+            if (SelectedSubjects.Length > 0)
+            {
+                SubjectRepository destinationDb = m_DatabaseList.Objects.First(x => x.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "") == database);
+                foreach (var subject in SelectedSubjects)
+                {
+                    bool added = DatabaseService.AddSubjectToDatabase(destinationDb, subject);
+                    if (added)
+                    {
+                        DatabaseService.RemoveSubjectFromDatabase(SelectedDB[0], subject);
+                    }
+                    else
+                    {
+                        ApplicationState.displayMessage("Patient was not moved", "INFO", "Patient already exists in destination database");
+                    }
+                }
+            }
+        }
+    }
+
+    private void CopySubjectsToDatabase(string database)
+    {
+        SubjectRepository[] SelectedDB = m_DatabaseList.ObjectsSelected;
+        if (SelectedDB.Length > 0)
+        {
+            Subject[] SelectedSubjects = m_SubjectList.ObjectsSelected;
+            if (SelectedSubjects.Length > 0)
+            {
+                SubjectRepository destinationDb = m_DatabaseList.Objects.First(x => x.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "") == database);
+                foreach (var subject in SelectedSubjects)
+                {
+                    bool added = DatabaseService.AddSubjectToDatabase(destinationDb, subject);
+                    if (!added)
+                    {
+                        ApplicationState.displayMessage("Patient was not copied", "INFO", "Patient already exists in destination database");
+                    }
+                }
             }
         }
     }

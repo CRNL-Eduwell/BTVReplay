@@ -113,5 +113,45 @@ namespace BTV.Services.DatabaseService
 
             if (!string.IsNullOrEmpty(path)) FilePath = path;
         }
+
+        #region operators
+        public override bool Equals(object obj)
+        {
+            if (obj is SubjectRepository subject)
+            {
+                bool sameName = FilePath == subject.FilePath;
+                bool sameSubjects = Subjects.All(k => subject.Subjects.Contains(k)) && Subjects.Count == subject.Subjects.Count;
+                return sameName && sameSubjects;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public static bool operator ==(SubjectRepository a, SubjectRepository b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            if (((object)a == null) || ((object)b == null))
+            {
+                return false;
+            }
+
+            return a.Equals(b);
+        }
+        public static bool operator !=(SubjectRepository a, SubjectRepository b)
+        {
+            return !(a == b);
+        }
+        #endregion
     }
 }

@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using BTV.Services.DatabaseService;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,6 +19,14 @@ namespace BTV.UI
         private Button m_AddSubject = null;
         [SerializeField]
         private Button m_DeleteSubject = null;
+        [SerializeField]
+        private Button m_MoveSubject = null;
+        [SerializeField]
+        private DbSubMenu m_MoveSubjectsSubMenu = null;
+        [SerializeField]
+        private Button m_CopySubject = null;
+        [SerializeField]
+        private DbSubMenu m_CopySubjectsSubMenu = null;
 
         private void Start()
         {
@@ -25,6 +35,20 @@ namespace BTV.UI
             m_EditSubjectName.onClick.AddListener(EditSubjectName);
             m_AddSubject.onClick.AddListener(AddSubject);
             m_DeleteSubject.onClick.AddListener(DeleteSubject);
+            m_MoveSubject.onClick.AddListener(()=> 
+            {
+                m_MoveSubjectsSubMenu.Show = !m_MoveSubjectsSubMenu.Show;
+                m_CopySubjectsSubMenu.Show = false;
+            });
+            m_MoveSubjectsSubMenu.ItemClicked.AddListener(MoveSubjectsToDatabase);
+            m_CopySubject.onClick.AddListener(() => 
+            {
+                m_CopySubjectsSubMenu.Show = !m_CopySubjectsSubMenu.Show;
+                m_MoveSubjectsSubMenu.Show = false;
+            });
+            m_CopySubjectsSubMenu.ItemClicked.AddListener(CopySubjectsToDatabase);
+
+            DatabaseService.Databases.CollectionChanged += UpdateDatabaseCollection;
         }
 
         private void OnDestroy()
@@ -34,6 +58,12 @@ namespace BTV.UI
             m_EditSubjectName.onClick.RemoveAllListeners();
             m_AddSubject.onClick.RemoveAllListeners();
             m_DeleteSubject.onClick.RemoveAllListeners();
+            m_MoveSubject.onClick.RemoveAllListeners();
+            m_MoveSubjectsSubMenu.ItemClicked.RemoveAllListeners();
+            m_CopySubject.onClick.RemoveAllListeners();
+            m_CopySubjectsSubMenu.ItemClicked.RemoveAllListeners();
+
+            DatabaseService.Databases.CollectionChanged -= UpdateDatabaseCollection;
         }
 
         private void EditDabaseName()
@@ -84,6 +114,70 @@ namespace BTV.UI
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
+        }
+
+        private void MoveSubjectsToDatabase(string databaseName)
+        {
+            EditMenuMessage message = new EditMenuMessage
+            {
+                TaskToExecute = 5,
+                DestinationDatabase = databaseName
+            };
+            Messenger.Default.Send(message, MessageContext.EditMenuMessage);
+            m_MoveSubjectsSubMenu.Show = false;
+            Close();
+        }
+
+        private void CopySubjectsToDatabase(string databaseName)
+        {
+            EditMenuMessage message = new EditMenuMessage
+            {
+                TaskToExecute = 6,
+                DestinationDatabase = databaseName
+            };
+            Messenger.Default.Send(message, MessageContext.EditMenuMessage);
+            m_CopySubjectsSubMenu.Show = false;
+            Close();
+        }
+
+        private void UpdateDatabaseCollection(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
+                    {
+                        UnityEngine.Debug.Log("Adding a Database element : ");
+                        SubjectRepository itemToAdd = (SubjectRepository)e.NewItems[0]; //list of new items, only one at a time normally
+                        string shortName = itemToAdd.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "");
+                        m_MoveSubjectsSubMenu.AddSubMenuItem(shortName);
+                        m_CopySubjectsSubMenu.AddSubMenuItem(shortName);
+                        break;
+                    }
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
+                    {
+                        UnityEngine.Debug.Log("Moving a Database element : ");
+                        break;
+                    }
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
+                    {
+                        UnityEngine.Debug.Log("Removing a Database element : ");
+                        SubjectRepository itemToRemove = (SubjectRepository)e.OldItems[0];
+                        string shortName = itemToRemove.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "");
+                        m_MoveSubjectsSubMenu.RemoveSubMenuItem(shortName);
+                        m_CopySubjectsSubMenu.RemoveSubMenuItem(shortName);
+                        break;
+                    }
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
+                    {
+                        UnityEngine.Debug.Log("Replacing a Database element : ");
+                        break;
+                    }
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
+                    {
+                        UnityEngine.Debug.Log("Reseting a Database element : ");
+                        break;
+                    }
+            }
         }
     }
 }

@@ -85,6 +85,21 @@ namespace BTV.Services.DatabaseService
             }
         }
 
+        public static bool AddSubjectToDatabase(SubjectRepository element, Subject subject)
+        {
+            if (Databases.Contains(element))
+            {
+                int index = Databases.IndexOf(element);
+                if (!Databases[index].Subjects.Contains(subject))
+                {
+                    UnityEngine.Debug.Log("Add Already existing Patient");
+                    Databases[index].Add(subject);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static void RemoveSubjectFromDatabase(SubjectRepository element, Subject subject)
         {
             if (Databases.Contains(element))
