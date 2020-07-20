@@ -47,6 +47,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     [SerializeField] int traceID = 0;
 
     bool m_initDone = false;
+    int m_State = 1;
     bool m_AddEvents = false;
     RectTransform m_rectTransform = null;
     Vector3[] m_worldCornerOfBrainPanel = new Vector3[4];
@@ -106,6 +107,16 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 else
                     updateElectrodeById(eegSignal.ElectrodeID + 1);
             }
+        }
+    }
+
+    private void OnRectTransformDimensionsChange()
+    {
+        if (m_rectTransform == null) return;
+
+        if (m_State > 0)
+        {
+            gameObject.SetActive(m_rectTransform.rect.width > 100);
         }
     }
 
@@ -255,7 +266,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     public void UpdateWindowState(int state)
     {
         UnityEngine.Debug.Log("Updating Trace " + TraceId + " Ui State");
-        switch (state)
+        m_State = state;
+        switch (m_State)
         {
             case 0: //Hide 3D Module
                 gameObject.SetActive(false);

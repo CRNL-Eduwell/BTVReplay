@@ -64,6 +64,10 @@ public class SubjectLoaderService : MonoBehaviour
         };
         Messenger.Default.Send(message, MessageContext.LoaderMessage);
 
+        //kind of an ugly way to deactivate perf at launch time, see to do that by instantiating
+        //the window only when needed 
+        GameObject.Find("ButtonPerf").GetComponent<ExtendedToggle>().ForceStartValue(0);
+
         //When everything is loaded we close the loading brain and media panel
         loadingCircle.Close();
         loaded = true;

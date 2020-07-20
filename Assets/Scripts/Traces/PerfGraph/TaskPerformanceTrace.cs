@@ -44,11 +44,13 @@ public class TaskPerformanceTrace : MonoBehaviour
     private int m_NumberOfPoint = 64 * 10;
     private float m_HorizontalScale = 0;
     private float m_VerticalScale = 0;
+    private int m_State = 1;
 
     public void UpdateWindowState(int state)
     {
         UnityEngine.Debug.Log("Updating Task performance Ui State");
-        switch (state)
+        m_State = state;
+        switch (m_State)
         {
             case 0:
                 gameObject.SetActive(false);
@@ -83,6 +85,11 @@ public class TaskPerformanceTrace : MonoBehaviour
 
     private void OnRectTransformDimensionsChange()
     {
+        if (m_State > 0)
+        {
+            gameObject.SetActive(gameObject.GetComponent<RectTransform>().rect.width > 100);
+        }
+
         UpdateScales();
     }
 
