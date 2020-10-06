@@ -189,11 +189,21 @@ public class PatientBaseGUIManager : MonoBehaviour
                     {
                         var extensionList = new[] { new ExtensionFilter("BrainTV Database Files", "dbtv") };
                         FileInfo file = new FileInfo(SelectedElements[0].FilePath);
+#if UNITY_STANDALONE_OSX
+                        FileBrowser.GetSavedFileNameAsync((str) =>
+                        {
+                            if (!string.IsNullOrEmpty(str))
+                            {
+                                SelectedElements[0].Save(str);
+                            }
+                        }, extensionList, "Save Database To", file.FullName, file.Name);
+#else
                         string filePath = FileBrowser.GetSavedFileName(extensionList, "Save Database To", file.FullName, file.Name);
                         if (!string.IsNullOrEmpty(filePath))
                         {
                             SelectedElements[0].Save(filePath);
                         }
+#endif
                     }
                     break;
                 }

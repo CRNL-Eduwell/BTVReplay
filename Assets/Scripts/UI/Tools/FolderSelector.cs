@@ -39,6 +39,18 @@ public class FolderSelector : MonoBehaviour
     }
     private void ChooseFolder()
     {
+#if UNITY_STANDALONE_OSX
+        FileBrowser.GetExistingDirectoryNameAsync((str) =>
+        {
+            if (!string.IsNullOrEmpty(str))
+            {
+                if (Directory.Exists(str))
+                {
+                    Text = str;
+                }
+            }
+        }, "Select a directory", Text);
+#else
         string path = FileBrowser.GetExistingDirectoryName("Select a directory", Text);
         if (!string.IsNullOrEmpty(path))
         {
@@ -47,5 +59,6 @@ public class FolderSelector : MonoBehaviour
                 Text = path;
             }
         }
+#endif
     }
 }

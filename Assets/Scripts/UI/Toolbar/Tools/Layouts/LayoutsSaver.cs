@@ -21,12 +21,22 @@ namespace BTV.UI.Module3D.Tools
 
         public override void Initialize()
         {
-            m_SaveFile.onClick.AddListener(() =>
+            m_SaveFile.onClick.AddListener(Save);
+        }
+
+        private void Save()
+        {
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetSavedFileNameAsync((str) =>
             {
-                string filePath = FileBrowser.GetSavedFileName(m_ExtensionList, "Save Workspace File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
-                if (filePath != "")
-                    SaveFile.Invoke(filePath);
-            });
+                if (!string.IsNullOrEmpty(str))
+                    SaveFile.Invoke(str);
+            }, m_ExtensionList, "Save Workspace File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
+#else
+            string filePath = FileBrowser.GetSavedFileName(m_ExtensionList, "Save Workspace File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
+            if (!string.IsNullOrEmpty(filePath))
+                SaveFile.Invoke(filePath);
+#endif
         }
     }
 }
