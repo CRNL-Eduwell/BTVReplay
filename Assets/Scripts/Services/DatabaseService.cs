@@ -17,7 +17,9 @@ namespace BTV.Services.DatabaseService
             if (!string.IsNullOrEmpty(filePath))
             {
                 UnityEngine.Debug.Log("Creating new db to " + filePath);
-                Databases.Add(new SubjectRepository(filePath, null));
+                SubjectRepository db = new SubjectRepository(filePath, null);
+                db.Save();
+                Databases.Add(db);
             }
         }
 

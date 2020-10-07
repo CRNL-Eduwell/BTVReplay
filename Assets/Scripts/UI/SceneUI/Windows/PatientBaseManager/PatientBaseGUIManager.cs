@@ -43,7 +43,7 @@ public class PatientBaseGUIManager : MonoBehaviour
         m_Close.onClick.AddListener(() => { Destroy(gameObject); });
         m_DatabaseList.OnSelectionChanged.AddListener(UpdateShownDatabase);
         m_SubjectList.OnSelectionChanged.AddListener(UpdateShownSubject);
-        m_LoadSubject.onClick.AddListener(LoadSelectedPatient);
+        m_LoadSubject.onClick.AddListener(LoadSelectedSubject);
 
         m_SubjectList.OnSelectionChanged.AddListener(OnSubjectSelectionChanged);
     }
@@ -304,6 +304,7 @@ public class PatientBaseGUIManager : MonoBehaviour
                     () =>
                     {
                         DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
+                        DatabaseService.Databases[repoIndex].Save();
                     },
                     () => { });
             }
@@ -434,28 +435,48 @@ public class PatientBaseGUIManager : MonoBehaviour
         }
     }
 
-    private void LoadSelectedPatient()
+    private void LoadSelectedSubject()
     {
-        SubjectRepository[] SelectedDB = m_DatabaseList.ObjectsSelected;
-        if (SelectedDB.Length > 0)
+        int repoIndex = DatabaseService.Databases.IndexOf(m_LastSelectedRepository);
+        Subject updated = new Subject(m_PatientManager.GetSubjectsFromGUI());
+        Subject outdated = new Subject(m_LastSelectedSUbject);
+
+        if (updated != outdated)
         {
-            Subject[] SelectedSubjects = m_SubjectList.ObjectsSelected;
-            if (SelectedSubjects.Length > 0)
+            ApplicationState.displayConfirmation("Keep Modifications ?", "There seems to have been some modifications, do you want to save them ?",
+            () =>
             {
-                if (SelectedSubjects[0].IsLoadable)
-                {
-                    LoadSubjectMessage message = new LoadSubjectMessage
-                    {
-                        subject = new Subject(SelectedSubjects[0])
-                    };
-                    Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
-                    Destroy(gameObject);
-                }
-                else
-                {
-                    ApplicationState.displayMessage("Can not load Subject", "NOK", "Please check that all your eeg files exists at the given path and have the correct extensions");
-                }
-            }
+                m_dbSwitch = true;
+                DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
+                DatabaseService.Databases[repoIndex].Save();
+                m_dbSwitch = false;
+                LoadSubject(updated);
+            },
+            () =>
+            {
+                LoadSubject(updated);
+            });
+        }
+        else
+        {
+            LoadSubject(updated);
+        }
+    }
+
+    private void LoadSubject(Subject updated)
+    {
+        if (updated.IsLoadable)
+        {
+            LoadSubjectMessage message = new LoadSubjectMessage
+            {
+                subject = new Subject(updated)
+            };
+            Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
+            Destroy(gameObject);
+        }
+        else
+        {
+            ApplicationState.displayMessage("Can not load Subject", "NOK", "Please check that all your eeg files exists at the given path and have the correct extensions");
         }
     }
 }
