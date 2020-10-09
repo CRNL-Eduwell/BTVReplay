@@ -43,7 +43,7 @@ public class PatientBaseGUIManager : MonoBehaviour
         m_Close.onClick.AddListener(() => { Destroy(gameObject); });
         m_DatabaseList.OnSelectionChanged.AddListener(UpdateShownDatabase);
         m_SubjectList.OnSelectionChanged.AddListener(UpdateShownSubject);
-        m_LoadSubject.onClick.AddListener(LoadSelectedPatient);
+        m_LoadSubject.onClick.AddListener(LoadSelectedSubject);
 
         m_SubjectList.OnSelectionChanged.AddListener(OnSubjectSelectionChanged);
     }
@@ -189,11 +189,21 @@ public class PatientBaseGUIManager : MonoBehaviour
                     {
                         var extensionList = new[] { new ExtensionFilter("BrainTV Database Files", "dbtv") };
                         FileInfo file = new FileInfo(SelectedElements[0].FilePath);
+#if UNITY_STANDALONE_OSX
+                        FileBrowser.GetSavedFileNameAsync((str) =>
+                        {
+                            if (!string.IsNullOrEmpty(str))
+                            {
+                                SelectedElements[0].Save(str);
+                            }
+                        }, extensionList, "Save Database To", file.FullName, file.Name);
+#else
                         string filePath = FileBrowser.GetSavedFileName(extensionList, "Save Database To", file.FullName, file.Name);
                         if (!string.IsNullOrEmpty(filePath))
                         {
                             SelectedElements[0].Save(filePath);
                         }
+#endif
                     }
                     break;
                 }
@@ -232,6 +242,16 @@ public class PatientBaseGUIManager : MonoBehaviour
             case 4:
                 {
                     RemoveSubjectFromDatabase();
+                    break;
+                }
+            case 5:
+                {
+                    MoveSubjectsToDatabase(message.DestinationDatabase);
+                    break;
+                }
+            case 6:
+                {
+                    CopySubjectsToDatabase(message.DestinationDatabase);
                     break;
                 }
         }
@@ -284,6 +304,7 @@ public class PatientBaseGUIManager : MonoBehaviour
                     () =>
                     {
                         DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
+                        DatabaseService.Databases[repoIndex].Save();
                     },
                     () => { });
             }
@@ -368,7 +389,7 @@ public class PatientBaseGUIManager : MonoBehaviour
         }
     }
 
-    private void LoadSelectedPatient()
+    private void MoveSubjectsToDatabase(string database)
     {
         SubjectRepository[] SelectedDB = m_DatabaseList.ObjectsSelected;
         if (SelectedDB.Length > 0)
@@ -376,20 +397,86 @@ public class PatientBaseGUIManager : MonoBehaviour
             Subject[] SelectedSubjects = m_SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                if (SelectedSubjects[0].IsLoadable)
+                SubjectRepository destinationDb = m_DatabaseList.Objects.First(x => x.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "") == database);
+                foreach (var subject in SelectedSubjects)
                 {
-                    LoadSubjectMessage message = new LoadSubjectMessage
+                    bool added = DatabaseService.AddSubjectToDatabase(destinationDb, subject);
+                    if (added)
                     {
-                        subject = new Subject(SelectedSubjects[0])
-                    };
-                    Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
-                    Destroy(gameObject);
-                }
-                else
-                {
-                    ApplicationState.displayMessage("Can not load Subject", "NOK", "Please check that all your eeg files exists at the given path and have the correct extensions");
+                        DatabaseService.RemoveSubjectFromDatabase(SelectedDB[0], subject);
+                    }
+                    else
+                    {
+                        ApplicationState.displayMessage("Patient was not moved", "INFO", "Patient already exists in destination database");
+                    }
                 }
             }
+        }
+    }
+
+    private void CopySubjectsToDatabase(string database)
+    {
+        SubjectRepository[] SelectedDB = m_DatabaseList.ObjectsSelected;
+        if (SelectedDB.Length > 0)
+        {
+            Subject[] SelectedSubjects = m_SubjectList.ObjectsSelected;
+            if (SelectedSubjects.Length > 0)
+            {
+                SubjectRepository destinationDb = m_DatabaseList.Objects.First(x => x.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "") == database);
+                foreach (var subject in SelectedSubjects)
+                {
+                    bool added = DatabaseService.AddSubjectToDatabase(destinationDb, subject);
+                    if (!added)
+                    {
+                        ApplicationState.displayMessage("Patient was not copied", "INFO", "Patient already exists in destination database");
+                    }
+                }
+            }
+        }
+    }
+
+    private void LoadSelectedSubject()
+    {
+        int repoIndex = DatabaseService.Databases.IndexOf(m_LastSelectedRepository);
+        Subject updated = new Subject(m_PatientManager.GetSubjectsFromGUI());
+        Subject outdated = new Subject(m_LastSelectedSUbject);
+
+        if (updated != outdated)
+        {
+            ApplicationState.displayConfirmation("Keep Modifications ?", "There seems to have been some modifications, do you want to save them ?",
+            () =>
+            {
+                m_dbSwitch = true;
+                DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
+                DatabaseService.Databases[repoIndex].Save();
+                m_dbSwitch = false;
+                LoadSubject(updated);
+            },
+            () =>
+            {
+                LoadSubject(updated);
+            });
+        }
+        else
+        {
+            LoadSubject(updated);
+        }
+    }
+
+    private void LoadSubject(Subject updated)
+    {
+        if (updated.IsLoadable)
+        {
+            LoadSubjectMessage message = new LoadSubjectMessage
+            {
+                subject = new Subject(updated)
+            };
+            Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
+            Destroy(gameObject);
+        }
+        else
+        {
+            ApplicationState.displayMessage("Can not load Subject", "NOK", "Please check that all your eeg files exists at the given path and have the correct extensions");
         }
     }
 }

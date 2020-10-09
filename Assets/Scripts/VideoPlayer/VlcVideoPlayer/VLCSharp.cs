@@ -439,7 +439,7 @@ namespace VLCSharp
         //===
         VlcMediaPlayer m_VideoPlayer = null;
         VlcInstance m_VlcInstance = null;
-        RawImage m_Tex2Draw = null;
+        RawImage m_TextureForVideo = null;
         NewFrameEventHandler m_VideoCallback = null;
         Bitmap m_BitmapCopy = null;
         byte[] m_TextureByteArray;
@@ -448,12 +448,16 @@ namespace VLCSharp
         Stopwatch m_stopwatch;
         long m_lastPlayTime = 0, m_lastPlayTimeGlobal = 0;
         int m_offsetVideoMilliSec = 0;
+        //===
+        private RectTransform m_parentRectTransform = null;
+        private float WidthToHeightRatio = 0.0f, HeightToWidthRatio = 0.0f;
         #endregion
 
 
         public void Init(string videoPath, int eegFileDurationInSec, RawImage tex)
         {
-            m_Tex2Draw = tex;
+            m_TextureForVideo = tex;
+            m_parentRectTransform = transform.parent.GetComponent<RectTransform>();
 
             m_videoPath = videoPath;
             m_eegFileDurationInSec = eegFileDurationInSec;
@@ -522,13 +526,20 @@ namespace VLCSharp
             if (m_newPic && m_VideoPlayer.IsPlaying)
             {
                 //UnityEngine.Debug.Log("update called");
-                ((Texture2D)m_Tex2Draw.texture).LoadImage(m_TextureByteArray);
+                ((Texture2D)m_TextureForVideo.texture).LoadImage(m_TextureByteArray);
                 m_newPic = false;
             }
         }
 
         public void Play()
         {
+            if (m_VideoPlayer.IsStopped)
+            {
+                WidthToHeightRatio = (float)m_TextureForVideo.texture.width / m_TextureForVideo.texture.height;
+                HeightToWidthRatio = (float)m_TextureForVideo.texture.height / m_TextureForVideo.texture.width;
+                ResizeTexture();
+            }
+
             if (m_VideoPlayer.IsPaused || m_VideoPlayer.IsStopped)
             {
                 m_VideoPlayer.Play();
@@ -591,6 +602,17 @@ namespace VLCSharp
             m_BitmapCopy.Dispose();
             m_newPic = true;
         }
-    }
 
+        private void ResizeTexture()
+        {
+            if (m_parentRectTransform == null) return;
+
+            float resizingWidth = m_parentRectTransform.rect.height * WidthToHeightRatio;
+            float resizingHeight = m_parentRectTransform.rect.width * HeightToWidthRatio;
+
+            float width = (resizingHeight >= m_parentRectTransform.rect.height) ? resizingWidth : m_parentRectTransform.rect.width;
+            float height = (resizingHeight >= m_parentRectTransform.rect.height) ? m_parentRectTransform.rect.height : resizingHeight;
+            m_TextureForVideo.rectTransform.sizeDelta = new Vector2(width, height);
+        }
+    }
 }

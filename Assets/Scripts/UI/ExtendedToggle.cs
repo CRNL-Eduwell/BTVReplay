@@ -58,6 +58,16 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
             OnLeftPointerClick(eventData);
     }
 
+    public void ForceStartValue(int value)
+    {
+        if (value >= m_MinValue && value <= m_MaxValue)
+        {
+            m_OptionsCounter = value;
+            m_BackgroundImage.color = (m_OptionsCounter <= 1) ? transparent : blue;
+            UpdateUiAndModuleLayout.Invoke(m_OptionsCounter);
+        }
+    }
+
     private void OnLeftPointerClick(PointerEventData eventData)
     {
         switch (eventData.button)

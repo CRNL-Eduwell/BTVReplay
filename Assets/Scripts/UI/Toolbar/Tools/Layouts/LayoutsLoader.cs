@@ -23,9 +23,19 @@ namespace BTV.UI.Module3D.Tools
 
         private void Load()
         {
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetExistingFileNameAsync((str) =>
+            {
+                if (!string.IsNullOrEmpty(str))
+                {
+                    LoadFile.Invoke(str);
+                }
+            }, new string[] { "workspace" }, "Select a Workspace File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
+#else
             string filePath = FileBrowser.GetExistingFileName(new string[] { "workspace" }, "Select a Workspace File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
-            if(filePath != "")
+            if(!string.IsNullOrEmpty(filePath))
                 LoadFile.Invoke(filePath);
+#endif
         }
     }
 }

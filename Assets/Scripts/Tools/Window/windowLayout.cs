@@ -61,7 +61,6 @@ public class WindowLayout : MonoBehaviour, IDropHandler
                 {
                     r.sizeDelta = new Vector2(cellRect.width, cellRect.height);
                     r.localPosition = new Vector3(cellRect.x, cellRect.y, r.localPosition.z);
-                    currentChildObject.SetActive(cellRect.width > 100); // Should be the same value as MINIMIZED_THRESHOLD in ColumnGUIManager.cs for now
                 }
             }
         }

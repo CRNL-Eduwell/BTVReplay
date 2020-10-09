@@ -23,10 +23,18 @@ namespace BTV.UI.Module3D.Tools
 
         private void Load()
         {
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetExistingFileNameAsync((str) =>
+            {
+                if (!string.IsNullOrEmpty(str))
+                    LoadFile.Invoke(str);
+            }, new string[] { "btv", "pos" }, "Select an Event File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
+#else
             //Need to change Appliction State file folder with the folder of the project , not just the eeg ? 
             string filePath = FileBrowser.GetExistingFileName(new string[] { "btv", "pos" }, "Select an Event File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
-            if(filePath != "")
+            if (!string.IsNullOrEmpty(filePath))
                 LoadFile.Invoke(filePath);
+#endif
         }
     }
 }

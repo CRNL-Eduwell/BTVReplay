@@ -107,7 +107,7 @@ public class PatientGUIManager : MonoBehaviour
         }
     }
 
-    private Subject GetSubjectsFromGUI()
+    public Subject GetSubjectsFromGUI()
     {
         Subject myPat = new Subject();
         myPat.PatientName = m_Subject != null ? m_Subject.PatientName : "";

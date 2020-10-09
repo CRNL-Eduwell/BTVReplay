@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts.Data.Factory;
+using System;
 
 public class DebugFlorian : MonoBehaviour
 {
@@ -9,14 +10,20 @@ public class DebugFlorian : MonoBehaviour
     private void Update()
     {
         //if (Input.GetKeyDown(KeyCode.D))
-        //    SpawnDatabaseUI();
+        //    SpawnUI("DBUserPreferences");
+        //if (Input.GetKeyDown(KeyCode.D))
+        //    SpawnUI("BugReporterWindow");
+        //if (Input.GetKeyDown(KeyCode.D))
+        //    throw new ArgumentException("OUPS");
     }
 
-    private void SpawnDatabaseUI()
+    private void SpawnUI(string uiName)
     {
-        GameObject m_prefab = Resources.Load("Prefabs/DBUserPreferences", typeof(GameObject)) as GameObject;
-        GameObject canvas = GameObject.Find("Windows");
-        GameObject m_PopUpAddWindow = Instantiate(m_prefab, canvas.transform);
-        //PatientBaseGUIManager manager = m_PopUpAddWindow.GetComponent<PatientBaseGUIManager>();
+        ShowWindowMessage message = new ShowWindowMessage
+        {
+            TaskToExecute = 0,
+            WindowName = uiName
+        };
+        Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
     }
 }

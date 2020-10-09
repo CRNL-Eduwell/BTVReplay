@@ -17,7 +17,9 @@ namespace BTV.Services.DatabaseService
             if (!string.IsNullOrEmpty(filePath))
             {
                 UnityEngine.Debug.Log("Creating new db to " + filePath);
-                Databases.Add(new SubjectRepository(filePath, null));
+                SubjectRepository db = new SubjectRepository(filePath, null);
+                db.Save();
+                Databases.Add(db);
             }
         }
 
@@ -83,6 +85,21 @@ namespace BTV.Services.DatabaseService
                 Subject subject = new Subject("Default Name");
                 Databases[index].Add(subject);
             }
+        }
+
+        public static bool AddSubjectToDatabase(SubjectRepository element, Subject subject)
+        {
+            if (Databases.Contains(element))
+            {
+                int index = Databases.IndexOf(element);
+                if (!Databases[index].Subjects.Contains(subject))
+                {
+                    UnityEngine.Debug.Log("Add Already existing Patient");
+                    Databases[index].Add(subject);
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static void RemoveSubjectFromDatabase(SubjectRepository element, Subject subject)

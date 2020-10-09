@@ -91,17 +91,35 @@ public class BrowseWidget : MonoBehaviour
 
     private void LoadFile()
     {
+#if UNITY_STANDALONE_OSX
+        FileBrowser.GetExistingFileNameAsync((str) =>
+        {
+            if (!string.IsNullOrEmpty(str))
+            {
+                Text = str;
+            }
+        }, _FileExtensions);
+#else
         string str = FileBrowser.GetExistingFileName(_FileExtensions);
         if (!string.IsNullOrEmpty(str))
         {
-            _InputField.text = str;
+            Text = str;
         }
+#endif
     }
 
     private void SaveFile()
     {
+#if UNITY_STANDALONE_OSX
+        var extensionList = new[] { new ExtensionFilter("Files", _FileExtensions) };
+        FileBrowser.GetSavedFileNameAsync((str) =>
+        {
+            _InputField.text = str;
+        }, extensionList);
+#else
         var extensionList = new[] { new ExtensionFilter("Files", _FileExtensions) };
         _InputField.text = FileBrowser.GetSavedFileName(extensionList);
+#endif
     }
 
     /// <summary>

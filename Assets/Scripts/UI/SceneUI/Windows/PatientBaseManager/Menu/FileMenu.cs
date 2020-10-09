@@ -41,6 +41,17 @@ namespace BTV.UI
         private void CreateNewDatabase()
         {
             var extensionList = new[] { new ExtensionFilter("BrainTV Database Files", "dbtv") };
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetSavedFileNameAsync((str) =>
+            {
+                FileMenuMessage message = new FileMenuMessage
+                {
+                    TaskToExecute = 0,
+                    FilePath = str
+                };
+                Messenger.Default.Send(message, MessageContext.FileMenuMessage);
+            }, extensionList, "Save Database To", DatabaseService.DefaultPath);
+#else
             string filePath = FileBrowser.GetSavedFileName(extensionList, "Save Database To", DatabaseService.DefaultPath);
             FileMenuMessage message = new FileMenuMessage
             {
@@ -48,11 +59,23 @@ namespace BTV.UI
                 FilePath = filePath
             };
             Messenger.Default.Send(message, MessageContext.FileMenuMessage);
+#endif
             Close();
         }
 
         private void OpenDatabase()
         {
+#if UNITY_STANDALONE_OSX
+            FileBrowser.GetExistingFileNameAsync((str) =>
+            {
+                FileMenuMessage message = new FileMenuMessage
+                {
+                    TaskToExecute = 1,
+                    FilePath = str
+                };
+                Messenger.Default.Send(message, MessageContext.FileMenuMessage);
+            }, new string[] { "txt", "dbtv" }, "Select a BrainTV Database File", DatabaseService.DefaultPath);
+#else
             string filePath = FileBrowser.GetExistingFileName(new string[] { "txt", "dbtv" }, "Select a BrainTV Database File", DatabaseService.DefaultPath);
             FileMenuMessage message = new FileMenuMessage
             {
@@ -60,6 +83,7 @@ namespace BTV.UI
                 FilePath = filePath
             };
             Messenger.Default.Send(message, MessageContext.FileMenuMessage);
+#endif
             Close();
         }
 

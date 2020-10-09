@@ -101,6 +101,7 @@ public class WorkspaceManager : MonoBehaviour
         trace.TraceEeg.UpdateOffset(traceParameters.Offset);
         trace.GraphGrid.IsOn = traceParameters.ShowGrid;
         trace.TraceEeg.PeriodInSeconds = traceParameters.Window;
+        trace.TraceEeg.UpdateHorizontalScale();
         trace.TraceEeg.Color = traceParameters.Color;
         trace.TraceEeg.LineWidth = traceParameters.Width;
 
