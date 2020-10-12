@@ -14,9 +14,9 @@ namespace Tools.Unity
     {
         #region Properties
         [SerializeField] Button m_Close = null;
-        [SerializeField] InputField m_NameInputField;
-        [SerializeField] InputField m_EmailInputField;
-        [SerializeField] InputField m_DescriptionInputField;
+        [SerializeField] InputField m_NameInputField = null;
+        [SerializeField] InputField m_EmailInputField = null;
+        [SerializeField] InputField m_DescriptionInputField = null;
         [SerializeField] Button m_Submit = null;
         [SerializeField] Button m_Cancel = null;
         #endregion
