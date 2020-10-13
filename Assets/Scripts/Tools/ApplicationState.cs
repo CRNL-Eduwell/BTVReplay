@@ -9,19 +9,15 @@ using BTV.Services.EventsService;
 using BTV.Services.EegFileService;
 using BTV.Services.VideoService;
 using BTV.UI;
+using Tools.Unity;
 
 public static class ApplicationState
 {
     #region public members
     public static BTV3DModule Module3D { get; set; }
-    public static MessageWindow messageWindow
-    {
-        get; set;
-    }
-    public static CoroutineManager coroutineManager
-    {
-        get; set;
-    }
+    public static MessageWindow messageWindow { get; set; }
+    public static CoroutineManager coroutineManager { get; set; }
+    public static TooltipManager TooltipManager { get; set; }
     #endregion
 
     private static GameObject m_InputFieldWindowPrefabs = null;
