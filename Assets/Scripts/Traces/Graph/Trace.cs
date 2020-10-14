@@ -222,9 +222,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 graphEvent.DisplayEvents = message.IsShowEventsOn;
                 break;
             case 2://Edit Events
-                bool ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
-                if (ind)
-                    OpenEventModify(message.Event);
+                if (message.ParentWindowIndex == traceID)
+                {
+                    bool ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
+                    if (ind)
+                        OpenEventModify(message.Event);
+                }
                 break;
             case 3://Add Event
                 graphEvent.AddEventToTrace(message.Event, message.EventIndex);
@@ -233,9 +236,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 graphEvent.DeleteEventFromTrace(message.EventIndex);
                 break;
             case 5:
-                ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
-                if (ind)
-                    OpenEventDisplay(message.Event);
+                if (message.ParentWindowIndex == traceID)
+                {
+                    bool ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
+                    if (ind)
+                        OpenEventDisplay(message.Event);
+                }
                 break;
         }
     }
