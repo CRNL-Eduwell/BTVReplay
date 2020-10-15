@@ -11,7 +11,6 @@ public class EventList : Tools.Unity.Lists.SelectableList<BtvEvent>
     private void Start()
     {
         m_checkAll.onValueChanged.AddListener(ToggleAllEvents);
-        Initialize(); //Init the list class
     }
 
     private void OnDestroy()
@@ -48,21 +47,22 @@ public class EventList : Tools.Unity.Lists.SelectableList<BtvEvent>
     public void DeleteEvent(int ID)
     {
         //Delete from Ui List by ref
-        Remove(Objects[ID]);
+        Remove(m_Objects[ID]);
     }
 
     public void DeleteAllEvents()
     {
-        UnityEngine.Debug.Log("Deleting " + Objects.Length + " objects");
-        for (int i = Objects.Length - 1; i >= 0; i--)
+        UnityEngine.Debug.Log("Deleting " + m_Objects.Count + " objects");
+        for (int i = m_Objects.Count - 1; i >= 0; i--)
         {
-            Remove(Objects[i]);
+            Remove(m_Objects[i]);
         }
     }
 
     public void DeleteSelectedEvents()
     {
-        for (int i = ObjectsSelected.Length - 1; i >= 0; i--)
-            Remove(ObjectsSelected[i]);
+        var objectsSelected = ObjectsSelected;
+        for (int i = objectsSelected.Length - 1; i >= 0; i--)
+            Remove(objectsSelected[i]);
     }
 }

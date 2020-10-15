@@ -4,14 +4,9 @@ using System.Collections.Generic;
 
 public class SubjectList : Tools.Unity.Lists.SelectableList<Subject>
 {
-    private void Start()
-    {
-        Initialize(); //Init the list class
-    }
-
     private void OnDestroy()
     {
-        OnSelectionChanged.RemoveAllListeners();
+        ((ISelectionCountable)this).OnSelectionChanged.RemoveAllListeners();
     }
 
     public void AddElements(List<Subject> subjects)
@@ -31,9 +26,9 @@ public class SubjectList : Tools.Unity.Lists.SelectableList<Subject>
 
     public void RemoveAllElements()
     {
-        for (int i = Objects.Length - 1; i >= 0; i--)
+        for (int i = m_Objects.Count - 1; i >= 0; i--)
         {
-            Remove(Objects[i]);
+            Remove(m_Objects[i]);
         }
         Refresh();
     }
@@ -46,13 +41,13 @@ public class SubjectList : Tools.Unity.Lists.SelectableList<Subject>
     
     public void ReplaceElement(Subject oldSubject, Subject newSubject)
     {
-        int index = Array.IndexOf(Objects, oldSubject);
+        int index = m_Objects.IndexOf(oldSubject);
         if (index != -1)
         {
             m_SelectedStateByObject.Remove(oldSubject);
             m_SelectedStateByObject.Add(newSubject, false);
             m_Objects[index] = newSubject;
-            OnSelectionChangeCallBack();
+            OnSelectionChanged();
             Refresh();
         }
     }

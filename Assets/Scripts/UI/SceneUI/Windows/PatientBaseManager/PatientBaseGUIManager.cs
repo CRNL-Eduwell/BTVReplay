@@ -31,9 +31,10 @@ public class PatientBaseGUIManager : MonoBehaviour
     {
         m_PatientManager.IsInteractable = false;
 
-        //Add element in service in they exist
+        //Add element in service in they exist and replug listener for update
         foreach (var item in DatabaseService.Databases)
         {
+            ((INotifyCollectionChanged)item.Subjects).CollectionChanged += UpdateSubjectCollection;
             m_DatabaseList.AddElement(item);
         }
 
@@ -41,21 +42,27 @@ public class PatientBaseGUIManager : MonoBehaviour
         Messenger.Default.Register<FileMenuMessage>(this, OnFileMenuMessage, MessageContext.FileMenuMessage);
         Messenger.Default.Register<EditMenuMessage>(this, OnEditMenuMessage, MessageContext.EditMenuMessage);
         m_Close.onClick.AddListener(() => { Destroy(gameObject); });
-        m_DatabaseList.OnSelectionChanged.AddListener(UpdateShownDatabase);
-        m_SubjectList.OnSelectionChanged.AddListener(UpdateShownSubject);
+        ((ISelectionCountable)m_DatabaseList).OnSelectionChanged.AddListener(UpdateShownDatabase);
+        ((ISelectionCountable)m_SubjectList).OnSelectionChanged.AddListener(UpdateShownSubject);
         m_LoadSubject.onClick.AddListener(LoadSelectedSubject);
 
-        m_SubjectList.OnSelectionChanged.AddListener(OnSubjectSelectionChanged);
+        ((ISelectionCountable)m_SubjectList).OnSelectionChanged.AddListener(OnSubjectSelectionChanged);
     }
 
     private void OnDestroy()
     {
+        //unplug listener for update, otherwise weird fucking error
+        foreach (var item in DatabaseService.Databases)
+        {
+            ((INotifyCollectionChanged)item.Subjects).CollectionChanged -= UpdateSubjectCollection;
+        }
+
         DatabaseService.Databases.CollectionChanged -= UpdateDatabaseCollection;
         Messenger.Default.Unregister(this, MessageContext.FileMenuMessage);
         Messenger.Default.Unregister(this, MessageContext.EditMenuMessage);
         m_Close.onClick.RemoveAllListeners();
-        m_DatabaseList.OnSelectionChanged.RemoveAllListeners();
-        m_SubjectList.OnSelectionChanged.RemoveAllListeners();
+        ((ISelectionCountable)m_DatabaseList).OnSelectionChanged.RemoveAllListeners();
+        ((ISelectionCountable)m_SubjectList).OnSelectionChanged.RemoveAllListeners();
         m_LoadSubject.onClick.RemoveAllListeners();
     }
 
