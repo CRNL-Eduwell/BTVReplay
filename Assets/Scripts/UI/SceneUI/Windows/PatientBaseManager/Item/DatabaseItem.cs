@@ -26,6 +26,12 @@ public class DatabaseItem : Tools.Unity.Lists.SelectableItem<SubjectRepository>
 
     [SerializeField] private Text m_Label = null;
 
+    private void OnDestroy()
+    {
+        if (base.Object != null)
+            base.Object.PropertyChanged -= RepositoryInformationUpdated;
+    }
+
     private void SetLabelValue()
     {
         m_Label.text = base.Object.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "");
