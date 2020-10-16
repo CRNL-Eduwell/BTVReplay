@@ -38,4 +38,10 @@ class EventsToTraceMessage
         get;
         set;
     }
+
+    public int ParentWindowIndex
+    {
+        get;
+        set;
+    }
 }

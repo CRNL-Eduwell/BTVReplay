@@ -246,14 +246,12 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void InstantiateVideoRecorder()
     {
-        if (GameObject.Find("VideoRecorder") == null)
+        ShowWindowMessage message = new ShowWindowMessage
         {
-            Instantiate(m_RecorderPrefab, GameObject.Find("Canvas").transform);
-        }
-        else
-        {
-            UnityEngine.Debug.Log("There is already a videorecorder isntance ");
-        }
+            TaskToExecute = 0,
+            WindowName = "VideoRecorder"
+        };
+        Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
     }
 
     private void SetTimeIfValueChanged()

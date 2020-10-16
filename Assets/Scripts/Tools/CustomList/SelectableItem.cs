@@ -1,33 +1,71 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
 {
+    /// <summary>
+    /// Abstract component to display selectable item in a list.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     [RequireComponent(typeof(Toggle))]
     public abstract class SelectableItem<T> : Item<T>
     {
         #region Properties
         Toggle m_Toggle;
         bool m_isLock;
-        protected Toggle.ToggleEvent m_OnChangeSelected = new Toggle.ToggleEvent();
-        public virtual Toggle.ToggleEvent OnChangeSelected
-        {
-            get { return m_OnChangeSelected; }
-        }
-        public virtual bool selected
+
+        /// <summary>
+        /// Event called when the item is selected or deselected.
+        /// </summary>
+        public virtual GenericEvent<bool> OnChangeSelected { get; } = new GenericEvent<bool>();
+        /// <summary>
+        /// True if selected, False otherwise.
+        /// </summary>
+        public virtual bool Selected
         {
             get { return m_Toggle.isOn; }
         }
-        public override bool interactable
+        /// <summary>
+        /// True if interactable, False otherwise.
+        /// </summary>
+        public override bool Interactable
         {
             get { return m_Toggle.interactable; }
             set { m_Toggle.interactable = value; }
         }
         #endregion
 
-
         #region Public Methods
-        public void Select(bool selected, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
+        /// <summary>
+        /// Select the item with a specified transition.
+        /// </summary>
+        /// <param name="transition">Transition</param>
+        public void Select(Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
+        {
+            ChangeSelectionValue(true, transition);
+        }
+        /// <summary>
+        /// Deselect the item with a specified transition.
+        /// </summary>
+        /// <param name="transition">Transition</param>
+        public void Deselect(Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
+        {
+            ChangeSelectionValue(false, transition);
+        }
+        /// <summary>
+        /// Inverse the item selection.
+        /// </summary>
+        public void InverseSelection()
+        {
+            ChangeSelectionValue(!Selected, m_Toggle.toggleTransition);
+        }
+        /// <summary>
+        /// Change the item selection value.
+        /// </summary>
+        /// <param name="selected">Value of the selection</param>
+        /// <param name="transition">Transition</param>
+        public void ChangeSelectionValue(bool selected, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
             m_isLock = true;
             Toggle.ToggleTransition mode = m_Toggle.toggleTransition;
@@ -36,23 +74,13 @@ namespace Tools.Unity.Lists
             m_Toggle.toggleTransition = mode;
             m_isLock = false;
         }
-        public void ChangeSelectionState()
-        {
-            Select(!selected, m_Toggle.toggleTransition);
-        }
         #endregion
 
         #region Private Methods
-        private void Awake()
+        void Awake()
         {
             m_Toggle = GetComponent<Toggle>();
-            if (m_Toggle != null)
-            {
-                m_Toggle.onValueChanged.AddListener((value) =>
-                {
-                    if (!m_isLock) m_OnChangeSelected.Invoke(value);
-                });
-            }
+            if (m_Toggle != null) m_Toggle.onValueChanged.AddListener((value) => { if (!m_isLock) OnChangeSelected.Invoke(value); });
         }
         #endregion
     }

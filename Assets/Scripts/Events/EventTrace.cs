@@ -47,10 +47,10 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
                 EventsToTraceMessage message = new EventsToTraceMessage
                 {
                     TaskToExecute = 5,
-                    Event = m_Event
+                    Event = m_Event,
+                    ParentWindowIndex = parentWinID
                 };
                 Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
-
                 break;
             case PointerEventData.InputButton.Right:
                 OpenContextualMenu();

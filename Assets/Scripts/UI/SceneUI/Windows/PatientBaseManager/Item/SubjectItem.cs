@@ -21,6 +21,12 @@ public class SubjectItem : Tools.Unity.Lists.SelectableItem<Subject>
 
     [SerializeField] private Text m_Label = null;
 
+    private void OnDestroy()
+    {
+        if (base.Object != null)
+            base.Object.PropertyChanged -= SubjectInformationUpdated;
+    }
+
     private void SetLabelValue()
     {
         m_Label.text = base.Object.PatientName;

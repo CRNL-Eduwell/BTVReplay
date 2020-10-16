@@ -14,9 +14,9 @@ namespace Tools.Unity
     {
         #region Properties
         [SerializeField] Button m_Close = null;
-        [SerializeField] InputField m_NameInputField;
-        [SerializeField] InputField m_EmailInputField;
-        [SerializeField] InputField m_DescriptionInputField;
+        [SerializeField] InputField m_NameInputField = null;
+        [SerializeField] InputField m_EmailInputField = null;
+        [SerializeField] InputField m_DescriptionInputField = null;
         [SerializeField] Button m_Submit = null;
         [SerializeField] Button m_Cancel = null;
         #endregion
@@ -60,11 +60,11 @@ namespace Tools.Unity
                 Debug.LogException(e);
                 if (e is SmtpException)
                 {
-                    ApplicationState.displayMessage("NOK", "The report could not be sent", "Please check your internet connection and try again.");
+                    ApplicationState.displayMessage("The report could not be sent", "NOK", "Please check your internet connection and try again.");
                 }
                 else
                 {
-                    ApplicationState.displayMessage("NOK", e.Source, e.Message);
+                    ApplicationState.displayMessage(e.Source, "NOK", e.Message);
                 }
                 Destroy(gameObject);
             }
@@ -147,7 +147,7 @@ namespace Tools.Unity
                         smtpServer.Send(mail);
                     }
 
-                    ApplicationState.displayMessage("INFO", "Bug report successfully sent.", "The issue will be adressed as soon as possible. If you've entered your contact information, we may contact you for further information concerning the bug you encountered.");
+                    ApplicationState.displayMessage("Bug report successfully sent.", "INFO", "The issue will be adressed as soon as possible. If you've entered your contact information, we may contact you for further information concerning the bug you encountered.");
                 }
             }
         }

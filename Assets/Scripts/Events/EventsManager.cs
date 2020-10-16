@@ -119,7 +119,7 @@ public class EventsManager : MonoBehaviour
             case 4:
                 {
                     Debug.Log("Delete Selected Notes");
-                    ApplicationState.displayConfirmation("Deleting Notes", "You are going to delete " + m_EventsList.NumberOfItemSelected + " Notes, are you sure ? ", () => { DeleteSelectedEvents(); }, () => { });
+                    ApplicationState.displayConfirmation("Deleting Notes", "You are going to delete " + ((ISelectionCountable)m_EventsList).NumberOfItemSelected + " Notes, are you sure ? ", () => { DeleteSelectedEvents(); }, () => { });
                     break;
                 }
         }

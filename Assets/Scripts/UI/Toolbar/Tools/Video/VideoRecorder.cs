@@ -6,66 +6,7 @@ using UnityEngine.UI;
 
 public class VideoRecorder : MonoBehaviour
 {
-    [SerializeField]
-    private InputField m_OutputVideoPath = null;
-    [SerializeField]
-    private GameObject UiPanel = null;
-    [SerializeField]
-    private TimeUI m_RecordBeginTime = null;
-    [SerializeField]
-    private TimeUI m_RecordEndTime = null;
-    [SerializeField]
-    private Button m_CreateVideo = null;
-
-    private CustomVideoPlayer m_VideoPlayer = null;
-
-    private void Awake()
-    {
-        m_CreateVideo.onClick.AddListener(RecordVideo);
-        m_VideoPlayer = GameObject.Find("View").transform.GetChild(1).GetComponent<CustomVideoPlayer>();
-    }
-
-    private void OnDestroy()
-    {
-        m_CreateVideo.onClick.RemoveAllListeners();
-    }
-
-    private void CloseWindow()
-    {
-        Destroy(gameObject);
-    }
-
-    private void RecordVideo()
-    {
-        if (m_OutputVideoPath.text == "")
-        {
-            ApplicationState.displayMessage("Error Output Path", "NOK", "Output Path can not be an empty string");
-            CloseWindow();
-            return;
-        }
-
-        int totalVideoTimeInSecond = (int)m_VideoPlayer.VideoInterface.TotalVideoTime / 1000;
-        int beginTimeInSecond = m_RecordBeginTime.TimeInSeconds;
-        int endTimeInSecond = m_RecordEndTime.TimeInSeconds;
-        int durationInSeconds = endTimeInSecond - beginTimeInSecond;
-        bool IsBeginTimeValid = beginTimeInSecond >= 0 && beginTimeInSecond < totalVideoTimeInSecond;
-        bool IsEndTimeValid = endTimeInSecond >= 0 && endTimeInSecond <= totalVideoTimeInSecond;
-
-        if (IsBeginTimeValid && IsEndTimeValid && durationInSeconds > 0)
-        {
-            ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
-            {
-                UpdateClickPosition = false,
-                TimeMilliseconds = beginTimeInSecond * 1000
-            };
-            Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
-
-            StartCoroutine(c_LaunchVideoRecording(m_OutputVideoPath.text, durationInSeconds.ToString()));
-            UiPanel.gameObject.SetActive(false);
-        }
-    }
-
-    IEnumerator c_LaunchVideoRecording(string VideoFilePath, string DurationInSecond)
+    public IEnumerator c_LaunchVideoRecording(string VideoFilePath, string DurationInSecond)
     {
         yield return this.StartCoroutineAsync(VideoService.c_RecordVideoSnippet(VideoFilePath, DurationInSecond), out Task videoRecordingTask);
         switch (videoRecordingTask.State)
@@ -80,6 +21,5 @@ public class VideoRecorder : MonoBehaviour
                 UnityEngine.Debug.LogError("Error recording video");
                 break;
         }
-        CloseWindow();
     }
 }

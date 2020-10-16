@@ -4,14 +4,9 @@ using System.Collections.Generic;
 
 public class DatabaseList : Tools.Unity.Lists.SelectableList<SubjectRepository>
 {
-    private void Start()
-    {
-        Initialize(); //Init the list class
-    }
-
     private void OnDestroy()
     {
-        OnSelectionChanged.RemoveAllListeners();
+        ((ISelectionCountable)this).OnSelectionChanged.RemoveAllListeners();
     }
 
     public void AddElement(SubjectRepository element)
