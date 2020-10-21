@@ -19,6 +19,11 @@ namespace BTV.UI.Module3D.Tools
             m_LoadFilterAudio.onClick.AddListener(TryToLoadFilteredFile);
         }
 
+        private void OnDestroy()
+        {
+            m_LoadFilterAudio.onClick.RemoveAllListeners();
+        }
+
         /// <summary>
         /// Load the Audio data that have been previously processed
         /// If there is no processed audio file , display a modal window

@@ -33,6 +33,13 @@ namespace BTV.UI.Module3D.Tools
             m_ShowTrace.onValueChanged.AddListener((bool isChecked) => { ToggleTraceAudio(isChecked); });
         }
 
+        private void OnDestroy()
+        {
+            m_ShowTrace.onValueChanged.RemoveAllListeners();
+            VideoService.AudioDataLoaded -= LoadDropDownData;
+            m_FileDropDown.onValueChanged.RemoveAllListeners();
+        }
+
         private void LoadDropDownData()
         {
             m_FileDropDown.options.Clear();
@@ -44,8 +51,8 @@ namespace BTV.UI.Module3D.Tools
             m_FileDropDown.onValueChanged.AddListener((value) => UpdateAudioFileID(value));
 
             m_ShowTrace.isOn = true;
-            m_FileDropDown.onValueChanged.Invoke(0);
             m_FileDropDown.captionText.text = m_FileDropDown.options[m_FileDropDown.value].text;
+            m_FileDropDown.onValueChanged.Invoke(0);
         }
     }
 }
