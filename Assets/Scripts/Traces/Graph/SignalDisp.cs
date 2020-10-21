@@ -59,8 +59,8 @@ public abstract class SignalDisp : MonoBehaviour
         NumberOfPoint = SamplingFrequency * m_PeriodInSeconds;
         m_dataArray = new Vector3[NumberOfPoint];
         _LineRenderer.positionCount = NumberOfPoint;
-        _LineRenderer.startWidth = 0.02f;
-        _LineRenderer.endWidth = 0.02f;
+        _LineRenderer.startWidth = 1f;
+        _LineRenderer.endWidth = 1f;
         UpdateHorizontalScale();
 
         m_initDone = true;
@@ -95,15 +95,15 @@ public abstract class SignalDisp : MonoBehaviour
 
     public void UpdateLineWidth()
     {
-        if (_LineRenderer.startWidth == 0.02f)
+        if (_LineRenderer.startWidth == 1f)
         {
-            _LineRenderer.startWidth = 0.04f;
-            _LineRenderer.endWidth = 0.04f;
+            _LineRenderer.startWidth = 2f;
+            _LineRenderer.endWidth = 2f;
         }
         else
         {
-            _LineRenderer.startWidth = 0.02f;
-            _LineRenderer.endWidth = 0.02f;
+            _LineRenderer.startWidth = 1f;
+            _LineRenderer.endWidth = 1f;
         }
     }
 

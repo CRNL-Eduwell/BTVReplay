@@ -126,8 +126,8 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         //==
         m_dataArray = new Vector3[Channel.NumberOfSample];
         m_LineRenderer.positionCount = Channel.NumberOfSample;
-        m_LineRenderer.startWidth = 0.02f;
-        m_LineRenderer.endWidth = 0.02f;
+        m_LineRenderer.startWidth = 1f;
+        m_LineRenderer.endWidth = 1f;
         //==
         UpdateElectrode(m_currentElectrodeID);
         m_GainLabel.Label = m_Gain.ToString();

@@ -32,7 +32,7 @@ public class BrainCamera : MonoBehaviour
         if (distance > maxDistance)
             distance = maxDistance;
 
-        m_BrainHandle.transform.position += new Vector3(-1000, 0, 0);        // degage le cerveau du canvas et est uniquement rendu par la cam 
+        m_BrainHandle.transform.position += new Vector3(-10000, 0, 0);        // degage le cerveau du canvas et est uniquement rendu par la cam 
         m_BrainHandle.transform.Rotate(new Vector3(270, 0, 0));
         m_Target = m_BrainHandle.transform.position;
         m_OriginalTarget = m_Target;
