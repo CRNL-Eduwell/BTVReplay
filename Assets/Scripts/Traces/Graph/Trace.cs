@@ -444,21 +444,20 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         if (m_AddEvents && m_PopUpAddWindow == null)
         {
-            m_PopUpAddWindow = Instantiate(m_AddEventWindowPrefabs);
+            Transform parent = null;
 
             if (traceID == 0)
             {
-                m_PopUpAddWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
+                parent = m_signalWindow1.gameObject.transform;
                 Event.SecondSiteOfInterest = m_signalWindow2.TraceEeg.ElectrodeLabel;
             }
             else
             {
-                m_PopUpAddWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
+                parent = m_signalWindow2.gameObject.transform;
                 Event.SecondSiteOfInterest = m_signalWindow1.TraceEeg.ElectrodeLabel;
             }
-            m_PopUpAddWindow.transform.localScale = new Vector3(1, 1, 1);
-            m_PopUpAddWindow.transform.localPosition = new Vector3(0, 0, -402);
 
+            m_PopUpAddWindow = Instantiate(m_AddEventWindowPrefabs, parent);
             EventInfoEdit infoEdit = m_PopUpAddWindow.GetComponent<EventInfoEdit>();
             infoEdit.init(Event, false);
         }
@@ -468,15 +467,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         if (m_PopUpDisplayWindow == null)
         {
-            m_PopUpDisplayWindow = Instantiate(m_DisplayEventWindowPrefabs);
-
-            if (traceID == 0)
-                m_PopUpDisplayWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
-            else
-                m_PopUpDisplayWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
-            m_PopUpDisplayWindow.transform.localScale = new Vector3(1, 1, 1);
-            m_PopUpDisplayWindow.transform.localPosition = new Vector3(0, 0, -402);
-
+            Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
+            m_PopUpDisplayWindow = Instantiate(m_DisplayEventWindowPrefabs, parent);
             EventInfoDisplay infoDisp = m_PopUpDisplayWindow.GetComponent<EventInfoDisplay>();
             infoDisp.init(Event);
         }
@@ -487,15 +479,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         ApplicationState.Module3D.MemoryEvent = null;
         if (m_PopUpEditWindow == null)
         {
-            m_PopUpEditWindow = Instantiate(m_AddEventWindowPrefabs);
-
-            if (traceID == 0)
-                m_PopUpEditWindow.transform.SetParent(m_signalWindow1.gameObject.transform);
-            else
-                m_PopUpEditWindow.transform.SetParent(m_signalWindow2.gameObject.transform);
-            m_PopUpEditWindow.transform.localScale = new Vector3(1, 1, 1);
-            m_PopUpEditWindow.transform.localPosition = new Vector3(0, 0, -402);
-
+            Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
+            m_PopUpEditWindow = Instantiate(m_AddEventWindowPrefabs, parent);
             EventInfoEdit infoEdit = m_PopUpEditWindow.GetComponent<EventInfoEdit>();
             infoEdit.init(Event, true);
         }

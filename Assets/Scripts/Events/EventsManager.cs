@@ -154,7 +154,8 @@ public class EventsManager : MonoBehaviour
                     EventsToTraceMessage messageToTrace = new EventsToTraceMessage
                     {
                         TaskToExecute = 2,
-                        Event = message.Event
+                        Event = message.Event,
+                        ParentWindowIndex = message.ParentWindowIndex
                     };
                     Messenger.Default.Send(messageToTrace, MessageContext.EventsToTraceMessage);
                     break;
