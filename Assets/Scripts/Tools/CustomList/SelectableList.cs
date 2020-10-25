@@ -134,6 +134,17 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
+        public override bool Replace(T obj, T old)
+        {
+            if (base.Replace(obj, old))
+            {
+                m_SelectedStateByObject.Remove(old);
+                m_SelectedStateByObject.Add(obj, false);
+                OnSelectionChanged();
+                return true;
+            }
+            return false;
+        }
         /// <summary>
         /// Select all objects.
         /// </summary>

@@ -9,18 +9,18 @@ public class SubjectList : Tools.Unity.Lists.SelectableList<Subject>
         ((ISelectionCountable)this).OnSelectionChanged.RemoveAllListeners();
     }
 
-    public void AddElements(List<Subject> subjects)
+    public void AddElements(List<Subject> objects)
     {
-        foreach (var subject in subjects)
+        foreach (var subject in objects)
         {
             AddElement(subject);
         }
         Refresh();
     }
 
-    public void AddElement(Subject subject)
+    public void AddElement(Subject obj)
     {
-        Add(subject);
+        Add(obj);
         Refresh();
     }
 
@@ -33,22 +33,15 @@ public class SubjectList : Tools.Unity.Lists.SelectableList<Subject>
         Refresh();
     }
 
-    public void RemoveElement(Subject subject)
+    public void RemoveElement(Subject obj)
     {
-        Remove(subject);
+        Remove(obj);
         Refresh();        
     }
     
-    public void ReplaceElement(Subject oldSubject, Subject newSubject)
+    public void ReplaceElement(Subject old, Subject obj)
     {
-        int index = m_Objects.IndexOf(oldSubject);
-        if (index != -1)
-        {
-            m_SelectedStateByObject.Remove(oldSubject);
-            m_SelectedStateByObject.Add(newSubject, false);
-            m_Objects[index] = newSubject;
-            OnSelectionChanged();
-            Refresh();
-        }
+        Replace(obj, old);
+        Refresh();
     }
 }

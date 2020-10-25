@@ -142,6 +142,27 @@ namespace Tools.Unity.Lists
             return result;
         }
         /// <summary>
+        /// Replace an object from the list
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public virtual bool Replace(T obj, T old)
+        {
+            int objIndex = m_Objects.IndexOf(old);
+            if (objIndex != -1)
+            {
+                m_Objects[objIndex] = obj;
+                int displayObjIndex = m_DisplayedObjects.IndexOf(old);
+                if (displayObjIndex != -1)
+                {
+                    m_DisplayedObjects[displayObjIndex] = obj;
+                }
+                //OnAddObject.Invoke(obj);
+                return true;
+            }
+            return false;
+        }
+        /// <summary>
         /// Update a object from the list.
         /// </summary>
         /// <param name="obj">Object to update.</param>
