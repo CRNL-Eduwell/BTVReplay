@@ -148,9 +148,8 @@ namespace BTV.UI
                     {
                         UnityEngine.Debug.Log("Adding a Database element : ");
                         SubjectRepository itemToAdd = (SubjectRepository)e.NewItems[0]; //list of new items, only one at a time normally
-                        string shortName = itemToAdd.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "");
-                        m_MoveSubjectsSubMenu.AddSubMenuItem(shortName);
-                        m_CopySubjectsSubMenu.AddSubMenuItem(shortName);
+                        m_MoveSubjectsSubMenu.AddSubMenuItem(itemToAdd);
+                        m_CopySubjectsSubMenu.AddSubMenuItem(itemToAdd);
                         break;
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
@@ -162,9 +161,8 @@ namespace BTV.UI
                     {
                         UnityEngine.Debug.Log("Removing a Database element : ");
                         SubjectRepository itemToRemove = (SubjectRepository)e.OldItems[0];
-                        string shortName = itemToRemove.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "");
-                        m_MoveSubjectsSubMenu.RemoveSubMenuItem(shortName);
-                        m_CopySubjectsSubMenu.RemoveSubMenuItem(shortName);
+                        m_MoveSubjectsSubMenu.RemoveSubMenuItem(itemToRemove);
+                        m_CopySubjectsSubMenu.RemoveSubMenuItem(itemToRemove);
                         break;
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
