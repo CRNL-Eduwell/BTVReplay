@@ -339,6 +339,7 @@ public class PatientBaseGUIManager : MonoBehaviour
             {
                 window.Close();
             });
+            window.StringValue = name;
         }
     }
 

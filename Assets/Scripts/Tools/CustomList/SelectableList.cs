@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
+//TODO : Line 230 commented to prevent multiple OnSelectionChanged() call , Check with Benjamin to see if
+//       it is intended behaviour
+
 namespace Tools.Unity.Lists
 {
     /// <summary>
@@ -227,7 +230,7 @@ namespace Tools.Unity.Lists
                 (item as SelectableItem<T>).ChangeSelectionValue(false, transition);
             }
             OnDeselect.Invoke(objectToDeselect);
-            OnSelectionChanged();
+            //OnSelectionChanged();
         }
         /// <summary>
         /// Deselect specified objects with a specified transition.
