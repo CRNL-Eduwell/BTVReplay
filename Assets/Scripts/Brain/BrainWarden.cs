@@ -288,7 +288,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         }
         else
         {
-            Site Electrode = Array.Find(Electrodes, x => x.gameObject.name == Name.ToLower());
+            Site Electrode = Array.Find(Electrodes, x => x.gameObject.name.ToUpper() == Name);//.ToLower());
             if (Electrode != null)
             {
                 Electrode.Color = NewColor;
