@@ -218,7 +218,7 @@ public class EventsManager : MonoBehaviour
 
     private InputFieldWindow SpawFrequencyChoiceWindow()
     {
-        GameObject viewGameObject = GameObject.Find("View");
+        GameObject viewGameObject = GameObject.Find("Windows");
         GameObject inputField = Instantiate(m_InputFieldWindowPrefabs, viewGameObject.transform);
         InputFieldWindow window = inputField.GetComponent<InputFieldWindow>();
         return window;
