@@ -23,12 +23,26 @@ namespace BTV.Services.DatabaseService
                 {
                     m_FilePath = value;
                     RaisePropertyChanged("FilePath");
+                    ShortName = value;
                 }
+            }
+        }
+        public string ShortName
+        {
+            get
+            {
+                return m_ShortName;
+            }
+            private set
+            {
+                m_ShortName = value.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "");
+                RaisePropertyChanged("ShortName");
             }
         }
         public ReadOnlyObservableCollection<Subject> Subjects { get; private set; } = null;
 
         private string m_FilePath = "";
+        private string m_ShortName = "";
         private ObservableCollection<Subject> m_Subjects = null;
 
         public SubjectRepository(string path)

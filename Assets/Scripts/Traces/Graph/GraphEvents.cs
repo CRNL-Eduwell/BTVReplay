@@ -118,7 +118,7 @@ public class GraphEvents : MonoBehaviour
                         // /!\ Fix that, ugly /!\
                         float timeDiffinMs = EventsService.Events[idInside[i]].TimeInMilliSeconds - left;
                         int sampleToLook = (int)Mathf.Floor((timeDiffinMs * m_parent.TraceEeg.SamplingFrequency) / 1000);
-                        m_EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, m_parent.TraceEeg.Data[sampleToLook].y, -201);
+                        m_EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, m_parent.TraceEeg.Data[sampleToLook].y, -2);
                     }
                 }
 

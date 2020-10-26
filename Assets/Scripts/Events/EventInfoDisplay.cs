@@ -110,7 +110,8 @@ public class EventInfoDisplay : MonoBehaviour
         EventsModificationMessage message = new EventsModificationMessage
         {
             TaskToExecute = 3,
-            Event = m_Event
+            Event = m_Event,
+            ParentWindowIndex = gameObject.GetComponentInParent<Trace>().TraceId
         };
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
         CloseWindow();

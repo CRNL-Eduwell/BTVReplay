@@ -60,10 +60,8 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
 
     private void OpenContextualMenu()
     {
-        ContextualMenuWindow = Instantiate(m_ContextualWindowPrefabs);
-        ContextualMenuWindow.transform.SetParent(GameObject.Find("Trace" + (parentWinID + 1) + "Window").transform);
-        ContextualMenuWindow.transform.localScale = new Vector3(1, 1, 1);
-        ContextualMenuWindow.transform.localPosition = new Vector3(0, 0, -402);
+        Transform parent = GameObject.Find("Trace" + (parentWinID + 1) + "Window").transform;
+        ContextualMenuWindow = Instantiate(m_ContextualWindowPrefabs, parent);
 
         m_EditEvent = ContextualMenuWindow.transform.GetChild(0).GetChild(0).GetComponent<Button>();
         m_DeleteEvent = ContextualMenuWindow.transform.GetChild(0).GetChild(1).GetComponent<Button>();
@@ -79,7 +77,8 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
         EventsModificationMessage message = new EventsModificationMessage
         {
             TaskToExecute = 3,
-            Event = m_Event
+            Event = m_Event,
+            ParentWindowIndex = parentWinID
         };
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
         CloseContextualMenu();

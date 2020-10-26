@@ -248,17 +248,10 @@ public class Window : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             transform.SetParent(m_canvasGameObject.transform);
 
             Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
             if (worldClick.x > m_worldCorners[1].x && worldClick.x < m_worldCorners[2].x
                 && worldClick.y > m_worldCorners[3].y && worldClick.y < m_worldCorners[2].y)
             {
-                float perCentX = (worldClick.x - m_worldRectTransform.position.x) / (m_worldCorners[2].x - m_worldCorners[1].x);
-                float perCentY = (worldClick.y - m_worldRectTransform.position.y) / -(m_worldCorners[3].y - m_worldCorners[2].y);
-
-                float xCam2 = (perCentX * Camera.main.pixelRect.width);
-                float yCam2 = (perCentY * Camera.main.pixelRect.height);
-
-                transform.localPosition = new Vector3(xCam2, yCam2, transform.localPosition.z);
+                transform.position = new Vector3(worldClick.x, worldClick.y, transform.position.z);
             }
         }
     }

@@ -228,17 +228,17 @@ public class PatientBaseGUIManager : MonoBehaviour
         {
             case 0:
                 {
-                    EditDatabaseName();
+                    RenameDatabase();
                     break;
                 }
             case 1:
                 {
-                    DeleteDatabase();
+                    CloseDatabase();
                     break;
                 }
             case 2:
                 {
-                    EditSubjectName();
+                    RenameSubject();
                     break;
                 }
             case 3:
@@ -321,7 +321,7 @@ public class PatientBaseGUIManager : MonoBehaviour
         m_LastSelectedSUbject = (SelectedElements.Length > 0) ? SelectedElements[0] : null;
     }
 
-    private void EditDatabaseName()
+    private void RenameDatabase()
     {
         SubjectRepository[] SelectedElements = m_DatabaseList.ObjectsSelected;
         if (SelectedElements.Length > 0)
@@ -339,19 +339,20 @@ public class PatientBaseGUIManager : MonoBehaviour
             {
                 window.Close();
             });
+            window.StringValue = name;
         }
     }
 
-    private void DeleteDatabase()
+    private void CloseDatabase()
     {
         SubjectRepository[] SelectedElements = m_DatabaseList.ObjectsSelected;
         if (SelectedElements.Length > 0)
         {
-            ApplicationState.displayConfirmation("Database Deletion", "You are going to erase this database, are you sure ?", () => { DatabaseService.DeleteDatabase(SelectedElements[0]); }, () => { });
+            ApplicationState.displayConfirmation("Database Closure", "You are going to close this database, are you sure ?", () => { DatabaseService.DeleteDatabase(SelectedElements[0]); }, () => { });
         }
     }
 
-    private void EditSubjectName()
+    private void RenameSubject()
     {
         SubjectRepository[] SelectedDB = m_DatabaseList.ObjectsSelected;
         if (SelectedDB.Length > 0)

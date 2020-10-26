@@ -4,6 +4,7 @@ using BTV.Services.DatabaseService;
 using UnityEngine.UI;
 using System.Linq;
 using UnityEngine.Events;
+using System.Collections.Generic;
 
 public class DbSubMenu : MonoBehaviour
 {
@@ -26,26 +27,45 @@ public class DbSubMenu : MonoBehaviour
     [SerializeField]
     private GameObject m_MenuSubItemPrefabs = null;
 
-    public void AddSubMenuItem(string ItemName)
+    private Dictionary<SubjectRepository, GameObject> m_ChildElements = new Dictionary<SubjectRepository, GameObject>();
+
+    public void AddSubMenuItem(SubjectRepository item)
+    {
+        GameObject itemObject = AddSubMenuItem(item.ShortName);
+        item.PropertyChanged += DatabaseInformationUpdated;
+        m_ChildElements.Add(item, itemObject);
+    }
+
+    private void DatabaseInformationUpdated(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == "ShortName")
+        {
+            UnityEngine.Debug.Log("DBSubmenu : Database Name updated");
+            SubjectRepository item = sender as SubjectRepository;
+            if (m_ChildElements.ContainsKey(item))
+            {
+                m_ChildElements[item].transform.GetChild(0).GetComponent<Text>().text = item.ShortName;
+            }
+        }
+    }
+
+    private GameObject AddSubMenuItem(string ItemName)
     {
         GameObject newMenu = Instantiate(m_MenuSubItemPrefabs, _ItemContainer.transform);
         newMenu.name = ItemName;
         newMenu.transform.GetChild(0).GetComponent<Text>().text = ItemName;
         newMenu.GetComponent<Button>().onClick.AddListener(()=> { ItemClicked.Invoke(newMenu.GetComponent<Button>().name); });
+        return newMenu;
     }
 
-    public void RemoveSubMenuItem(string itemName)
+    public void RemoveSubMenuItem(SubjectRepository item)
     {
-        Transform container = _ItemContainer.transform;
-        for (int i = 0; i < container.childCount; i++)
+        if (m_ChildElements.ContainsKey(item))
         {
-            Transform child = container.GetChild(i);
-            if (child != null && child.name == itemName)
-            {
-                child.GetComponent<Button>().onClick.RemoveAllListeners();
-                Destroy(child.gameObject);
-                break;
-            }
+            item.PropertyChanged -= DatabaseInformationUpdated;
+            GameObject itemObject = m_ChildElements[item];
+            m_ChildElements.Remove(item);
+            Destroy(itemObject);
         }
     }
 }

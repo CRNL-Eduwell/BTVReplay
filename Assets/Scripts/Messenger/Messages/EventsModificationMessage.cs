@@ -30,4 +30,10 @@ class EventsModificationMessage
         get;
         set;
     }
+
+    public int ParentWindowIndex
+    {
+        get;
+        set;
+    }
 }

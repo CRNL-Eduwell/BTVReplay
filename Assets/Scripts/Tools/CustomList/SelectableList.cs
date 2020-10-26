@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
+//TODO : Line 230 commented to prevent multiple OnSelectionChanged() call , Check with Benjamin to see if
+//       it is intended behaviour
+
 namespace Tools.Unity.Lists
 {
     /// <summary>
@@ -134,6 +137,17 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
+        public override bool Replace(T obj, T old)
+        {
+            if (base.Replace(obj, old))
+            {
+                m_SelectedStateByObject.Remove(old);
+                m_SelectedStateByObject.Add(obj, false);
+                OnSelectionChanged();
+                return true;
+            }
+            return false;
+        }
         /// <summary>
         /// Select all objects.
         /// </summary>
@@ -216,7 +230,7 @@ namespace Tools.Unity.Lists
                 (item as SelectableItem<T>).ChangeSelectionValue(false, transition);
             }
             OnDeselect.Invoke(objectToDeselect);
-            OnSelectionChanged();
+            //OnSelectionChanged();
         }
         /// <summary>
         /// Deselect specified objects with a specified transition.

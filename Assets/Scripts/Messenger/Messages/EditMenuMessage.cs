@@ -2,9 +2,9 @@
 
 class EditMenuMessage
 {
-    // 0 : EditDBName
-    // 1 : DeleteDB
-    // 2 : EditSubName
+    // 0 : RenameDatabase
+    // 1 : CloseDatabase
+    // 2 : RenameSubject
     // 3 : AddSubject
     // 4 : DeleteSubject
     // 5 : MoveSubjects

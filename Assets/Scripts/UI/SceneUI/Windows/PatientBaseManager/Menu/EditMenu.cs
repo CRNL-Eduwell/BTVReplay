@@ -10,11 +10,11 @@ namespace BTV.UI
     public class EditMenu : Menu
     {
         [SerializeField]
-        private Button m_EditDatabaseName = null;
+        private Button m_RenameDatabase = null;
         [SerializeField]
-        private Button m_DeleteDatabase = null;
+        private Button m_CloseDatabase = null;
         [SerializeField]
-        private Button m_EditSubjectName = null;
+        private Button m_RenameSubject = null;
         [SerializeField]
         private Button m_AddSubject = null;
         [SerializeField]
@@ -30,9 +30,9 @@ namespace BTV.UI
 
         private void Start()
         {
-            m_EditDatabaseName.onClick.AddListener(EditDabaseName);
-            m_DeleteDatabase.onClick.AddListener(DeleteDatabase);
-            m_EditSubjectName.onClick.AddListener(EditSubjectName);
+            m_RenameDatabase.onClick.AddListener(RenameDatabase);
+            m_CloseDatabase.onClick.AddListener(CloseDatabase);
+            m_RenameSubject.onClick.AddListener(RenameSubject);
             m_AddSubject.onClick.AddListener(AddSubject);
             m_DeleteSubject.onClick.AddListener(DeleteSubject);
             m_MoveSubject.onClick.AddListener(()=> 
@@ -53,9 +53,9 @@ namespace BTV.UI
 
         private void OnDestroy()
         {
-            m_EditDatabaseName.onClick.RemoveAllListeners();
-            m_DeleteDatabase.onClick.RemoveAllListeners();
-            m_EditSubjectName.onClick.RemoveAllListeners();
+            m_RenameDatabase.onClick.RemoveAllListeners();
+            m_CloseDatabase.onClick.RemoveAllListeners();
+            m_RenameSubject.onClick.RemoveAllListeners();
             m_AddSubject.onClick.RemoveAllListeners();
             m_DeleteSubject.onClick.RemoveAllListeners();
             m_MoveSubject.onClick.RemoveAllListeners();
@@ -66,7 +66,7 @@ namespace BTV.UI
             DatabaseService.Databases.CollectionChanged -= UpdateDatabaseCollection;
         }
 
-        private void EditDabaseName()
+        private void RenameDatabase()
         {
             EditMenuMessage message = new EditMenuMessage
             {
@@ -76,7 +76,7 @@ namespace BTV.UI
             Close();
         }
 
-        private void DeleteDatabase()
+        private void CloseDatabase()
         {
             EditMenuMessage message = new EditMenuMessage
             {
@@ -86,7 +86,7 @@ namespace BTV.UI
             Close();
         }
 
-        private void EditSubjectName()
+        private void RenameSubject()
         {
             EditMenuMessage message = new EditMenuMessage
             {
@@ -148,9 +148,8 @@ namespace BTV.UI
                     {
                         UnityEngine.Debug.Log("Adding a Database element : ");
                         SubjectRepository itemToAdd = (SubjectRepository)e.NewItems[0]; //list of new items, only one at a time normally
-                        string shortName = itemToAdd.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "");
-                        m_MoveSubjectsSubMenu.AddSubMenuItem(shortName);
-                        m_CopySubjectsSubMenu.AddSubMenuItem(shortName);
+                        m_MoveSubjectsSubMenu.AddSubMenuItem(itemToAdd);
+                        m_CopySubjectsSubMenu.AddSubMenuItem(itemToAdd);
                         break;
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
@@ -162,9 +161,8 @@ namespace BTV.UI
                     {
                         UnityEngine.Debug.Log("Removing a Database element : ");
                         SubjectRepository itemToRemove = (SubjectRepository)e.OldItems[0];
-                        string shortName = itemToRemove.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "");
-                        m_MoveSubjectsSubMenu.RemoveSubMenuItem(shortName);
-                        m_CopySubjectsSubMenu.RemoveSubMenuItem(shortName);
+                        m_MoveSubjectsSubMenu.RemoveSubMenuItem(itemToRemove);
+                        m_CopySubjectsSubMenu.RemoveSubMenuItem(itemToRemove);
                         break;
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:

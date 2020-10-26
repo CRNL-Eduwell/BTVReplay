@@ -34,19 +34,15 @@ public class DatabaseItem : Tools.Unity.Lists.SelectableItem<SubjectRepository>
 
     private void SetLabelValue()
     {
-        m_Label.text = base.Object.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "");
+        m_Label.text = base.Object.ShortName;
     }
 
     private void RepositoryInformationUpdated(object sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == "FilePath")
+        if (e.PropertyName == "ShortName")
         {
             UnityEngine.Debug.Log("Repository FilePath property updated");
             SetLabelValue();
-        }
-        else
-        {
-            UnityEngine.Debug.LogError("Repository unknown property updated, please check");
         }
     }
 }
