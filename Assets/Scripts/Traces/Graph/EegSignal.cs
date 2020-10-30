@@ -46,11 +46,11 @@ public class EegSignal : SignalDisp
     public BtvProgram FileHandle{ get; private set; } = null;
     public int MostRecentSample { get; private set; } = 0;
     public int MostRecentTimeInMilliSecs { get; private set; } = 0;
-    public float MostRecentValue
+    public float MostRecentValueInPercentOfTrace
     {
         get
         {
-            return m_Channel.GetSample(MostRecentSample, true);
+            return m_dataArray[NumberOfPoint - 1].y / (2 * m_limitValue);
         }
     }
     public float Offset
@@ -64,6 +64,7 @@ public class EegSignal : SignalDisp
 
     private float m_offsetCoefficient = 0;
     private float m_offsetPerTen = 0;
+    private float m_limitValue = 0;
     private int m_NumberSample = 0;
     private BtvChannel m_Channel = null;
 
@@ -103,7 +104,7 @@ public class EegSignal : SignalDisp
         MostRecentTimeInMilliSecs = milliSecToLook;
         MostRecentSample = (int)(milliSecToLook * ((float)SamplingFrequency / 1000));
         int posInArray = MostRecentSample - NumberOfPoint;
-        float limitVal = (m_parentRectTransform.rect.height - 6.5f) / 2;
+        m_limitValue = (m_parentRectTransform.rect.height - 6.5f) / 2;
 
         for (int i = 0; i < NumberOfPoint; i++)
         {
@@ -111,16 +112,16 @@ public class EegSignal : SignalDisp
             {
                 float eegValue = m_Channel.GetSample(i + posInArray, true);
                 float value = Gain * eegValue + m_offsetCoefficient;
-                if (value >= -limitVal && value <= limitVal)
+                if (value >= -m_limitValue && value <= m_limitValue)
                 {
                     m_dataArray[i].y = value;
                 }
                 else
                 {
                     if (value >= 0)
-                        m_dataArray[i].y = limitVal;
+                        m_dataArray[i].y = m_limitValue;
                     else
-                        m_dataArray[i].y = -limitVal;
+                        m_dataArray[i].y = -m_limitValue;
                 }
             }
             else
