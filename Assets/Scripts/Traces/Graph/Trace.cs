@@ -137,7 +137,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         graphLabel.Initialize(eegSignal.ElectrodeLabel, eegSignal.FileHandle.Description);
         graphGrid.init(eegSignal.PeriodInSeconds);
         graphEvent.init(this);
-        graphSonif.init(this);
+        graphSonif.Init(this);
 
         graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
         m_initDone = true;
@@ -168,11 +168,11 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 4:
                 Debug.Log("Toggle Sonification");
-                graphSonif.toggleSonification(message.IsSonificationOn);
+                graphSonif.Toggle(message.IsSonificationOn);
                 break;
             case 5:
                 Debug.Log("Update Sonification Sound");
-                graphSonif.changeAudioSonification(message.NewSonificationId);
+                graphSonif.ChangeAudioClip(message.NewSonificationId);
                 break;
             case 6:
                 Debug.Log("Update ColorPicker");
@@ -261,12 +261,18 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OnVideoToModulesMessage(VideoToModulesMessage message)
     {
-        if (message.IsStopped) graphSonif.muteSonficiation();
-
-        eegSignal.UpdateDraw((int)message.TimeMilliseconds);
-        audioSignal.UpdateDraw((int)message.TimeMilliseconds);
-        graphEvent.UpdateEventsOnTrace((int)message.TimeMilliseconds);
-        graphSonif.updateSonif((int)message.TimeMilliseconds);
+        if (message.IsStopped)
+        {
+            graphSonif.Mute();
+            return;
+        }
+        else
+        {
+            eegSignal.UpdateDraw((int)message.TimeMilliseconds);
+            audioSignal.UpdateDraw((int)message.TimeMilliseconds);
+            graphEvent.UpdateEventsOnTrace((int)message.TimeMilliseconds);
+            graphSonif.UpdateSonification((int)message.TimeMilliseconds);
+        }
     }
 
     public void UpdateWindowState(int state)

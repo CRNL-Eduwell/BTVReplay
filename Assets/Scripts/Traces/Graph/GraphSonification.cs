@@ -4,17 +4,17 @@ using UnityEngine;
 
 public class GraphSonification : MonoBehaviour
 {
-    [SerializeField] CustomVideoPlayer video = null;
-    [SerializeField] AudioSource audioSourceScript = null;
+    [SerializeField] CustomVideoPlayer _Video = null;
+    [SerializeField] AudioSource _AudioSourceScript = null;
 
-    Trace m_curve = null;
-    List<AudioClip> m_clips = new List<AudioClip>();
-    bool m_currentState = false;
+    private Trace m_curve = null;
+    private List<AudioClip> m_clips = new List<AudioClip>();
+    private bool m_currentState = false;
 
-    void Awake()
+    private void Awake()
     {
-        audioSourceScript.Play();
-        audioSourceScript.Pause();
+        _AudioSourceScript.Play();
+        _AudioSourceScript.Pause();
     }
 
     private void OnEnable()
@@ -22,65 +22,72 @@ public class GraphSonification : MonoBehaviour
         //If element is disabled, like by hiding curve
         //we want to keep sonification playing if it was on
         if (m_currentState)
-            audioSourceScript.Play();
+            _AudioSourceScript.Play();
     }
 
-    public void init(Trace parentWin)
+    public void Init(Trace parentWin)
     {
         m_curve = parentWin;
         StartCoroutine(StartAudio());
     }
 
-    public void toggleSonification(bool isOn)
+    public void Toggle(bool isOn)
     {
         m_currentState = isOn;
         if (m_currentState)
-            audioSourceScript.UnPause();
+            _AudioSourceScript.UnPause();
         else
-            audioSourceScript.Pause();
+            _AudioSourceScript.Pause();
     }
 
-    public void muteSonficiation()
+    public void Mute()
     {
-        audioSourceScript.volume = 0;
+        _AudioSourceScript.volume = 0;
     }
 
-    public void updateSonif(int milliSecToLook)
+    public void UpdateSonification(int milliSecToLook)
     {
-        //int posInArray = m_curve.TraceEeg.FileHandle.Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
-        if (video.VideoInterface.IsPlaying)
+        if (!m_currentState) return;
+
+        if (_Video.VideoInterface.IsPlaying)
         {
-            float currentValue = 0.5f + ((m_curve.TraceEeg.MostRecentValue / 100) * m_curve.TraceEeg.Gain);
-            if (currentValue > 1)
-                audioSourceScript.volume = 1;
-            else if (currentValue <= 1 && currentValue >= 0)
-                audioSourceScript.volume = currentValue;
-            else if (currentValue < 0)
-                audioSourceScript.volume = 0;
+            float currentValue = 0.5f + m_curve.TraceEeg.MostRecentValueInPercentOfTrace;
+            if (currentValue >= 0 && currentValue <= 1)
+            {
+                _AudioSourceScript.volume = currentValue;
+            }
+            else if (currentValue > 1)
+            {
+                _AudioSourceScript.volume = 1;
+            }
+            else //(<0)
+            {
+                _AudioSourceScript.volume = 0;
+            }
         }
         else
         {
-            audioSourceScript.volume = 0;
+            _AudioSourceScript.volume = 0;
         }
     }
 
-    public void changeAudioSonification(int newIDClip)
+    public void ChangeAudioClip(int newIDClip)
     {
-        if (!audioSourceScript.isPlaying)
+        if (!_AudioSourceScript.isPlaying)
         {
-            audioSourceScript.clip = m_clips[newIDClip];
-            audioSourceScript.Play();
+            _AudioSourceScript.clip = m_clips[newIDClip];
+            _AudioSourceScript.Play();
         }
         else
         {
-            audioSourceScript.Pause();
-            audioSourceScript.clip = m_clips[newIDClip];
-            audioSourceScript.Play();
+            _AudioSourceScript.Pause();
+            _AudioSourceScript.clip = m_clips[newIDClip];
+            _AudioSourceScript.Play();
         }
     }
 
     //Allow to load audio file not in ressource file
-    IEnumerator StartAudio()
+    private IEnumerator StartAudio()
     {
         AudioClip clip = null;
         for (int i = 0; i < ApplicationState.Module3D.SoundFilePaths.Count; i++)
@@ -92,8 +99,8 @@ public class GraphSonification : MonoBehaviour
             clip.name = "Audio Clip number " + i.ToString();
             m_clips.Add(clip);
         }
-        audioSourceScript.clip = m_clips[0];
-        audioSourceScript.Play();
-        audioSourceScript.Pause();
+        _AudioSourceScript.clip = m_clips[0];
+        _AudioSourceScript.Play();
+        _AudioSourceScript.Pause();
     }
 }
