@@ -39,12 +39,14 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     private int m_currentElectrodeID = 0;
     private float m_Gain = 1;
     private int m_ContainerId = 0;
+    private float m_Timer = 0.0f;
 
     private Texture2D m_DefaultTexturePrefab = null;
     private Color[] m_TextureColorData;
     private Color hardBlue = new Color(0.6117f, 0.7058f, 0.7960f, 0.20784f);
     private Color darkGrey = new Color(0.20784f, 0.20784f, 0.20784f, 0.20784f);
     private List<BtvEvent> m_events = new List<BtvEvent>();
+
 
     private void Awake()
     {
@@ -91,31 +93,83 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     private void Update()
     {
+        m_Timer += Time.deltaTime;
+
         bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
         if (isOver)
         {
-            //zoom scroll mouse
-            Vector2 scrollDelta = Input.mouseScrollDelta;
-            if (scrollDelta.y != 0)
+            float yDeltaScroll = Input.mouseScrollDelta.y;
+            if (yDeltaScroll != 0 && m_Timer >= 0.2f)
             {
-                if (m_ElectrodeLabel.HasFocus)
-                {
-                    int newId = scrollDelta.y < 0 ? m_currentElectrodeID - 1 : m_currentElectrodeID + 1;
-                    UpdateElectrode(newId);
-                }
-                else if (m_GainLabel.HasFocus)
-                {
-                    m_Gain = scrollDelta.y < 0 ? m_Gain - 0.25f : m_Gain + 0.25f;
-                    m_GainLabel.Label = m_Gain.ToString();
-                }
-                else if (m_FileLabel.HasFocus)
-                {
-                    UpdateFile(scrollDelta.y);
-                }
-
-                UpdateDraw(m_ParentLayoutElement.minHeight);
+                m_Timer = 0;
+                UpdateTracesParameters(yDeltaScroll > 0 ? true : false);
             }
         }
+
+        KeyboardActions();
+    }
+
+    private void KeyboardActions()
+    {
+        if ((Input.GetKey(KeyCode.UpArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            m_Timer = 0;
+            UpdateTracesParameters(true);
+        }
+        else if ((Input.GetKey(KeyCode.DownArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            m_Timer = 0;
+            UpdateTracesParameters(false);
+        }
+        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            if (m_GainLabel.HasFocus)
+            {
+                m_ElectrodeLabel.HasFocus = true;
+                UpdateDraw(m_ParentLayoutElement.minHeight);
+                return;
+            }
+            else if (m_FileLabel.HasFocus)
+            {
+                m_GainLabel.HasFocus = true;
+                UpdateDraw(m_ParentLayoutElement.minHeight);
+                return;
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            if (m_ElectrodeLabel.HasFocus)
+            {
+                m_GainLabel.HasFocus = true;
+                UpdateDraw(m_ParentLayoutElement.minHeight);
+                return;
+            }
+            else if (m_GainLabel.HasFocus)
+            {
+                m_FileLabel.HasFocus = true;
+                UpdateDraw(m_ParentLayoutElement.minHeight);
+                return;
+            }
+        }
+    }
+
+    private void UpdateTracesParameters(bool isUp)
+    {
+        if (m_ElectrodeLabel.HasFocus)
+        {
+            int newId = isUp ? m_currentElectrodeID + 1 : m_currentElectrodeID - 1;
+            UpdateElectrode(newId);
+        }
+        else if (m_GainLabel.HasFocus)
+        {
+            m_Gain = isUp ? m_Gain + 0.25f : m_Gain - 0.25f;
+            m_GainLabel.Label = m_Gain.ToString();
+        }
+        else if (m_FileLabel.HasFocus)
+        {
+            UpdateFile(isUp ? 1 : -1);
+        }
+        UpdateDraw(m_ParentLayoutElement.minHeight);
     }
 
     private void Init()
