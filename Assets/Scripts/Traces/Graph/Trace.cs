@@ -63,6 +63,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     GameObject m_DisplayEventWindowPrefabs = null;
     GameObject m_PopUpAddWindow = null, m_PopUpEditWindow = null, m_PopUpDisplayWindow = null;
 
+    private float m_Timer = 0.0f;
+
     void Awake()
     {
         m_AddEventWindowPrefabs = Resources.Load("Prefabs/EventInfoEdit", typeof(GameObject)) as GameObject;
@@ -97,15 +99,34 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     void Update()
     {
-        if (m_initDone && isOver(Input.mousePosition) && m_window.hasFocus)
+        m_Timer += Time.deltaTime;
+
+        if (m_initDone == false) return;
+
+        if (m_window.hasFocus)
         {
-            Vector2 scrollDelta = Input.mouseScrollDelta;
-            if (scrollDelta.y != 0)
+            if (isOver(Input.mousePosition))
             {
-                if (scrollDelta.y < 0)
-                    updateElectrodeById(eegSignal.ElectrodeID - 1);
-                else
-                    updateElectrodeById(eegSignal.ElectrodeID + 1);
+                Vector2 scrollDelta = Input.mouseScrollDelta;
+                if (scrollDelta.y != 0 && m_Timer >= 0.2f)
+                {
+                    m_Timer = 0;
+                    if (scrollDelta.y < 0)
+                        updateElectrodeById(eegSignal.ElectrodeID - 1);
+                    else
+                        updateElectrodeById(eegSignal.ElectrodeID + 1);
+                }
+            }
+
+            if ((Input.GetKey(KeyCode.UpArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                m_Timer = 0;
+                updateElectrodeById(eegSignal.ElectrodeID + 1);
+            }
+            else if ((Input.GetKey(KeyCode.DownArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                m_Timer = 0;
+                updateElectrodeById(eegSignal.ElectrodeID - 1);
             }
         }
     }

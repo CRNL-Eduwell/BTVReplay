@@ -23,6 +23,13 @@ public class BrainCamera : MonoBehaviour
     private Vector3 m_Target, m_OriginalTarget;
     #endregion
 
+    private bool IsControlPressed
+    {
+        get
+        {
+            return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand);
+        }
+    }
     private bool IsShiftPressed
     {
         get
@@ -133,17 +140,17 @@ public class BrainCamera : MonoBehaviour
 
     protected void KeyboardAction()
     {
-        if (IsShiftPressed && Input.GetKey(KeyCode.LeftArrow))
+        if (!IsControlPressed && IsShiftPressed && Input.GetKey(KeyCode.LeftArrow))
             MoveLeft(speed);
-        if (IsShiftPressed && Input.GetKey(KeyCode.RightArrow))
+        if (!IsControlPressed && IsShiftPressed && Input.GetKey(KeyCode.RightArrow))
             MoveRight(speed);
-        if (IsShiftPressed && Input.GetKey(KeyCode.UpArrow))
+        if (!IsControlPressed && IsShiftPressed && Input.GetKey(KeyCode.UpArrow))
             MoveUp(speed);
-        if (IsShiftPressed && Input.GetKey(KeyCode.DownArrow))
+        if (!IsControlPressed && IsShiftPressed && Input.GetKey(KeyCode.DownArrow))
             MoveDown(speed);
-        if (IsShiftPressed && Input.GetKey(KeyCode.Less))
+        if (!IsControlPressed && IsShiftPressed && Input.GetKey(KeyCode.Less))
             MoveForward(zoomSpeed);
-        if (!IsShiftPressed && Input.GetKey(KeyCode.Less))
+        if (!IsControlPressed && !IsShiftPressed && Input.GetKey(KeyCode.Less))
             MoveBackward(zoomSpeed);
     }
 
