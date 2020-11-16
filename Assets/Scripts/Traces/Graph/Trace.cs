@@ -64,6 +64,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     GameObject m_PopUpAddWindow = null, m_PopUpEditWindow = null, m_PopUpDisplayWindow = null;
 
     private float m_Timer = 0.0f;
+    private float m_WheelSum = 0;
 
     void Awake()
     {
@@ -105,18 +106,23 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
         if (m_window.hasFocus)
         {
-            if (isOver(Input.mousePosition))
-            {
-                Vector2 scrollDelta = Input.mouseScrollDelta;
-                if (scrollDelta.y != 0 && m_Timer >= 0.2f)
-                {
-                    m_Timer = 0;
-                    if (scrollDelta.y < 0)
-                        updateElectrodeById(eegSignal.ElectrodeID - 1);
-                    else
-                        updateElectrodeById(eegSignal.ElectrodeID + 1);
-                }
-            }
+            //If OnGui Management of the difference wheel / trackpad cause issue, put that back
+            //and delete gui function
+            //if (isOver(Input.mousePosition))
+            //{
+            //    Vector2 scrollDelta = Input.mouseScrollDelta;
+            //    if (scrollDelta.y != 0)
+            //    {
+            //        if (scrollDelta.y < 0)
+            //        {
+            //            updateElectrodeById(eegSignal.ElectrodeID - 1);
+            //        }
+            //        else 
+            //        {
+            //            updateElectrodeById(eegSignal.ElectrodeID + 1);
+            //        }
+            //    }
+            //}
 
             if ((Input.GetKey(KeyCode.UpArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.UpArrow))
             {
@@ -128,6 +134,55 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 m_Timer = 0;
                 updateElectrodeById(eegSignal.ElectrodeID - 1);
             }
+        }
+    }
+
+    private void OnGUI()
+    {
+        if (m_window.hasFocus)
+        {
+            if (isOver(Input.mousePosition))
+            {
+                if (Event.current.type == EventType.ScrollWheel)
+                {
+                    Vector2 scrollDelta = Input.mouseScrollDelta;
+                    if (scrollDelta.y != 0)
+                    {
+                        if (IsAlmostEqual(Mathf.Abs(Event.current.delta.y), Mathf.Abs(scrollDelta.y)))
+                        {
+                            //UnityEngine.Debug.Log("ismouse");
+                            updateElectrodeById(scrollDelta.y > 0 ? eegSignal.ElectrodeID + 1 : eegSignal.ElectrodeID - 1);
+                        }
+                        else
+                        {
+                            //UnityEngine.Debug.Log("ispad");
+                            m_WheelSum += scrollDelta.y;
+                            if (m_WheelSum <= -0.1f)
+                            {
+                                m_WheelSum = 0;
+                                updateElectrodeById(eegSignal.ElectrodeID - 1);
+                            }
+                            else if (m_WheelSum >= 0.1f)
+                            {
+                                m_WheelSum = 0;
+                                updateElectrodeById(eegSignal.ElectrodeID + 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private bool IsAlmostEqual(float a, float b)
+    {
+        if (a >= b - 0.0001f && a <= b + 0.0001f)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 

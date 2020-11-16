@@ -40,6 +40,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     private float m_Gain = 1;
     private int m_ContainerId = 0;
     private float m_Timer = 0.0f;
+    private float m_WheelSum = 0;
 
     private Texture2D m_DefaultTexturePrefab = null;
     private Color[] m_TextureColorData;
@@ -91,20 +92,69 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    private void OnGUI()
+    {
+        bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
+        if (isOver)
+        {
+            if (Event.current.type == EventType.ScrollWheel)
+            {
+                Vector2 scrollDelta = Input.mouseScrollDelta;
+                if (scrollDelta.y != 0)
+                {
+                    if (IsAlmostEqual(Mathf.Abs(Event.current.delta.y), Mathf.Abs(scrollDelta.y)))
+                    {
+                        //UnityEngine.Debug.Log("ismouse");
+                        UpdateTracesParameters(scrollDelta.y > 0 ? true : false);
+                    }
+                    else
+                    {
+                        //UnityEngine.Debug.Log("ispad");
+                        m_WheelSum += scrollDelta.y;
+                        if (m_WheelSum <= -0.1f)
+                        {
+                            m_WheelSum = 0;
+                            UpdateTracesParameters(false);
+                        }
+                        else if (m_WheelSum >= 0.1f)
+                        {
+                            m_WheelSum = 0;
+                            UpdateTracesParameters(true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private bool IsAlmostEqual(float a, float b)
+    {
+        if (a >= b - 0.0001f && a <= b + 0.0001f)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     private void Update()
     {
         m_Timer += Time.deltaTime;
 
-        bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
-        if (isOver)
-        {
-            float yDeltaScroll = Input.mouseScrollDelta.y;
-            if (yDeltaScroll != 0 && m_Timer >= 0.2f)
-            {
-                m_Timer = 0;
-                UpdateTracesParameters(yDeltaScroll > 0 ? true : false);
-            }
-        }
+        //If OnGui Management of the difference wheel / trackpad cause issue, put that back
+        //and delete gui function
+        //bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
+        //if (isOver)
+        //{
+        //    float yDeltaScroll = Input.mouseScrollDelta.y;
+        //    if (yDeltaScroll != 0 && m_Timer >= 0.2f)
+        //    {
+        //        m_Timer = 0;
+        //        UpdateTracesParameters(yDeltaScroll > 0 ? true : false);
+        //    }
+        //}
 
         KeyboardActions();
     }
