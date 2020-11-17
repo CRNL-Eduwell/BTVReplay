@@ -34,6 +34,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             return graphGrid;
         }
     }
+    public bool IsMouseOver { get; private set; }
 
     [SerializeField] EegSignal eegSignal = null;
     [SerializeField] AudioSignal audioSignal = null;
@@ -139,9 +140,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OnGUI()
     {
+        if (m_initDone == false) return;
+
+        IsMouseOver = isOver(Input.mousePosition);
         if (m_window.hasFocus)
         {
-            if (isOver(Input.mousePosition))
+            if (IsMouseOver)
             {
                 if (Event.current.type == EventType.ScrollWheel)
                 {
