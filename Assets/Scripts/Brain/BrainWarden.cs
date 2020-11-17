@@ -32,6 +32,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     Window winTrace1 = null;
     Window winTrace2 = null;
     Trace curveTrace1 = null;
+    Trace curveTrace2 = null;
 
     GameObject elecOptionPanel = null;
     GameObject ElecOption = null;
@@ -52,6 +53,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         winTrace1 = GameObject.Find("Trace1Window").GetComponent<Window>();
         winTrace2 = GameObject.Find("Trace2Window").GetComponent<Window>();
         curveTrace1 = winTrace1.gameObject.GetComponent<Trace>();
+        curveTrace2 = winTrace2.gameObject.GetComponent<Trace>();
     }
 
     private void OnDestroy()
@@ -61,7 +63,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     private void OnGUI()
     {
-        if (IsOver(Input.mousePosition))
+        if (IsOver(Input.mousePosition) && !(curveTrace1.IsMouseOver || curveTrace2.IsMouseOver))
         {
             brainCam.GetComponent<BrainCamera>().IsMouseOver = true;
             CheckIfPointElectrode();

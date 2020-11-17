@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class ShortcutManager : MonoBehaviour
 {
+    [SerializeField] WindowLayout _LeftWindowLayout = null;
     [SerializeField] WindowLayout _RightWindowLayout = null;
 
     private bool IsControlPressed
     {
         get
         {
-            return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand);
         }
     }
     private bool IsAltPressed
@@ -27,49 +28,51 @@ public class ShortcutManager : MonoBehaviour
             return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
         }
     }
+    private bool IsArrowKeyPressed
+    {
+        get
+        {
+            return Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow);
+        }
+    }
+    private bool IsArrowKeyDown
+    {
+        get
+        {
+            return Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow);
+        }
+    }
+    private bool MoveWindow1ActionPerformed
+    {
+        get
+        {
+            return IsControlPressed && !IsShiftPressed && ((IsArrowKeyPressed && m_Timer >= DELAY) || IsArrowKeyDown);
+        }
+    }
+    private bool MoveWindow2ActionPerformed
+    {
+        get
+        {
+            return IsControlPressed && IsShiftPressed && ((IsArrowKeyPressed && m_Timer >= DELAY) || IsArrowKeyDown);
+        }
+    }
+    private bool FocusWindow1ActionPerformed
+    {
+        get
+        {
+            return IsControlPressed && !IsShiftPressed && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter));
+        }
+    }
+    private bool FocusWindow2ActionPerformed
+    {
+        get
+        {
+            return IsControlPressed && IsShiftPressed && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter));
+        }
+    }
 
-    private bool MoveWindow1ToPlace1ActionPerformed
-    {
-        get
-        {
-            return IsControlPressed && !IsShiftPressed && (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Ampersand));
-        }
-    }
-    private bool MoveWindow1ToPlace2ActionPerformed
-    {
-        get
-        {
-            return IsControlPressed && !IsShiftPressed && (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.None + 161));
-        }
-    }
-    private bool MoveWindow1ToPlace3ActionPerformed
-    {
-        get
-        {
-            return IsControlPressed && !IsShiftPressed && (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.DoubleQuote));
-        }
-    }
-    private bool MoveWindow2ToPlace1ActionPerformed
-    {
-        get
-        {
-            return IsControlPressed && IsShiftPressed && (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Ampersand));
-        }
-    }
-    private bool MoveWindow2ToPlace2ActionPerformed
-    {
-        get
-        {
-            return IsControlPressed && IsShiftPressed && (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.None + 161));
-        }
-    }
-    private bool MoveWindow2ToPlace3ActionPerformed
-    {
-        get
-        {
-            return IsControlPressed && IsShiftPressed && (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.DoubleQuote));
-        }
-    }
+    private const float DELAY = 0.2f;
+    private float m_Timer = 0.0f;
 
     //Debug in case of not finding the value for shortcuts
     //void OnGUI()
@@ -83,35 +86,72 @@ public class ShortcutManager : MonoBehaviour
 
     private void Update()
     {
-        if (MoveWindow1ToPlace1ActionPerformed)
+        m_Timer += Time.deltaTime;
+        if (MoveWindow1ActionPerformed)
         {
-            MoveWindow(1, 0);
+            m_Timer = 0;
+            UnityEngine.Debug.Log("Move Window 1 Shortcut");
+            MoveWindow(1);
         }
-        else if (MoveWindow1ToPlace2ActionPerformed)
+        else if (MoveWindow2ActionPerformed)
         {
-            MoveWindow(1, 1);
+            m_Timer = 0;
+            UnityEngine.Debug.Log("Move Window 2 Shortcut");
+            MoveWindow(2);
         }
-        else if (MoveWindow1ToPlace3ActionPerformed)
+        else if (FocusWindow1ActionPerformed)
         {
-            MoveWindow(1, 2);
+            UnityEngine.Debug.Log("Focus Window 1 Shortcut");
+            FocusWindow(ApplicationState.Module3D.Window1);
         }
-        else if (MoveWindow2ToPlace1ActionPerformed)
+        else if (FocusWindow2ActionPerformed)
         {
-            MoveWindow(2, 0);
-        }
-        else if (MoveWindow2ToPlace2ActionPerformed)
-        {
-            MoveWindow(2, 1);
-        }
-        else if (MoveWindow2ToPlace3ActionPerformed)
-        {
-            MoveWindow(2, 2);
+            UnityEngine.Debug.Log("Focus Window 2 Shortcut");
+            FocusWindow(ApplicationState.Module3D.Window2);
         }
     }
 
-    private void MoveWindow(int WindowIndex, int PositionIndex)
+    private void MoveWindow(int WindowIndex)
     {
         Trace ObjectToMove = WindowIndex == 1 ? ApplicationState.Module3D.Window1 : ApplicationState.Module3D.Window2;
-        _RightWindowLayout.ForceDrop(ObjectToMove.gameObject, GridLayout.OneBy3, PositionIndex);
+        Window ObjectToMoveWindow = ObjectToMove.GetComponent<Window>();
+        Transform parent = ObjectToMove.transform.parent;
+
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            if (parent != _LeftWindowLayout.transform.parent)
+            {
+                _LeftWindowLayout.ForceDrop(ObjectToMove.gameObject, GridLayout.OneBy3, ObjectToMoveWindow.windowId);
+            }
+        }
+        else if (Input.GetKey(KeyCode.RightArrow))
+        {
+            if (parent != _RightWindowLayout.transform.parent)
+            {
+                _RightWindowLayout.ForceDrop(ObjectToMove.gameObject, GridLayout.OneBy3, ObjectToMoveWindow.windowId);
+            }
+        }
+        else if (Input.GetKey(KeyCode.UpArrow))
+        {
+            if (ObjectToMoveWindow.windowId + 1 < 3)
+            {
+                WindowLayout currentLayout = parent == _LeftWindowLayout.transform ? _LeftWindowLayout : _RightWindowLayout;
+                currentLayout.ForceDrop(ObjectToMoveWindow.gameObject, GridLayout.OneBy3, ObjectToMoveWindow.windowId + 1);
+            }
+        }
+        else if (Input.GetKey(KeyCode.DownArrow))
+        {
+            if (ObjectToMoveWindow.windowId - 1 >= 0)
+            {
+                WindowLayout currentLayout = parent == _LeftWindowLayout.transform ? _LeftWindowLayout : _RightWindowLayout;
+                currentLayout.ForceDrop(ObjectToMoveWindow.gameObject, GridLayout.OneBy3, ObjectToMoveWindow.windowId - 1);
+            }
+        }
+    }
+
+    private void FocusWindow(Trace window)
+    {
+        int status = window.GetComponent<Window>().hasFocus ? 1 : 3;
+        window.UpdateWindowState(status);
     }
 }

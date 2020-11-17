@@ -34,6 +34,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             return graphGrid;
         }
     }
+    public bool IsMouseOver { get; private set; }
 
     [SerializeField] EegSignal eegSignal = null;
     [SerializeField] AudioSignal audioSignal = null;
@@ -62,6 +63,9 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     GameObject m_AddEventWindowPrefabs = null;
     GameObject m_DisplayEventWindowPrefabs = null;
     GameObject m_PopUpAddWindow = null, m_PopUpEditWindow = null, m_PopUpDisplayWindow = null;
+
+    private float m_Timer = 0.0f;
+    private float m_WheelSum = 0;
 
     void Awake()
     {
@@ -97,16 +101,92 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     void Update()
     {
-        if (m_initDone && isOver(Input.mousePosition) && m_window.hasFocus)
+        m_Timer += Time.deltaTime;
+
+        if (m_initDone == false) return;
+
+        if (m_window.hasFocus)
         {
-            Vector2 scrollDelta = Input.mouseScrollDelta;
-            if (scrollDelta.y != 0)
+            //If OnGui Management of the difference wheel / trackpad cause issue, put that back
+            //and delete gui function
+            //if (isOver(Input.mousePosition))
+            //{
+            //    Vector2 scrollDelta = Input.mouseScrollDelta;
+            //    if (scrollDelta.y != 0)
+            //    {
+            //        if (scrollDelta.y < 0)
+            //        {
+            //            updateElectrodeById(eegSignal.ElectrodeID - 1);
+            //        }
+            //        else 
+            //        {
+            //            updateElectrodeById(eegSignal.ElectrodeID + 1);
+            //        }
+            //    }
+            //}
+
+            if ((Input.GetKey(KeyCode.UpArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.UpArrow))
             {
-                if (scrollDelta.y < 0)
-                    updateElectrodeById(eegSignal.ElectrodeID - 1);
-                else
-                    updateElectrodeById(eegSignal.ElectrodeID + 1);
+                m_Timer = 0;
+                updateElectrodeById(eegSignal.ElectrodeID + 1);
             }
+            else if ((Input.GetKey(KeyCode.DownArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                m_Timer = 0;
+                updateElectrodeById(eegSignal.ElectrodeID - 1);
+            }
+        }
+    }
+
+    private void OnGUI()
+    {
+        if (m_initDone == false) return;
+
+        IsMouseOver = isOver(Input.mousePosition);
+        if (m_window.hasFocus)
+        {
+            if (IsMouseOver)
+            {
+                if (Event.current.type == EventType.ScrollWheel)
+                {
+                    Vector2 scrollDelta = Input.mouseScrollDelta;
+                    if (scrollDelta.y != 0)
+                    {
+                        if (IsAlmostEqual(Mathf.Abs(Event.current.delta.y), Mathf.Abs(scrollDelta.y)))
+                        {
+                            //UnityEngine.Debug.Log("ismouse");
+                            updateElectrodeById(scrollDelta.y > 0 ? eegSignal.ElectrodeID + 1 : eegSignal.ElectrodeID - 1);
+                        }
+                        else
+                        {
+                            //UnityEngine.Debug.Log("ispad");
+                            m_WheelSum += scrollDelta.y;
+                            if (m_WheelSum <= -0.1f)
+                            {
+                                m_WheelSum = 0;
+                                updateElectrodeById(eegSignal.ElectrodeID - 1);
+                            }
+                            else if (m_WheelSum >= 0.1f)
+                            {
+                                m_WheelSum = 0;
+                                updateElectrodeById(eegSignal.ElectrodeID + 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private bool IsAlmostEqual(float a, float b)
+    {
+        if (a >= b - 0.0001f && a <= b + 0.0001f)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 
