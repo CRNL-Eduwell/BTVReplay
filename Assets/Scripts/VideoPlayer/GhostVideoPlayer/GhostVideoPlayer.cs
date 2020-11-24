@@ -13,6 +13,7 @@ using UnityEngine.UI;
 /// </summary>
 public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 {
+    public bool IsPrepared { get; private set; } = false;
     /// <summary>
     /// Exact Time of the video
     /// In MilliSeconds
@@ -109,6 +110,7 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
             WidthToHeightRatio = (float)m_TextureForVideo.texture.width / m_TextureForVideo.texture.height;
             HeightToWidthRatio = (float)m_TextureForVideo.texture.height / m_TextureForVideo.texture.width;
             ResizeTexture();
+            IsPrepared = true;
         }
 
         if (m_internalTimer != null)
@@ -137,6 +139,7 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
         m_internalLastTime = 0;
         m_paused = false;
         m_playing = false;
+        IsPrepared = false;
     }
 
     public void MoveTime(long secondsToAdd)

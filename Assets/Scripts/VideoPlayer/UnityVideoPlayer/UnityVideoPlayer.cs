@@ -5,6 +5,7 @@ using UnityEngine.Video;
 
 public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
 {
+    public bool IsPrepared { get { return m_VideoPlayer != null ? m_VideoPlayer.isPrepared : false; } }
     /// <summary>
     /// Same as time, see if both are usefull ????
     /// </summary>

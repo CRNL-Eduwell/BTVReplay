@@ -228,6 +228,12 @@ public class EventsManager : MonoBehaviour
     //TODO : Reset Everything or allow to load data over already existing events ? 
     private void LoadEvents(string filePath, int SamplingFrequency = 0)
     {
+        if (!m_videoPlayer.VideoInterface.IsPrepared)
+        {
+            ApplicationState.displayMessage("Video not started yet", "NOK", "You need to start the video in order for the total length of the file/video to be known");
+            return;
+        }
+
         if (File.Exists(filePath))
         {
             EventsService.Load(filePath, SamplingFrequency);
