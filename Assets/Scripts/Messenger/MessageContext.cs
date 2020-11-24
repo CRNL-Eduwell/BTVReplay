@@ -25,5 +25,7 @@ enum MessageContext
     LoadSubjectMessage,
     LoaderMessage,
     ShowWindowMessage,
-    ForceUpdateTraceMessage
+    ForceUpdateTraceMessage,
+    ShortcutMessage,
+    ForceToggleToolbar
 }

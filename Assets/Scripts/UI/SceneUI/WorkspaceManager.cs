@@ -5,6 +5,8 @@ using UnityEngine.UI;
 public class WorkspaceManager : MonoBehaviour
 {
     [SerializeField] ResizableGrid m_grid = null;
+    [SerializeField] WindowLayout _LeftWindowLayout = null;
+    [SerializeField] WindowLayout _RightWindowLayout = null;
     [SerializeField] BrainWarden _BrainWarden = null;
     [SerializeField] Trace _Trace1 = null;
     [SerializeField] Trace _Trace2 = null;
@@ -12,11 +14,13 @@ public class WorkspaceManager : MonoBehaviour
     private void Start()
     {
         Messenger.Default.Register<UiToLayoutsMessage>(this, OnUiToLayoutsMessage, MessageContext.UiToLayouts);
+        Messenger.Default.Register<ShortcutMessage>(this, OnShortcutMessage, MessageContext.ShortcutMessage);
     }
 
     private void OnDestroy()
     {
         Messenger.Default.Unregister(this, MessageContext.UiToLayouts);
+        Messenger.Default.Unregister(this, MessageContext.ShortcutMessage);
     }
 
     private void Update()
@@ -68,6 +72,89 @@ public class WorkspaceManager : MonoBehaviour
         }
     }
 
+    private void OnShortcutMessage(ShortcutMessage message)
+    {
+        if (message.RecipientType == typeof(Trace))
+        {
+            switch (message.Action)
+            {
+                case ShortcutActions.Focus:
+                    {
+                        ForceToggleToolbar toggleMessage = new ForceToggleToolbar
+                        {
+                            toolbar = "EEG" + message.RecipientIndex.ToString()
+                        };
+                        Messenger.Default.Send(toggleMessage, MessageContext.ForceToggleToolbar);
+                    }
+                    break;
+                case ShortcutActions.Move:
+                    {
+                        Trace move = message.RecipientIndex == 1 ? _Trace1 : message.RecipientIndex == 2 ? _Trace2 : null;
+                        if (move != null)
+                        {
+                            Window ObjectToMoveWindow = move.GetComponent<Window>();
+                            Transform parent = move.transform.parent;
+                            switch (message.Parameter)
+                            {
+                                case ShortcutActionsParameters.Left:
+                                    {
+                                        if (parent != _LeftWindowLayout.transform.parent)
+                                        {
+                                            _LeftWindowLayout.ForceDrop(move.gameObject, GridLayout.OneBy3, ObjectToMoveWindow.windowId);
+                                        }
+                                    }
+                                    break;
+                                case ShortcutActionsParameters.Right:
+                                    {
+                                        if (parent != _RightWindowLayout.transform.parent)
+                                        {
+                                            _RightWindowLayout.ForceDrop(move.gameObject, GridLayout.OneBy3, ObjectToMoveWindow.windowId);
+                                        }
+                                    }
+                                    break;
+                                case ShortcutActionsParameters.Up:
+                                    {
+                                        if (ObjectToMoveWindow.windowId + 1 < 3)
+                                        {
+                                            WindowLayout currentLayout = parent == _LeftWindowLayout.transform ? _LeftWindowLayout : _RightWindowLayout;
+                                            currentLayout.ForceDrop(ObjectToMoveWindow.gameObject, GridLayout.OneBy3, ObjectToMoveWindow.windowId + 1);
+                                        }
+                                    }
+                                    break;
+                                case ShortcutActionsParameters.Down:
+                                    {
+                                        if (ObjectToMoveWindow.windowId - 1 >= 0)
+                                        {
+                                        WindowLayout currentLayout = parent == _LeftWindowLayout.transform ? _LeftWindowLayout : _RightWindowLayout;
+                                        currentLayout.ForceDrop(ObjectToMoveWindow.gameObject, GridLayout.OneBy3, ObjectToMoveWindow.windowId - 1);
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+                case ShortcutActions.UpdateOptionValue:
+                    {
+                        Trace updateOption = _Trace1.GetComponent<Window>().hasFocus ? _Trace1 : _Trace2.GetComponent<Window>().hasFocus ? _Trace2 : null;
+                        if (updateOption != null)
+                        {
+                            int index = updateOption.TraceEeg.ElectrodeID;
+                            if (message.Parameter == ShortcutActionsParameters.Up)
+                            {
+                                index += 1;
+                            }
+                            else if (message.Parameter == ShortcutActionsParameters.Down)
+                            {
+                                index -= 1;
+                            }
+                            updateOption.UpdateElectrodeById(index);
+                        }
+                    }
+                    break;
+            }
+        }
+    }
 
     private void LoadLayout(string path)
     {

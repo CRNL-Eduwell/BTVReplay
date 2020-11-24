@@ -39,7 +39,6 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     private int m_currentElectrodeID = 0;
     private float m_Gain = 1;
     private int m_ContainerId = 0;
-    private float m_Timer = 0.0f;
     private float m_WheelSum = 0;
 
     private Texture2D m_DefaultTexturePrefab = null;
@@ -48,12 +47,12 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     private Color darkGrey = new Color(0.20784f, 0.20784f, 0.20784f, 0.20784f);
     private List<BtvEvent> m_events = new List<BtvEvent>();
 
-
     private void Awake()
     {
         m_rectTransform = gameObject.transform.GetComponent<RectTransform>();
 
         Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
+        Messenger.Default.Register<ShortcutMessage>(this, OnShortcutMessage, MessageContext.ShortcutMessage);
     }
 
     private void Start()
@@ -66,6 +65,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     private void OnDestroy()
     {
         Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
+        Messenger.Default.Unregister(this, MessageContext.ShortcutMessage);
     }
 
     private void OnRectTransformDimensionsChange()
@@ -79,6 +79,60 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         if (message.Task == LoaderMessage.LoaderTask.LoadTrace)
         {
             Init();
+        }
+    }
+
+    private void OnShortcutMessage(ShortcutMessage message)
+    {
+        if (GetType() == message.RecipientType)
+        {
+            if (message.Action == ShortcutActions.ChangeOption)
+            {
+                if (message.Parameter == ShortcutActionsParameters.Left)
+                {
+                    if (m_GainLabel.HasFocus)
+                    {
+                        m_ElectrodeLabel.HasFocus = true;
+                        UpdateDraw(m_ParentLayoutElement.minHeight);
+                        return;
+                    }
+                    else if (m_FileLabel.HasFocus)
+                    {
+                        m_GainLabel.HasFocus = true;
+                        UpdateDraw(m_ParentLayoutElement.minHeight);
+                        return;
+                    }
+                }
+                else if (message.Parameter == ShortcutActionsParameters.Right)
+                {
+                    if (m_ElectrodeLabel.HasFocus)
+                    {
+                        m_GainLabel.HasFocus = true;
+                        UpdateDraw(m_ParentLayoutElement.minHeight);
+                        return;
+                    }
+                    else if (m_GainLabel.HasFocus)
+                    {
+                        m_FileLabel.HasFocus = true;
+                        UpdateDraw(m_ParentLayoutElement.minHeight);
+                        return;
+                    }
+                }
+            }
+            else if (message.Action == ShortcutActions.UpdateOptionValue)
+            {
+                if (message.Parameter == ShortcutActionsParameters.Up)
+                    UpdateTracesParameters(true);
+                else if (message.Parameter == ShortcutActionsParameters.Down)
+                    UpdateTracesParameters(false);
+            }
+            else if (message.Action == ShortcutActions.Focus)
+            {
+                m_IsBig = !m_IsBig;
+                UpdateState(m_IsBig);
+                m_ElectrodeLabel.HasFocus = m_IsBig;
+                m_ParentLayoutElement.minHeight = m_IsBig ? 120 : 30;
+            }
         }
     }
 
@@ -136,70 +190,6 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         else
         {
             return false;
-        }
-    }
-
-    private void Update()
-    {
-        m_Timer += Time.deltaTime;
-
-        //If OnGui Management of the difference wheel / trackpad cause issue, put that back
-        //and delete gui function
-        //bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
-        //if (isOver)
-        //{
-        //    float yDeltaScroll = Input.mouseScrollDelta.y;
-        //    if (yDeltaScroll != 0 && m_Timer >= 0.2f)
-        //    {
-        //        m_Timer = 0;
-        //        UpdateTracesParameters(yDeltaScroll > 0 ? true : false);
-        //    }
-        //}
-
-        KeyboardActions();
-    }
-
-    private void KeyboardActions()
-    {
-        if ((Input.GetKey(KeyCode.UpArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            m_Timer = 0;
-            UpdateTracesParameters(true);
-        }
-        else if ((Input.GetKey(KeyCode.DownArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            m_Timer = 0;
-            UpdateTracesParameters(false);
-        }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            if (m_GainLabel.HasFocus)
-            {
-                m_ElectrodeLabel.HasFocus = true;
-                UpdateDraw(m_ParentLayoutElement.minHeight);
-                return;
-            }
-            else if (m_FileLabel.HasFocus)
-            {
-                m_GainLabel.HasFocus = true;
-                UpdateDraw(m_ParentLayoutElement.minHeight);
-                return;
-            }
-        }
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            if (m_ElectrodeLabel.HasFocus)
-            {
-                m_GainLabel.HasFocus = true;
-                UpdateDraw(m_ParentLayoutElement.minHeight);
-                return;
-            }
-            else if (m_GainLabel.HasFocus)
-            {
-                m_FileLabel.HasFocus = true;
-                UpdateDraw(m_ParentLayoutElement.minHeight);
-                return;
-            }
         }
     }
 

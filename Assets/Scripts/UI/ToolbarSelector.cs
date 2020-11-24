@@ -26,6 +26,8 @@ namespace BTV.UI.Module3D
 
         private void Awake()
         {
+            Messenger.Default.Register<ForceToggleToolbar>(this, OnForceToggleToolbar, MessageContext.ForceToggleToolbar);
+
             m_Toolbars.Add(m_BrainToggle, m_ToolbarMenu.BrainToolBar);
             m_Toolbars.Add(m_Eeg1Toggle, m_ToolbarMenu.EegSignal1ToolBar);
             m_Toolbars.Add(m_Eeg2Toggle, m_ToolbarMenu.EegSignal2ToolBar);
@@ -35,6 +37,11 @@ namespace BTV.UI.Module3D
             m_Toolbars.Add(m_WorkspaceToggle, m_ToolbarMenu.LayoutsToolbar);
 
             AddListeners();
+        }
+
+        private void OnDestroy()
+        {
+            Messenger.Default.Unregister(this, MessageContext.ForceToggleToolbar);
         }
 
         /// <summary>
@@ -99,6 +106,20 @@ namespace BTV.UI.Module3D
             bool showTriggeredToolbar = UiOptionModule > 1 ? true : false;
             m_ToolbarMenu.CurrentToolbar = m_Toolbars[triggeredToggle];
             m_ToolbarMenu.CurrentToolbar.gameObject.SetActive(showTriggeredToolbar);
+        }
+
+        private void OnForceToggleToolbar(ForceToggleToolbar message)
+        {
+            if (message.toolbar == "EEG1")
+            {
+                int value = m_Eeg1Toggle.StatusValue == 3 ? 1 : 3;
+                m_Eeg1Toggle.ForceStartValue(value);
+            }
+            else if (message.toolbar == "EEG2")
+            {
+                int value = m_Eeg2Toggle.StatusValue == 3 ? 1 : 3;
+                m_Eeg2Toggle.ForceStartValue(value);
+            }
         }
     }
 }

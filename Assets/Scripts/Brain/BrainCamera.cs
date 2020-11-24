@@ -23,19 +23,14 @@ public class BrainCamera : MonoBehaviour
     private Vector3 m_Target, m_OriginalTarget;
     #endregion
 
-    private bool IsControlPressed
+    private void Awake()
     {
-        get
-        {
-            return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand);
-        }
+        Messenger.Default.Register<ShortcutMessage>(this, OnShortcutMessage, MessageContext.ShortcutMessage);
     }
-    private bool IsShiftPressed
+
+    private void OnDestroy()
     {
-        get
-        {
-            return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-        }
+        Messenger.Default.Unregister(this, MessageContext.ShortcutMessage);
     }
 
     public void InitCameraPosition()
@@ -55,9 +50,44 @@ public class BrainCamera : MonoBehaviour
         transform.position = m_Target - (transform.forward * distance);
     }
 
-    private void Update()
+    private void OnShortcutMessage(ShortcutMessage message)
     {
-        KeyboardAction();
+        if (GetType() == message.RecipientType)
+        {
+            switch (message.Action)
+            {
+                case ShortcutActions.Move:
+                    {
+                        if (IsMouseOver)
+                        {
+                            switch (message.Parameter)
+                            {
+                                case ShortcutActionsParameters.Left:
+                                    {
+                                        MoveLeft(speed);
+                                    }
+                                    break;
+                                case ShortcutActionsParameters.Right:
+                                    {
+                                        MoveRight(speed);
+                                    }
+                                    break;
+                                case ShortcutActionsParameters.Up:
+                                    {
+                                        MoveUp(speed);
+                                    }
+                                    break;
+                                case ShortcutActionsParameters.Down:
+                                    {
+                                        MoveDown(speed);
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
     }
 
     /// <summary>
@@ -136,22 +166,6 @@ public class BrainCamera : MonoBehaviour
                 MoveUp((ny) * speed);
             else
                 MoveDown((-ny) * speed);
-    }
-
-    protected void KeyboardAction()
-    {
-        if (!IsControlPressed && IsShiftPressed && Input.GetKey(KeyCode.LeftArrow))
-            MoveLeft(speed);
-        if (!IsControlPressed && IsShiftPressed && Input.GetKey(KeyCode.RightArrow))
-            MoveRight(speed);
-        if (!IsControlPressed && IsShiftPressed && Input.GetKey(KeyCode.UpArrow))
-            MoveUp(speed);
-        if (!IsControlPressed && IsShiftPressed && Input.GetKey(KeyCode.DownArrow))
-            MoveDown(speed);
-        if (!IsControlPressed && IsShiftPressed && Input.GetKey(KeyCode.Less))
-            MoveForward(zoomSpeed);
-        if (!IsControlPressed && !IsShiftPressed && Input.GetKey(KeyCode.Less))
-            MoveBackward(zoomSpeed);
     }
 
     protected void MoveRight(float amount)
