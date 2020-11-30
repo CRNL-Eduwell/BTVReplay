@@ -58,31 +58,28 @@ public class BrainCamera : MonoBehaviour
             {
                 case ShortcutActions.Move:
                     {
-                        if (IsMouseOver)
+                        switch (message.Parameter)
                         {
-                            switch (message.Parameter)
-                            {
-                                case ShortcutActionsParameters.Left:
-                                    {
-                                        MoveLeft(speed);
-                                    }
-                                    break;
-                                case ShortcutActionsParameters.Right:
-                                    {
-                                        MoveRight(speed);
-                                    }
-                                    break;
-                                case ShortcutActionsParameters.Up:
-                                    {
-                                        MoveUp(speed);
-                                    }
-                                    break;
-                                case ShortcutActionsParameters.Down:
-                                    {
-                                        MoveDown(speed);
-                                    }
-                                    break;
-                            }
+                            case ShortcutActionsParameters.Left:
+                                {
+                                    MoveLeft(speed);
+                                }
+                                break;
+                            case ShortcutActionsParameters.Right:
+                                {
+                                    MoveRight(speed);
+                                }
+                                break;
+                            case ShortcutActionsParameters.Up:
+                                {
+                                    MoveUp(speed);
+                                }
+                                break;
+                            case ShortcutActionsParameters.Down:
+                                {
+                                    MoveDown(speed);
+                                }
+                                break;
                         }
                     }
                     break;

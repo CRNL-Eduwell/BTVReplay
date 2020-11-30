@@ -143,12 +143,41 @@ public class WorkspaceManager : MonoBehaviour
                             if (message.Parameter == ShortcutActionsParameters.Up)
                             {
                                 index += 1;
+                                updateOption.UpdateElectrodeById(index);
                             }
                             else if (message.Parameter == ShortcutActionsParameters.Down)
                             {
                                 index -= 1;
+                                updateOption.UpdateElectrodeById(index);
                             }
-                            updateOption.UpdateElectrodeById(index);
+                            else if (message.Parameter == ShortcutActionsParameters.Left)
+                            {
+                                ForceUpdateTraceMessage forceUpdateMessage = new ForceUpdateTraceMessage
+                                {
+                                    TraceID = updateOption.TraceId,
+                                    Gain = updateOption.TraceEeg.Gain,
+                                    Offset = updateOption.TraceEeg.Offset,
+                                    ShowGrid = updateOption.GraphGrid.IsOn,
+                                    Period = updateOption.TraceEeg.PeriodInSeconds,
+                                    Color = updateOption.TraceEeg.Color,
+                                    FileNextID = -1
+                                };
+                                Messenger.Default.Send(forceUpdateMessage, MessageContext.ForceUpdateTraceMessage);
+                            }
+                            else if (message.Parameter == ShortcutActionsParameters.Right)
+                            {
+                                ForceUpdateTraceMessage forceUpdateMessage = new ForceUpdateTraceMessage
+                                {
+                                    TraceID = updateOption.TraceId,
+                                    Gain = updateOption.TraceEeg.Gain,
+                                    Offset = updateOption.TraceEeg.Offset,
+                                    ShowGrid = updateOption.GraphGrid.IsOn,
+                                    Period = updateOption.TraceEeg.PeriodInSeconds,
+                                    Color = updateOption.TraceEeg.Color,
+                                    FileNextID = 1
+                                };
+                                Messenger.Default.Send(forceUpdateMessage, MessageContext.ForceUpdateTraceMessage);
+                            }
                         }
                     }
                     break;

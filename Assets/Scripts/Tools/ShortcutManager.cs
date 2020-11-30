@@ -52,7 +52,7 @@ public class ShortcutManager : MonoBehaviour
     {
         get
         {
-            return !IsControlPressed && !IsShiftPressed && ((IsArrowKeyPressed && m_Timer >= Time.deltaTime) || IsArrowKeyDown);
+            return !IsControlPressed && IsAltPressed && !IsShiftPressed && ((IsArrowKeyPressed && m_Timer >= Time.deltaTime) || IsArrowKeyDown);
         }
     }
     //=== Traces
@@ -60,42 +60,35 @@ public class ShortcutManager : MonoBehaviour
     {
         get
         {
-            return IsControlPressed && !IsShiftPressed && ((IsArrowKeyPressed && m_Timer >= DELAY) || IsArrowKeyDown);
+            return IsControlPressed && !IsAltPressed && !IsShiftPressed && ((IsArrowKeyPressed && m_Timer >= DELAY) || IsArrowKeyDown);
         }
     }
     private bool MoveWindow2ActionPerformed
     {
         get
         {
-            return IsControlPressed && IsShiftPressed && ((IsArrowKeyPressed && m_Timer >= DELAY) || IsArrowKeyDown);
+            return IsControlPressed && !IsAltPressed && IsShiftPressed && ((IsArrowKeyPressed && m_Timer >= DELAY) || IsArrowKeyDown);
         }
     }
     private bool FocusWindow1ActionPerformed
     {
         get
         {
-            return IsControlPressed && !IsShiftPressed && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter));
+            return IsControlPressed && !IsAltPressed && !IsShiftPressed && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter));
         }
     }
     private bool FocusWindow2ActionPerformed
     {
         get
         {
-            return IsControlPressed && IsShiftPressed && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter));
+            return IsControlPressed && !IsAltPressed && IsShiftPressed && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter));
         }
     }
-    private bool ChangeOptionValueUp_WindowsActionPerformed
+    private bool ChangeOptionValueActionPerformed
     {
         get
         {
-            return !IsControlPressed && !IsShiftPressed && ((Input.GetKey(KeyCode.UpArrow) && m_Timer >= DELAY) || Input.GetKeyDown(KeyCode.UpArrow));
-        }
-    }
-    private bool ChangeOptionValueDown_WindowsActionPerformed
-    {
-        get
-        {
-            return !IsControlPressed && !IsShiftPressed && ((Input.GetKey(KeyCode.DownArrow) && m_Timer >= DELAY) || Input.GetKeyDown(KeyCode.DownArrow));
+            return !IsControlPressed && !IsAltPressed && !IsShiftPressed && ((IsArrowKeyPressed && m_Timer >= DELAY) || IsArrowKeyDown);
         }
     }
     //=== Trace Displayer 
@@ -103,35 +96,35 @@ public class ShortcutManager : MonoBehaviour
     {
         get
         {
-            return !IsControlPressed && IsShiftPressed && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter));
+            return !IsControlPressed && !IsAltPressed && IsShiftPressed && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter));
         }
     }
     private bool ChangeSelectedOptionLeft_TracesDisplayerActionperformed
     {
         get
         {
-            return !IsControlPressed && IsShiftPressed && Input.GetKeyDown(KeyCode.LeftArrow);
+            return !IsControlPressed && !IsAltPressed && IsShiftPressed && Input.GetKeyDown(KeyCode.LeftArrow);
         }
     }
     private bool ChangeSelectedOptionRight_TracesDisplayerActionperformed
     {
         get
         {
-            return !IsControlPressed && IsShiftPressed && Input.GetKeyDown(KeyCode.RightArrow);
+            return !IsControlPressed && !IsAltPressed && IsShiftPressed && Input.GetKeyDown(KeyCode.RightArrow);
         }
     }
     private bool ChangeOptionValueUp_TracesDisplayerActionperformed
     {
         get
         {
-            return !IsControlPressed && IsShiftPressed && ((Input.GetKey(KeyCode.UpArrow) && m_Timer >= DELAY) || Input.GetKeyDown(KeyCode.UpArrow));
+            return !IsControlPressed && !IsAltPressed && IsShiftPressed && ((Input.GetKey(KeyCode.UpArrow) && m_Timer >= DELAY) || Input.GetKeyDown(KeyCode.UpArrow));
         }
     }
     private bool ChangeOptionValueDown_TracesDisplayerActionperformed
     {
         get
         {
-            return !IsControlPressed && IsShiftPressed && ((Input.GetKey(KeyCode.DownArrow) && m_Timer >= DELAY) || Input.GetKeyDown(KeyCode.DownArrow));
+            return !IsControlPressed && !IsAltPressed && IsShiftPressed && ((Input.GetKey(KeyCode.DownArrow) && m_Timer >= DELAY) || Input.GetKeyDown(KeyCode.DownArrow));
         }
     }
 
@@ -214,27 +207,14 @@ public class ShortcutManager : MonoBehaviour
             };
             Messenger.Default.Send(m_Message, MessageContext.ShortcutMessage);
         }
-        else if (ChangeOptionValueUp_WindowsActionPerformed)
+        else if (ChangeOptionValueActionPerformed)
         {
             m_Timer = 0;
             UnityEngine.Debug.Log("Update Window Option Up Shortcut");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.UpdateOptionValue,
-                Parameter = ShortcutActionsParameters.Up,
-                RecipientType = typeof(Trace),
-                RecipientIndex = -1 //we want to send to all window, so no indication
-            };
-            Messenger.Default.Send(m_Message, MessageContext.ShortcutMessage);
-        }
-        else if (ChangeOptionValueDown_WindowsActionPerformed)
-        {
-            m_Timer = 0;
-            UnityEngine.Debug.Log("Update Window Option Down Shortcut");
-            m_Message = new ShortcutMessage
-            {
-                Action = ShortcutActions.UpdateOptionValue,
-                Parameter = ShortcutActionsParameters.Down,
+                Parameter = ListenForKeyDirection(),
                 RecipientType = typeof(Trace),
                 RecipientIndex = -1 //we want to send to all window, so no indication
             };

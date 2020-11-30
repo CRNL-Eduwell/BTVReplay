@@ -29,6 +29,16 @@ namespace BTV.UI.Module3D.Tools
             Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
         }
 
+        //= -1 previous +1 next 0 nothing
+        public void ChangeFile(int direction)
+        {
+            int currentValue = m_FileDropDown.value;
+            int nextValue = currentValue + direction;
+            if (EegFileService.IsFileIdValid(nextValue))
+            {
+                m_FileDropDown.value = nextValue;
+            }
+        }
         private void OnLoaderMessage(LoaderMessage message)
         {
             if (message.Task == LoaderMessage.LoaderTask.LoadBrain)
