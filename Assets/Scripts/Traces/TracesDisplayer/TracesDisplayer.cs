@@ -47,6 +47,9 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     private Color darkGrey = new Color(0.20784f, 0.20784f, 0.20784f, 0.20784f);
     private List<BtvEvent> m_events = new List<BtvEvent>();
 
+    private float m_NumberOfPixelsByPoint = 0.2f;
+    private int m_downsamplingFactor = 1;
+
     private void Awake()
     {
         m_rectTransform = gameObject.transform.GetComponent<RectTransform>();
@@ -218,8 +221,11 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         m_currentElectrodeID = 0;
         Channel = FileHandle.Channels[m_currentElectrodeID];
         //==
-        m_dataArray = new Vector3[Channel.NumberOfSample];
-        m_LineRenderer.positionCount = Channel.NumberOfSample;
+        m_downsamplingFactor = Mathf.Max(1, Mathf.CeilToInt(m_NumberOfPixelsByPoint * Channel.NumberOfSample / (m_rectTransform.rect.width)));
+        //m_downsamplingFactor = 1; => to force full resolution , warning it's very slow on midlong files
+        //==
+        m_dataArray = new Vector3[Channel.NumberOfSample / m_downsamplingFactor];
+        m_LineRenderer.positionCount = m_dataArray.Length;
         m_LineRenderer.startWidth = 1f;
         m_LineRenderer.endWidth = 1f;
         //==
@@ -270,7 +276,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
         for (int i = 0; i < m_dataArray.Length; i++)
         {
-            float value = m_Gain * (Channel.GetSample(i, true) / (MaxValue - MinValue)) * limitVal;
+            float value = m_Gain * (Channel.GetSample(m_downsamplingFactor * i, true) / (MaxValue - MinValue)) * limitVal;
             if (value >= -limitVal && value <= limitVal)
             {
                 m_dataArray[i].y = value;

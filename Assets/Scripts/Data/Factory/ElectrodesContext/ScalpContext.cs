@@ -52,9 +52,7 @@ namespace Assets.Scripts.Data.Factory
                 GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, CurrentPlot.Coordinates, Quaternion.identity);
                 NewPlot.name = CurrentPlot.Label;
                 NewPlot.transform.parent = Electrode.transform;
-
-                //ElecPlotSize sphereSizeScript = currentElecPlot.AddComponent<ElecPlotSize>();
-                //sphereSizeScript.init(currentElecPlot.name, electrodes[i]);
+                NewPlot.GetComponent<Site>().Init(CurrentPlot.Label);
             }
         }
 
