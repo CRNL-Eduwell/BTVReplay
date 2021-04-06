@@ -33,6 +33,7 @@ namespace BTV.Data
         }
         public string Description { get; private set; } = "";
         public List<BtvChannel> Channels { get; private set; } = new List<BtvChannel>();
+        public List<BtvEvent> Events { get; private set; } = new List<BtvEvent>();
         public Frequency Frequency { get; set; } = new Frequency();
         public string Directory
         {
@@ -51,6 +52,8 @@ namespace BTV.Data
                 Channels.Add(new BtvChannel(pair.Key, count, container.Frequency.RawValue, pair.Value));
                 count++;
             }
+            Events = new List<BtvEvent>(container.Events);
+
             Frequency = container.Frequency;
             m_FilePath = container.FilePath;
             Description = description;

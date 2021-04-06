@@ -64,6 +64,23 @@ public class SubjectLoaderService : MonoBehaviour
         };
         Messenger.Default.Send(message, MessageContext.LoaderMessage);
 
+        //===============
+        yield return new WaitForSeconds(0.1f);
+
+        BtvProgram btvProgram = EegFileService.ReturnFirstValidContainer();
+        if (btvProgram != null)
+        {
+            foreach (BtvEvent _event in btvProgram.Events)
+            {
+                EventsModificationMessage hackMessage = new EventsModificationMessage
+                {
+                    TaskToExecute = 0,
+                    Event = _event
+                };
+                Messenger.Default.Send(hackMessage, MessageContext.EventsModificationMessage);
+            }
+        }
+
         //kind of an ugly way to deactivate perf at launch time, see to do that by instantiating
         //the window only when needed 
         GameObject.Find("ButtonPerf").GetComponent<ExtendedToggle>().ForceStartValue(0);

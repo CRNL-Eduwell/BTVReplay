@@ -9,6 +9,7 @@ namespace BTV.Data
     {
         public Dictionary<string, float[]> ValuesByChannel { get; set; } = new Dictionary<string, float[]>();
         public Dictionary<string, string> UnitByChannel { get; set; } = new Dictionary<string, string>();
+        public List<BtvEvent> Events { get; set; } = new List<BtvEvent>();
         public Frequency Frequency { get; set; } = new Frequency();
         public string FilePath
         {
