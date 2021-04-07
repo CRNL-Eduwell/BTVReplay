@@ -26,7 +26,8 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     [SerializeField] Camera brainCam = null;
     private bool m_IsMaxed = false;
-    RectTransform m_rectTransform = null;
+    RectTransform m_parentRectTransform = null;
+    RectTransform m_textureRectTransform = null;
     Vector2 m_startSize, m_BigSize;
     Vector3[] worldCornerOfBrainPanel = new Vector3[4];
     Window winTrace1 = null;
@@ -46,8 +47,10 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     {
         elecOptionPanel = Resources.Load("Prefabs/Brain-ElecOptions", typeof(GameObject)) as GameObject;
 
-        m_rectTransform = gameObject.GetComponent<RectTransform>();
-        m_startSize = m_rectTransform.sizeDelta;
+        m_textureRectTransform = gameObject.GetComponent<RectTransform>();
+        m_parentRectTransform = m_textureRectTransform.transform.parent.gameObject.GetComponent<RectTransform>();
+
+        m_startSize = m_textureRectTransform.sizeDelta;
         m_BigSize = m_startSize * 2;
 
         winTrace1 = GameObject.Find("Trace1Window").GetComponent<Window>();
@@ -59,6 +62,12 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     private void OnDestroy()
     {
         Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
+    }
+
+    private void OnRectTransformDimensionsChange()
+    {
+        if (m_textureRectTransform != null)
+            m_textureRectTransform.sizeDelta = new Vector2(m_parentRectTransform.rect.size.y, m_parentRectTransform.rect.size.y);
     }
 
     private void OnGUI()
@@ -85,19 +94,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
         if (eventData.button == PointerEventData.InputButton.Right)
         {
-            m_rectTransform.GetWorldCorners(worldCornerOfBrainPanel);
-
-            Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-            float perCentX = (worldClick.x - m_rectTransform.position.x) / (worldCornerOfBrainPanel[2].x - worldCornerOfBrainPanel[1].x);
-            float perCentY = (worldClick.y - m_rectTransform.position.y) / -(worldCornerOfBrainPanel[3].y - worldCornerOfBrainPanel[2].y);
-
-            float xCam2 = (brainCam.pixelRect.center.x + (perCentX * brainCam.pixelRect.width));
-            float yCam2 = (brainCam.pixelRect.center.y + (perCentY * brainCam.pixelRect.height));
-
-            Ray ray2 = brainCam.ScreenPointToRay(new Vector3(xCam2, yCam2, 0));
-            //Debug.DrawRay(ray2.origin, ray2.direction * 1000, Color.red, 5);
-
+            Ray ray2 = RaycastOnBrainPannel();
             RaycastHit[] hits = Physics.RaycastAll(ray2);
             if (hits.Length > 0 && ElecOption == null)
             {
@@ -120,72 +117,69 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     private void BigBrain()
     {
-        m_rectTransform.anchorMin = new Vector2(0, 0);
-        m_rectTransform.anchorMax = new Vector2(1, 1);
-        m_rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        m_textureRectTransform.anchorMin = new Vector2(0, 0);
+        m_textureRectTransform.anchorMax = new Vector2(1, 1);
+        m_textureRectTransform.pivot = new Vector2(0.5f, 0.5f);
 
         // [ left - bottom ]
-        m_rectTransform.offsetMin = new Vector2(0f, 0f);
+        m_textureRectTransform.offsetMin = new Vector2(0f, 0f);
         // [ right - top ]
-        m_rectTransform.offsetMax = new Vector2(0f, 0f);
+        m_textureRectTransform.offsetMax = new Vector2(0f, 0f);
 
-        m_rectTransform.sizeDelta = m_BigSize;
+        m_textureRectTransform.sizeDelta = m_BigSize;
     }
 
     private void SmallBrain()
     {
-        m_rectTransform.anchorMin = new Vector2(0f, 0.5f);
-        m_rectTransform.anchorMax = new Vector2(0.5f, 1.0f);
-        m_rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        m_textureRectTransform.anchorMin = new Vector2(0f, 0.5f);
+        m_textureRectTransform.anchorMax = new Vector2(0.5f, 1.0f);
+        m_textureRectTransform.pivot = new Vector2(0.5f, 0.5f);
 
         // [ left - bottom ]
-        m_rectTransform.offsetMin = new Vector2(0f, 0f);
+        m_textureRectTransform.offsetMin = new Vector2(0f, 0f);
         // [ right - top ]
-        m_rectTransform.offsetMax = new Vector2(0f, 0f);
+        m_textureRectTransform.offsetMax = new Vector2(0f, 0f);
 
-        m_rectTransform.sizeDelta = m_startSize;
+        m_textureRectTransform.sizeDelta = m_startSize;
     }
 
     private void CheckIfhitElectrode()
     {
-        m_rectTransform.GetWorldCorners(worldCornerOfBrainPanel);
+        Ray ray2 = RaycastOnBrainPannel();
+        RaycastHit[] hits = Physics.RaycastAll(ray2);
+        GameObject hitObject = hits.Length > 0 ? GameObject.Find(hits[0].collider.name) : null;
+        BrainWardenToTraceMessage message = new BrainWardenToTraceMessage
+        {
+            TaskToExecute = 0,
+            ClickedElectrode = hitObject
+        };
+        Messenger.Default.Send(message, MessageContext.BrainWardenToTraceMessage);
+    }
 
+    /// <summary>
+    /// Send a ray from the camera to the clicked Point on the pannel displaying the brain view to the 3D objet
+    /// </summary>
+    /// <returns>The created Ray</returns>
+    private Ray RaycastOnBrainPannel()
+    {
+        m_textureRectTransform.GetWorldCorners(worldCornerOfBrainPanel);
+
+        //Debug.DrawRay(ray2.origin, ray2.direction * 1000, Color.red, 5);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-        float perCentX = (worldClick.x - m_rectTransform.position.x) / (worldCornerOfBrainPanel[2].x - worldCornerOfBrainPanel[1].x);
-        float perCentY = (worldClick.y - m_rectTransform.position.y) / -(worldCornerOfBrainPanel[3].y - worldCornerOfBrainPanel[2].y);
+        float perCentX = (worldClick.x - m_textureRectTransform.position.x) / (worldCornerOfBrainPanel[2].x - worldCornerOfBrainPanel[1].x);
+        float perCentY = (worldClick.y - m_textureRectTransform.position.y) / -(worldCornerOfBrainPanel[3].y - worldCornerOfBrainPanel[2].y);
 
         float xCam2 = (brainCam.pixelRect.center.x + (perCentX * brainCam.pixelRect.width));
         float yCam2 = (brainCam.pixelRect.center.y + (perCentY * brainCam.pixelRect.height));
 
-        Ray ray2 = brainCam.ScreenPointToRay(new Vector3(xCam2, yCam2, 0));
-        //Debug.DrawRay(ray2.origin, ray2.direction * 1000, Color.red, 5);
-
-        RaycastHit[] hits = Physics.RaycastAll(ray2);
-        if (hits.Length > 0)
-        {
-            BrainWardenToTraceMessage message = new BrainWardenToTraceMessage
-            {
-                TaskToExecute = 0,
-                ClickedElectrode = GameObject.Find(hits[0].collider.name)
-            };
-            Messenger.Default.Send(message, MessageContext.BrainWardenToTraceMessage);
-        }
-        else
-        {
-            BrainWardenToTraceMessage message = new BrainWardenToTraceMessage
-            {
-                TaskToExecute = 0,
-                ClickedElectrode = null
-            };
-            Messenger.Default.Send(message, MessageContext.BrainWardenToTraceMessage);
-        }
+        return brainCam.ScreenPointToRay(new Vector3(xCam2, yCam2, 0));
     }
 
     private bool IsOver(Vector3 mousePos)
     {
-        m_rectTransform.GetWorldCorners(worldCornerOfBrainPanel);
-        Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        m_textureRectTransform.GetWorldCorners(worldCornerOfBrainPanel);
+        Vector3 worldClick = Camera.main.ScreenToWorldPoint(mousePos);
 
         if (worldClick.x > worldCornerOfBrainPanel[1].x && worldClick.x < worldCornerOfBrainPanel[2].x
             && worldClick.y > worldCornerOfBrainPanel[3].y && worldClick.y < worldCornerOfBrainPanel[2].y)
@@ -197,8 +191,8 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     private void CheckIfPointElectrode()
     {
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        float perCentX = (worldClick.x - m_rectTransform.position.x) / (worldCornerOfBrainPanel[2].x - worldCornerOfBrainPanel[1].x);
-        float perCentY = (worldClick.y - m_rectTransform.position.y) / -(worldCornerOfBrainPanel[3].y - worldCornerOfBrainPanel[2].y);
+        float perCentX = (worldClick.x - m_textureRectTransform.position.x) / (worldCornerOfBrainPanel[2].x - worldCornerOfBrainPanel[1].x);
+        float perCentY = (worldClick.y - m_textureRectTransform.position.y) / -(worldCornerOfBrainPanel[3].y - worldCornerOfBrainPanel[2].y);
 
         float xCam2 = (brainCam.pixelRect.center.x + (perCentX * brainCam.pixelRect.width));
         float yCam2 = (brainCam.pixelRect.center.y + (perCentY * brainCam.pixelRect.height));
