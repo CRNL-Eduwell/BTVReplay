@@ -30,6 +30,16 @@ namespace BTV.Services.EventsService
             }
         }
 
+        public static List<BtvEvent> LoadEventsFromFile(string filePath, int samplingFrequency = 0)
+        {
+            if (File.Exists(filePath))
+            {
+                IEventsContext file = EventsFactory.GetEventsContext(filePath, samplingFrequency);
+                return new List<BtvEvent>(file.Events);
+            }
+            return new List<BtvEvent>();
+        }
+
         public static void SaveEvents(string filePath, int samplingFrequency = 0)
         {
             try

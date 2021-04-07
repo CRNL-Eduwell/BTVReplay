@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BTV.Data;
@@ -66,16 +67,15 @@ public class EventsManager : MonoBehaviour
             case 0:
                 {
                     Debug.Log("Load File");
-                    FileInfo file = new FileInfo(message.FilePathToLoad);
-                    if (file.Extension.Equals(".pos"))
-                    {
-                        InputFieldWindow window = SpawFrequencyChoiceWindow();
-                        window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { LoadEvents(file.FullName, window.IntValue); window.Close(); }, () => { window.Close(); });
-                    }
-                    else
-                    {
-                        LoadEvents(message.FilePathToLoad);
-                    }
+                    ApplicationState.displayConfirmation("Loading Events", "Do you want to delete all previous events or add to them ?",
+                        () =>
+                        {
+                            LoadEventsFile(message.FilePathToLoad, true);
+                        },
+                        () =>
+                        {
+                            LoadEventsFile(message.FilePathToLoad, false);
+                        });
                     break;
                 }
             case 1:
@@ -225,10 +225,24 @@ public class EventsManager : MonoBehaviour
         return window;
     }
 
-    //TODO : Reset Everything or allow to load data over already existing events ? 
-    private void LoadEvents(string filePath, int SamplingFrequency = 0)
+    private void LoadEventsFile(string filePath, bool clearPreviousEvents)
     {
-        if (!m_videoPlayer.VideoInterface.IsPrepared)
+        FileInfo file = new FileInfo(filePath);
+        if (file.Extension.Equals(".pos"))
+        {
+            InputFieldWindow window = SpawFrequencyChoiceWindow();
+            window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { LoadEvents(file.FullName, window.IntValue, clearPreviousEvents); window.Close(); }, () => { window.Close(); });
+        }
+        else
+        {
+            LoadEvents(filePath, 0, clearPreviousEvents);
+        }
+    }
+
+    //TODO : Reset Everything or allow to load data over already existing events ? 
+    private void LoadEvents(string filePath, int SamplingFrequency = 0, bool ClearPreviousEvents = false)
+    {
+        if (!m_videoPlayer.VideoInterface.IsPrepared && SamplingFrequency != 0)
         {
             ApplicationState.displayMessage("Video not started yet", "NOK", "You need to start the video in order for the total length of the file/video to be known");
             return;
@@ -236,33 +250,44 @@ public class EventsManager : MonoBehaviour
 
         if (File.Exists(filePath))
         {
-            EventsService.Load(filePath, SamplingFrequency);
-            //load in UI List
-            m_EventsList.DeleteAllEvents();
-            m_EventsList.LoadEvents(EventsService.Events);
-            //load in Scrollbar Texture
-            m_EventsTexture.RemoveAllEvents();
-            m_EventsTexture.AddEvents(EventsService.Events);
-            //load in TraceDisplayer Texture [TODO : might need to put some other messages or refactor existing one]
-            m_TracesDisplayer.RemoveAllEvents();
-            m_TracesDisplayer.AddEvents(EventsService.Events);
-            //send events to traces
-            for (int i = 0; i < EventsService.Events.Count; i++)
+            if (ClearPreviousEvents)
             {
-                EventsToTraceMessage message = new EventsToTraceMessage
+                EventsService.Load(filePath, SamplingFrequency);
+                //load in UI List
+                m_EventsList.DeleteAllEvents();
+                m_EventsList.LoadEvents(EventsService.Events);
+                //load in Scrollbar Texture
+                m_EventsTexture.RemoveAllEvents();
+                m_EventsTexture.AddEvents(EventsService.Events);
+                //load in TraceDisplayer Texture [TODO : might need to put some other messages or refactor existing one]
+                m_TracesDisplayer.RemoveAllEvents();
+                m_TracesDisplayer.AddEvents(EventsService.Events);
+                //send events to traces
+                for (int i = 0; i < EventsService.Events.Count; i++)
                 {
-                    TaskToExecute = 3,
-                    Event = EventsService.Events[i],
-                    EventIndex = i
-                };
-                Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
-            }
+                    EventsToTraceMessage message = new EventsToTraceMessage
+                    {
+                        TaskToExecute = 3,
+                        Event = EventsService.Events[i],
+                        EventIndex = i
+                    };
+                    Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
+                }
 
-            EventsToTaskPerformanceMessage resetMessage = new EventsToTaskPerformanceMessage
+                EventsToTaskPerformanceMessage resetMessage = new EventsToTaskPerformanceMessage
+                {
+                    TaskToExecute = 0
+                };
+                Messenger.Default.Send(resetMessage, MessageContext.EventsToTaskPerformanceMessage);
+            }
+            else
             {
-                TaskToExecute = 0
-            };
-            Messenger.Default.Send(resetMessage, MessageContext.EventsToTaskPerformanceMessage);
+                List<BtvEvent> list = EventsService.LoadEventsFromFile(filePath, SamplingFrequency);
+                foreach (BtvEvent btvEvent in list)
+                {
+                    AddEvent(btvEvent);
+                }
+            }
         }
     }
 
