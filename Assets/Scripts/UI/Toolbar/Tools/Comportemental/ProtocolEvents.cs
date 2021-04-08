@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BTV.Services.ProtocolService;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,11 +8,11 @@ using UnityEngine.UI;
 
 namespace BTV.UI.Module3D.Tools
 {
-    public delegate void UpdateProtocol(ProvFile protocol);
+    //public delegate void UpdateProtocol(ProvFile protocol);
 
     public class ProtocolEvents : Tool
     {
-        public event UpdateProtocol UpdateProtocol;
+        //public event UpdateProtocol UpdateProtocol;
 
         /// <summary>
         /// </summary>
@@ -23,30 +24,28 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField]
         private Button m_ProcessEvents = null;
 
-        private List<ProvFile> m_ProtocolList = new List<ProvFile>();
+       //private List<ProvFile> m_ProtocolList = new List<ProvFile>();
 
         public override void Initialize()
         {
-            LoadProtocols();
-            m_ProcessEvents.onClick.AddListener(()=> { UpdateProtocol(m_ProtocolList[m_Protocols.value]); });
+            m_Protocols.options.Clear();
+            int protocolCount = ProtocolService.ProtocolFiles.Count;
+            for (int i = 0; i < protocolCount; i++)
+            {
+                m_Protocols.options.Add(new Dropdown.OptionData(ProtocolService.ProtocolFiles[i].ShortName));
+            }
+
+            m_ProcessEvents.onClick.AddListener(ProcessSelectedProtocol);
         }
 
-        private void LoadProtocols()
+        private void ProcessSelectedProtocol()
         {
-            //get file list from folder
-            string[] protocolPaths = Directory.GetFiles(Application.dataPath + @"/Config/Prov/", "*.prov");
-
-            m_Protocols.options.Clear();
-            for (int i = 0; i < protocolPaths.Count(); i++)
+            UiToTaskPerformanceMessage message = new UiToTaskPerformanceMessage
             {
-                //Fill Dropdown
-                string[] splitPath = protocolPaths[i].Split(new char[] { '/', '.' });
-                string shortName = splitPath[splitPath.Count() - 2];
-                m_Protocols.options.Add(new Dropdown.OptionData(shortName));
-
-                //Add to protocol list
-                m_ProtocolList.Add(new ProvFile(protocolPaths[i]));  
-            }
+                TaskToExecute = 0,
+                NewProtocol = ProtocolService.ProtocolFiles[m_Protocols.value]
+            };
+            Messenger.Default.Send(message, MessageContext.UiToTaskPerformanceMessage);
         }
     }
 }

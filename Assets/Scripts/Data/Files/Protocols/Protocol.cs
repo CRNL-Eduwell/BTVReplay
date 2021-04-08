@@ -1,76 +1,41 @@
-﻿using System;
-using System.IO;
+﻿
+using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
-public struct displayBloc
+public class Protocol
 {
-    public int row;
-    public int col;
-    public string name;
-    public string path;
-    public string sort;
-    public int[] epochWindow;
-    public int[] baselineWindow;
-}
+    public string FilePath { get; private set; } = "";
+    public string ShortName { get; private set; } = "";
+    public string ChangeCodeFilePath { get; private set; } = "";
+    public List<Bloc> Blocs { get; private set; } = new List<Bloc>();
 
-public struct secondaryEventsBloc
-{
-    public int[][] code;
-    public string[] label;
-}
-
-public struct mainEventBloc
-{
-    public int code;
-    public string label;
-}
-
-public class BLOC
-{
-    public BLOC()
+    public Protocol(string file)
     {
-        mainEvent = new mainEventBloc();
-        secondaryEvents = new secondaryEventsBloc();
-        dispBloc = new displayBloc();
+        FilePath = file;
+        string[] splitPath = FilePath.Split(new char[] { '/', '.' });
+        ShortName = splitPath[splitPath.Length - 2];
+
+        if (File.Exists(FilePath))
+            Load(FilePath);
+        else
+            UnityEngine.Debug.LogError("Protocol => Filepath : " + FilePath + " does not exist ");
     }
 
-    ~BLOC()
-    {
-
-    }
-
-    public mainEventBloc mainEvent;
-    public secondaryEventsBloc secondaryEvents;
-    public displayBloc dispBloc;
-}
-
-public class ProvFile
-{
-    public ProvFile(string p_provFilePath)
-    {
-        provFilePath = p_provFilePath;
-        extractProvData();
-    }
-
-    ~ProvFile()
-    {
-
-    }
-
-    void extractProvData()
+    private void Load(string FilePath)
     {
         try
         {
-            using (StreamReader sr = new StreamReader(provFilePath))
+            using (StreamReader sr = new StreamReader(FilePath))
             {
                 string[] provFileSplit = sr.ReadToEnd().Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
-                blocs = new List<BLOC>();
+                Blocs = new List<Bloc>();
                 for (int h = 1; h < provFileSplit.Length - 1; h++)
                 {
                     string[] resSplit = provFileSplit[h].Split(new char[] { ';' });
-                    BLOC tempBloc = new BLOC();
+                    Bloc tempBloc = new Bloc();
                     int[] window = new int[2];
                     int[] baseLineWindow = new int[2];
                     int[][] secondaryEvents;
@@ -162,17 +127,17 @@ public class ProvFile
                         }
                     }
                     //CREATE BLOCK OBJECTS
-                    blocs.Add(tempBloc);
+                    Blocs.Add(tempBloc);
                 }
                 sr.Close();
 
                 if (provFileSplit[provFileSplit.Length - 1] == "NO_CHANGE_CODE" || provFileSplit[provFileSplit.Length - 1].Split(new char[] { ';' }).Length > 1)
                 {
-                    changeCodeFilePath = "";
+                    ChangeCodeFilePath = "";
                 }
                 else
                 {
-                    changeCodeFilePath = Application.dataPath + provFileSplit[provFileSplit.Length - 1];
+                    ChangeCodeFilePath = Application.dataPath + provFileSplit[provFileSplit.Length - 1];
                 }
             }
         }
@@ -182,8 +147,5 @@ public class ProvFile
             Console.WriteLine(e.Message);
         }
     }
-
-    public string provFilePath;
-    public string changeCodeFilePath;
-    public List<BLOC> blocs;
 }
+

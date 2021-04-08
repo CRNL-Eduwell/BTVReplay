@@ -156,20 +156,18 @@ public class TaskPerformanceTrace : MonoBehaviour
         m_InfoDisplay.SetActive(false);
     }
 
-    private void UpdateEventsForProtocol(ProvFile protocol)
+    private void UpdateEventsForProtocol(Protocol protocol)
     {
         UnityEngine.Debug.Log("Update Protocol Events");
         m_HasDataToDisplay = false;
         TaskPerformanceService.ProcessEventsForExperiment(protocol);
-        UpdateEvents(protocol);
+        UpdateEvents();
         UpdateProtocolPicturesAndCodes(protocol);
         m_HasDataToDisplay = (TaskPerformanceService.ProcessedTriggers.Count == 0) ? false : true;
     }
 
-    private void UpdateEvents(ProvFile protocol)
+    private void UpdateEvents()
     {
-        UnityEngine.Debug.Log("Update Events");
-
         int TriggerCount = TaskPerformanceService.ProcessedTriggers.Count;
         UnityEngine.Debug.Log("Update Events " + TriggerCount);
 
@@ -185,16 +183,16 @@ public class TaskPerformanceTrace : MonoBehaviour
         }
     }
 
-    private void UpdateProtocolPicturesAndCodes(ProvFile protocol)
+    private void UpdateProtocolPicturesAndCodes(Protocol protocol)
     {
         UnityEngine.Debug.Log("Update Protocol Pics and code");
 
-        for (int i = 0; i < protocol.blocs.Count; i++)
+        for (int i = 0; i < protocol.Blocs.Count; i++)
         {
-            if (File.Exists(protocol.blocs[i].dispBloc.path))
+            if (File.Exists(protocol.Blocs[i].dispBloc.path))
             {
                 Texture2D current = new Texture2D(256, 256);
-                current.LoadImage(File.ReadAllBytes(protocol.blocs[i].dispBloc.path));
+                current.LoadImage(File.ReadAllBytes(protocol.Blocs[i].dispBloc.path));
 
                 m_EventPictures.Add(current);
             }
@@ -202,7 +200,7 @@ public class TaskPerformanceTrace : MonoBehaviour
             {
                 m_EventPictures.Add(m_DefaultEventPicturePrefabs);
             }
-            m_EventMainCodes.Add(protocol.blocs[i].mainEvent.code);
+            m_EventMainCodes.Add(protocol.Blocs[i].mainEvent.code);
         }
     }
 

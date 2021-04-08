@@ -2,6 +2,7 @@
 using System.Collections;
 using BTV.Services.UserPreferencesService;
 using Tools.Unity;
+using BTV.Services.ProtocolService;
 
 public class ApplicationManager : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class ApplicationManager : MonoBehaviour
         ApplicationState.TooltipManager = m_TooltipManager;
         //===
         UserPreferencesService.LoadPreferences();
+        ProtocolService.LoadAllProtocols();
     }
     private void OnDestroy()
     {

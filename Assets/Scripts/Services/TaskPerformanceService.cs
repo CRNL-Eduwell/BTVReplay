@@ -19,10 +19,10 @@ namespace BTV.Services.TaskPerformanceService
         }
 
         //calculateReactionTime in old pos.cs
-        public static void ProcessEventsForExperiment(ProvFile protocol, int flagCode = 99, int DownsamplingFactor = 1)
+        public static void ProcessEventsForExperiment(Protocol protocol, int flagCode = 99, int DownsamplingFactor = 1)
         {
             List<EegTrigger> Triggers = GetTriggerList(flagCode, DownsamplingFactor);
-            if (protocol.changeCodeFilePath != "")
+            if (protocol.ChangeCodeFilePath != "")
             {
                 RenameTriggersForExperiment(protocol, ref Triggers);
             }
@@ -74,9 +74,9 @@ namespace BTV.Services.TaskPerformanceService
             return beginValue;
         }
 
-        private static void RenameTriggersForExperiment(ProvFile protocol, ref List<EegTrigger> processedTriggers)
+        private static void RenameTriggersForExperiment(Protocol protocol, ref List<EegTrigger> processedTriggers)
         {
-            ChangeCodeFile chgCode = new ChangeCodeFile(protocol.changeCodeFilePath);
+            ChangeCodeFile chgCode = new ChangeCodeFile(protocol.ChangeCodeFilePath);
 
             int TriggerCount = processedTriggers.Count;
             for (int k = 0; k < TriggerCount; k++)
@@ -92,10 +92,10 @@ namespace BTV.Services.TaskPerformanceService
                         if (processedTriggers[k].MainEnventCode == chgCode.OldCodes[l][m].Key)
                         {
                             idMain = k;
-                            int BlocCount = protocol.blocs.Count;
+                            int BlocCount = protocol.Blocs.Count;
                             for (int n = 0; n < BlocCount; n++)
                             {
-                                if (chgCode.NewCodes[l].Key == protocol.blocs[n].mainEvent.code)
+                                if (chgCode.NewCodes[l].Key == protocol.Blocs[n].mainEvent.code)
                                     idVisuBloc = n;
                             }
                         }
@@ -105,7 +105,7 @@ namespace BTV.Services.TaskPerformanceService
                 int memId = 0;
                 if (idMain != -1)
                 {
-                    int[] blocEpochWindow = protocol.blocs[idVisuBloc].dispBloc.epochWindow;
+                    int[] blocEpochWindow = protocol.Blocs[idVisuBloc].dispBloc.epochWindow;
                     int winMsMin = blocEpochWindow[0];
                     int winMsMax = blocEpochWindow[1];
 
@@ -149,13 +149,13 @@ namespace BTV.Services.TaskPerformanceService
             //removeDuplicateEventCode();
         }
 
-        private static void PairStimulationWithResponses(ProvFile protocol, ref List<EegTrigger> processedTriggers)
+        private static void PairStimulationWithResponses(Protocol protocol, ref List<EegTrigger> processedTriggers)
         {
             List<KeyValuePair<int, int>> NewCodes = new List<KeyValuePair<int, int>>();
 
-            if (System.IO.File.Exists(protocol.changeCodeFilePath))
+            if (System.IO.File.Exists(protocol.ChangeCodeFilePath))
             {
-                ChangeCodeFile chgCode = new ChangeCodeFile(protocol.changeCodeFilePath);
+                ChangeCodeFile chgCode = new ChangeCodeFile(protocol.ChangeCodeFilePath);
                 for (int i = 0; i < chgCode.NewCodes.Count; i++)
                 {
                     NewCodes.Add(chgCode.NewCodes[i]);
@@ -163,13 +163,13 @@ namespace BTV.Services.TaskPerformanceService
             }
             else // in that case, no change code, no new codes it's only the normal codes
             {
-                for (int i = 0; i < protocol.blocs.Count; i++)
+                for (int i = 0; i < protocol.Blocs.Count; i++)
                 {
-                    for (int j = 0; j < protocol.blocs[i].secondaryEvents.code.Count(); j++)
+                    for (int j = 0; j < protocol.Blocs[i].secondaryEvents.code.Count(); j++)
                     {
-                        for (int k = 0; k < protocol.blocs[i].secondaryEvents.code[j].Count(); k++)
+                        for (int k = 0; k < protocol.Blocs[i].secondaryEvents.code[j].Count(); k++)
                         {
-                            KeyValuePair<int, int> kvp = new KeyValuePair<int, int>(protocol.blocs[i].mainEvent.code, protocol.blocs[i].secondaryEvents.code[j][k]);
+                            KeyValuePair<int, int> kvp = new KeyValuePair<int, int>(protocol.Blocs[i].mainEvent.code, protocol.Blocs[i].secondaryEvents.code[j][k]);
                             NewCodes.Add(kvp);
                         }
                     }
@@ -190,9 +190,9 @@ namespace BTV.Services.TaskPerformanceService
                     if (processedTriggers[k].MainEnventCode == NewCodes[l].Key)
                     {
                         idMain = k;
-                        for (int m = 0; m < protocol.blocs.Count; m++)
+                        for (int m = 0; m < protocol.Blocs.Count; m++)
                         {
-                            if (NewCodes[l].Key == protocol.blocs[m].mainEvent.code)
+                            if (NewCodes[l].Key == protocol.Blocs[m].mainEvent.code)
                                 idVisuBloc = m;
                         }
                     }
@@ -200,7 +200,7 @@ namespace BTV.Services.TaskPerformanceService
 
                 if (idMain != -1)
                 {
-                    int[] blocEpochWindow = protocol.blocs[idVisuBloc].dispBloc.epochWindow;
+                    int[] blocEpochWindow = protocol.Blocs[idVisuBloc].dispBloc.epochWindow;
                     int winSamMin = blocEpochWindow[0];
                     int winSamMax = blocEpochWindow[1];
 
@@ -241,7 +241,7 @@ namespace BTV.Services.TaskPerformanceService
             }
         }
 
-        private static void DeleteTriggerNotInExperiment(ProvFile protocol, ref List<EegTrigger> processedTriggers)
+        private static void DeleteTriggerNotInExperiment(Protocol protocol, ref List<EegTrigger> processedTriggers)
         {
             List<int> IDsToDelete = new List<int>();
             for (int i = 0; i < processedTriggers.Count; i++)
@@ -255,14 +255,14 @@ namespace BTV.Services.TaskPerformanceService
                 processedTriggers.RemoveAt(IDsToDelete[i]);
         }
 
-        private static bool IsTriggerInExperiment(ProvFile protocol, EegTrigger trigger)
+        private static bool IsTriggerInExperiment(Protocol protocol, EegTrigger trigger)
         {
             if (trigger.ResponseCode == -666 && trigger.ResponsTimeInMilliSeconds == -666)
                 return false;
 
-            for (int i = 0; i < protocol.blocs.Count; i++)
+            for (int i = 0; i < protocol.Blocs.Count; i++)
             {
-                if (trigger.MainEnventCode == protocol.blocs[i].mainEvent.code)
+                if (trigger.MainEnventCode == protocol.Blocs[i].mainEvent.code)
                     return true;
             }
 
