@@ -8,55 +8,35 @@ using BTV.Services.EventsService;
 
 public class BrainWarden : MonoBehaviour, IPointerClickHandler
 {
-    public bool IsMaxed
-    {
-        get
-        {
-            return m_IsMaxed;
-        }
-        set
-        {
-            m_IsMaxed = value;
-            if (m_IsMaxed)
-                BigBrain();
-            else
-                SmallBrain();
-        }
-    }
+    public bool IsMaxed { get; set; } //Delete me later, not used anymore except in workspace manager for workspace file, need to clean that as well
 
     [SerializeField] Camera brainCam = null;
-    private bool m_IsMaxed = false;
-    RectTransform m_parentRectTransform = null;
-    RectTransform m_textureRectTransform = null;
-    Vector2 m_startSize, m_BigSize;
-    Vector3[] worldCornerOfBrainPanel = new Vector3[4];
-    Window winTrace1 = null;
-    Window winTrace2 = null;
-    Trace curveTrace1 = null;
-    Trace curveTrace2 = null;
+    private RectTransform m_parentRectTransform = null;
+    private RectTransform m_textureRectTransform = null;
+    private Vector3[] m_worldCornerOfBrainPanel = new Vector3[4];
+    private Window m_winTrace1 = null;
+    private Window m_winTrace2 = null;
+    private Trace m_curveTrace1 = null;
+    private Trace m_curveTrace2 = null;
 
-    GameObject elecOptionPanel = null;
-    GameObject ElecOption = null;
+    private GameObject m_elecOptionPrefab = null;
+    private GameObject m_elecOption = null;
 
     private void Awake()
     {
+        m_elecOptionPrefab = Resources.Load("Prefabs/Brain-ElecOptions", typeof(GameObject)) as GameObject;
+        m_textureRectTransform = gameObject.GetComponent<RectTransform>();
+        m_parentRectTransform = m_textureRectTransform.transform.parent.gameObject.GetComponent<RectTransform>();
+
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
     }
 
     private void Start()
     {
-        elecOptionPanel = Resources.Load("Prefabs/Brain-ElecOptions", typeof(GameObject)) as GameObject;
-
-        m_textureRectTransform = gameObject.GetComponent<RectTransform>();
-        m_parentRectTransform = m_textureRectTransform.transform.parent.gameObject.GetComponent<RectTransform>();
-
-        m_startSize = m_textureRectTransform.sizeDelta;
-        m_BigSize = m_startSize * 2;
-
-        winTrace1 = GameObject.Find("Trace1Window").GetComponent<Window>();
-        winTrace2 = GameObject.Find("Trace2Window").GetComponent<Window>();
-        curveTrace1 = winTrace1.gameObject.GetComponent<Trace>();
-        curveTrace2 = winTrace2.gameObject.GetComponent<Trace>();
+        m_winTrace1 = GameObject.Find("Trace1Window").GetComponent<Window>();
+        m_winTrace2 = GameObject.Find("Trace2Window").GetComponent<Window>();
+        m_curveTrace1 = m_winTrace1.gameObject.GetComponent<Trace>();
+        m_curveTrace2 = m_winTrace2.gameObject.GetComponent<Trace>();
     }
 
     private void OnDestroy()
@@ -72,7 +52,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     private void OnGUI()
     {
-        if (IsOver(Input.mousePosition) && !(curveTrace1.IsMouseOver || curveTrace2.IsMouseOver))
+        if (IsOver(Input.mousePosition) && !(m_curveTrace1.IsMouseOver || m_curveTrace2.IsMouseOver))
         {
             brainCam.GetComponent<BrainCamera>().IsMouseOver = true;
             CheckIfPointElectrode();
@@ -83,12 +63,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     {
         if (eventData.button == PointerEventData.InputButton.Left)
         {
-            if (eventData.clickCount == 2)
-            {
-                IsMaxed = !IsMaxed;
-            }
-
-            if (eventData.clickCount == 1 && (winTrace1.hasFocus || winTrace2.hasFocus))
+            if (eventData.clickCount == 1 && (m_winTrace1.hasFocus || m_winTrace2.hasFocus))
                 CheckIfhitElectrode();
         }
 
@@ -96,15 +71,17 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         {
             Ray ray2 = RaycastOnBrainPannel();
             RaycastHit[] hits = Physics.RaycastAll(ray2);
-            if (hits.Length > 0 && ElecOption == null)
+            if (hits.Length > 0 && m_elecOption == null)
             {
-                ElecOption = Instantiate(elecOptionPanel);
-                ElecOption.transform.SetParent(transform);
-                ElecOption.transform.localScale = new Vector3(1, 1, 1);
-                ElecOption.transform.localPosition = new Vector3(0, 0, 0);
+                m_elecOption = Instantiate(m_elecOptionPrefab);
+                m_elecOption.transform.SetParent(transform);
+                m_elecOption.transform.localScale = new Vector3(1, 1, 1);
+
+                Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                m_elecOption.transform.position = new Vector3(worldClick.x, worldClick.y, 0);
 
                 GameObject plotClick = GameObject.Find(hits[0].collider.name);
-                ElecOption.GetComponent<ElecOptions>().init(plotClick);
+                m_elecOption.GetComponent<ElecOptions>().init(plotClick);
             }
         }
     }
@@ -113,34 +90,6 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     {
         int timeInMilliseconds = (int)message.TimeMilliseconds;
         UpdateEventsOnBrain(timeInMilliseconds);
-    }
-
-    private void BigBrain()
-    {
-        m_textureRectTransform.anchorMin = new Vector2(0, 0);
-        m_textureRectTransform.anchorMax = new Vector2(1, 1);
-        m_textureRectTransform.pivot = new Vector2(0.5f, 0.5f);
-
-        // [ left - bottom ]
-        m_textureRectTransform.offsetMin = new Vector2(0f, 0f);
-        // [ right - top ]
-        m_textureRectTransform.offsetMax = new Vector2(0f, 0f);
-
-        m_textureRectTransform.sizeDelta = m_BigSize;
-    }
-
-    private void SmallBrain()
-    {
-        m_textureRectTransform.anchorMin = new Vector2(0f, 0.5f);
-        m_textureRectTransform.anchorMax = new Vector2(0.5f, 1.0f);
-        m_textureRectTransform.pivot = new Vector2(0.5f, 0.5f);
-
-        // [ left - bottom ]
-        m_textureRectTransform.offsetMin = new Vector2(0f, 0f);
-        // [ right - top ]
-        m_textureRectTransform.offsetMax = new Vector2(0f, 0f);
-
-        m_textureRectTransform.sizeDelta = m_startSize;
     }
 
     private void CheckIfhitElectrode()
@@ -162,13 +111,13 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     /// <returns>The created Ray</returns>
     private Ray RaycastOnBrainPannel()
     {
-        m_textureRectTransform.GetWorldCorners(worldCornerOfBrainPanel);
+        m_textureRectTransform.GetWorldCorners(m_worldCornerOfBrainPanel);
 
         //Debug.DrawRay(ray2.origin, ray2.direction * 1000, Color.red, 5);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-        float perCentX = (worldClick.x - m_textureRectTransform.position.x) / (worldCornerOfBrainPanel[2].x - worldCornerOfBrainPanel[1].x);
-        float perCentY = (worldClick.y - m_textureRectTransform.position.y) / -(worldCornerOfBrainPanel[3].y - worldCornerOfBrainPanel[2].y);
+        float perCentX = (worldClick.x - m_textureRectTransform.position.x) / (m_worldCornerOfBrainPanel[2].x - m_worldCornerOfBrainPanel[1].x);
+        float perCentY = (worldClick.y - m_textureRectTransform.position.y) / -(m_worldCornerOfBrainPanel[3].y - m_worldCornerOfBrainPanel[2].y);
 
         float xCam2 = (brainCam.pixelRect.center.x + (perCentX * brainCam.pixelRect.width));
         float yCam2 = (brainCam.pixelRect.center.y + (perCentY * brainCam.pixelRect.height));
@@ -178,11 +127,11 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     private bool IsOver(Vector3 mousePos)
     {
-        m_textureRectTransform.GetWorldCorners(worldCornerOfBrainPanel);
+        m_textureRectTransform.GetWorldCorners(m_worldCornerOfBrainPanel);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(mousePos);
 
-        if (worldClick.x > worldCornerOfBrainPanel[1].x && worldClick.x < worldCornerOfBrainPanel[2].x
-            && worldClick.y > worldCornerOfBrainPanel[3].y && worldClick.y < worldCornerOfBrainPanel[2].y)
+        if (worldClick.x > m_worldCornerOfBrainPanel[1].x && worldClick.x < m_worldCornerOfBrainPanel[2].x
+            && worldClick.y > m_worldCornerOfBrainPanel[3].y && worldClick.y < m_worldCornerOfBrainPanel[2].y)
             return true;
         else
             return false;
@@ -191,16 +140,8 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     private void CheckIfPointElectrode()
     {
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        float perCentX = (worldClick.x - m_textureRectTransform.position.x) / (worldCornerOfBrainPanel[2].x - worldCornerOfBrainPanel[1].x);
-        float perCentY = (worldClick.y - m_textureRectTransform.position.y) / -(worldCornerOfBrainPanel[3].y - worldCornerOfBrainPanel[2].y);
-
-        float xCam2 = (brainCam.pixelRect.center.x + (perCentX * brainCam.pixelRect.width));
-        float yCam2 = (brainCam.pixelRect.center.y + (perCentY * brainCam.pixelRect.height));
-
-        Ray ray2 = brainCam.ScreenPointToRay(new Vector3(xCam2, yCam2, 0));
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray2, out hit))
+        Ray ray2 = RaycastOnBrainPannel();
+        if (Physics.Raycast(ray2, out RaycastHit hit))
         {
             BrainWardenToElectrodePointerMessage message = new BrainWardenToElectrodePointerMessage
             {
@@ -227,7 +168,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         int EventCount = EventsService.Events.Count;
         if (EventCount > 0)
         {
-            int left = milliSecToLook  - (curveTrace1.TraceEeg.PeriodInSeconds * 1000);
+            int left = milliSecToLook  - (m_curveTrace1.TraceEeg.PeriodInSeconds * 1000);
             int right = milliSecToLook;
 
             List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right);
@@ -240,19 +181,19 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             {
                 if (EventsService.Events[indexes[i]].Correlation2D != null)
                 {
-                    int id = curveTrace1.TraceEeg.ElectrodeID;
-                    for (int j = 0; j < curveTrace1.TraceEeg.FileHandle.NumberOfElectrodes; j++)
+                    int id = m_curveTrace1.TraceEeg.ElectrodeID;
+                    for (int j = 0; j < m_curveTrace1.TraceEeg.FileHandle.NumberOfElectrodes; j++)
                     {
-                        string ElectrodeName = curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
+                        string ElectrodeName = m_curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
                         Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].Correlation2D[id][j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
                 else if (EventsService.Events[indexes[i]].Correlation != null)
                 {
-                    for (int j = 0; j < curveTrace1.TraceEeg.FileHandle.NumberOfElectrodes; j++)
+                    for (int j = 0; j < m_curveTrace1.TraceEeg.FileHandle.NumberOfElectrodes; j++)
                     {
-                        string ElectrodeName = curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
+                        string ElectrodeName = m_curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
                         Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].Correlation[j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
