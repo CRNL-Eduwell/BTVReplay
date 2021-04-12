@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using BTV.Services.TaskPerformanceService;
@@ -45,6 +46,9 @@ public class TaskPerformanceTrace : MonoBehaviour
     private float m_HorizontalScale = 0;
     private float m_VerticalScale = 0;
     private int m_State = 1;
+
+    private Stopwatch m_internalTimer = new Stopwatch();
+
 
     public void UpdateWindowState(int state)
     {
@@ -128,8 +132,8 @@ public class TaskPerformanceTrace : MonoBehaviour
     private void OnVideoToModulesMessage(VideoToModulesMessage message)
     {
         int timeInMilliseconds = (int)message.TimeMilliseconds;
-        UpdateSpawn(timeInMilliseconds);
         UpdatePicEvent(timeInMilliseconds);
+        UpdateSpawn(timeInMilliseconds);
     }
 
     private void ClearTrace()
@@ -154,6 +158,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         m_EventMainCodes.Clear();
 
         m_InfoDisplay.SetActive(false);
+        m_internalTimer.Stop();
     }
 
     private void UpdateEventsForProtocol(Protocol protocol)
@@ -164,6 +169,8 @@ public class TaskPerformanceTrace : MonoBehaviour
         UpdateEvents();
         UpdateProtocolPicturesAndCodes(protocol);
         m_HasDataToDisplay = (TaskPerformanceService.ProcessedTriggers.Count == 0) ? false : true;
+
+        m_internalTimer.Restart();
     }
 
     private void UpdateEvents()
@@ -223,7 +230,7 @@ public class TaskPerformanceTrace : MonoBehaviour
                 MaxReactionTime = currentRtMs;
         }
         m_HorizontalScale = m_TaskBarHolder.rect.width / (m_PeriopdInSec * 1000);
-        m_VerticalScale = m_TaskBarHolder.rect.height / MaxReactionTime;
+        m_VerticalScale = m_TaskBarHolder.rect.height / (MaxReactionTime == 0 ? 1 : MaxReactionTime + 1000);
     }
 
     private void UpdateSpawn(int milliSecToLook)
@@ -235,7 +242,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         int right = milliSecToLook;
 
         List<int> currentIndex = m_Triggers.Select((item, index) => new { Item = item, Index = index })
-                                            .Where(x => x.Item.Trigger.ResponsTimeInMilliSeconds > left && x.Item.Trigger.ResponsTimeInMilliSeconds < right)
+                                            .Where(x => x.Item.Trigger.MainEventTimeInMilliSeconds > left && x.Item.Trigger.MainEventTimeInMilliSeconds < right)
                                             .Select(x => x.Index)
                                             .ToList();
 
@@ -244,16 +251,20 @@ public class TaskPerformanceTrace : MonoBehaviour
         {
             for (int i = 0; i < currentIndex.Count; i++)
             {
-                float posiionSample = (left - m_Triggers[currentIndex[i]].Trigger.ResponsTimeInMilliSeconds);
+                TriggerBarplot barplot = m_Triggers[currentIndex[i]];
+                float posiionSample = (left - barplot.Trigger.MainEventTimeInMilliSeconds);
                 float positionInsideRect = posiionSample * -m_HorizontalScale;
 
-                if (m_Triggers[currentIndex[i]].Trigger.ResponsTimeInMilliSeconds <= right)
+                if (barplot.Trigger.MainEventTimeInMilliSeconds <= right)
                 {
-                    m_Triggers[currentIndex[i]].gameObject.SetActive(true);
-                    m_Triggers[currentIndex[i]].UpdatePosition(0, positionInsideRect, 5, -2);
+                    //UnityEngine.Debug.Log("Trigger code " + barplot.Trigger.MainEnventCode);
+                    barplot.gameObject.SetActive(true);
+                    barplot.UpdatePosition(0, positionInsideRect, 5, -2);
 
-                    float value = m_VerticalScale * (m_Triggers[currentIndex[i]].Trigger.ReactionTimeInMs - 750);
-                    m_Triggers[currentIndex[i]].UpdatePosition(1, positionInsideRect, Mathf.Abs(value), -2);
+                    //If reactionTimeInMs == 0 , it means that it's an event without answer, and for now we just
+                    //want to represent it as a bar in the graph, we'll see later for better displaying
+                    float value = barplot.Trigger.ReactionTimeInMs  == 0 ? m_TaskBarHolder.rect.height : m_VerticalScale * (barplot.Trigger.ReactionTimeInMs /*- 750*/);
+                    barplot.UpdatePosition(1, positionInsideRect, Mathf.Abs(value) - 5, -2);
                 }
             }
         }
@@ -274,19 +285,22 @@ public class TaskPerformanceTrace : MonoBehaviour
         if (!m_HasDataToDisplay)
             return;
 
-        int found = m_Triggers.FindIndex(x => x.Trigger.MainEventTimeInMilliSeconds >= milliSecToLook - 8 && x.Trigger.MainEventTimeInMilliSeconds < milliSecToLook + 8);
-        if (found == -1)
+        List<TriggerBarplot> barplots = m_Triggers.FindAll(x => x.Trigger.MainEventTimeInMilliSeconds >= milliSecToLook - 20 && x.Trigger.MainEventTimeInMilliSeconds <= milliSecToLook);
+        bool barplots2Show = barplots.Count > 0;
+        if (!barplots2Show)
         {
-            if (m_EventPicture.activeSelf == true)
+            if (m_internalTimer.ElapsedMilliseconds > 1000)
+            {
                 m_EventPicture.SetActive(false);
-
+                m_internalTimer.Restart();
+            }
             return;
         }
 
-        if (m_EventPicture.activeSelf == false)
-        {
-            m_EventPicture.SetActive(true);
-            m_EventRawImage.texture = m_EventPictures[m_EventMainCodes.IndexOf(m_Triggers[found].Trigger.MainEnventCode)];
-        }
+        m_EventPicture.SetActive(barplots2Show);
+        TriggerBarplot lastBarplot = barplots[barplots.Count - 1];
+        m_EventRawImage.texture = m_EventPictures[m_EventMainCodes.IndexOf(lastBarplot.Trigger.MainEnventCode)];
+        m_internalTimer.Restart();
+
     }
 }

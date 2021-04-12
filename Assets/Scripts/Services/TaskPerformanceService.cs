@@ -70,7 +70,15 @@ namespace BTV.Services.TaskPerformanceService
             int beginValue = 0;
             List<int> indexBegin = EventsService.EventsService.FindIndexes(flagCode);
             if (indexBegin.Count > 0)
-                beginValue = indexBegin[indexBegin.Count - 1] + 1;
+            { 
+                for (int i = 1; i < indexBegin.Count; i++)
+                {
+                    if (indexBegin[i - 1] + 1 != indexBegin[i])
+                    {
+                        return indexBegin[i - 1] + 1;
+                    }
+                }
+            }
             return beginValue;
         }
 
@@ -152,26 +160,14 @@ namespace BTV.Services.TaskPerformanceService
         private static void PairStimulationWithResponses(Protocol protocol, ref List<EegTrigger> processedTriggers)
         {
             List<KeyValuePair<int, int>> NewCodes = new List<KeyValuePair<int, int>>();
-
-            if (System.IO.File.Exists(protocol.ChangeCodeFilePath))
+            for (int i = 0; i < protocol.Blocs.Count; i++)
             {
-                ChangeCodeFile chgCode = new ChangeCodeFile(protocol.ChangeCodeFilePath);
-                for (int i = 0; i < chgCode.NewCodes.Count; i++)
+                for (int j = 0; j < protocol.Blocs[i].secondaryEvents.code.Count(); j++)
                 {
-                    NewCodes.Add(chgCode.NewCodes[i]);
-                }
-            }
-            else // in that case, no change code, no new codes it's only the normal codes
-            {
-                for (int i = 0; i < protocol.Blocs.Count; i++)
-                {
-                    for (int j = 0; j < protocol.Blocs[i].secondaryEvents.code.Count(); j++)
+                    for (int k = 0; k < protocol.Blocs[i].secondaryEvents.code[j].Count(); k++)
                     {
-                        for (int k = 0; k < protocol.Blocs[i].secondaryEvents.code[j].Count(); k++)
-                        {
-                            KeyValuePair<int, int> kvp = new KeyValuePair<int, int>(protocol.Blocs[i].mainEvent.code, protocol.Blocs[i].secondaryEvents.code[j][k]);
-                            NewCodes.Add(kvp);
-                        }
+                        KeyValuePair<int, int> kvp = new KeyValuePair<int, int>(protocol.Blocs[i].mainEvent.code, protocol.Blocs[i].secondaryEvents.code[j][k]);
+                        NewCodes.Add(kvp);
                     }
                 }
             }
@@ -183,7 +179,7 @@ namespace BTV.Services.TaskPerformanceService
                 int idMain = -1;
                 int idSec = -1;
                 int dd = -1;
-                int idcode = -1;
+                int newCodeIndex = -1;
 
                 for (int l = 0; l < NewCodes.Count; l++)
                 {
@@ -193,48 +189,57 @@ namespace BTV.Services.TaskPerformanceService
                         for (int m = 0; m < protocol.Blocs.Count; m++)
                         {
                             if (NewCodes[l].Key == protocol.Blocs[m].mainEvent.code)
+                            {
                                 idVisuBloc = m;
+                                newCodeIndex = l;
+                            }
                         }
                     }
                 }
 
                 if (idMain != -1)
                 {
-                    int[] blocEpochWindow = protocol.Blocs[idVisuBloc].dispBloc.epochWindow;
-                    int winSamMin = blocEpochWindow[0];
-                    int winSamMax = blocEpochWindow[1];
-
-                    dd = k + 1;
-
-                    while (idSec == -1 && dd < processedTriggers.Count - 1)
+                    if (NewCodes[newCodeIndex].Value == -1)
                     {
-                        for (int l = 0; l < NewCodes.Count; l++)
-                        {
-                            if (processedTriggers[dd].MainEnventCode == NewCodes[l].Value &&
-                                processedTriggers[idMain].MainEnventCode == NewCodes[l].Key)
-                            {
-                                idSec = dd;
-                                idcode = l;
-                            }
-                            else if (processedTriggers[dd].MainEnventCode == NewCodes[l].Key && idSec == -1)
-                            {
-                                idMain = dd;
-                                idcode = l;
-                            }
-                        }
-                        dd++;
+                        processedTriggers[idMain].ResponseCode = -1;
+                        processedTriggers[idMain].ResponsTimeInMilliSeconds = processedTriggers[idMain].MainEventTimeInMilliSeconds;
                     }
-
-                    if (idMain != -1 && idSec != -1)
+                    else
                     {
-                        int winMax = (int)processedTriggers[idMain].MainEventTimeInMilliSeconds + winSamMax;
-                        int winMin = (int)processedTriggers[idMain].MainEventTimeInMilliSeconds - Math.Abs(winSamMin);
+                        int[] blocEpochWindow = protocol.Blocs[idVisuBloc].dispBloc.epochWindow;
+                        int winSamMin = blocEpochWindow[0];
+                        int winSamMax = blocEpochWindow[1];
 
-                        bool isInWindow = (processedTriggers[idSec].MainEventTimeInMilliSeconds < winMax) && (processedTriggers[idSec].MainEventTimeInMilliSeconds > winMin);
-                        if (isInWindow)
+                        dd = k + 1;
+
+                        while (idSec == -1 && dd < processedTriggers.Count - 1)
                         {
-                            processedTriggers[idMain].ResponseCode = processedTriggers[idSec].MainEnventCode;
-                            processedTriggers[idMain].ResponsTimeInMilliSeconds = processedTriggers[idSec].MainEventTimeInMilliSeconds;
+                            for (int l = 0; l < NewCodes.Count; l++)
+                            {
+                                if (processedTriggers[dd].MainEnventCode == NewCodes[l].Value &&
+                                    processedTriggers[idMain].MainEnventCode == NewCodes[l].Key)
+                                {
+                                    idSec = dd;
+                                }
+                                else if (processedTriggers[dd].MainEnventCode == NewCodes[l].Key && idSec == -1)
+                                {
+                                    idMain = dd;
+                                }
+                            }
+                            dd++;
+                        }
+
+                        if (idMain != -1 && idSec != -1)
+                        {
+                            int winMax = (int)processedTriggers[idMain].MainEventTimeInMilliSeconds + winSamMax;
+                            int winMin = (int)processedTriggers[idMain].MainEventTimeInMilliSeconds - Math.Abs(winSamMin);
+
+                            bool isInWindow = (processedTriggers[idSec].MainEventTimeInMilliSeconds < winMax) && (processedTriggers[idSec].MainEventTimeInMilliSeconds > winMin);
+                            if (isInWindow)
+                            {
+                                processedTriggers[idMain].ResponseCode = processedTriggers[idSec].MainEnventCode;
+                                processedTriggers[idMain].ResponsTimeInMilliSeconds = processedTriggers[idSec].MainEventTimeInMilliSeconds;
+                            }
                         }
                     }
                 }

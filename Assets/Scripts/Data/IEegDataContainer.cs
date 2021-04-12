@@ -22,7 +22,7 @@ namespace BTV.Data
             foreach (var _event in events)
             {
                 int code = _event.Code;
-                int time = (int)((float)_event.Sample / 1000) * Frequency.Value;
+                int time = (int)((float)_event.Sample / 1000 * Frequency.Value);
                 Events.Add(new BtvEvent(code, time));
             }
 
@@ -30,7 +30,7 @@ namespace BTV.Data
             foreach (var _note in notes)
             {
                 string description = _note.Description;
-                int time = (int)((float)_note.Sample / 1000) * Frequency.Value;
+                int time = (int)((float)_note.Sample / 1000 * Frequency.Value);
                 Events.Add(new BtvEvent(-1, time, 0, "", "", description));
             }
 
