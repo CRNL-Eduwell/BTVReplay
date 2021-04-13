@@ -103,7 +103,7 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public void Play()
     {
-        if (!m_paused && !m_playing)
+        if (!IsPrepared)
         {
             WidthToHeightRatio = (float)m_TextureForVideo.texture.width / m_TextureForVideo.texture.height;
             HeightToWidthRatio = (float)m_TextureForVideo.texture.height / m_TextureForVideo.texture.width;

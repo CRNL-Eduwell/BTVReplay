@@ -38,7 +38,7 @@ namespace BTV.Data
         {
             if (index >= Data.Length)
             {
-                throw new ArgumentException("Index value : " + index + " is greater or equal to the size of the data array : " + Data.Length);
+                return 0;
             }
 
             return centered ? Data[index] - m_Median : Data[index];
