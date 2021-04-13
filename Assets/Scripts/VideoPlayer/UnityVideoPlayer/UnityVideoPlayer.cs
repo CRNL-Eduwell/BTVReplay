@@ -41,7 +41,7 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
     /// all the rendering of the video
     /// </summary>
     /// <param name="path">Video File Path</param>
-    /// <param name="duration">Eeg File Duration in Seconds</param>
+    /// <param name="duration">Eeg File Duration in Milliseconds</param>
     /// <param name="texture">Raw Image containing texture to draw the video frame on</param>
     public void Init(string path, int duration, RawImage texture)
     {

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Tools.CSharp.EEG;
 using UnityEngine;
 
@@ -33,6 +34,8 @@ namespace BTV.Data
                 int time = (int)((float)_note.Sample / 1000 * Frequency.Value);
                 Events.Add(new BtvEvent(-1, time, 0, "", "", description));
             }
+
+            Events = Events.OrderBy(x => x.TimeInMilliSeconds).ToList();
 
             file.Dispose();
         }

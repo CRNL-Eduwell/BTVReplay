@@ -219,7 +219,7 @@ public class SubjectLoaderService : MonoBehaviour
         {
             Task = LoaderMessage.LoaderTask.LoadVideo,
             VideoPath = videoPath,
-            totalFileDuration = container.TotalDurationInSeconds
+            totalFileDuration = container.TotalDurationInMilliseconds
         };
         Messenger.Default.Send(message, MessageContext.LoaderMessage);
 
