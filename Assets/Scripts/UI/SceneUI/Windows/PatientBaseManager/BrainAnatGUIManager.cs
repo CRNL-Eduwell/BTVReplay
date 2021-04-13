@@ -40,11 +40,13 @@ public class BrainAnatGUIManager : MonoBehaviour
         _RightHemi.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri" : "";
         _Transform.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/transfo_mni.trm" : "";
         _MeshConfiguration.onValueChanged.AddListener(OnMeshConfigurationValueChanged);
+        _EegTechnology.onValueChanged.AddListener(OnEegTechnologyValueChanged);
     }
 
     private void OnDestroy()
     {
         _MeshConfiguration.onValueChanged.RemoveAllListeners();
+        _EegTechnology.onValueChanged.RemoveAllListeners();
     }
 
     private void OnMeshConfigurationValueChanged(int value)
@@ -73,6 +75,29 @@ public class BrainAnatGUIManager : MonoBehaviour
             _RightHemi.Text = "";
             //==
             _Transform.Text = "";
+        }
+    }
+
+    private void OnEegTechnologyValueChanged(int value)
+    {
+        switch (value)
+        {
+            case 0:
+                {
+                    _LeftHemi.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri" : "";
+                    _RightHemi.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri" : "";
+                    _Transform.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/transfo_mni.trm" : "";
+                    _Pts.Text = "";
+                }
+                break;
+            case 1:
+                {
+                    _LeftHemi.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri" : "";
+                    _RightHemi.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri" : "";
+                    _Transform.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/transfo_mni.trm" : "";
+                    _Pts.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_EEG.pts" : "";
+                }
+                break;
         }
     }
 
