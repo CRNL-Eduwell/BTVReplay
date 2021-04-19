@@ -6,16 +6,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tools.CSharp.EEG;
+using UnityEngine;
 
 namespace BTV.Services.TaskPerformanceService
 {
     public static class TaskPerformanceService
     {
         public static List<EegTrigger> ProcessedTriggers { get; private set; } = null;
+        public static List<Color> Colors { get; private set; } = null;
 
         public static void Reset()
         {
             ProcessedTriggers = null;
+            Colors = null;
         }
 
         //calculateReactionTime in old pos.cs
@@ -29,16 +32,8 @@ namespace BTV.Services.TaskPerformanceService
             PairStimulationWithResponses(protocol, ref Triggers);
             DeleteTriggerNotInExperiment(protocol, ref Triggers);
 
-            //if (myprovFile->getSecondaryCodes()[0][0] != 0) //At this point , if there is secondary code, we need to check if all have been paired correctly 
-            //{
-            //	DeleteTriggerNotPaired(m_processedTriggers);
-            //}
-            //m_subGroupStimTrials = SortTrialsForExperiment(m_processedTriggers, myprovFile);
-            //if (myprovFile->invertmapsinfo != "")
-            //{
-            //	SwapStimulationsAndResponses(myprovFile);
-            //}
-
+            //Define color in a hardcoded way, later will be done via conf file
+            Colors = DefineColorForTriggers(protocol, Triggers);
             ProcessedTriggers = Triggers;
         }
 
@@ -272,6 +267,71 @@ namespace BTV.Services.TaskPerformanceService
             }
 
             return false;
+        }
+
+        private static List<Color> DefineColorForTriggers(Protocol protocol, List<EegTrigger> processedTriggers)
+        {
+            List<Color> ProcessedColors = new List<Color>();
+
+            List<KeyValuePair<int, int>> NewCodes = new List<KeyValuePair<int, int>>();
+            for (int i = 0; i < protocol.Blocs.Count; i++)
+            {
+                for (int j = 0; j < protocol.Blocs[i].secondaryEvents.code.Count(); j++)
+                {
+                    for (int k = 0; k < protocol.Blocs[i].secondaryEvents.code[j].Count(); k++)
+                    {
+                        KeyValuePair<int, int> kvp = new KeyValuePair<int, int>(protocol.Blocs[i].mainEvent.code, protocol.Blocs[i].secondaryEvents.code[j][k]);
+                        NewCodes.Add(kvp);
+                    }
+                }
+            }
+
+            foreach (EegTrigger trigger in processedTriggers)
+            {
+                int count = 0;
+                foreach (KeyValuePair<int, int> codes in NewCodes)
+                {
+                    if (codes.Key == trigger.MainEnventCode)
+                    {
+                        switch (count)
+                        {
+                            case 0:
+                                {
+                                    ProcessedColors.Add(Color.red);
+                                }
+                                break;
+                            case 1:
+                                {
+                                    ProcessedColors.Add(Color.blue);
+                                }
+                                break;
+                            case 2:
+                                {
+                                    ProcessedColors.Add(Color.gray);
+                                }
+                                break;
+                            case 3:
+                                {
+                                    ProcessedColors.Add(Color.green);
+                                }
+                                break;
+                            case 4:
+                                {
+                                    ProcessedColors.Add(Color.yellow);
+                                }
+                                break;
+                            case 5:
+                                {
+                                    ProcessedColors.Add(Color.cyan);
+                                }
+                                break;
+                        }
+                        continue;
+                    }
+                    count++;
+                }
+            }
+            return ProcessedColors;
         }
     }
 }

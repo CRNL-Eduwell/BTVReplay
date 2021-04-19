@@ -31,10 +31,14 @@ public class TaskPerformanceTrace : MonoBehaviour
     [SerializeField]
     private GameObject m_InfoDisplay = null;
 
+    private RectTransform m_rectTransform = null;
+    private Vector3[] m_worldCorners = new Vector3[4];
+
     private Trace m_signalWindow1 = null;
 
     private TriggerBarplot m_TriggerBarplotPrefabs = null;
     private List<TriggerBarplot> m_Triggers = new List<TriggerBarplot>();
+    private List<int> currentIndex = null;
 
     private Texture2D m_DefaultEventPicturePrefabs = null;
     private List<Texture2D> m_EventPictures = new List<Texture2D>();
@@ -78,6 +82,8 @@ public class TaskPerformanceTrace : MonoBehaviour
         Messenger.Default.Register<UiToTaskPerformanceMessage>(this, OnUiToTaskPerformanceMessage, MessageContext.UiToTaskPerformanceMessage);
         Messenger.Default.Register<EventsToTaskPerformanceMessage>(this, OnEventsToTaskPerformanceMessage, MessageContext.EventsToTaskPerformanceMessage);
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
+
+        m_rectTransform = gameObject.GetComponent<RectTransform>();
     }
 
     private void OnDestroy()
@@ -89,12 +95,43 @@ public class TaskPerformanceTrace : MonoBehaviour
 
     private void OnRectTransformDimensionsChange()
     {
-        if (m_State > 0)
-        {
-            gameObject.SetActive(gameObject.GetComponent<RectTransform>().rect.width > 100);
-        }
+        if (m_rectTransform == null) return;
+        if (m_State > 0) gameObject.SetActive(m_rectTransform.rect.width > 100);
 
         UpdateScales();
+    }
+
+    private void OnGUI()
+    {
+        if (!m_HasDataToDisplay) return;
+
+        if (RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main))
+        {           
+            m_rectTransform.GetWorldCorners(m_worldCorners);
+            Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            float perCentX = (worldClick.x - m_worldCorners[1].x) / (m_worldCorners[2].x - m_worldCorners[1].x);
+            float pos = perCentX * m_rectTransform.rect.width;
+
+            if (currentIndex.Count > 0)
+            {
+                foreach (int id in currentIndex)
+                {
+                    float lowlim = Mathf.RoundToInt(m_Triggers[id].Position) + 1;
+                    float highlim = lowlim + 7;
+                    if (pos >= lowlim && pos < highlim)
+                    {
+                        //TODO send message to new ui element to make to display code and rt
+                        UnityEngine.Debug.Log("Code : " + m_Triggers[id].Trigger.MainEnventCode);
+                        //UnityEngine.Debug.Log("Rt : " + m_Triggers[currentIndex[0]].Trigger.ReactionTimeInMs);
+                        //UnityEngine.Debug.Log("PosItem : " + m_Triggers[currentIndex[0]].Position);
+                        //UnityEngine.Debug.Log("Pos : " + pos);
+
+                        break;
+                    }
+                }
+
+            }
+        }
     }
 
     private void OnUiToTaskPerformanceMessage(UiToTaskPerformanceMessage message)
@@ -182,6 +219,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         {
             TriggerBarplot trigger = Instantiate(m_TriggerBarplotPrefabs, m_TaskBarHolder); //instancier avec parent dzans les paramètres
             trigger.Trigger = TaskPerformanceService.ProcessedTriggers[i];
+            trigger.SetColor(TaskPerformanceService.Colors[i]);
             trigger.UpdatePosition(0, i, 0, -2);
             trigger.UpdatePosition(0, i, 100, -2);
             trigger.Show(false);
@@ -241,7 +279,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         int left = milliSecToLook - (m_PeriopdInSec * 1000);
         int right = milliSecToLook;
 
-        List<int> currentIndex = m_Triggers.Select((item, index) => new { Item = item, Index = index })
+        /*List<int>*/ currentIndex = m_Triggers.Select((item, index) => new { Item = item, Index = index })
                                             .Where(x => x.Item.Trigger.MainEventTimeInMilliSeconds > left && x.Item.Trigger.MainEventTimeInMilliSeconds < right)
                                             .Select(x => x.Index)
                                             .ToList();
