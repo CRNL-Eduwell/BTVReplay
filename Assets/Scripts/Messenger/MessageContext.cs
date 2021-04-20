@@ -17,6 +17,7 @@ enum MessageContext
     EventsToTaskPerformanceMessage,
     EventsModificationMessage,
     BrainWardenToElectrodePointerMessage,
+    ReactionTimePointerMessage,
     BrainWardenToTraceMessage,
     ModulesToVideoMessage,
     VideoToModulesMessage,

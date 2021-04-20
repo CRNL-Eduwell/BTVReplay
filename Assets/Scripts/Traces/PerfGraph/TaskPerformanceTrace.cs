@@ -120,13 +120,25 @@ public class TaskPerformanceTrace : MonoBehaviour
                     float highlim = lowlim + 7;
                     if (pos >= lowlim && pos < highlim)
                     {
-                        //TODO send message to new ui element to make to display code and rt
-                        UnityEngine.Debug.Log("Code : " + m_Triggers[id].Trigger.MainEnventCode);
-                        //UnityEngine.Debug.Log("Rt : " + m_Triggers[currentIndex[0]].Trigger.ReactionTimeInMs);
-                        //UnityEngine.Debug.Log("PosItem : " + m_Triggers[currentIndex[0]].Position);
-                        //UnityEngine.Debug.Log("Pos : " + pos);
-
+                        ReactionTimePointerMessage message = new ReactionTimePointerMessage
+                        {
+                            TaskToExecute = 0,
+                            PointerPosition = new Vector3(worldClick.x, worldClick.y, 0),
+                            ShowPointer = true,
+                            Code = m_Triggers[id].Trigger.MainEnventCode.ToString(),
+                            ReactionTimeMs = m_Triggers[id].Trigger.ReactionTimeInMs.ToString()
+                        };
+                        Messenger.Default.Send(message, MessageContext.ReactionTimePointerMessage);
                         break;
+                    }
+                    else
+                    {
+                        ReactionTimePointerMessage message = new ReactionTimePointerMessage
+                        {
+                            TaskToExecute = 1,
+                            ShowPointer = false
+                        };
+                        Messenger.Default.Send(message, MessageContext.ReactionTimePointerMessage);
                     }
                 }
 
