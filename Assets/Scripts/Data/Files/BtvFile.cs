@@ -50,7 +50,8 @@ namespace Assets.Scripts.Data.Files
                             string Comment = resultSplit[1] == "EMPTY_COMMENT" ? "" : resultSplit[1];
                             int Code = int.Parse(resultSplit[2]);
                             int Sample = int.Parse(resultSplit[3]);
-                            int Duration = int.Parse(resultSplit[4]);
+                            resultSplit[4].TryParseFloat(out float floatValue);
+                            int Duration = (int)floatValue;
                             string FirstElectrodeOfInterest = resultSplit[5] == "E_F_SITE" ? "" : resultSplit[5];
                             string SecondElectrodeOfInterest = resultSplit[6] == "E_S_SITE" ? "" : resultSplit[6];
 
