@@ -9,6 +9,7 @@ using UnityEngine;
 
 public class Site : MonoBehaviour
 {
+    public float EegValue { get; private set; } = 0;
     #region Pubic Members
     public int ID
     {
@@ -154,15 +155,16 @@ public class Site : MonoBehaviour
             //Might put that back when there is a service with base info like sampling freq and stuff
             int MostRecentSample = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
             //int PositionOfSampleInArray = (ID * ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample) + MostRecentSample;
-            float currentValue = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Channels[ID].GetSample(MostRecentSample) / 100;
-            float scale = 2 + (m_Gain * currentValue);
+            EegValue = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Channels[ID].GetSample(MostRecentSample) / 100;
+            //float scale = 2 + (m_Gain * currentValue);
+            float currentValue = 2 + (m_Gain * EegValue);
 
-            if (scale >= 7)
-                scale = 7;
-            else if (scale <= 0)
-                scale = 0.1f;
+            if (currentValue >= 7)
+                currentValue = 7;
+            else if (currentValue <= 0)
+                currentValue = 0.1f;
 
-            gameObject.transform.localScale = new Vector3(scale, scale, scale);
+            gameObject.transform.localScale = new Vector3(currentValue, currentValue, currentValue);
         }
     }
 }

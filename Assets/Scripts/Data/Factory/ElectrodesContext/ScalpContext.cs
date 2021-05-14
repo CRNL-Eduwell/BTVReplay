@@ -46,13 +46,20 @@ namespace Assets.Scripts.Data.Factory
             {
                 EEG_Plot CurrentPlot = (EEG_Plot)Electrodes[i];
                 /********************** /!\Axe x de unity inversé /!\ **********************/
-                CurrentPlot.Coordinates.Set(-CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y, CurrentPlot.Coordinates.z);
+                //CurrentPlot.Coordinates.Set(CurrentPlot.Coordinates.z, -CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y);
+                CurrentPlot.Coordinates = new Vector3(-CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y, CurrentPlot.Coordinates.z);
                 /***************************************************************************/
 
                 GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, CurrentPlot.Coordinates, Quaternion.identity);
                 NewPlot.name = CurrentPlot.Label;
                 NewPlot.transform.parent = Electrode.transform;
                 NewPlot.GetComponent<Site>().Init(CurrentPlot.Label);
+                DataProjectionService dps = parent.transform.parent.GetChild(2).GetComponent<DataProjectionService>();
+                if (dps != null)
+                {
+                    if(NewPlot.activeSelf)
+                        dps.Electrodes.Add(NewPlot.GetComponent<Site>());
+                }
             }
         }
 

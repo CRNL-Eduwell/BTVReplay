@@ -24,5 +24,15 @@ namespace BTV.Services.CalculationService
 
         [DllImport("Framework", EntryPoint = "Median", CallingConvention = CallingConvention.Cdecl)]
         static public extern float Median(float[] DataArray, int Size);
+
+
+
+        //DOING NOW
+        [DllImport("Framework", EntryPoint = "Knn", CallingConvention = CallingConvention.Cdecl)]
+        static public extern void Knn(float[] outputValues, float[] coordinates_X, float[] coordinates_Y, int nbOfCoordinates, float[] eegValues, int matrixWidth, int orderInterpolation_M, int nbOfNeighboor_K);
+
+        //DOING NOW
+        [DllImport("Framework", EntryPoint = "SphericalSpline", CallingConvention = CallingConvention.Cdecl)]
+        static public extern void SphericalSpline(float[] outputValues, float[] coordinates_X, float[] coordinates_Y, float[] coordinates_Z, int nbOfCoordinates, float[] eegValues, int matrixWidth, int orderInterpolation_M);
     }
 }
