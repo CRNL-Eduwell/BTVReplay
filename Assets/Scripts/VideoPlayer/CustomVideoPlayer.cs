@@ -109,7 +109,7 @@ public class CustomVideoPlayer : MonoBehaviour
         }
     }
 
-    private void Init(string videoPath, int eegFileDurationInSec)
+    private void Init(string videoPath, int eegFileDurationInMillisec)
     {
         if (videoPath == "")
             VideoInterface = gameObject.AddComponent<GhostVideoPlayer>();
@@ -118,7 +118,7 @@ public class CustomVideoPlayer : MonoBehaviour
 
         _VideoTexture.texture = (Texture2D)Instantiate(m_texLogo);
 
-        VideoInterface.Init(videoPath, eegFileDurationInSec, _VideoTexture);
+        VideoInterface.Init(videoPath, eegFileDurationInMillisec, _VideoTexture);
         AddListeners();
     }
 

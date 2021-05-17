@@ -42,20 +42,26 @@ namespace Assets.Scripts.Data.Factory
             GameObject Electrode = new GameObject();
             Electrode.name = "Scalp_Eeg";
             Electrode.transform.parent = parent.transform;
+            ScalpDataProjector dps = parent.transform.parent.GetChild(2).GetComponent<ScalpDataProjector>();
             for (int i = 0; i < Electrodes.Count; i++)
             {
                 EEG_Plot CurrentPlot = (EEG_Plot)Electrodes[i];
                 /********************** /!\Axe x de unity inversé /!\ **********************/
-                CurrentPlot.Coordinates.Set(-CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y, CurrentPlot.Coordinates.z);
+                //CurrentPlot.Coordinates.Set(CurrentPlot.Coordinates.z, -CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y);
+                CurrentPlot.Coordinates = new Vector3(-CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y, CurrentPlot.Coordinates.z);
                 /***************************************************************************/
 
                 GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, CurrentPlot.Coordinates, Quaternion.identity);
                 NewPlot.name = CurrentPlot.Label;
                 NewPlot.transform.parent = Electrode.transform;
-
-                //ElecPlotSize sphereSizeScript = currentElecPlot.AddComponent<ElecPlotSize>();
-                //sphereSizeScript.init(currentElecPlot.name, electrodes[i]);
+                NewPlot.GetComponent<Site>().Init(CurrentPlot.Label);
+                if (dps != null)
+                {
+                    if (NewPlot.activeSelf)
+                        dps.AddSite(NewPlot.GetComponent<Site>());
+                }
             }
+            dps.InitArrays();
         }
 
         public void LoadDefaultPearl()

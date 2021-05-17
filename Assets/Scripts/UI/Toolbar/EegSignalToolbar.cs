@@ -58,6 +58,10 @@ namespace BTV.UI.Module3D
                 m_Window.SetTimePeriodWithoutNotify(message.Period);
                 m_Window.SetIsOnWithoutNotifty(message.ShowGrid);
                 m_ColorPicker.SetColorWithoutNotify(message.Color);
+                if (message.FileNextID != 0)
+                {
+                    m_FileSwitcher.ChangeFile(message.FileNextID);
+                }
             }
         }
 

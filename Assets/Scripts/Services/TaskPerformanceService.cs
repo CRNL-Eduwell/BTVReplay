@@ -6,39 +6,34 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tools.CSharp.EEG;
+using UnityEngine;
 
 namespace BTV.Services.TaskPerformanceService
 {
     public static class TaskPerformanceService
     {
         public static List<EegTrigger> ProcessedTriggers { get; private set; } = null;
+        public static List<Color> Colors { get; private set; } = null;
 
         public static void Reset()
         {
             ProcessedTriggers = null;
+            Colors = null;
         }
 
         //calculateReactionTime in old pos.cs
-        public static void ProcessEventsForExperiment(ProvFile protocol, int flagCode = 99, int DownsamplingFactor = 1)
+        public static void ProcessEventsForExperiment(Protocol protocol, int flagCode = 99, int DownsamplingFactor = 1)
         {
             List<EegTrigger> Triggers = GetTriggerList(flagCode, DownsamplingFactor);
-            if (protocol.changeCodeFilePath != "")
+            if (protocol.ChangeCodeFilePath != "")
             {
                 RenameTriggersForExperiment(protocol, ref Triggers);
             }
             PairStimulationWithResponses(protocol, ref Triggers);
             DeleteTriggerNotInExperiment(protocol, ref Triggers);
 
-            //if (myprovFile->getSecondaryCodes()[0][0] != 0) //At this point , if there is secondary code, we need to check if all have been paired correctly 
-            //{
-            //	DeleteTriggerNotPaired(m_processedTriggers);
-            //}
-            //m_subGroupStimTrials = SortTrialsForExperiment(m_processedTriggers, myprovFile);
-            //if (myprovFile->invertmapsinfo != "")
-            //{
-            //	SwapStimulationsAndResponses(myprovFile);
-            //}
-
+            //Define color in a hardcoded way, later will be done via conf file
+            Colors = DefineColorForTriggers(protocol, Triggers);
             ProcessedTriggers = Triggers;
         }
 
@@ -70,13 +65,21 @@ namespace BTV.Services.TaskPerformanceService
             int beginValue = 0;
             List<int> indexBegin = EventsService.EventsService.FindIndexes(flagCode);
             if (indexBegin.Count > 0)
-                beginValue = indexBegin[indexBegin.Count - 1] + 1;
+            { 
+                for (int i = 1; i < indexBegin.Count; i++)
+                {
+                    if (indexBegin[i - 1] + 1 != indexBegin[i])
+                    {
+                        return indexBegin[i - 1] + 1;
+                    }
+                }
+            }
             return beginValue;
         }
 
-        private static void RenameTriggersForExperiment(ProvFile protocol, ref List<EegTrigger> processedTriggers)
+        private static void RenameTriggersForExperiment(Protocol protocol, ref List<EegTrigger> processedTriggers)
         {
-            ChangeCodeFile chgCode = new ChangeCodeFile(protocol.changeCodeFilePath);
+            ChangeCodeFile chgCode = new ChangeCodeFile(protocol.ChangeCodeFilePath);
 
             int TriggerCount = processedTriggers.Count;
             for (int k = 0; k < TriggerCount; k++)
@@ -92,10 +95,10 @@ namespace BTV.Services.TaskPerformanceService
                         if (processedTriggers[k].MainEnventCode == chgCode.OldCodes[l][m].Key)
                         {
                             idMain = k;
-                            int BlocCount = protocol.blocs.Count;
+                            int BlocCount = protocol.Blocs.Count;
                             for (int n = 0; n < BlocCount; n++)
                             {
-                                if (chgCode.NewCodes[l].Key == protocol.blocs[n].mainEvent.code)
+                                if (chgCode.NewCodes[l].Key == protocol.Blocs[n].mainEvent.code)
                                     idVisuBloc = n;
                             }
                         }
@@ -105,7 +108,7 @@ namespace BTV.Services.TaskPerformanceService
                 int memId = 0;
                 if (idMain != -1)
                 {
-                    int[] blocEpochWindow = protocol.blocs[idVisuBloc].dispBloc.epochWindow;
+                    int[] blocEpochWindow = protocol.Blocs[idVisuBloc].dispBloc.epochWindow;
                     int winMsMin = blocEpochWindow[0];
                     int winMsMax = blocEpochWindow[1];
 
@@ -149,29 +152,17 @@ namespace BTV.Services.TaskPerformanceService
             //removeDuplicateEventCode();
         }
 
-        private static void PairStimulationWithResponses(ProvFile protocol, ref List<EegTrigger> processedTriggers)
+        private static void PairStimulationWithResponses(Protocol protocol, ref List<EegTrigger> processedTriggers)
         {
             List<KeyValuePair<int, int>> NewCodes = new List<KeyValuePair<int, int>>();
-
-            if (System.IO.File.Exists(protocol.changeCodeFilePath))
+            for (int i = 0; i < protocol.Blocs.Count; i++)
             {
-                ChangeCodeFile chgCode = new ChangeCodeFile(protocol.changeCodeFilePath);
-                for (int i = 0; i < chgCode.NewCodes.Count; i++)
+                for (int j = 0; j < protocol.Blocs[i].secondaryEvents.code.Count(); j++)
                 {
-                    NewCodes.Add(chgCode.NewCodes[i]);
-                }
-            }
-            else // in that case, no change code, no new codes it's only the normal codes
-            {
-                for (int i = 0; i < protocol.blocs.Count; i++)
-                {
-                    for (int j = 0; j < protocol.blocs[i].secondaryEvents.code.Count(); j++)
+                    for (int k = 0; k < protocol.Blocs[i].secondaryEvents.code[j].Count(); k++)
                     {
-                        for (int k = 0; k < protocol.blocs[i].secondaryEvents.code[j].Count(); k++)
-                        {
-                            KeyValuePair<int, int> kvp = new KeyValuePair<int, int>(protocol.blocs[i].mainEvent.code, protocol.blocs[i].secondaryEvents.code[j][k]);
-                            NewCodes.Add(kvp);
-                        }
+                        KeyValuePair<int, int> kvp = new KeyValuePair<int, int>(protocol.Blocs[i].mainEvent.code, protocol.Blocs[i].secondaryEvents.code[j][k]);
+                        NewCodes.Add(kvp);
                     }
                 }
             }
@@ -183,65 +174,74 @@ namespace BTV.Services.TaskPerformanceService
                 int idMain = -1;
                 int idSec = -1;
                 int dd = -1;
-                int idcode = -1;
+                int newCodeIndex = -1;
 
                 for (int l = 0; l < NewCodes.Count; l++)
                 {
                     if (processedTriggers[k].MainEnventCode == NewCodes[l].Key)
                     {
                         idMain = k;
-                        for (int m = 0; m < protocol.blocs.Count; m++)
+                        for (int m = 0; m < protocol.Blocs.Count; m++)
                         {
-                            if (NewCodes[l].Key == protocol.blocs[m].mainEvent.code)
+                            if (NewCodes[l].Key == protocol.Blocs[m].mainEvent.code)
+                            {
                                 idVisuBloc = m;
+                                newCodeIndex = l;
+                            }
                         }
                     }
                 }
 
                 if (idMain != -1)
                 {
-                    int[] blocEpochWindow = protocol.blocs[idVisuBloc].dispBloc.epochWindow;
-                    int winSamMin = blocEpochWindow[0];
-                    int winSamMax = blocEpochWindow[1];
-
-                    dd = k + 1;
-
-                    while (idSec == -1 && dd < processedTriggers.Count - 1)
+                    if (NewCodes[newCodeIndex].Value == -1)
                     {
-                        for (int l = 0; l < NewCodes.Count; l++)
-                        {
-                            if (processedTriggers[dd].MainEnventCode == NewCodes[l].Value &&
-                                processedTriggers[idMain].MainEnventCode == NewCodes[l].Key)
-                            {
-                                idSec = dd;
-                                idcode = l;
-                            }
-                            else if (processedTriggers[dd].MainEnventCode == NewCodes[l].Key && idSec == -1)
-                            {
-                                idMain = dd;
-                                idcode = l;
-                            }
-                        }
-                        dd++;
+                        processedTriggers[idMain].ResponseCode = -1;
+                        processedTriggers[idMain].ResponsTimeInMilliSeconds = processedTriggers[idMain].MainEventTimeInMilliSeconds;
                     }
-
-                    if (idMain != -1 && idSec != -1)
+                    else
                     {
-                        int winMax = (int)processedTriggers[idMain].MainEventTimeInMilliSeconds + winSamMax;
-                        int winMin = (int)processedTriggers[idMain].MainEventTimeInMilliSeconds - Math.Abs(winSamMin);
+                        int[] blocEpochWindow = protocol.Blocs[idVisuBloc].dispBloc.epochWindow;
+                        int winSamMin = blocEpochWindow[0];
+                        int winSamMax = blocEpochWindow[1];
 
-                        bool isInWindow = (processedTriggers[idSec].MainEventTimeInMilliSeconds < winMax) && (processedTriggers[idSec].MainEventTimeInMilliSeconds > winMin);
-                        if (isInWindow)
+                        dd = k + 1;
+
+                        while (idSec == -1 && dd < processedTriggers.Count - 1)
                         {
-                            processedTriggers[idMain].ResponseCode = processedTriggers[idSec].MainEnventCode;
-                            processedTriggers[idMain].ResponsTimeInMilliSeconds = processedTriggers[idSec].MainEventTimeInMilliSeconds;
+                            for (int l = 0; l < NewCodes.Count; l++)
+                            {
+                                if (processedTriggers[dd].MainEnventCode == NewCodes[l].Value &&
+                                    processedTriggers[idMain].MainEnventCode == NewCodes[l].Key)
+                                {
+                                    idSec = dd;
+                                }
+                                else if (processedTriggers[dd].MainEnventCode == NewCodes[l].Key && idSec == -1)
+                                {
+                                    idMain = dd;
+                                }
+                            }
+                            dd++;
+                        }
+
+                        if (idMain != -1 && idSec != -1)
+                        {
+                            int winMax = (int)processedTriggers[idMain].MainEventTimeInMilliSeconds + winSamMax;
+                            int winMin = (int)processedTriggers[idMain].MainEventTimeInMilliSeconds - Math.Abs(winSamMin);
+
+                            bool isInWindow = (processedTriggers[idSec].MainEventTimeInMilliSeconds < winMax) && (processedTriggers[idSec].MainEventTimeInMilliSeconds > winMin);
+                            if (isInWindow)
+                            {
+                                processedTriggers[idMain].ResponseCode = processedTriggers[idSec].MainEnventCode;
+                                processedTriggers[idMain].ResponsTimeInMilliSeconds = processedTriggers[idSec].MainEventTimeInMilliSeconds;
+                            }
                         }
                     }
                 }
             }
         }
 
-        private static void DeleteTriggerNotInExperiment(ProvFile protocol, ref List<EegTrigger> processedTriggers)
+        private static void DeleteTriggerNotInExperiment(Protocol protocol, ref List<EegTrigger> processedTriggers)
         {
             List<int> IDsToDelete = new List<int>();
             for (int i = 0; i < processedTriggers.Count; i++)
@@ -255,18 +255,83 @@ namespace BTV.Services.TaskPerformanceService
                 processedTriggers.RemoveAt(IDsToDelete[i]);
         }
 
-        private static bool IsTriggerInExperiment(ProvFile protocol, EegTrigger trigger)
+        private static bool IsTriggerInExperiment(Protocol protocol, EegTrigger trigger)
         {
             if (trigger.ResponseCode == -666 && trigger.ResponsTimeInMilliSeconds == -666)
                 return false;
 
-            for (int i = 0; i < protocol.blocs.Count; i++)
+            for (int i = 0; i < protocol.Blocs.Count; i++)
             {
-                if (trigger.MainEnventCode == protocol.blocs[i].mainEvent.code)
+                if (trigger.MainEnventCode == protocol.Blocs[i].mainEvent.code)
                     return true;
             }
 
             return false;
+        }
+
+        private static List<Color> DefineColorForTriggers(Protocol protocol, List<EegTrigger> processedTriggers)
+        {
+            List<Color> ProcessedColors = new List<Color>();
+
+            List<KeyValuePair<int, int>> NewCodes = new List<KeyValuePair<int, int>>();
+            for (int i = 0; i < protocol.Blocs.Count; i++)
+            {
+                for (int j = 0; j < protocol.Blocs[i].secondaryEvents.code.Count(); j++)
+                {
+                    for (int k = 0; k < protocol.Blocs[i].secondaryEvents.code[j].Count(); k++)
+                    {
+                        KeyValuePair<int, int> kvp = new KeyValuePair<int, int>(protocol.Blocs[i].mainEvent.code, protocol.Blocs[i].secondaryEvents.code[j][k]);
+                        NewCodes.Add(kvp);
+                    }
+                }
+            }
+
+            foreach (EegTrigger trigger in processedTriggers)
+            {
+                int count = 0;
+                foreach (KeyValuePair<int, int> codes in NewCodes)
+                {
+                    if (codes.Key == trigger.MainEnventCode)
+                    {
+                        switch (count)
+                        {
+                            case 0:
+                                {
+                                    ProcessedColors.Add(Color.red);
+                                }
+                                break;
+                            case 1:
+                                {
+                                    ProcessedColors.Add(Color.blue);
+                                }
+                                break;
+                            case 2:
+                                {
+                                    ProcessedColors.Add(Color.gray);
+                                }
+                                break;
+                            case 3:
+                                {
+                                    ProcessedColors.Add(Color.green);
+                                }
+                                break;
+                            case 4:
+                                {
+                                    ProcessedColors.Add(Color.yellow);
+                                }
+                                break;
+                            case 5:
+                                {
+                                    ProcessedColors.Add(Color.cyan);
+                                }
+                                break;
+                        }
+                        continue;
+                    }
+                    count++;
+                }
+            }
+            return ProcessedColors;
         }
     }
 }

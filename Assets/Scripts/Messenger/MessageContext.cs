@@ -17,6 +17,7 @@ enum MessageContext
     EventsToTaskPerformanceMessage,
     EventsModificationMessage,
     BrainWardenToElectrodePointerMessage,
+    ReactionTimePointerMessage,
     BrainWardenToTraceMessage,
     ModulesToVideoMessage,
     VideoToModulesMessage,
@@ -25,5 +26,7 @@ enum MessageContext
     LoadSubjectMessage,
     LoaderMessage,
     ShowWindowMessage,
-    ForceUpdateTraceMessage
+    ForceUpdateTraceMessage,
+    ShortcutMessage,
+    ForceToggleToolbar
 }

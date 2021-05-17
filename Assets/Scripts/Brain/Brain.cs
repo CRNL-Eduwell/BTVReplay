@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Data.Factory;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Brain : MonoBehaviour
 {
@@ -52,6 +53,20 @@ public class Brain : MonoBehaviour
             m_RightHemiBrain = new GameObject("RightHemi");
             m_RightHemiBrain.transform.parent = gameObject.transform;
             m_RightHemiBrain.layer = gameObject.layer;
+        }
+
+        if (brainToLoad.EegTechnology == EegTechnology.Scalp)
+        {
+            GameObject sphere = new GameObject("HalfSphere", new System.Type[] { typeof(HalfSphere) });
+            sphere.transform.parent = gameObject.transform;
+            HalfSphere hs = sphere.GetComponent<HalfSphere>();
+            hs.InitSphere();
+            ScalpDataProjector dps = sphere.AddComponent<ScalpDataProjector>();
+
+            //Move brain for a nice visualisation and to prevent error in uv position
+            //when recalculating electrodes position this way, much simpler
+            m_LeftHemiBrain.transform.position += new Vector3(0, 16, 9.85f);
+            m_RightHemiBrain.transform.position += new Vector3(0, 16, 9.85f);
         }
 
         m_Electrodes = new GameObject("Electrodes");

@@ -2,6 +2,7 @@
 
 public interface IVideoPlayer
 {
+    bool IsPrepared { get; }
     /// <summary>
     /// Exact Time of the video
     /// In MilliSeconds

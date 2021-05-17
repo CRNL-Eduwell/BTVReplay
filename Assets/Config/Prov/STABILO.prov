@@ -1,0 +1,7 @@
+ROW;COL;Name;Path;Window;BaseLine;Main Event;Maint Event Label;Secondary Events;Secondary Events Label;Sort
+1;1;OK;/Config/Pictures/MARD/OK.png;-200:3000;-150:-50;10;OK;100;ok;C0_L1
+2;1;NOK;/Config/Pictures/MARD/NOK.png;-200:3000;-150:-50;20;NOK;200;nok;C0_L1
+3;1;MISS;/Config/Pictures/MARD/MISS.png;-200:3000;-150:-50;73;NOK;-1;miss;C0_L1
+4;1;PRES1;/Config/Pictures/MARD/PRES.png;-200:3000;-150:-50;11;PRES1;-1;pres1;C0_L1
+5;1;PRES2;/Config/Pictures/MARD/PRES.png;-200:3000;-150:-50;12;PRES2;-1;pres2;C0_L1
+/Config/Prov/STABILO.chg

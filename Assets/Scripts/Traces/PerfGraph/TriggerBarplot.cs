@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class TriggerBarplot : MonoBehaviour
 {
+    public float Position { get { return m_LineRenderer.GetPosition(0).x; } }
     public EegTrigger Trigger
     {
         get;
@@ -25,5 +26,11 @@ public class TriggerBarplot : MonoBehaviour
     public void UpdatePosition(int index, float x, float y, float z)
     {
         m_LineRenderer.SetPosition(index, new Vector3(x, y, z));
+    }
+
+    public void SetColor(Color color)
+    {
+        m_LineRenderer.startColor = color;
+        m_LineRenderer.endColor = color;
     }
 }

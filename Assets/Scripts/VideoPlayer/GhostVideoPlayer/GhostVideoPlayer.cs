@@ -13,6 +13,7 @@ using UnityEngine.UI;
 /// </summary>
 public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 {
+    public bool IsPrepared { get; private set; } = false;
     /// <summary>
     /// Exact Time of the video
     /// In MilliSeconds
@@ -62,7 +63,6 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 
     #region private members
     private string m_VideoFilePath = "";
-    private long m_EegFileDurationInSec = 0;
     private RawImage m_TextureForVideo = null;
     private Stopwatch m_internalTimer = null;
     private long m_internalLastTime = 0;
@@ -76,14 +76,13 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
     /// keep parameters
     /// </summary>
     /// <param name="path">Video File Path</param>
-    /// <param name="duration">Eeg File Duration in Seconds</param>
+    /// <param name="duration">Eeg File Duration in Milliseconds</param>
     /// <param name="texture">Raw Image containing texture to draw the video frame on</param>
     public void Init(string path, int duration, RawImage texture)
     {
         m_VideoFilePath = path;
-        m_EegFileDurationInSec = duration;
         m_TextureForVideo = texture;
-        TotalVideoTime = duration * 1000;
+        TotalVideoTime = duration;
         m_internalTimer = new Stopwatch();
 
         m_parentRectTransform = transform.parent.GetComponent<RectTransform>();
@@ -104,11 +103,12 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public void Play()
     {
-        if (!m_paused && !m_playing)
+        if (!IsPrepared)
         {
             WidthToHeightRatio = (float)m_TextureForVideo.texture.width / m_TextureForVideo.texture.height;
             HeightToWidthRatio = (float)m_TextureForVideo.texture.height / m_TextureForVideo.texture.width;
             ResizeTexture();
+            IsPrepared = true;
         }
 
         if (m_internalTimer != null)
@@ -137,6 +137,7 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
         m_internalLastTime = 0;
         m_paused = false;
         m_playing = false;
+        IsPrepared = false;
     }
 
     public void MoveTime(long secondsToAdd)

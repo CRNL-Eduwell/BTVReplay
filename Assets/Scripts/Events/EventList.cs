@@ -40,22 +40,22 @@ public class EventList : Tools.Unity.Lists.SelectableList<BtvEvent>
         ApplicationState.Module3D.MemoryEvent = new BtvEvent(currentEvent);
 
         Add(currentEvent);
-        m_Objects = m_Objects.OrderBy(x => x.TimeInMilliSeconds).ToList();
+        m_DisplayedObjects = m_DisplayedObjects.OrderBy(x => x.TimeInMilliSeconds).ToList();
         Refresh();
     }
 
     public void DeleteEvent(int ID)
     {
         //Delete from Ui List by ref
-        Remove(m_Objects[ID]);
+        Remove(m_DisplayedObjects[ID]);
     }
 
     public void DeleteAllEvents()
     {
-        UnityEngine.Debug.Log("Deleting " + m_Objects.Count + " objects");
-        for (int i = m_Objects.Count - 1; i >= 0; i--)
+        UnityEngine.Debug.Log("Deleting " + m_DisplayedObjects.Count + " objects");
+        for (int i = m_DisplayedObjects.Count - 1; i >= 0; i--)
         {
-            Remove(m_Objects[i]);
+            Remove(m_DisplayedObjects[i]);
         }
     }
 

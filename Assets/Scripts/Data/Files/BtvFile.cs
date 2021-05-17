@@ -47,12 +47,13 @@ namespace Assets.Scripts.Data.Files
                         if (resultSplit.Length == 7)
                         {
                             int Time = TimeStringToMilliSeconds(resultSplit[0]);
-                            string Comment = resultSplit[1];
+                            string Comment = resultSplit[1] == "EMPTY_COMMENT" ? "" : resultSplit[1];
                             int Code = int.Parse(resultSplit[2]);
                             int Sample = int.Parse(resultSplit[3]);
-                            int Duration = int.Parse(resultSplit[4]);
-                            string FirstElectrodeOfInterest = resultSplit[5];
-                            string SecondElectrodeOfInterest = resultSplit[6];
+                            resultSplit[4].TryParseFloat(out float floatValue);
+                            int Duration = (int)floatValue;
+                            string FirstElectrodeOfInterest = resultSplit[5] == "E_F_SITE" ? "" : resultSplit[5];
+                            string SecondElectrodeOfInterest = resultSplit[6] == "E_S_SITE" ? "" : resultSplit[6];
 
                             Events.Add(new BtvEvent(Code, Time, Duration, FirstElectrodeOfInterest, SecondElectrodeOfInterest, Comment));
                         }
@@ -72,8 +73,16 @@ namespace Assets.Scripts.Data.Files
 
         private int TimeStringToMilliSeconds(string str)
         {
-            string[] timeSplit = str.Split(new string[] { ":" }, StringSplitOptions.None);
-            if (timeSplit.Length == 3)
+            string[] timeSplit = str.Split(new string[] { ":" , "." }, StringSplitOptions.None);
+            if (timeSplit.Length == 4)
+            {
+                int HourInSeconds = Convert.ToInt32(timeSplit[0]) * 3600;
+                int MinInSeconds = Convert.ToInt32(timeSplit[1]) * 60;
+                int Seconds = Convert.ToInt32(timeSplit[2]);
+                int Milliseconds = Convert.ToInt32(timeSplit[3]);
+                return ((HourInSeconds + MinInSeconds + Seconds) * 1000) + Milliseconds;
+            }
+            else if (timeSplit.Length == 3)
             {
                 int HourInSeconds = Convert.ToInt32(timeSplit[0]) * 3600;
                 int MinInSeconds = Convert.ToInt32(timeSplit[1]) * 60;
@@ -82,8 +91,8 @@ namespace Assets.Scripts.Data.Files
             }
             else
             {
-                Console.WriteLine("BtvFile => Error when spliting time string, we should only have 3 elements");
-                Console.WriteLine("Make sure the format is hh:mm:ss");
+                Console.WriteLine("BtvFile => Error when spliting time string, we should only have 4 elements (3 for older file models)");
+                Console.WriteLine("Make sure the format is hh:mm:ss.ms");
                 Console.WriteLine("Returning 0 as value");
                 return 0;
             }
@@ -97,16 +106,18 @@ namespace Assets.Scripts.Data.Files
                 {
                     foreach (BtvEvent eegEvent in Events)
                     {
-                        string timeString = MilliSecondsToTimeString((int)eegEvent.TimeInMilliSeconds);
-
-                        sw.Write(timeString.PadRight(10));
+                        string timeString = MilliSecondsToTimeString(eegEvent.TimeInMilliSeconds);
+                        sw.Write(timeString.PadRight(18));
+                        if (string.IsNullOrWhiteSpace(eegEvent.Comment)) eegEvent.Comment = "EMPTY_COMMENT";
                         sw.Write(eegEvent.Comment.PadRight(40));
                         sw.Write(eegEvent.Code.ToString().PadRight(10));
                         // ====> TODO : MAKE  GOOD FIX FOR A NEW FILE
                         //sw.Write(eegEvent.sample.ToString().PadRight(10));
                         sw.Write("00000".PadRight(10));
                         sw.Write(eegEvent.Duration.ToString().PadRight(10));
+                        if (string.IsNullOrWhiteSpace(eegEvent.SiteOfInterest)) eegEvent.SiteOfInterest = "E_F_SITE";
                         sw.Write(eegEvent.SiteOfInterest.PadRight(10));
+                        if (string.IsNullOrWhiteSpace(eegEvent.SecondSiteOfInterest)) eegEvent.SecondSiteOfInterest = "E_S_SITE";
                         sw.WriteLine(eegEvent.SecondSiteOfInterest);
                     }
 
@@ -120,20 +131,16 @@ namespace Assets.Scripts.Data.Files
             }
         }
 
-        private static string MilliSecondsToTimeString(int timeInMilliSec)
+        private static string MilliSecondsToTimeString(float timeInMilliSec)
         {
-            string TimeString = "";
-            int TimeInSeconds = timeInMilliSec / 1000;
-            int h = TimeInSeconds / 3600;
-            int m = (TimeInSeconds / 60) % 60;
-            int s = TimeInSeconds % 60;
+            float TimeInSeconds = timeInMilliSec / 1000;
 
-            if (h > 0)
-                TimeString = h.FormatToTimeString() + ":" + m.FormatToTimeString() + ":" + s.FormatToTimeString();
-            else
-                TimeString = "00:" + m.FormatToTimeString() + ":" + s.FormatToTimeString();
+            int h = (int)(TimeInSeconds / 3600);
+            int m = (int)((TimeInSeconds / 60) % 60);
+            int s = (int)(TimeInSeconds % 60);
+            int ms = (int)(timeInMilliSec % 1000);
 
-            return TimeString;
+            return h.ToString("00") + ":" + m.ToString("00") + ":" + s.ToString("00") + "." + ms.ToString("000");
         }
 
     }

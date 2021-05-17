@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using BTV.Services.TaskPerformanceService;
@@ -30,10 +31,14 @@ public class TaskPerformanceTrace : MonoBehaviour
     [SerializeField]
     private GameObject m_InfoDisplay = null;
 
+    private RectTransform m_rectTransform = null;
+    private Vector3[] m_worldCorners = new Vector3[4];
+
     private Trace m_signalWindow1 = null;
 
     private TriggerBarplot m_TriggerBarplotPrefabs = null;
     private List<TriggerBarplot> m_Triggers = new List<TriggerBarplot>();
+    private List<int> currentIndex = null;
 
     private Texture2D m_DefaultEventPicturePrefabs = null;
     private List<Texture2D> m_EventPictures = new List<Texture2D>();
@@ -45,6 +50,9 @@ public class TaskPerformanceTrace : MonoBehaviour
     private float m_HorizontalScale = 0;
     private float m_VerticalScale = 0;
     private int m_State = 1;
+
+    private Stopwatch m_internalTimer = new Stopwatch();
+
 
     public void UpdateWindowState(int state)
     {
@@ -74,6 +82,8 @@ public class TaskPerformanceTrace : MonoBehaviour
         Messenger.Default.Register<UiToTaskPerformanceMessage>(this, OnUiToTaskPerformanceMessage, MessageContext.UiToTaskPerformanceMessage);
         Messenger.Default.Register<EventsToTaskPerformanceMessage>(this, OnEventsToTaskPerformanceMessage, MessageContext.EventsToTaskPerformanceMessage);
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
+
+        m_rectTransform = gameObject.GetComponent<RectTransform>();
     }
 
     private void OnDestroy()
@@ -85,12 +95,55 @@ public class TaskPerformanceTrace : MonoBehaviour
 
     private void OnRectTransformDimensionsChange()
     {
-        if (m_State > 0)
-        {
-            gameObject.SetActive(gameObject.GetComponent<RectTransform>().rect.width > 100);
-        }
+        if (m_rectTransform == null) return;
+        if (m_State > 0) gameObject.SetActive(m_rectTransform.rect.width > 100);
 
         UpdateScales();
+    }
+
+    private void OnGUI()
+    {
+        if (!m_HasDataToDisplay) return;
+
+        if (RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main))
+        {           
+            m_rectTransform.GetWorldCorners(m_worldCorners);
+            Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            float perCentX = (worldClick.x - m_worldCorners[1].x) / (m_worldCorners[2].x - m_worldCorners[1].x);
+            float pos = perCentX * m_rectTransform.rect.width;
+
+            if (currentIndex.Count > 0)
+            {
+                foreach (int id in currentIndex)
+                {
+                    float lowlim = Mathf.RoundToInt(m_Triggers[id].Position) + 1;
+                    float highlim = lowlim + 7;
+                    if (pos >= lowlim && pos < highlim)
+                    {
+                        ReactionTimePointerMessage message = new ReactionTimePointerMessage
+                        {
+                            TaskToExecute = 0,
+                            PointerPosition = new Vector3(worldClick.x, worldClick.y, 0),
+                            ShowPointer = true,
+                            Code = m_Triggers[id].Trigger.MainEnventCode.ToString(),
+                            ReactionTimeMs = m_Triggers[id].Trigger.ReactionTimeInMs.ToString()
+                        };
+                        Messenger.Default.Send(message, MessageContext.ReactionTimePointerMessage);
+                        break;
+                    }
+                    else
+                    {
+                        ReactionTimePointerMessage message = new ReactionTimePointerMessage
+                        {
+                            TaskToExecute = 1,
+                            ShowPointer = false
+                        };
+                        Messenger.Default.Send(message, MessageContext.ReactionTimePointerMessage);
+                    }
+                }
+
+            }
+        }
     }
 
     private void OnUiToTaskPerformanceMessage(UiToTaskPerformanceMessage message)
@@ -128,8 +181,8 @@ public class TaskPerformanceTrace : MonoBehaviour
     private void OnVideoToModulesMessage(VideoToModulesMessage message)
     {
         int timeInMilliseconds = (int)message.TimeMilliseconds;
-        UpdateSpawn(timeInMilliseconds);
         UpdatePicEvent(timeInMilliseconds);
+        UpdateSpawn(timeInMilliseconds);
     }
 
     private void ClearTrace()
@@ -154,22 +207,23 @@ public class TaskPerformanceTrace : MonoBehaviour
         m_EventMainCodes.Clear();
 
         m_InfoDisplay.SetActive(false);
+        m_internalTimer.Stop();
     }
 
-    private void UpdateEventsForProtocol(ProvFile protocol)
+    private void UpdateEventsForProtocol(Protocol protocol)
     {
         UnityEngine.Debug.Log("Update Protocol Events");
         m_HasDataToDisplay = false;
         TaskPerformanceService.ProcessEventsForExperiment(protocol);
-        UpdateEvents(protocol);
+        UpdateEvents();
         UpdateProtocolPicturesAndCodes(protocol);
         m_HasDataToDisplay = (TaskPerformanceService.ProcessedTriggers.Count == 0) ? false : true;
+
+        m_internalTimer.Restart();
     }
 
-    private void UpdateEvents(ProvFile protocol)
+    private void UpdateEvents()
     {
-        UnityEngine.Debug.Log("Update Events");
-
         int TriggerCount = TaskPerformanceService.ProcessedTriggers.Count;
         UnityEngine.Debug.Log("Update Events " + TriggerCount);
 
@@ -177,6 +231,7 @@ public class TaskPerformanceTrace : MonoBehaviour
         {
             TriggerBarplot trigger = Instantiate(m_TriggerBarplotPrefabs, m_TaskBarHolder); //instancier avec parent dzans les paramètres
             trigger.Trigger = TaskPerformanceService.ProcessedTriggers[i];
+            trigger.SetColor(TaskPerformanceService.Colors[i]);
             trigger.UpdatePosition(0, i, 0, -2);
             trigger.UpdatePosition(0, i, 100, -2);
             trigger.Show(false);
@@ -185,16 +240,16 @@ public class TaskPerformanceTrace : MonoBehaviour
         }
     }
 
-    private void UpdateProtocolPicturesAndCodes(ProvFile protocol)
+    private void UpdateProtocolPicturesAndCodes(Protocol protocol)
     {
         UnityEngine.Debug.Log("Update Protocol Pics and code");
 
-        for (int i = 0; i < protocol.blocs.Count; i++)
+        for (int i = 0; i < protocol.Blocs.Count; i++)
         {
-            if (File.Exists(protocol.blocs[i].dispBloc.path))
+            if (File.Exists(protocol.Blocs[i].dispBloc.path))
             {
                 Texture2D current = new Texture2D(256, 256);
-                current.LoadImage(File.ReadAllBytes(protocol.blocs[i].dispBloc.path));
+                current.LoadImage(File.ReadAllBytes(protocol.Blocs[i].dispBloc.path));
 
                 m_EventPictures.Add(current);
             }
@@ -202,7 +257,7 @@ public class TaskPerformanceTrace : MonoBehaviour
             {
                 m_EventPictures.Add(m_DefaultEventPicturePrefabs);
             }
-            m_EventMainCodes.Add(protocol.blocs[i].mainEvent.code);
+            m_EventMainCodes.Add(protocol.Blocs[i].mainEvent.code);
         }
     }
 
@@ -225,7 +280,7 @@ public class TaskPerformanceTrace : MonoBehaviour
                 MaxReactionTime = currentRtMs;
         }
         m_HorizontalScale = m_TaskBarHolder.rect.width / (m_PeriopdInSec * 1000);
-        m_VerticalScale = m_TaskBarHolder.rect.height / MaxReactionTime;
+        m_VerticalScale = m_TaskBarHolder.rect.height / (MaxReactionTime == 0 ? 1 : MaxReactionTime + 1000);
     }
 
     private void UpdateSpawn(int milliSecToLook)
@@ -236,8 +291,8 @@ public class TaskPerformanceTrace : MonoBehaviour
         int left = milliSecToLook - (m_PeriopdInSec * 1000);
         int right = milliSecToLook;
 
-        List<int> currentIndex = m_Triggers.Select((item, index) => new { Item = item, Index = index })
-                                            .Where(x => x.Item.Trigger.ResponsTimeInMilliSeconds > left && x.Item.Trigger.ResponsTimeInMilliSeconds < right)
+        /*List<int>*/ currentIndex = m_Triggers.Select((item, index) => new { Item = item, Index = index })
+                                            .Where(x => x.Item.Trigger.MainEventTimeInMilliSeconds > left && x.Item.Trigger.MainEventTimeInMilliSeconds < right)
                                             .Select(x => x.Index)
                                             .ToList();
 
@@ -246,16 +301,20 @@ public class TaskPerformanceTrace : MonoBehaviour
         {
             for (int i = 0; i < currentIndex.Count; i++)
             {
-                float posiionSample = (left - m_Triggers[currentIndex[i]].Trigger.ResponsTimeInMilliSeconds);
+                TriggerBarplot barplot = m_Triggers[currentIndex[i]];
+                float posiionSample = (left - barplot.Trigger.MainEventTimeInMilliSeconds);
                 float positionInsideRect = posiionSample * -m_HorizontalScale;
 
-                if (m_Triggers[currentIndex[i]].Trigger.ResponsTimeInMilliSeconds <= right)
+                if (barplot.Trigger.MainEventTimeInMilliSeconds <= right)
                 {
-                    m_Triggers[currentIndex[i]].gameObject.SetActive(true);
-                    m_Triggers[currentIndex[i]].UpdatePosition(0, positionInsideRect, 5, -2);
+                    //UnityEngine.Debug.Log("Trigger code " + barplot.Trigger.MainEnventCode);
+                    barplot.gameObject.SetActive(true);
+                    barplot.UpdatePosition(0, positionInsideRect, 5, -2);
 
-                    float value = m_VerticalScale * (m_Triggers[currentIndex[i]].Trigger.ReactionTimeInMs - 750);
-                    m_Triggers[currentIndex[i]].UpdatePosition(1, positionInsideRect, Mathf.Abs(value), -2);
+                    //If reactionTimeInMs == 0 , it means that it's an event without answer, and for now we just
+                    //want to represent it as a bar in the graph, we'll see later for better displaying
+                    float value = barplot.Trigger.ReactionTimeInMs  == 0 ? m_TaskBarHolder.rect.height : m_VerticalScale * (barplot.Trigger.ReactionTimeInMs /*- 750*/);
+                    barplot.UpdatePosition(1, positionInsideRect, Mathf.Abs(value) - 5, -2);
                 }
             }
         }
@@ -276,19 +335,22 @@ public class TaskPerformanceTrace : MonoBehaviour
         if (!m_HasDataToDisplay)
             return;
 
-        int found = m_Triggers.FindIndex(x => x.Trigger.MainEventTimeInMilliSeconds >= milliSecToLook - 8 && x.Trigger.MainEventTimeInMilliSeconds < milliSecToLook + 8);
-        if (found == -1)
+        List<TriggerBarplot> barplots = m_Triggers.FindAll(x => x.Trigger.MainEventTimeInMilliSeconds >= milliSecToLook - 20 && x.Trigger.MainEventTimeInMilliSeconds <= milliSecToLook);
+        bool barplots2Show = barplots.Count > 0;
+        if (!barplots2Show)
         {
-            if (m_EventPicture.activeSelf == true)
+            if (m_internalTimer.ElapsedMilliseconds > 1000)
+            {
                 m_EventPicture.SetActive(false);
-
+                m_internalTimer.Restart();
+            }
             return;
         }
 
-        if (m_EventPicture.activeSelf == false)
-        {
-            m_EventPicture.SetActive(true);
-            m_EventRawImage.texture = m_EventPictures[m_EventMainCodes.IndexOf(m_Triggers[found].Trigger.MainEnventCode)];
-        }
+        m_EventPicture.SetActive(barplots2Show);
+        TriggerBarplot lastBarplot = barplots[barplots.Count - 1];
+        m_EventRawImage.texture = m_EventPictures[m_EventMainCodes.IndexOf(lastBarplot.Trigger.MainEnventCode)];
+        m_internalTimer.Restart();
+
     }
 }

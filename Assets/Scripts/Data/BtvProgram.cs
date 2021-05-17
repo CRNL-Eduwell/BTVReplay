@@ -17,11 +17,11 @@ namespace BTV.Data
                 return Channels.Count;
             }
         }
-        public int TotalDurationInSeconds
+        public int TotalDurationInMilliseconds
         {
             get
             {
-                return (int)Math.Round((float)NumberOfSample / Frequency.Value);
+                return (int)Math.Round((float)NumberOfSample / Frequency.Value * 1000);
             }
         }
         public int NumberOfSample
@@ -33,6 +33,7 @@ namespace BTV.Data
         }
         public string Description { get; private set; } = "";
         public List<BtvChannel> Channels { get; private set; } = new List<BtvChannel>();
+        public List<BtvEvent> Events { get; private set; } = new List<BtvEvent>();
         public Frequency Frequency { get; set; } = new Frequency();
         public string Directory
         {
@@ -51,9 +52,15 @@ namespace BTV.Data
                 Channels.Add(new BtvChannel(pair.Key, count, container.Frequency.RawValue, pair.Value));
                 count++;
             }
+            Events = new List<BtvEvent>(container.Events);
+
             Frequency = container.Frequency;
             m_FilePath = container.FilePath;
             Description = description;
+
+            //Little hack due to micromed seemingly finishing a recording but keep events after said end
+            //See at some point if it's not better to expand end of file time and add zero's to data (or not)
+            int removedCount = Events.RemoveAll(x => x.TimeInMilliSeconds > TotalDurationInMilliseconds);
         }
 
         public int GetElectrodeIDFromElectrodeName(string Name, bool IsLowerCaseName = false)

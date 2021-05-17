@@ -10,7 +10,7 @@ class UiToTaskPerformanceMessage
         set;
     }
 
-    public ProvFile NewProtocol
+    public Protocol NewProtocol
     {
         get;
         set;

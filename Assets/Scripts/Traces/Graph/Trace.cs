@@ -64,7 +64,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     GameObject m_DisplayEventWindowPrefabs = null;
     GameObject m_PopUpAddWindow = null, m_PopUpEditWindow = null, m_PopUpDisplayWindow = null;
 
-    private float m_Timer = 0.0f;
     private float m_WheelSum = 0;
 
     void Awake()
@@ -99,45 +98,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    void Update()
-    {
-        m_Timer += Time.deltaTime;
-
-        if (m_initDone == false) return;
-
-        if (m_window.hasFocus)
-        {
-            //If OnGui Management of the difference wheel / trackpad cause issue, put that back
-            //and delete gui function
-            //if (isOver(Input.mousePosition))
-            //{
-            //    Vector2 scrollDelta = Input.mouseScrollDelta;
-            //    if (scrollDelta.y != 0)
-            //    {
-            //        if (scrollDelta.y < 0)
-            //        {
-            //            updateElectrodeById(eegSignal.ElectrodeID - 1);
-            //        }
-            //        else 
-            //        {
-            //            updateElectrodeById(eegSignal.ElectrodeID + 1);
-            //        }
-            //    }
-            //}
-
-            if ((Input.GetKey(KeyCode.UpArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                m_Timer = 0;
-                updateElectrodeById(eegSignal.ElectrodeID + 1);
-            }
-            else if ((Input.GetKey(KeyCode.DownArrow) && m_Timer >= 0.2f) || Input.GetKeyDown(KeyCode.DownArrow))
-            {
-                m_Timer = 0;
-                updateElectrodeById(eegSignal.ElectrodeID - 1);
-            }
-        }
-    }
-
     private void OnGUI()
     {
         if (m_initDone == false) return;
@@ -155,7 +115,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                         if (IsAlmostEqual(Mathf.Abs(Event.current.delta.y), Mathf.Abs(scrollDelta.y)))
                         {
                             //UnityEngine.Debug.Log("ismouse");
-                            updateElectrodeById(scrollDelta.y > 0 ? eegSignal.ElectrodeID + 1 : eegSignal.ElectrodeID - 1);
+                            UpdateElectrodeById(scrollDelta.y > 0 ? eegSignal.ElectrodeID + 1 : eegSignal.ElectrodeID - 1);
                         }
                         else
                         {
@@ -164,12 +124,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                             if (m_WheelSum <= -0.1f)
                             {
                                 m_WheelSum = 0;
-                                updateElectrodeById(eegSignal.ElectrodeID - 1);
+                                UpdateElectrodeById(eegSignal.ElectrodeID - 1);
                             }
                             else if (m_WheelSum >= 0.1f)
                             {
                                 m_WheelSum = 0;
-                                updateElectrodeById(eegSignal.ElectrodeID + 1);
+                                UpdateElectrodeById(eegSignal.ElectrodeID + 1);
                             }
                         }
                     }
@@ -412,7 +372,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         graphLabel.Electrode = eegSignal.ElectrodeLabel;
     }
 
-    void updateElectrodeById(int newId)
+    public void UpdateElectrodeById(int newId)
     {
         eegSignal.ElectrodeID = newId;
         eegSignal.UpdateOffset();
@@ -438,7 +398,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             if (plot != null)
             {
                 int hitID = plot.GetComponent<Site>().ID;
-                updateElectrodeById(hitID);
+                UpdateElectrodeById(hitID);
             }
             ring.setSelectedPlot(plot);
         }
@@ -458,9 +418,15 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.clickCount == 2)
-            manageFocusClick();
+        {
+            ForceToggleToolbar toggleMessage = new ForceToggleToolbar
+            {
+                toolbar = "EEG" + (TraceId + 1).ToString()
+            };
+            Messenger.Default.Send(toggleMessage, MessageContext.ForceToggleToolbar);
+        }
 
-        focusClickElecLabel();
+        FocusClickElecLabel();
 
         m_rectTransform.GetWorldCorners(m_worldCorners);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -474,51 +440,32 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    public void manageFocusClick()
-    {
-        if (!m_window.hasFocus)
-        {
-            m_window.setBorderColor(orange);
-            m_window.hasFocus = !m_window.hasFocus;
-
-            if (m_handleOtherTrace != null)
-            {
-                m_handleOtherTrace.hasFocus = false;
-                m_handleOtherTrace.setBorderColor(blue);
-            }
-
-            plotClicked(GameObject.Find(eegSignal.ElectrodeName.ToLower()));
-        }
-        else
-        {
-            plotClicked(null);
-            m_window.setBorderColor(blue);
-            m_window.hasFocus = !m_window.hasFocus;
-        }
-    }
-
-    void focusClickElecLabel()
+    private void FocusClickElecLabel()
     {
         Ray r = new Ray(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector3.forward);
         RaycastHit hit;
         if (Physics.Raycast(r, out hit))
         {
-            if (hit.collider.name == "Electrode_" + (traceID))
+            if (hit.collider.name.Contains("Electrode_"))
             {
-                manageFocusClick();
-                if (m_window.transform.position == m_handleOtherTrace.transform.position)
+                string[] split = hit.collider.name.Split(new string[] { "Electrode_" }, System.StringSplitOptions.RemoveEmptyEntries);
+                if (split.Length > 0)
                 {
-                    gameObject.transform.SetSiblingIndex(1);
-                    m_handleOtherTrace.gameObject.transform.SetSiblingIndex(0);
-                }
-            }
-            else
-            {
-                m_handleOtherTrace.gameObject.GetComponent<Trace>().manageFocusClick();
-                if (m_window.transform.position == m_handleOtherTrace.transform.position)
-                {
-                    gameObject.transform.SetSiblingIndex(0);
-                    m_handleOtherTrace.gameObject.transform.SetSiblingIndex(1);
+                    bool parseOk = int.TryParse(split[0], out int index);
+                    if (parseOk)
+                    {
+                        ForceToggleToolbar toggleMessage = new ForceToggleToolbar
+                        {
+                            toolbar = "EEG" + (index + 1).ToString()
+                        };
+                        Messenger.Default.Send(toggleMessage, MessageContext.ForceToggleToolbar);
+
+                        GameObject moveSiblingPosition = (index == TraceId) ? gameObject : m_handleOtherTrace.gameObject;
+                        if (m_window.transform.position == m_handleOtherTrace.transform.position)
+                        {
+                            moveSiblingPosition.transform.SetAsLastSibling();
+                        }
+                    }
                 }
             }
         }

@@ -24,6 +24,7 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
     /// 3 : Possiblité de changer la courbe selectionné en cliquant sur le cerveau
     /// </summary>
     public GenericEvent<int> UpdateUiAndModuleLayout = new GenericEvent<int>();
+    public int StatusValue { get { return m_OptionsCounter; } }
 
     [SerializeField]
     private Image m_BackgroundImage = null;

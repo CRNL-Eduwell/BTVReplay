@@ -343,6 +343,8 @@ namespace VLCSharp
     /// </summary>
     public class VLCSharp : MonoBehaviour, IVideoPlayer
     {
+        public bool IsPrepared { get { return false; } } //vlc sharp not used at the moment, just to prevent compile error
+
         /// <summary>
         /// Exact Time of the video without a possible offset, there is a possible offset due to user input
         /// This is an extrapolation of the time returned by VLC API since we need a greater precision
