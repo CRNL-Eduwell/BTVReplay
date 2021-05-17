@@ -66,7 +66,6 @@ public class HalfSphere : MonoBehaviour
                 double xOnBitMap = ((Math.Cos(phi1) * Math.Cos(theta) * ratio) + 1) / 2;
                 double yOnBitMap = ((Math.Sin(phi1) * ratio) + 1) / 2;
 
-                //TextureCoordinates.Add(new Vector2(1f - (float)xOnBitMap, 1f - (float)yOnBitMap));
                 TextureCoordinates.Add(new Vector2((float)xOnBitMap, (float)yOnBitMap));
 
                 theta += dtheta;
@@ -95,10 +94,6 @@ public class HalfSphere : MonoBehaviour
                 i2 += 1;
             }
         }
-
-        // Correct Position
-        //for (int i = 0; i < Positions.Count; i++)
-        //    Positions[i] = new Vector3(-Positions[i].x, Positions[i].y - 16, -Positions[i].z + 9.85f);
     }
 
 }

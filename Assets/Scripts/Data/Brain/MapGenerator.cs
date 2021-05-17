@@ -11,20 +11,8 @@ class MapGenerator
     private int m_width = 0;
     private int m_height = 0;
     private Color[] m_colormap = new Color[512];
-    private RawImage m_sphereRawImage = null;
+    private Color[] m_TextureColors = null;
     private Texture2D m_workingTexture = null;
-
-    public MapGenerator(int width, int height, RawImage sphereImage)
-    {
-        m_width = width;
-        m_height = height;
-        m_sphereRawImage = sphereImage;
-
-        m_workingTexture = new Texture2D(m_width, m_height, TextureFormat.ARGB32, true, true);
-        m_sphereRawImage.texture = m_workingTexture;
-
-        JetColorMap512(ref m_colormap);
-    }
 
     public MapGenerator(int width, int height, Material sphereMaterial)
     {
@@ -39,30 +27,26 @@ class MapGenerator
 
     public void CreateMap(float[] eegPhysicalValues)
     {
-        List<int>[] colorX = new List<int>[512];
-        List<int>[] colorY = new List<int>[512];
-        for (int i = 0; i < 512; i++)
+        if (m_TextureColors == null || m_TextureColors.Length != eegPhysicalValues.Length)
         {
-            colorX[i] = new List<int>();
-            colorY[i] = new List<int>();
+            m_TextureColors = new Color[eegPhysicalValues.Length];
         }
 
-        EegData2ColorMap(ref colorX, ref colorY, eegPhysicalValues);
+        UnityEngine.Profiling.Profiler.BeginSample("MapColors");
+        EegData2ColorMap(eegPhysicalValues);
+        UnityEngine.Profiling.Profiler.EndSample();
 
-        for (int i = 0; i < 512; i++)
-        {
-            Color currentCOlor = m_colormap[i];
-            for (int j = 0; j < colorX[i].Count; j++)
-            {
-                m_workingTexture.SetPixel(colorX[i][j], colorY[i][j], currentCOlor);
-            }
-        }
+        UnityEngine.Profiling.Profiler.BeginSample("MapColors set");
+        m_workingTexture.SetPixels(m_TextureColors);
+        UnityEngine.Profiling.Profiler.EndSample();
+
+        UnityEngine.Profiling.Profiler.BeginSample("MapColors apply");
+        m_workingTexture.Apply();
+        UnityEngine.Profiling.Profiler.EndSample();
 
         //Debug texture generated
         //byte[] d = ImageConversion.EncodeToPNG(m_workingTexture);
         //File.WriteAllBytes("/Users/florian/Desktop/dd.png", d);
-
-        m_workingTexture.Apply();
     }
 
     /// <summary>
@@ -124,23 +108,27 @@ class MapGenerator
     }
 
     /// <summary>
-    /// Convert Eeg Values to their color counterpart
-    /// (0,0) is the top left corner
+    /// Convert Eeg Values to their color counterpart.
+    /// The colors array is a flattened 2D array, where
+    /// pixels are laid out left to right, bottom to top (i.e. row after row). 
+    /// (0,0) is the bootom left corner
     /// </summary>
-    /// <param name="colorX"></param>
-    /// <param name="colorY"></param>
     /// <param name="eegPhysicalValues"></param>
     /// <param name="max"></param>
     /// <param name="min"></param>
-    private void EegData2ColorMap(ref List<int>[] colorX, ref List<int>[] colorY, float[] eegPhysicalValues, float max = 0.0f, float min = 0.0f)
+    private void EegData2ColorMap(float[] eegPhysicalValues, float max = 0.0f, float min = 0.0f)
     {
+        UnityEngine.Profiling.Profiler.BeginSample("Data2ColorMap 1");
         if (max == 0.0f && min == 0.0f)
         {
             max = eegPhysicalValues.Max();
             min = eegPhysicalValues.Min();
         }
+        UnityEngine.Profiling.Profiler.EndSample();
 
-        for (int i = 0; i < eegPhysicalValues.Length; i++)
+        UnityEngine.Profiling.Profiler.BeginSample("Data2ColorMap 2");
+        int valueCount = eegPhysicalValues.Length;
+        for (int i = 0; i < valueCount; ++i)
         {
             float r = (eegPhysicalValues[i] - min) / (max - min);
 
@@ -151,8 +139,8 @@ class MapGenerator
             else if (col > 511)
                 col = 511;
 
-            colorX[col].Add(i % m_width);
-            colorY[col].Add(m_height - (i / m_width));
+            m_TextureColors[valueCount - 1 - i] = m_colormap[col];
         }
+        UnityEngine.Profiling.Profiler.EndSample();
     }
 }

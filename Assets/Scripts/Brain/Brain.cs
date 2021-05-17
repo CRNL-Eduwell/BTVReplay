@@ -61,8 +61,10 @@ public class Brain : MonoBehaviour
             sphere.transform.parent = gameObject.transform;
             HalfSphere hs = sphere.GetComponent<HalfSphere>();
             hs.InitSphere();
-            DataProjectionService dps = sphere.AddComponent<DataProjectionService>();
+            ScalpDataProjector dps = sphere.AddComponent<ScalpDataProjector>();
 
+            //Move brain for a nice visualisation and to prevent error in uv position
+            //when recalculating electrodes position this way, much simpler
             m_LeftHemiBrain.transform.position += new Vector3(0, 16, 9.85f);
             m_RightHemiBrain.transform.position += new Vector3(0, 16, 9.85f);
         }

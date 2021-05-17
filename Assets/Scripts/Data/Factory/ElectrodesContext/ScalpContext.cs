@@ -42,6 +42,7 @@ namespace Assets.Scripts.Data.Factory
             GameObject Electrode = new GameObject();
             Electrode.name = "Scalp_Eeg";
             Electrode.transform.parent = parent.transform;
+            ScalpDataProjector dps = parent.transform.parent.GetChild(2).GetComponent<ScalpDataProjector>();
             for (int i = 0; i < Electrodes.Count; i++)
             {
                 EEG_Plot CurrentPlot = (EEG_Plot)Electrodes[i];
@@ -54,13 +55,13 @@ namespace Assets.Scripts.Data.Factory
                 NewPlot.name = CurrentPlot.Label;
                 NewPlot.transform.parent = Electrode.transform;
                 NewPlot.GetComponent<Site>().Init(CurrentPlot.Label);
-                DataProjectionService dps = parent.transform.parent.GetChild(2).GetComponent<DataProjectionService>();
                 if (dps != null)
                 {
-                    if(NewPlot.activeSelf)
-                        dps.Electrodes.Add(NewPlot.GetComponent<Site>());
+                    if (NewPlot.activeSelf)
+                        dps.AddSite(NewPlot.GetComponent<Site>());
                 }
             }
+            dps.InitArrays();
         }
 
         public void LoadDefaultPearl()

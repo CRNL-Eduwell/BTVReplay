@@ -16,6 +16,7 @@ public class Site : MonoBehaviour
         get;
         private set;
     }
+
     public bool IsFrozen
     {
         get
@@ -31,6 +32,7 @@ public class Site : MonoBehaviour
             m_IsFrozen = value;
         }
     }
+
     public string MarsAtlasName
     {
         get
@@ -47,6 +49,7 @@ public class Site : MonoBehaviour
                 return "";
         }
     }
+
     public string BroadmanName
     {
         get
@@ -63,6 +66,10 @@ public class Site : MonoBehaviour
                 return "";
         }
     }
+
+    /// <summary>
+    /// Coordinates in the Unity Referential
+    /// </summary>
     public Vector3 Coordinates
     {
         get
@@ -70,6 +77,47 @@ public class Site : MonoBehaviour
             return gameObject.transform.localPosition;
         }
     }
+
+    /// <summary>
+    /// 3d coordinates representation on 2d texture
+    /// </summary>
+    public Vector2 Texture2dCoordinates_Normal
+    {
+        get
+        {
+            float x = 0.0f, y = 0.0f;
+            Vector3 coordinates = Coordinates;
+
+            //Carthesien to spherical
+            float r = Mathf.Sqrt((coordinates.x * coordinates.x) + (coordinates.y * coordinates.y) + (coordinates.z * coordinates.z));
+
+            //Check values if we find the start values (debug)
+            //float theta_latt_rad = Mathf.Acos(m_coordinates_Z[count] / r);
+            //float phi_long_rad = (float)Mathf.Atan2(m_coordinates_Y[count], m_coordinates_X[count]);
+            //float theta_latt_degree = (theta_latt_rad * (180f / Mathf.PI));
+            //float phi_long_degree = (phi_long_rad * (180f / Mathf.PI));
+            //if (phi_long_degree >= 360) { phi_long_degree -= 360; }
+            //else if (phi_long_degree < 0) { phi_long_degree += 360; }
+
+            float theta = (float)Math.Acos(coordinates.z / r);
+            if (Math.Abs(theta) < 1.0e-16)
+            {
+                y = 0.0f;
+                x = 0.0f;
+            }
+            else
+            {
+                y = (theta / Mathf.Sin(theta)) * (coordinates.y / r);
+                x = (theta / Mathf.Sin(theta)) * (coordinates.x / r);
+            }
+
+            x = r + (r * (2.0f / Mathf.PI) * x);
+            y = r - (r * (2.0f / Mathf.PI) * y);
+
+            return new Vector2(x, y); 
+        }
+    }
+
     public Color Color
     {
         get
