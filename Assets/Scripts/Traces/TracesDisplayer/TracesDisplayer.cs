@@ -1,6 +1,7 @@
 ﻿using BTV.Data;
 using BTV.Services.CalculationService;
 using BTV.Services.EegFileService;
+using BTV.Services.EventsService;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -151,6 +152,8 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     private void OnGUI()
     {
+        if (m_VideoPlayer.VideoInterface == null) return;
+
         bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
         if (isOver)
         {
@@ -180,6 +183,26 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
                         }
                     }
                 }
+            }
+
+
+            //Check if mouse is over an event or not, tooltip autohides after a delay
+            Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_rectTransform, Input.mousePosition, Camera.main, out Vector2 localPosition);
+            float perc = ((localPosition.x + (0.5f * m_rectTransform.rect.width)) / m_rectTransform.rect.width);
+            float mouseTime = perc * m_VideoPlayer.VideoInterface.TotalVideoTime;
+            List<BtvEvent> eventsIndexes = EventsService.Events.FindAll(x => x.Duration > 0 && (mouseTime >= x.TimeInMilliSeconds && mouseTime <= x.TimeInMilliSeconds + x.Duration));
+            if (eventsIndexes.Count > 0)
+            {
+                TraceDisplayerPointerMessage message = new TraceDisplayerPointerMessage
+                {
+                    TaskToExecute = 0,
+                    PointerPosition = new Vector3(worldClick.x, worldClick.y, 0),
+                    ShowPointer = true,
+                    Code = eventsIndexes[0].Code.ToString(),
+                    DurationTimeMs = eventsIndexes[0].Duration.ToString()
+                };
+                Messenger.Default.Send(message, MessageContext.TraceDisplayerPointerMessage);
             }
         }
     }
