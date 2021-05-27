@@ -2,7 +2,7 @@
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-namespace BTV.UI.PatientBaseManager
+namespace BTV.UI.MainWindow
 {
     /// <summary>
     /// Base class for a menu 

@@ -8,6 +8,8 @@ public class TraceDisplayerPointer : MonoBehaviour
     [SerializeField]
     private Text m_CodeLabel = null;
     [SerializeField]
+    private Text m_DescriptionLabel = null;
+    [SerializeField]
     private Text m_DurationTimeLabel = null;
 
     private float m_TimeSinceAppear = 0.0f;
@@ -56,12 +58,18 @@ public class TraceDisplayerPointer : MonoBehaviour
         gameObject.transform.position = message.PointerPosition;
         m_RootImageObject.SetActive(message.ShowPointer);
         SetCodeLabel(message.Code);
+        SetDescriptionLabel(message.Description);
         SetReactionTimeLabel(message.DurationTimeMs);
     }
 
     private void SetCodeLabel(string label)
     {
         m_CodeLabel.text = "Code : " + label;
+    }
+
+    private void SetDescriptionLabel(string label)
+    {
+        m_DescriptionLabel.text = "Description : " + label;
     }
 
     private void SetReactionTimeLabel(string label)

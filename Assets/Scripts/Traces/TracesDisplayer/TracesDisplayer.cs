@@ -200,6 +200,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
                     PointerPosition = new Vector3(worldClick.x, worldClick.y, 0),
                     ShowPointer = true,
                     Code = eventsIndexes[0].Code.ToString(),
+                    Description = eventsIndexes[0].Comment.ToString(),
                     DurationTimeMs = eventsIndexes[0].Duration.ToString()
                 };
                 Messenger.Default.Send(message, MessageContext.TraceDisplayerPointerMessage);

@@ -51,9 +51,10 @@ public class WindowsManager : MonoBehaviour
     private GameObject CreateWindow(GameObject prefab)
     {
         GameObject gameObject = Instantiate(prefab, m_WorkableArea);
-        RectTransform rectTransform = gameObject.transform as RectTransform;
-        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        // /!\ uncomment if we want to center each window, otherwise define property placement in prefabs
+        //RectTransform rectTransform = gameObject.transform as RectTransform;
+        //rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        //rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         return gameObject;
     }
 }

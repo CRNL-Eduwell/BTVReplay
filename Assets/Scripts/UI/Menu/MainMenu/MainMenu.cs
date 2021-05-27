@@ -2,22 +2,21 @@
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
-namespace BTV.UI.PatientBaseManager
+namespace BTV.UI.MainWindow
 {
     public class MainMenu : MonoBehaviour
     {
         public FileMenu FileMenu { get { return m_FileMenu; } }
-        public EditMenu EditMenu { get { return m_EditMenu; } }
+        public ToolsMenu ToolsMenu { get { return m_ToolsMenu; } }
 
         [SerializeField] private FileMenu m_FileMenu = null;
-        [SerializeField] private EditMenu m_EditMenu = null;
-        [SerializeField] private OptionMenu m_Option = null;
+        [SerializeField] private ToolsMenu m_ToolsMenu = null;
 
         private bool IsOneMenuOpen
         {
             get
             {
-                return m_FileMenu.IsOpen || m_EditMenu.IsOpen || m_Option.IsOpen;
+                return m_FileMenu.IsOpen || m_ToolsMenu.IsOpen;
             }
         }
 
@@ -33,25 +32,15 @@ namespace BTV.UI.PatientBaseManager
                 if (isHovered && IsOneMenuOpen)
                     m_FileMenu.Open();
             });
-            m_EditMenu.OnChangeOpenState.AddListener((isOpen) =>
+            m_ToolsMenu.OnChangeOpenState.AddListener((isOpen) =>
             {
                 if (isOpen)
-                    Set(m_EditMenu);
+                    Set(m_ToolsMenu);
             });
-            m_EditMenu.OnHover.AddListener((isHovered) =>
+            m_ToolsMenu.OnHover.AddListener((isHovered) =>
             {
                 if (isHovered && IsOneMenuOpen)
-                    m_EditMenu.Open();
-            });
-            m_Option.OnChangeOpenState.AddListener((isOpen) =>
-            {
-                if (isOpen)
-                    Set(m_Option);
-            });
-            m_Option.OnHover.AddListener((isHovered) =>
-            {
-                if (isHovered && IsOneMenuOpen)
-                    m_Option.Open();
+                    m_ToolsMenu.Open();
             });
         }
 
@@ -59,10 +48,8 @@ namespace BTV.UI.PatientBaseManager
         {
             m_FileMenu.OnChangeOpenState.RemoveAllListeners();
             m_FileMenu.OnHover.RemoveAllListeners();
-            m_EditMenu.OnChangeOpenState.RemoveAllListeners();
-            m_EditMenu.OnHover.RemoveAllListeners();
-            m_Option.OnChangeOpenState.RemoveAllListeners();
-            m_Option.OnHover.RemoveAllListeners();
+            m_ToolsMenu.OnChangeOpenState.RemoveAllListeners();
+            m_ToolsMenu.OnHover.RemoveAllListeners();
         }
 
         private void Update()
@@ -87,15 +74,13 @@ namespace BTV.UI.PatientBaseManager
         public void CloseAll()
         {
             m_FileMenu.Close();
-            m_EditMenu.Close();
-            m_Option.Close();
+            m_ToolsMenu.Close();
         }
 
         private void Set(Menu menu)
         {
             if (menu != m_FileMenu) m_FileMenu.Close();
-            if (menu != m_EditMenu) m_EditMenu.Close();
-            if (menu != m_Option) m_Option.Close();
+            if (menu != m_ToolsMenu) m_ToolsMenu.Close();
         }
     }
 }

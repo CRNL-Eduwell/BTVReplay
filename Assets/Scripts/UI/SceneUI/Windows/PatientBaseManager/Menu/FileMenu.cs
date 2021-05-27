@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace BTV.UI
+namespace BTV.UI.PatientBaseManager
 {
     public class FileMenu : Menu
     {

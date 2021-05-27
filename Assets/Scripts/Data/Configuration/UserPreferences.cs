@@ -3,20 +3,24 @@ using UnityEditor;
 
 public class UserPreferences
 {
+    public GeneralPreferences GeneralPreferences { get; set; } = null;
     public DbPreferences DatabasePreferences { get; set; } = null;
 
     public UserPreferences()
     {
+        GeneralPreferences = new GeneralPreferences();
         DatabasePreferences = new DbPreferences();
     }
 
-    public UserPreferences(DbPreferences dbPreferences)
+    public UserPreferences(GeneralPreferences generalPreferences, DbPreferences dbPreferences)
     {
+        GeneralPreferences = new GeneralPreferences(generalPreferences);
         DatabasePreferences = new DbPreferences(dbPreferences);
     }
 
     public UserPreferences(UserPreferences preferences)
     {
+        GeneralPreferences = new GeneralPreferences(preferences.GeneralPreferences);
         DatabasePreferences = new DbPreferences(preferences.DatabasePreferences);
     }
 

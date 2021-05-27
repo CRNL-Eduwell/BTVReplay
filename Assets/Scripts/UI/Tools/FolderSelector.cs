@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine.UI;
 using System.IO;
 using System.Collections;
+using BrainTV.Tools.NumberExtensions;
 
 public class FolderSelector : MonoBehaviour
 {
@@ -46,7 +47,7 @@ public class FolderSelector : MonoBehaviour
             {
                 if (Directory.Exists(str))
                 {
-                    Text = str;
+                    Text = str.StandardizeToPath();
                 }
             }
         }, "Select a directory", Text);
@@ -56,7 +57,7 @@ public class FolderSelector : MonoBehaviour
         {
             if (Directory.Exists(path))
             {
-                Text = path;
+                Text = path.StandardizeToPath();
             }
         }
 #endif

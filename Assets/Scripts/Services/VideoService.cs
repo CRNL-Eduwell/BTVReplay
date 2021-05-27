@@ -71,9 +71,10 @@ namespace BTV.Services.VideoService
         {
             get
             {
+                string userPrefPath = UserPreferencesService.UserPreferencesService.UserPreferences.GeneralPreferences.VlcPath;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    return "C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe";
+                    return string.IsNullOrEmpty(userPrefPath) ? "C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe" : (userPrefPath + "\\vlc.exe");
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
@@ -81,7 +82,7 @@ namespace BTV.Services.VideoService
                 }
                 else if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    return "/Applications/VLC.app/Contents/MacOS/VLC";
+                    return string.IsNullOrEmpty(userPrefPath) ? "/Applications/VLC.app/Contents/MacOS/VLC" : (userPrefPath + "/Contents/MacOS/VLC");
                 }
                 else
                 {
