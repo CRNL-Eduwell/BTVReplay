@@ -121,7 +121,7 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
         Destroy(oldTexture);
 
         //Create New Render Texture and assign it to the videoplayer
-        m_TextureForVideo.texture = new RenderTexture((int)m_VideoPlayer.width, (int)m_VideoPlayer.height, 0, RenderTextureFormat.ARGB32);
+        m_TextureForVideo.texture = new RenderTexture(m_VideoPlayer.texture.width, m_VideoPlayer.texture.height, 0, RenderTextureFormat.ARGB32);
         m_VideoPlayer.targetTexture = (RenderTexture)(m_TextureForVideo.texture);
         WidthToHeightRatio = (float)m_TextureForVideo.texture.width / m_TextureForVideo.texture.height;
         HeightToWidthRatio = (float)m_TextureForVideo.texture.height / m_TextureForVideo.texture.width;
