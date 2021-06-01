@@ -1,6 +1,13 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
+/// <summary>
+/// User preferences saved in a file on user computer
+/// 
+/// Persistent Paths are
+/// Windows : %userprofile%\AppData\LocalLow\CRNL\BTVReplay\Preferences.txt
+/// MacOS : ~/Library/Application Support/CRNL/BTVReplay/Preferences.txt
+/// </summary>
 public class UserPreferences
 {
     public GeneralPreferences GeneralPreferences { get; set; } = null;

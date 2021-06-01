@@ -82,7 +82,7 @@ namespace BTV.Services.VideoService
                 }
                 else if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    return string.IsNullOrEmpty(userPrefPath) ? "/Applications/VLC.app/Contents/MacOS/VLC" : (userPrefPath + "/Contents/MacOS/VLC");
+                    return string.IsNullOrEmpty(userPrefPath) ? "/Applications/VLC.app/Contents/MacOS/VLC" : (userPrefPath + "/VLC.app/Contents/MacOS/VLC");
                 }
                 else
                 {
@@ -124,6 +124,7 @@ namespace BTV.Services.VideoService
 
         public static IEnumerator c_RecordVideoSnippet(string OutputVideoPath, string durationInSeconds)
         {
+            UnityEngine.Debug.Log("Record " + OutputVideoPath + " et duree " + durationInSeconds);
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.FileName = m_VlcPath;

@@ -273,7 +273,7 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         if (m_scrollbarnotclicked)
         {
-            _TimeScrollbar.value = (float)(VideoInterface.CurrentTime) / VideoInterface.TotalVideoTime;
+            _TimeScrollbar.value = ((float)VideoInterface.CurrentTime) / VideoInterface.TotalVideoTime;
             UpdateTimeText((long)(VideoInterface.CurrentTime * 0.001f));
         }
         else if (m_slaved)
