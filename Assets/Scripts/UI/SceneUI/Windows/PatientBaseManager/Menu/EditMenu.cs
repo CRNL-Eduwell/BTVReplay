@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace BTV.UI
+namespace BTV.UI.PatientBaseManager
 {
     public class EditMenu : Menu
     {

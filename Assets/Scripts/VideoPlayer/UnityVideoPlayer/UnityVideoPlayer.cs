@@ -15,7 +15,10 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public long VideoTime { get { return CurrentTime - m_OffsetVideoMilliSec; } }
 
-    public long TotalVideoTime { get { return (long)(m_VideoPlayer.length * 1000); } }
+    //! Ugly ass patch due to Unity update making length = 0 sometimes when
+    // dragging scrollbar , TODO correct me
+    //public long TotalVideoTime { get { return (long)(m_VideoPlayer.length * 1000); } }
+    public long TotalVideoTime { get; set; }
 
     public bool IsPlaying { get { return m_VideoPlayer.isPlaying && !m_VideoPlayer.isPaused; } }
 
@@ -50,8 +53,27 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
         m_TextureForVideo = texture;
 
         m_VideoPlayer = gameObject.AddComponent<VideoPlayer>();
-
+        m_VideoPlayer.prepareCompleted += M_VideoPlayer_prepareCompleted;
         m_parentRectTransform = transform.parent.GetComponent<RectTransform>();
+    }
+
+    private void M_VideoPlayer_prepareCompleted(VideoPlayer source)
+    {
+        //Delete old texture or BTVLogo 
+        Texture oldTexture = m_TextureForVideo.texture;
+        Destroy(oldTexture);
+
+        //Create New Render Texture and assign it to the videoplayer
+        m_TextureForVideo.texture = new RenderTexture(source.texture.width, source.texture.height, 0, RenderTextureFormat.ARGB32);
+        source.targetTexture = (RenderTexture)(m_TextureForVideo.texture);
+        WidthToHeightRatio = (float)m_TextureForVideo.texture.width / m_TextureForVideo.texture.height;
+        HeightToWidthRatio = (float)m_TextureForVideo.texture.height / m_TextureForVideo.texture.width;
+        ResizeTexture();
+
+        Play();
+
+        //! Ugly ass patch , TODO correct me
+        TotalVideoTime = (long)(m_VideoPlayer.length * 1000);
     }
 
     public void Update()
@@ -68,7 +90,7 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
     {
         if (!m_VideoPlayer.isPrepared)
         {
-            StartCoroutine(PrepareAndPlay());
+            StartCoroutine(PrepareVideoPlayerRessources());
             return;
         }
 
@@ -109,28 +131,7 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
         m_VideoPlayer.SetDirectAudioVolume(0, volume);
     }
 
-    private IEnumerator PrepareAndPlay()
-    {
-        PrepareVideoPlayerRessources();
-
-        while (!m_VideoPlayer.isPrepared)
-            yield return null;
-
-        //Delete old texture or BTVLogo 
-        Texture oldTexture = m_TextureForVideo.texture;
-        Destroy(oldTexture);
-
-        //Create New Render Texture and assign it to the videoplayer
-        m_TextureForVideo.texture = new RenderTexture((int)m_VideoPlayer.width, (int)m_VideoPlayer.height, 0, RenderTextureFormat.ARGB32);
-        m_VideoPlayer.targetTexture = (RenderTexture)(m_TextureForVideo.texture);
-        WidthToHeightRatio = (float)m_TextureForVideo.texture.width / m_TextureForVideo.texture.height;
-        HeightToWidthRatio = (float)m_TextureForVideo.texture.height / m_TextureForVideo.texture.width;
-        ResizeTexture();
-
-        Play();
-    }
-
-    private void PrepareVideoPlayerRessources()
+    private IEnumerator PrepareVideoPlayerRessources()
     {
         // Play on awake defaults to true.
         m_VideoPlayer.playOnAwake = false;
@@ -145,6 +146,9 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
         m_VideoPlayer.waitForFirstFrame = true;
 
         m_VideoPlayer.Prepare();
+
+        while (!m_VideoPlayer.isPrepared)
+            yield return null;
     }
 
     public void Cleanup() { }

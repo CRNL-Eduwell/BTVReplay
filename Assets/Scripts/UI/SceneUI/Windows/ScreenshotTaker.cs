@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BTV.Services.UserPreferencesService;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +11,10 @@ public class ScreenshotTaker : MonoBehaviour
     {
         try
         {
-            string folderPath = Path.GetFullPath(Application.dataPath + "/../Screenshots/");
+            string preferencePath = UserPreferencesService.UserPreferences.GeneralPreferences.ExportPath;
+            if (string.IsNullOrEmpty(preferencePath)) preferencePath = Application.dataPath + "/..";
+
+            string folderPath = Path.GetFullPath(preferencePath + "/Screenshots/");
             if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
             string screenshotPath = folderPath + string.Format("{0}_FullView.png", ApplicationState.Module3D.Patient.PatientName);
             GenerateUniqueSavePath(ref screenshotPath);
