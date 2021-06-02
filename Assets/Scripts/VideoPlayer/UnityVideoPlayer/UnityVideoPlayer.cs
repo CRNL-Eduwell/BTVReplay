@@ -15,7 +15,10 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public long VideoTime { get { return CurrentTime - m_OffsetVideoMilliSec; } }
 
-    public long TotalVideoTime { get { return (long)(m_VideoPlayer.length * 1000); } }
+    //! Ugly ass patch due to Unity update making length = 0 sometimes when
+    // dragging scrollbar , TODO correct me
+    //public long TotalVideoTime { get { return (long)(m_VideoPlayer.length * 1000); } }
+    public long TotalVideoTime { get; set; }
 
     public bool IsPlaying { get { return m_VideoPlayer.isPlaying && !m_VideoPlayer.isPaused; } }
 
@@ -68,6 +71,9 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
         ResizeTexture();
 
         Play();
+
+        //! Ugly ass patch , TODO correct me
+        TotalVideoTime = (long)(m_VideoPlayer.length * 1000);
     }
 
     public void Update()
