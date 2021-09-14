@@ -9,6 +9,8 @@ using UnityEngine.UI;
 public class EventInfoDisplay : MonoBehaviour
 {
     [SerializeField]
+    private Button m_CloseWindow = null;
+    [SerializeField]
     private Text m_Time = null;
     [SerializeField]
     private Dropdown m_Electrodes = null;
@@ -25,7 +27,7 @@ public class EventInfoDisplay : MonoBehaviour
     [SerializeField]
     private Button m_Calculate2DCorrelation = null;
     [SerializeField]
-    private Button m_CloseWindow = null;
+    private Button m_CalculateTimeFrequency = null;
 
     private BtvEvent m_Event = null;
 
@@ -38,20 +40,22 @@ public class EventInfoDisplay : MonoBehaviour
         InitUiValues(m_Event);
         SetButtonsInteractibility(m_Event.Duration);
 
+        m_CloseWindow.onClick.AddListener(CloseWindow);
         m_Electrodes.onValueChanged.AddListener(UpdateEventMainElectrode);
         m_EditEvent.onClick.AddListener(EditEvent);
         m_CalculateCorrelation.onClick.AddListener(CalculateCorrelation);
         m_Calculate2DCorrelation.onClick.AddListener(Calculate2DCorrelation);
-        m_CloseWindow.onClick.AddListener(CloseWindow);
+        m_CalculateTimeFrequency.onClick.AddListener(CalculateTimeFrequency);
     }
 
     private void OnDestroy()
     {
+        m_CloseWindow.onClick.RemoveAllListeners();
         m_Electrodes.onValueChanged.RemoveAllListeners();
         m_EditEvent.onClick.RemoveAllListeners();
         m_CalculateCorrelation.onClick.RemoveAllListeners();
         m_Calculate2DCorrelation.onClick.RemoveAllListeners();
-        m_CloseWindow.onClick.RemoveAllListeners();
+        m_CalculateTimeFrequency.onClick.RemoveAllListeners();
     }
 
     private void InitTimeDisplay(int TimeInSeconds)
@@ -137,6 +141,11 @@ public class EventInfoDisplay : MonoBehaviour
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
     }
 
+    private void CalculateTimeFrequency()
+    {
+        ApplicationState.displayMessage("Can not process data", "NOK", "Time Frequency not implemented yet, stay tuned");
+    }
+
     private void CloseWindow()
     {
         Destroy(gameObject);
@@ -147,5 +156,6 @@ public class EventInfoDisplay : MonoBehaviour
         bool IsInteractable = EventDuration > 0 ? true : false;
         m_CalculateCorrelation.interactable = IsInteractable;
         m_Calculate2DCorrelation.interactable = IsInteractable;
+        m_CalculateTimeFrequency.interactable = IsInteractable;
     }
 }
