@@ -6,6 +6,7 @@ using System.Linq;
 using BTV.Data;
 using BTV.Services.CalculationService;
 using BTV.Services.EventsService;
+using BTV.Services.CodeMatchingService;
 using BTV.UI;
 using CielaSpike;
 using UnityEngine;
@@ -120,6 +121,12 @@ public class EventsManager : MonoBehaviour
                 {
                     Debug.Log("Delete Selected Notes");
                     ApplicationState.displayConfirmation("Deleting Notes", "You are going to delete " + ((ISelectionCountable)m_EventsList).NumberOfItemSelected + " Notes, are you sure ? ", () => { DeleteSelectedEvents(); }, () => { });
+                    break;
+                }
+            case 5:
+                {
+                    Debug.Log("Load CodeMatching file");
+                    CodeMatchingService.Load(message.FilePathToLoad);
                     break;
                 }
         }
