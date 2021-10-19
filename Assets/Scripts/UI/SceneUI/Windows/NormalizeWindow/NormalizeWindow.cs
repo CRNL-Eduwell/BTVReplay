@@ -9,8 +9,6 @@ public class NormalizeWindow : MonoBehaviour
     [SerializeField] private Button _Close = null;
     [SerializeField] private TimeUI _BeginTime = null;
     [SerializeField] private TimeUI _EndTime = null;
-    [SerializeField] private InputField _Code = null;
-    [SerializeField] private InputField _Comment = null;
     [SerializeField] private NormalizeEventList _NormalizedEventList = null;
     [SerializeField] private Button _NormalizeOk = null;
     [SerializeField] private Button _Cancel = null;
@@ -48,16 +46,12 @@ public class NormalizeWindow : MonoBehaviour
         {
             _BeginTime.TimeInSeconds = SelectedElements[0].TimeInSeconds;
             _EndTime.TimeInSeconds = (SelectedElements[0].TimeInSeconds + SelectedElements[0].Duration);
-            _Code.text = SelectedElements[0].Code.ToString();
-            _Comment.text = SelectedElements[0].Comment;
             _NormalizeOk.interactable = true;
         }
         else
         {
             _BeginTime.TimeInSeconds = 0;
             _EndTime.TimeInSeconds = 0;
-            _Code.text = "";
-            _Comment.text = "";
             _NormalizeOk.interactable = false;
         }
     }
