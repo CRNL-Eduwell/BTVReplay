@@ -8,6 +8,7 @@ namespace BTV.Services.CodeMatchingService
 {
     public static class CodeMatchingService
     {
+        public static bool HasCodes { get { return m_CodeComment.Count > 0; } }
         private static Dictionary<int, string> m_CodeComment = new Dictionary<int, string>();
 
         public static void Reset()

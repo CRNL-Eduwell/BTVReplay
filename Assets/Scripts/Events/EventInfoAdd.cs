@@ -4,7 +4,7 @@ using BrainTV.Tools.NumberExtensions;
 using BTV.Data;
 using BTV.Services.CodeMatchingService;
 
-public class EventInfoEdit : MonoBehaviour
+public class EventInfoAdd : MonoBehaviour
 {
     [SerializeField]
     private Text m_Time = null;
@@ -17,24 +17,19 @@ public class EventInfoEdit : MonoBehaviour
     [SerializeField]
     private Button m_SaveEvent = null;
     [SerializeField]
-    private Button m_DeleteEvent = null;
-    [SerializeField]
     private Button m_CloseWindow = null;
 
     private BtvEvent m_Event = null;
-    private BtvEvent m_OriginalEvent = null;
 
     public void Init(BtvEvent clickedEvent)
     {
         m_Event = new BtvEvent(clickedEvent);
-        m_OriginalEvent = new BtvEvent(clickedEvent);
 
         InitTimeDisplay((int)m_Event.TimeInSeconds);
         SetUiValues(m_Event);
 
         m_Code.onEndEdit.AddListener(OnEndEditCodefield);
         m_SaveEvent.onClick.AddListener(SaveEvent);
-        m_DeleteEvent.onClick.AddListener(DeleteEvent);
         m_CloseWindow.onClick.AddListener(CloseWindow);
     }
 
@@ -42,7 +37,6 @@ public class EventInfoEdit : MonoBehaviour
     {
         m_Code.onEndEdit.RemoveAllListeners();
         m_SaveEvent.onClick.RemoveAllListeners();
-        m_DeleteEvent.onClick.RemoveAllListeners();
         m_CloseWindow.onClick.RemoveAllListeners();
     }
 
@@ -81,12 +75,11 @@ public class EventInfoEdit : MonoBehaviour
 
         EventsModificationMessage message = new EventsModificationMessage
         {
-            TaskToExecute = 1,
-            Event = m_Event,
-            EventMemory = m_OriginalEvent
+            TaskToExecute = 0,
+            Event = m_Event
         };
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
-
+       
         CloseWindow();
     }
 
@@ -101,29 +94,7 @@ public class EventInfoEdit : MonoBehaviour
         m_Event.Duration = int.Parse(m_Duration.text);
     }
 
-    private void DeleteEvent()
-    {
-        ApplicationState.displayConfirmation("Event Deletion", "Are You Sure You Want To Delete This Event ?", DeleteAction, CancelAction);
-    }
-
     private void CloseWindow()
-    {
-        Destroy(gameObject);
-    }
-
-    private void DeleteAction()
-    {
-        EventsModificationMessage message = new EventsModificationMessage
-        {
-            TaskToExecute = 2,
-            Event = m_Event
-        };
-        Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
-
-        CloseWindow();
-    }
-
-    private void CancelAction()
     {
         Destroy(gameObject);
     }

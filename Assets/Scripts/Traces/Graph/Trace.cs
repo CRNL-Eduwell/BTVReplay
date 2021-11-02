@@ -61,6 +61,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     Trace m_signalWindow2 = null;
 
     GameObject m_AddEventWindowPrefabs = null;
+    GameObject m_EditEventWindowPrefabs = null;
     GameObject m_DisplayEventWindowPrefabs = null;
     GameObject m_PopUpAddWindow = null, m_PopUpEditWindow = null, m_PopUpDisplayWindow = null;
 
@@ -68,7 +69,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     void Awake()
     {
-        m_AddEventWindowPrefabs = Resources.Load("Prefabs/EventInfoEdit", typeof(GameObject)) as GameObject;
+        m_EditEventWindowPrefabs = Resources.Load("Prefabs/EventInfoEdit", typeof(GameObject)) as GameObject;
+        m_AddEventWindowPrefabs = Resources.Load("Prefabs/EventInfoAdd", typeof(GameObject)) as GameObject;
         m_DisplayEventWindowPrefabs = Resources.Load("Prefabs/EventInfoDisplay", typeof(GameObject)) as GameObject;
 
         m_signalWindow1 = GameObject.Find("Trace1Window").GetComponent<Trace>();
@@ -477,22 +479,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         if (m_AddEvents && m_PopUpAddWindow == null)
         {
-            Transform parent = null;
-
-            if (traceID == 0)
-            {
-                parent = m_signalWindow1.gameObject.transform;
-                Event.SecondSiteOfInterest = m_signalWindow2.TraceEeg.ElectrodeLabel;
-            }
-            else
-            {
-                parent = m_signalWindow2.gameObject.transform;
-                Event.SecondSiteOfInterest = m_signalWindow1.TraceEeg.ElectrodeLabel;
-            }
+            Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
+            Event.SecondSiteOfInterest = traceID == 0 ? m_signalWindow2.TraceEeg.ElectrodeLabel : m_signalWindow1.TraceEeg.ElectrodeLabel;
 
             m_PopUpAddWindow = Instantiate(m_AddEventWindowPrefabs, parent);
-            EventInfoEdit infoEdit = m_PopUpAddWindow.GetComponent<EventInfoEdit>();
-            infoEdit.init(Event, false);
+            EventInfoAdd infoAdd = m_PopUpAddWindow.GetComponent<EventInfoAdd>();
+            infoAdd.Init(Event);
         }
     }
 
@@ -509,13 +501,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OpenEventModify(BtvEvent Event)
     {
-        ApplicationState.Module3D.MemoryEvent = null;
         if (m_PopUpEditWindow == null)
         {
             Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
-            m_PopUpEditWindow = Instantiate(m_AddEventWindowPrefabs, parent);
+            m_PopUpEditWindow = Instantiate(m_EditEventWindowPrefabs, parent);
             EventInfoEdit infoEdit = m_PopUpEditWindow.GetComponent<EventInfoEdit>();
-            infoEdit.init(Event, true);
+            infoEdit.Init(Event);
         }
     }
 }
