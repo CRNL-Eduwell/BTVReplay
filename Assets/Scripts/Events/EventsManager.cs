@@ -27,6 +27,8 @@ public class EventsManager : MonoBehaviour
     [SerializeField]
     EventList m_EventsList = null;
     [SerializeField]
+    EventMatchList m_EventsMatchList = null;
+    [SerializeField]
     EventsTexture m_EventsTexture = null;
     [SerializeField]
     TracesDisplayer m_TracesDisplayer = null;
@@ -127,6 +129,8 @@ public class EventsManager : MonoBehaviour
                 {
                     Debug.Log("Load CodeMatching file");
                     CodeMatchingService.Load(message.FilePathToLoad);
+                    m_EventsMatchList.DeleteAllEvents();
+                    m_EventsMatchList.LoadEvents(CodeMatchingService.GetCodesAndComment());
                     break;
                 }
         }

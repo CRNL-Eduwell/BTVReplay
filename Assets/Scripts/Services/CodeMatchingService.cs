@@ -38,5 +38,17 @@ namespace BTV.Services.CodeMatchingService
             }
             return "";
         }
+
+        public static List<KeyValuePair<int, string>> GetCodesAndComment()
+        {
+            List<KeyValuePair<int, string>> result = new List<KeyValuePair<int, string>>();
+
+            foreach (var kvp in m_CodeComment)
+            {
+                result.Add(new KeyValuePair<int, string>(kvp.Key, kvp.Value));
+            }
+
+            return result;
+        }
     }
 }
