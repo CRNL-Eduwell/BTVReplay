@@ -37,8 +37,6 @@ public class EventList : Tools.Unity.Lists.SelectableList<BtvEvent>
 
     public void AddEvent(BtvEvent currentEvent)
     {
-        ApplicationState.Module3D.MemoryEvent = new BtvEvent(currentEvent);
-
         Add(currentEvent);
         m_DisplayedObjects = m_DisplayedObjects.OrderBy(x => x.TimeInMilliSeconds).ToList();
         Refresh();

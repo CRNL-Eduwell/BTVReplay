@@ -10,12 +10,15 @@ namespace BTV.UI.Module3D
         Tools.EventsSaver m_EventsSaver = null;
         [SerializeField]
         Tools.EventsModifier m_EventsModifier = null;
+        [SerializeField]
+        Tools.EventsMatching m_EventMatching = null;
 
         protected override void AddTools()
         {
             m_Tools.Add(m_EventsLoader);
             m_Tools.Add(m_EventsSaver);
             m_Tools.Add(m_EventsModifier);
+            m_Tools.Add(m_EventMatching);
         }
 
         protected override void AddListeners()
@@ -27,6 +30,7 @@ namespace BTV.UI.Module3D
             m_EventsModifier.AddEvents.AddListener(ToggleAddEvents);
             m_EventsModifier.ShowEvents.AddListener(ToggleShowEvents);
             m_EventsModifier.DeleteEvents.AddListener(DeleteEvents);
+            m_EventMatching.LoadFile.AddListener(LoadCodeMatchingFile);
         }
 
         private void LoadFile(string filePath)
@@ -59,7 +63,6 @@ namespace BTV.UI.Module3D
             Messenger.Default.Send(message, MessageContext.UiToEvents);
         }
 
-
         private void ToggleShowEvents(bool isShowOn)
         {
             UiToEventsMessage message = new UiToEventsMessage
@@ -75,6 +78,16 @@ namespace BTV.UI.Module3D
             UiToEventsMessage message = new UiToEventsMessage
             {
                 TaskToExecute = 4
+            };
+            Messenger.Default.Send(message, MessageContext.UiToEvents);
+        }
+
+        private void LoadCodeMatchingFile(string filePath)
+        {
+            UiToEventsMessage message = new UiToEventsMessage
+            {
+                TaskToExecute = 5,
+                FilePathToLoad = filePath
             };
             Messenger.Default.Send(message, MessageContext.UiToEvents);
         }

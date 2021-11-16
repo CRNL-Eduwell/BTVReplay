@@ -71,7 +71,7 @@ namespace BTV.UI.Module3D.Tools
         {
             Vector3 screenPos = Camera.main.ScreenToWorldPoint(Input.mousePosition); //Mouse Position to world coordinates
             Vector3[] colorWorldPos = new Vector3[4];
-            transform.GetChild(4).transform.GetComponent<RectTransform>().GetWorldCorners(colorWorldPos);
+            m_TextureRawImage.transform.GetComponent<RectTransform>().GetWorldCorners(colorWorldPos);
 
             int pixelIDX = (int)(((screenPos.x - colorWorldPos[1].x) / (colorWorldPos[2].x - colorWorldPos[1].x)) * m_TexturePicker.width);
             int pixelIDY = (int)(((screenPos.y - colorWorldPos[1].y) / (colorWorldPos[3].y - colorWorldPos[2].y)) * m_TexturePicker.height);

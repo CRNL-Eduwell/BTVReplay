@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using BrainTV.Tools.NumberExtensions;
 using BTV.Data;
+using BTV.Services.CodeMatchingService;
 
 public class EventInfoEdit : MonoBehaviour
 {
@@ -22,21 +23,16 @@ public class EventInfoEdit : MonoBehaviour
 
     private BtvEvent m_Event = null;
     private BtvEvent m_OriginalEvent = null;
-    private bool m_IsModif = false;
 
-    public void init(BtvEvent clickedEvent, bool isModif)
+    public void Init(BtvEvent clickedEvent)
     {
         m_Event = new BtvEvent(clickedEvent);
         m_OriginalEvent = new BtvEvent(clickedEvent);
-        m_IsModif = isModif;
 
         InitTimeDisplay((int)m_Event.TimeInSeconds);
+        SetUiValues(m_Event);
 
-        if (isModif && ApplicationState.Module3D.MemoryEvent != null)
-            InitUiValues(ApplicationState.Module3D.MemoryEvent);
-        else
-            InitUiValues(m_Event);
-
+        m_Code.onEndEdit.AddListener(OnEndEditCodefield);
         m_SaveEvent.onClick.AddListener(SaveEvent);
         m_DeleteEvent.onClick.AddListener(DeleteEvent);
         m_CloseWindow.onClick.AddListener(CloseWindow);
@@ -44,6 +40,7 @@ public class EventInfoEdit : MonoBehaviour
 
     private void OnDestroy()
     {
+        m_Code.onEndEdit.RemoveAllListeners();
         m_SaveEvent.onClick.RemoveAllListeners();
         m_DeleteEvent.onClick.RemoveAllListeners();
         m_CloseWindow.onClick.RemoveAllListeners();
@@ -61,35 +58,34 @@ public class EventInfoEdit : MonoBehaviour
             m_Time.text = "00:" + m.FormatToTimeString() + ":" + s.FormatToTimeString();
     }
 
-    private void InitUiValues(BtvEvent currentEvent)
+    private void SetUiValues(BtvEvent currentEvent)
     {
         m_Code.text = currentEvent.Code.ToString();
         m_Duration.text = currentEvent.Duration.ToString();
         m_Comment.text = currentEvent.Comment;
     }
 
+    private void OnEndEditCodefield(string str)
+    {
+        if (!CodeMatchingService.HasCodes) return;
+
+        if (int.TryParse(m_Code.text, out int codeValue))
+        {
+            m_Comment.text = CodeMatchingService.GetCommentFromCode(codeValue);
+        }
+    }
+
     private void SaveEvent()
     {
         CheckEventIntegrity();
-        if (!m_IsModif)
+
+        EventsModificationMessage message = new EventsModificationMessage
         {
-            EventsModificationMessage message = new EventsModificationMessage
-            {
-                TaskToExecute = 0,
-                Event = m_Event
-            };
-            Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
-        }
-        else
-        {
-            EventsModificationMessage message = new EventsModificationMessage
-            {
-                TaskToExecute = 1,
-                Event = m_Event,
-                EventMemory = m_OriginalEvent
-            };
-            Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
-        }
+            TaskToExecute = 1,
+            Event = m_Event,
+            EventMemory = m_OriginalEvent
+        };
+        Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
 
         CloseWindow();
     }

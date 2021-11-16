@@ -21,6 +21,8 @@ namespace BTV.Data
         public float[] Data { get; private set; } = null;
         //==
         private float m_Median = 0;
+        private float m_Min = -666;
+        private float m_Max = -666;
 
         public BtvChannel(string Name, int Position, float DataFrequency, float[] DataArray)
         {
@@ -31,7 +33,9 @@ namespace BTV.Data
             //Get some values usefull to manipulate data 
             //Median (possibly later mean, max and min)
             m_Median = CalculationService.Median(Data, Data.Length);
-            MaxValue = Math.Max(Math.Abs(Data.Min()), Math.Abs(Data.Max()));
+            m_Min = Data.Min();
+            m_Max = Data.Max();
+            MaxValue = Math.Max(Math.Abs(m_Min), Math.Abs(m_Max));
         }
 
         public float GetSample(int index, bool centered = false)
@@ -42,6 +46,55 @@ namespace BTV.Data
             }
 
             return centered ? Data[index] - m_Median : Data[index];
+        }
+
+        /// <summary>
+        /// Send back Data normalized beetween -1 and 1 , centered or not
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="centered"></param>
+        /// <returns></returns>
+        public float GetNormalizedSample(int index, bool centered = false)
+        {
+            if (index >= Data.Length)
+            {
+                return 0;
+            }
+
+            return centered ? (Data[index] - m_Median) / (m_Max - m_Min) : Data[index] / (m_Max - m_Min);
+        }
+
+        /// <summary>
+        /// Send back Data normalized beetween 0 and 1 with max and min taken either at begin and end
+        /// or beetween begin sample and end sample
+        /// </summary>
+        /// <param name="begin"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public float[] GetBaselineNormalizedValues(int begin = -1, int end = -1)
+        {
+            float[] dataResult = new float[NumberOfSample];
+
+            if (begin == -1 && end == -1)
+            {
+                begin = (10 * Frequency.Value);
+                end = NumberOfSample - (10 * Frequency.Value);
+            }
+
+            float min = float.PositiveInfinity;
+            float max = float.NegativeInfinity;
+            for (int i = begin; i < end; i++)
+            {
+                if (Data[i] < min) min = Data[i];
+                if (Data[i] > max) max = Data[i];
+            }
+
+            for (int i = 0; i < NumberOfSample; i++)
+            {
+                dataResult[i] = /*100 */ ((Data[i] - min) / (max - min));
+            }
+
+            return dataResult;
         }
     }
 }

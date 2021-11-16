@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using BTV.Services.VideoService;
 using CielaSpike;
 using UnityEngine;
@@ -46,13 +47,13 @@ public class RecordVideoWindow : MonoBehaviour
         }
 
         int totalVideoTimeInSecond = (int)m_VideoPlayer.VideoInterface.TotalVideoTime / 1000;
-        int beginTimeInSecond = m_RecordBeginTime.TimeInSeconds;
-        int endTimeInSecond = m_RecordEndTime.TimeInSeconds;
-        int durationInSeconds = endTimeInSecond - beginTimeInSecond;
+        float beginTimeInSecond = m_RecordBeginTime.TimeInSeconds;
+        float endTimeInSecond = m_RecordEndTime.TimeInSeconds;
+        float durationInSeconds = endTimeInSecond - beginTimeInSecond;
         bool IsBeginTimeValid = beginTimeInSecond >= 0 && beginTimeInSecond < totalVideoTimeInSecond;
         bool IsEndTimeValid = endTimeInSecond >= 0 && endTimeInSecond <= totalVideoTimeInSecond;
 
-        if (IsBeginTimeValid && IsEndTimeValid && durationInSeconds > 0)
+        if (IsBeginTimeValid && IsEndTimeValid && Convert.ToInt32(durationInSeconds) > 0)
         {
             ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
             {

@@ -10,6 +10,7 @@ using BTV.Services.EegFileService;
 using BTV.Services.VideoService;
 using BTV.UI;
 using Tools.Unity;
+using BTV.Services.CodeMatchingService;
 
 public static class ApplicationState
 {
@@ -37,6 +38,7 @@ public static class ApplicationState
         EegFileService.Reset();
         VideoService.Reset();
         EventsService.Reset();
+        CodeMatchingService.Reset();
     }
 
     // If in coroutine, need to be as such, otherwise it trigger error : "StartCoroutine_Auto_Internal can only be called from the main thread"
