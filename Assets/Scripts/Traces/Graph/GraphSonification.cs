@@ -42,7 +42,7 @@ public class GraphSonification : MonoBehaviour
 
     public void Mute()
     {
-        _AudioSourceScript.volume = 0;
+        _AudioSourceScript.pitch = 0;
     }
 
     public void UpdateSonification(int milliSecToLook)
@@ -51,23 +51,23 @@ public class GraphSonification : MonoBehaviour
 
         if (_Video.VideoInterface.IsPlaying)
         {
-            float currentValue = 0.5f + m_curve.TraceEeg.MostRecentValueInPercentOfTrace;
-            if (currentValue >= 0 && currentValue <= 1)
+            float currentValue = (0.5f + m_curve.TraceEeg.MostRecentValueInPercentOfTrace) / 3;
+            if (currentValue >= 0 && currentValue <= 0.33f)
             {
-                _AudioSourceScript.volume = currentValue;
+                _AudioSourceScript.pitch = currentValue;
             }
-            else if (currentValue > 1)
+            else if (currentValue > 0.33f)
             {
-                _AudioSourceScript.volume = 1;
+                _AudioSourceScript.pitch = 0.33f;
             }
             else //(<0)
             {
-                _AudioSourceScript.volume = 0;
+                _AudioSourceScript.pitch = 0;
             }
         }
         else
         {
-            _AudioSourceScript.volume = 0;
+            _AudioSourceScript.pitch = 0;
         }
     }
 
