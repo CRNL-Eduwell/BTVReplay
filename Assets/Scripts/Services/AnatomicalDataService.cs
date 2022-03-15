@@ -28,5 +28,13 @@ namespace BTV.Services.AnatomicalDataService
             }
             yield return null;
         }
+
+        public static KeyValuePair<string, List<AnatomicalSite>> ReturnFirstValidSitesList()
+        {
+            if (m_SitesPerReferential.ContainsKey("MNI")) return new KeyValuePair<string, List<AnatomicalSite>>("MNI", m_SitesPerReferential["MNI"]);
+            else if (m_SitesPerReferential.ContainsKey("PAT")) return new KeyValuePair<string, List<AnatomicalSite>>("PAT", m_SitesPerReferential["PAT"]);
+
+            return default;
+        }
     }
 }

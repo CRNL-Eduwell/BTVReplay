@@ -12,6 +12,7 @@ using BTV.Services.EegFileService;
 using System.Linq;
 using System.Collections.Generic;
 using BTV.Services;
+using BTV.Services.AnatomicalDataService;
 
 public class SubjectLoaderService : MonoBehaviour
 {
@@ -156,6 +157,17 @@ public class SubjectLoaderService : MonoBehaviour
             Messenger.Default.Send(message, MessageContext.LoaderMessage);
         }
 
+        yield return null;
+    }
+
+    private IEnumerator c_LoadBrainAnatomy2(Subject subject)
+    {
+        bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+        bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+
+        if (hasMniContainer) yield return StartCoroutine(AnatomicalDataService.c_Load("MNI", mniContainer));
+        if (hasPatContainer) yield return StartCoroutine(AnatomicalDataService.c_Load("PAT", patContainer));
+        //charger liste electrode par defaut
         yield return null;
     }
 
