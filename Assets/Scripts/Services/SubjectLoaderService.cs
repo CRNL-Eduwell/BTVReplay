@@ -95,7 +95,7 @@ public class SubjectLoaderService : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
     }
 
-    private IEnumerator c_LoadBrainAnatomy(Subject subject)
+    private IEnumerator c_LoadBrainAnatomy2(Subject subject)
     {
         bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
         bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
@@ -160,14 +160,21 @@ public class SubjectLoaderService : MonoBehaviour
         yield return null;
     }
 
-    private IEnumerator c_LoadBrainAnatomy2(Subject subject)
+    private IEnumerator c_LoadBrainAnatomy(Subject subject)
     {
         bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
         bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
 
         if (hasMniContainer) yield return StartCoroutine(AnatomicalDataService.c_Load("MNI", mniContainer));
         if (hasPatContainer) yield return StartCoroutine(AnatomicalDataService.c_Load("PAT", patContainer));
-        //charger liste electrode par defaut
+
+        //TODO
+        //When there is no 3D model , we take the value of the mni dropdown for eegtech
+        //if this is not filled this might be wrong, need to find another way to know
+        //if it's intra or scalp
+        yield return AnatomicalDataService.c_LoadDefaultElectrodes(mniContainer.EegTechnology);
+
+
         yield return null;
     }
 
