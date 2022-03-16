@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ namespace BTV.Services.AnatomicalDataService
     public static class AnatomicalDataService
     {
         private static Dictionary<string, List<AnatomicalSite>> m_SitesPerReferential = new Dictionary<string, List<AnatomicalSite>>();
+        private static MarsAtlas m_Atlas = null;
 
         public static void Reset()
         {
@@ -95,6 +97,19 @@ namespace BTV.Services.AnatomicalDataService
                     }
                 }
             }            
+            yield return null;
+        }
+
+        //TODO : link atlas information in visualisation , right now atlas data is loaded but that's all
+        public static IEnumerator c_LoadAtlas(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                m_Atlas = new MarsAtlas(Application.dataPath);
+                m_Atlas.loadPatientAtlas(filePath);
+                //m_Atlas.findElectrodesWithAtlas(Electrodes);
+            }
+
             yield return null;
         }
 

@@ -1,4 +1,6 @@
 ﻿using Assets.Scripts.Data.Factory;
+using BTV.Services.AnatomicalDataService;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -72,9 +74,8 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.EegTechnology);
-        m_ElectrodesContext.LoadElectrodes(brainToLoad.Pts);
-        m_ElectrodesContext.LoadAtlasData(brainToLoad.Atlas);
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes);
+        KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList();
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, d.Value);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         m_BrainCamera.InitCameraPosition();
@@ -92,8 +93,8 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(eeg);
-        m_ElectrodesContext.LoadDefaultPearl();
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes);
+        KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList();
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, d.Value);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         m_BrainCamera.InitCameraPosition();
@@ -140,7 +141,7 @@ public class Brain : MonoBehaviour
             case 2:
                 m_LeftHemiBrain.gameObject.SetActive(false);
                 m_RightHemiBrain.gameObject.SetActive(false);
-                m_ElectrodesContext.UpdateElectrodesPearl(m_Electrodes);
+                //m_ElectrodesContext.UpdateElectrodesPearl(m_Electrodes);
                 break;
             default:
                 Debug.LogError("UpdateBrainModel => ModelId value is unknown : " + ModelId);
@@ -166,9 +167,9 @@ public class Brain : MonoBehaviour
         }
 
         //TODO : in case of a change beetween ieeg and scalp eeg it will probably not work
-        m_ElectrodesContext.LoadElectrodes(brainToLoad.Pts);
-        m_ElectrodesContext.LoadAtlasData(brainToLoad.Atlas);
-        m_ElectrodesContext.UpdateElectrodesPosition(m_Electrodes);
+        //m_ElectrodesContext.LoadElectrodes(brainToLoad.Pts);
+        //m_ElectrodesContext.LoadAtlasData(brainToLoad.Atlas);
+        //m_ElectrodesContext.UpdateElectrodesPosition(m_Electrodes);
     }
 
     //Left : sibling 0

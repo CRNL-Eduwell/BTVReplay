@@ -165,8 +165,8 @@ public class SubjectLoaderService : MonoBehaviour
         bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
         bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
 
-        if (hasMniContainer) yield return StartCoroutine(AnatomicalDataService.c_Load("MNI", mniContainer));
-        if (hasPatContainer) yield return StartCoroutine(AnatomicalDataService.c_Load("PAT", patContainer));
+        if (hasMniContainer && mniContainer.Pts != "") yield return StartCoroutine(AnatomicalDataService.c_Load("MNI", mniContainer));
+        if (hasPatContainer && patContainer.Pts != "") yield return StartCoroutine(AnatomicalDataService.c_Load("PAT", patContainer));
 
         //TODO
         //When there is no 3D model , we take the value of the mni dropdown for eegtech
@@ -174,6 +174,66 @@ public class SubjectLoaderService : MonoBehaviour
         //if it's intra or scalp
         yield return AnatomicalDataService.c_LoadDefaultElectrodes(mniContainer.EegTechnology);
 
+        //TODO 
+        //atlas is loaded in the service and now we'll need to link atlas info in visualisation part 
+        yield return AnatomicalDataService.c_LoadAtlas(patContainer.Atlas);
+
+        bool ShouldLoadMniFirst = false, ShouldLoadPatFirst = false;
+        if (hasMniContainer && hasPatContainer)
+        {
+            ShouldLoadMniFirst = (mniContainer.HasAnat && !patContainer.HasAnat) || (mniContainer.HasAnat && patContainer.HasAnat);
+            ShouldLoadPatFirst = !mniContainer.HasAnat && patContainer.HasAnat;
+        }
+        else if (hasMniContainer && !hasPatContainer)
+        {
+            ShouldLoadMniFirst = mniContainer.HasAnat;
+            ShouldLoadPatFirst = false;
+        }
+        else if (!hasMniContainer && hasPatContainer)
+        {
+            ShouldLoadMniFirst = false;
+            ShouldLoadPatFirst = patContainer.HasAnat;
+        }
+        else
+        {
+            ShouldLoadMniFirst = false;
+            ShouldLoadPatFirst = false;
+        }
+
+        if (ShouldLoadMniFirst)
+        {
+            LoaderMessage message = new LoaderMessage
+            {
+                Task = LoaderMessage.LoaderTask.LoadBrain,
+                HasAnatomy = true,
+                Anatomy = mniContainer
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderMessage);
+        }
+        else if (ShouldLoadPatFirst)
+        {
+            LoaderMessage message = new LoaderMessage
+            {
+                Task = LoaderMessage.LoaderTask.LoadBrain,
+                HasAnatomy = true,
+                Anatomy = patContainer
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderMessage);
+        }
+        else
+        {
+            //TODO
+            //When there is no 3D model , we take the value of the mni dropdown for eegtech
+            //if this is not filled this might be wrong, need to find another way to know
+            //if it's intra or scalp
+            LoaderMessage message = new LoaderMessage
+            {
+                Task = LoaderMessage.LoaderTask.LoadBrain,
+                HasAnatomy = false,
+                Techno = EegTechnology.Intra
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderMessage);
+        }
 
         yield return null;
     }
