@@ -160,7 +160,7 @@ namespace BTV.Services.AnatomicalDataService
             {
                 return new List<AnatomicalSite>(m_SitesPerReferential["PAT"]);
             }
-            else if (referential.StartsWith("ELEC_") && fileId != -1)
+            else if (referential == "ELEC" && fileId != -1)
             {
                 string key = "ELEC_" + fileId.ToString();
                 bool hasKeyData = m_SitesPerReferential.ContainsKey(key);
