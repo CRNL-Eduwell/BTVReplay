@@ -38,6 +38,7 @@ public static class ApplicationState
     {
         AnatomicalDataService.Reset();
         EegFileService.Reset();
+        TracesService.Reset();
         VideoService.Reset();
         EventsService.Reset();
         CodeMatchingService.Reset();

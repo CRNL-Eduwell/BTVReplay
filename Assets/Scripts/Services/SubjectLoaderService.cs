@@ -59,6 +59,8 @@ public class SubjectLoaderService : MonoBehaviour
 
         yield return StartCoroutine(c_loadVideo(subject.Video));
         yield return StartCoroutine(c_LoadBrainAnatomy(subject));
+
+        TracesService.InitTraces();
         message = new LoaderMessage
         {
             Task = LoaderMessage.LoaderTask.LoadTrace
