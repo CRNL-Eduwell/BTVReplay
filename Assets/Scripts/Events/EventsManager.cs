@@ -434,7 +434,7 @@ public class EventsManager : MonoBehaviour
         {
             case TaskState.Done:
                 {
-                    bool sameFile = ApplicationState.Module3D.Window1.TraceEeg.FileHandle == ApplicationState.Module3D.Window2.TraceEeg.FileHandle;
+                    bool sameFile = TracesService.GetOptionsFor(0).FileHandle == TracesService.GetOptionsFor(1).FileHandle;
                     if (sameFile) break;
 
                     yield return Ninja.JumpToUnity;
@@ -457,8 +457,8 @@ public class EventsManager : MonoBehaviour
     {
         int eventIndex = EventsService.GetEventId(currentEvent);
 
-        BtvProgram container1 = ApplicationState.Module3D.Window1.TraceEeg.FileHandle;
-        BtvProgram container2 = ApplicationState.Module3D.Window2.TraceEeg.FileHandle;
+        BtvProgram container1 = TracesService.GetOptionsFor(0).FileHandle;
+        BtvProgram container2 = TracesService.GetOptionsFor(1).FileHandle;
 
         bool sameDescription = container1.Description == container2.Description;
         bool sameElectrodeCount = container1.NumberOfElectrodes == container2.NumberOfElectrodes;

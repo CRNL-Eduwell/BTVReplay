@@ -1,3 +1,4 @@
+using BTV.Data;
 using BTV.Services.EegFileService;
 using System;
 using System.Collections;
@@ -31,6 +32,19 @@ public static class TracesService
         }
     }
 
+    public static string ElectrodeName(int traceID)
+    {
+        if (m_Options.ContainsKey(traceID))
+        {
+            int electrodeID = m_Options[traceID].ElectrodeID;
+            BtvProgram handle = m_Options[traceID].FileHandle;
+            return handle.GetElectrodeNameFromElectrodeID(electrodeID);
+        }
+        else
+        {
+            return "";
+        }
+    }
     public static void SamplingFrequency(int traceID)
     {
         throw new NotImplementedException("Oupsi, need to implement TraceService.SamplingFrequency getter");

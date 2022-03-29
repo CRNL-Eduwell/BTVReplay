@@ -22,6 +22,21 @@ public class TraceOption : ViewModelBase
             }
         }
     }
+    public int ElectrodeID
+    {
+        get
+        {
+            return m_currentElectrodeID;
+        }
+        set
+        {
+            if (value > -1 && value < FileHandle.NumberOfElectrodes)
+            {
+                m_currentElectrodeID = value;
+                RaisePropertyChanged();
+            }
+        }
+    }
     public int SamplingFrequency 
     {
         get
@@ -79,7 +94,7 @@ public class TraceOption : ViewModelBase
     private float m_Gain = 0;
     private float m_Offset = 0;
     private int m_WindowInSeconds = 0;
-
+    private int m_currentElectrodeID = 0;
     public TraceOption(BtvProgram file, float gain = 1, float offset = 0, int windowInSec = 10)
     {
         m_FileHandle = file;
