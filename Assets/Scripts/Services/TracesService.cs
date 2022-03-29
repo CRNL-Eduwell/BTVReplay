@@ -45,18 +45,34 @@ public static class TracesService
             return "";
         }
     }
-    public static void SamplingFrequency(int traceID)
+
+    public static int SamplingFrequency(int traceID)
     {
-        throw new NotImplementedException("Oupsi, need to implement TraceService.SamplingFrequency getter");
+        return m_Options.ContainsKey(traceID) ? m_Options[traceID].SamplingFrequency : -1;
     }
 
-    public static void ElectrodeCount(int traceID)
+    public static int ElectrodeCount(int traceID)
     {
-        throw new NotImplementedException("Oupsi, need to implement TraceService.ElectrodeCount getter");
+        return m_Options.ContainsKey(traceID) ? m_Options[traceID].FileHandle.NumberOfElectrodes : -1;
     }
 
-    public static void ChannelData(int traceID)
+    public static float[] ChannelData(int traceID, int electrodeID)
     {
-        throw new NotImplementedException("Oupsi, need to implement TraceService.ChannelData getter");
+        if (m_Options.ContainsKey(traceID))
+        {
+            BtvProgram handle = m_Options[traceID].FileHandle;
+            if (electrodeID < handle.NumberOfElectrodes)
+            {
+                return handle.Channels[electrodeID].Data;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException("ElectrodeID is bigger than the number of electrode => " + electrodeID.ToString() + " and elecCount = " + handle.NumberOfElectrodes.ToString());
+            }
+        }
+        else
+        {
+            throw new KeyNotFoundException("No Data for key = " + traceID.ToString());
+        }
     }
 }

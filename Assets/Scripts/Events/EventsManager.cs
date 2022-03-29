@@ -383,8 +383,8 @@ public class EventsManager : MonoBehaviour
 
     private IEnumerator c_Correlation(BtvEvent currentEvent)
     {
-        int samplingFrequency = ApplicationState.Module3D.Window1.TraceEeg.SamplingFrequency;
-        int electrodeCount = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.NumberOfElectrodes;
+        int samplingFrequency = TracesService.SamplingFrequency(0);
+        int electrodeCount = TracesService.ElectrodeCount(0);
         int eventIndex = EventsService.GetEventId(currentEvent);
 
         EventsService.Events[eventIndex].Correlation = new float[electrodeCount];
@@ -393,18 +393,17 @@ public class EventsManager : MonoBehaviour
         int beginTimeSample = (int)(EventsService.Events[eventIndex].TimeInSeconds * samplingFrequency);
         int durationInSample = (EventsService.Events[eventIndex].Duration / 1000) * samplingFrequency;
 
-        int indexBaseline = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.SiteOfInterest);
+        int indexBaseline = TracesService.GetOptionsFor(0).FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.SiteOfInterest);
         if (indexBaseline != -1)
         {
             int[] sizes = { beginTimeSample, durationInSample };
-            BtvProgram container = ApplicationState.Module3D.Window1.TraceEeg.FileHandle;
-            float[] baseline = container.Channels[indexBaseline].Data;
+            float[] baseline = TracesService.ChannelData(0, indexBaseline);
             for (int i = 0; i < electrodeCount; i++)
             {
                 if (i == indexBaseline)
                     continue;
 
-                float[] channel = container.Channels[i].Data;
+                float[] channel = TracesService.ChannelData(0, i);
                 EventsService.Events[eventIndex].Correlation[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
             }
         }

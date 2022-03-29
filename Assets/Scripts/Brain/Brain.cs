@@ -149,7 +149,7 @@ public class Brain : MonoBehaviour
                 {
                     m_LeftHemiBrain.gameObject.SetActive(false);
                     m_RightHemiBrain.gameObject.SetActive(false);
-                    int suffix = EegFileService.GetContainerSuffix(ApplicationState.Module3D.Window1.TraceEeg.FileHandle);
+                    int suffix = EegFileService.GetContainerSuffix(TracesService.GetOptionsFor(0).FileHandle);
                     List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("ELEC", suffix);
                     UpdateBrainMesh(sites);
                     break;

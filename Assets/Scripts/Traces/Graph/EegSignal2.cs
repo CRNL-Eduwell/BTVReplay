@@ -17,7 +17,6 @@ public class EegSignal2 : MonoBehaviour
     private float m_LimitValue = 0.0f;
     private float m_m_offsetCoefficient = 0.0f;
 
-    private int m_ElectrodeID = 0;
     private TraceOption m_Option = null;
     private bool m_initDone = false;
     private BtvChannel m_Channel = null;
@@ -29,9 +28,9 @@ public class EegSignal2 : MonoBehaviour
 
     public void Initialize(int electrodeID, TraceOption option)
     {
-        m_ElectrodeID = electrodeID;
         m_Option = option;
-        m_Channel = m_Option.FileHandle.Channels[m_ElectrodeID];
+        m_Option.ElectrodeID = electrodeID;
+        m_Channel = m_Option.FileHandle.Channels[m_Option.ElectrodeID];
 
         m_Option.PropertyChanged += OnTraceOptionPropertyChanged;
 
@@ -67,7 +66,7 @@ public class EegSignal2 : MonoBehaviour
                 }
             case "FileHandle":
                 {
-                    m_Channel = m_Option.FileHandle.Channels[m_ElectrodeID];
+                    m_Channel = m_Option.FileHandle.Channels[m_Option.ElectrodeID];
                     break;
                 }
             case "WindowInSeconds": //NumberOfPoint

@@ -26,14 +26,16 @@ namespace BTV.UI.Module3D.Tools
 
         private void Save()
         {
+            string directory = TracesService.GetOptionsFor(0).FileHandle.Directory;
+
 #if UNITY_STANDALONE_OSX
             FileBrowser.GetSavedFileNameAsync((str) =>
             {
                 if (!string.IsNullOrEmpty(str))
                     SaveFile.Invoke(str);
-            }, m_ExtensionList, "Save Event File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
+            }, m_ExtensionList, "Save Event File", directory);
 #else
-                string filePath = FileBrowser.GetSavedFileName(m_ExtensionList, "Save Event File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
+                string filePath = FileBrowser.GetSavedFileName(m_ExtensionList, "Save Event File", directory);
                 if (!string.IsNullOrEmpty(filePath))
                     SaveFile.Invoke(filePath);
 #endif
