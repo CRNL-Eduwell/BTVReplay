@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Tools.CSharp.EEG;
 using UnityEngine;
 
 public class Site : MonoBehaviour
@@ -138,24 +139,59 @@ public class Site : MonoBehaviour
     private MeshRenderer m_MeshRenderer = null;
     private Color m_Color = Color.white;
     private float m_Gain = 1;
+
+    private TraceOption m_MasterTraceOption = null;
+    private BtvChannel m_Channel = null;
+    private Frequency m_Frequency = null;
     #endregion
 
     public void Init(object Plot)
     {
         m_Plot = Plot;
+        m_MasterTraceOption = TracesService.GetOptionsFor(0);
 
         Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
-
-        //If we don't find the corresponding name beetween this object and one electrode
-        //in an eeg file , we don't show the site on the 3D brain
-        BtvProgram container = ApplicationState.Module3D.Window1.TraceEeg.FileHandle;
-        ID = container.GetElectrodeIDFromElectrodeName(gameObject.name.ToLower(), true);
-        if (ID == -1)
-            gameObject.SetActive(false);
+        m_MasterTraceOption.PropertyChanged += OnMasterTraceOptionPropertyChanged;
 
         m_MeshRenderer = gameObject.GetComponent<MeshRenderer>();
+        UpdateElectrodeID(m_MasterTraceOption.FileHandle);
         IsFrozen = false;
+    }
+
+    private void OnMasterTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        UnityEngine.Debug.Log("OnMasterTraceOptionPropertyChanged");
+        switch (e.PropertyName)
+        {
+            case "FileHandle":
+                {
+                    UnityEngine.Debug.Log("OnMasterTraceOptionPropertyChanged FileHandle");
+                    UpdateElectrodeID(m_MasterTraceOption.FileHandle);
+                    break;
+                }
+        }
+    }
+
+    /// <summary>
+    /// If we don't find the corresponding name beetween this object and one
+    /// electrode in an eeg file, we don't show the site on the 3D brain
+    /// </summary>
+    /// <param name="container"></param>
+    private void UpdateElectrodeID(BtvProgram container)
+    {
+        ID = container.GetElectrodeIDFromElectrodeName(gameObject.name.ToLower(), true);
+        if (ID == -1)
+        {
+            gameObject.SetActive(false);
+            m_Channel = null;
+            m_Frequency = null;
+        }
+        else
+        {
+            m_Channel = container.Channels[ID];
+            m_Frequency = m_Channel.Frequency;
+        }
     }
 
     /// <summary>
@@ -175,12 +211,16 @@ public class Site : MonoBehaviour
     /// </summary>
     private void OnDisable()
     {
+        m_MasterTraceOption.PropertyChanged -= OnMasterTraceOptionPropertyChanged;
+
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
         Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
     }
 
     private void OnDestroy()
     {
+        m_MasterTraceOption.PropertyChanged -= OnMasterTraceOptionPropertyChanged;
+
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
         Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
     }
@@ -200,11 +240,8 @@ public class Site : MonoBehaviour
     {
         if (!IsFrozen)
         {
-            //Might put that back when there is a service with base info like sampling freq and stuff
-            int MostRecentSample = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
-            //int PositionOfSampleInArray = (ID * ApplicationState.Window1.TraceEeg.FileHandle.NumberOfSample) + MostRecentSample;
-            EegValue = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Channels[ID].GetSample(MostRecentSample) / 100;
-            //float scale = 2 + (m_Gain * currentValue);
+            int MostRecentSample = m_Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
+            EegValue = m_Channel.GetSample(MostRecentSample) / 100;
             float currentValue = 2 + (m_Gain * EegValue);
 
             if (currentValue >= 7)

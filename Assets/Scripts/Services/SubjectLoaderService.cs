@@ -51,6 +51,8 @@ public class SubjectLoaderService : MonoBehaviour
         ApplicationState.Module3D.Patient = subject;
 
         yield return StartCoroutine(c_loadEEGFile(subject));
+        TracesService.InitTraces();
+
         LoaderMessage message = new LoaderMessage
         {
             Task = LoaderMessage.LoaderTask.MediaLoader
@@ -60,7 +62,6 @@ public class SubjectLoaderService : MonoBehaviour
         yield return StartCoroutine(c_loadVideo(subject.Video));
         yield return StartCoroutine(c_LoadBrainAnatomy(subject));
 
-        TracesService.InitTraces();
         message = new LoaderMessage
         {
             Task = LoaderMessage.LoaderTask.LoadTrace
