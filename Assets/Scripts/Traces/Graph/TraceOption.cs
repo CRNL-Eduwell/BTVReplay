@@ -82,6 +82,42 @@ public class TraceOption : ViewModelBase
             RaisePropertyChanged("NumberOfPoint");
         }
     }
+    public Color Color
+    {
+        get
+        {
+            return m_Color;
+        }
+        set
+        {
+            m_Color = value;
+            RaisePropertyChanged();
+        }
+    }
+    public bool IsGridOn
+    {
+        get
+        {
+            return m_IsGridOn;
+        }
+        set
+        {
+            m_IsGridOn = value;
+            RaisePropertyChanged();
+        }
+    }
+    public int LineWidth
+    {
+        get 
+        {
+            return m_LineWidth;
+        }
+        set
+        {
+            m_LineWidth = value;
+            RaisePropertyChanged();
+        }
+    }
     public int NumberOfPoint 
     { 
         get
@@ -95,6 +131,9 @@ public class TraceOption : ViewModelBase
     private float m_Offset = 0;
     private int m_WindowInSeconds = 0;
     private int m_currentElectrodeID = 0;
+    private Color m_Color = Color.white;
+    private int m_LineWidth = 2;
+    private bool m_IsGridOn = false;
     public TraceOption(BtvProgram file, float gain = 1, float offset = 0, int windowInSec = 10)
     {
         m_FileHandle = file;

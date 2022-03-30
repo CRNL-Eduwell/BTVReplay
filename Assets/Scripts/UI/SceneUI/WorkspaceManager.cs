@@ -136,30 +136,34 @@ public class WorkspaceManager : MonoBehaviour
                     break;
                 case ShortcutActions.UpdateOptionValue:
                     {
-                        Trace updateOption = _Trace1.GetComponent<Window>().hasFocus ? _Trace1 : _Trace2.GetComponent<Window>().hasFocus ? _Trace2 : null;
-                        if (updateOption != null)
+                        //Trace updateOption = _Trace1.GetComponent<Window>().hasFocus ? _Trace1 : _Trace2.GetComponent<Window>().hasFocus ? _Trace2 : null;
+                        int updateOptionID = _Trace1.GetComponent<Window>().hasFocus ? 0 : _Trace2.GetComponent<Window>().hasFocus ? 1 : -1;
+                        if (updateOptionID > -1)
                         {
-                            int index = updateOption.TraceEeg.ElectrodeID;
+                            int index = TracesService.GetOptionsFor(updateOptionID).ElectrodeID;
+                            //int index = updateOption.TraceEeg.ElectrodeID;
                             if (message.Parameter == ShortcutActionsParameters.Up)
                             {
                                 index += 1;
-                                updateOption.UpdateElectrodeById(index);
+                                //updateOption.UpdateElectrodeById(index);
+                                TracesService.GetOptionsFor(updateOptionID).ElectrodeID = index;
                             }
                             else if (message.Parameter == ShortcutActionsParameters.Down)
                             {
                                 index -= 1;
-                                updateOption.UpdateElectrodeById(index);
+                                //updateOption.UpdateElectrodeById(index);
+                                TracesService.GetOptionsFor(updateOptionID).ElectrodeID = index;
                             }
                             else if (message.Parameter == ShortcutActionsParameters.Left)
                             {
                                 ForceUpdateTraceMessage forceUpdateMessage = new ForceUpdateTraceMessage
                                 {
-                                    TraceID = updateOption.TraceId,
-                                    Gain = updateOption.TraceEeg.Gain,
-                                    Offset = updateOption.TraceEeg.Offset,
-                                    ShowGrid = updateOption.GraphGrid.IsOn,
-                                    Period = updateOption.TraceEeg.PeriodInSeconds,
-                                    Color = updateOption.TraceEeg.Color,
+                                    TraceID = updateOptionID,
+                                    Gain = TracesService.GetOptionsFor(updateOptionID).Gain,
+                                    Offset = TracesService.GetOptionsFor(updateOptionID).Offset,
+                                    ShowGrid = TracesService.GetOptionsFor(updateOptionID).IsGridOn,
+                                    Period = TracesService.GetOptionsFor(updateOptionID).WindowInSeconds,
+                                    Color = TracesService.GetOptionsFor(updateOptionID).Color,
                                     FileNextID = -1
                                 };
                                 Messenger.Default.Send(forceUpdateMessage, MessageContext.ForceUpdateTraceMessage);
@@ -168,12 +172,12 @@ public class WorkspaceManager : MonoBehaviour
                             {
                                 ForceUpdateTraceMessage forceUpdateMessage = new ForceUpdateTraceMessage
                                 {
-                                    TraceID = updateOption.TraceId,
-                                    Gain = updateOption.TraceEeg.Gain,
-                                    Offset = updateOption.TraceEeg.Offset,
-                                    ShowGrid = updateOption.GraphGrid.IsOn,
-                                    Period = updateOption.TraceEeg.PeriodInSeconds,
-                                    Color = updateOption.TraceEeg.Color,
+                                    TraceID = updateOptionID,
+                                    Gain = TracesService.GetOptionsFor(updateOptionID).Gain,
+                                    Offset = TracesService.GetOptionsFor(updateOptionID).Offset,
+                                    ShowGrid = TracesService.GetOptionsFor(updateOptionID).IsGridOn,
+                                    Period = TracesService.GetOptionsFor(updateOptionID).WindowInSeconds,
+                                    Color = TracesService.GetOptionsFor(updateOptionID).Color,
                                     FileNextID = 1
                                 };
                                 Messenger.Default.Send(forceUpdateMessage, MessageContext.ForceUpdateTraceMessage);
@@ -213,13 +217,13 @@ public class WorkspaceManager : MonoBehaviour
         Messenger.Default.Send(message, MessageContext.ForceUpdateTraceMessage);
 
         //Update 3D Module with the data
-        trace.TraceEeg.Gain = traceParameters.Gain;
-        trace.TraceEeg.UpdateOffset(traceParameters.Offset);
-        trace.GraphGrid.IsOn = traceParameters.ShowGrid;
-        trace.TraceEeg.PeriodInSeconds = traceParameters.Window;
-        trace.TraceEeg.UpdateHorizontalScale();
-        trace.TraceEeg.Color = traceParameters.Color;
-        trace.TraceEeg.LineWidth = traceParameters.Width;
+        TraceOption opt = TracesService.GetOptionsFor(trace.TraceId);
+        opt.Gain = traceParameters.Gain;
+        opt.Offset = traceParameters.Offset;
+        opt.IsGridOn = traceParameters.ShowGrid;
+        opt.WindowInSeconds = traceParameters.Window;
+        opt.Color = traceParameters.Color;
+        opt.LineWidth = (int)traceParameters.Width;
 
         //Try to load the different positions of the traces
         GameObject Parent = GameObject.Find(traceParameters.Parent);
@@ -246,14 +250,15 @@ public class WorkspaceManager : MonoBehaviour
     private TraceParameters GetTraceLayoutParameters(Trace trace)
     {
         Window win = trace.GetComponent<Window>();
+        TraceOption opt = TracesService.GetOptionsFor(trace.TraceId);
         TraceParameters param = new TraceParameters
         {
-            Gain = trace.TraceEeg.Gain,
-            Offset = trace.TraceEeg.Offset,
-            ShowGrid = trace.GraphGrid.IsOn,
-            Window = trace.TraceEeg.PeriodInSeconds,
-            Color = trace.TraceEeg.Color,
-            Width = trace.TraceEeg.LineWidth,
+            Gain = opt.Gain,
+            Offset = opt.Offset,
+            ShowGrid = opt.IsGridOn,
+            Window = opt.WindowInSeconds,
+            Color = opt.Color,
+            Width = opt.LineWidth,
             Parent = win != null ? win.transform.parent.name : null,
             Id = win != null ? win.windowId : -1,
             GridLayout = win != null ? win.GridLayout : GridLayout.TwoBy2
