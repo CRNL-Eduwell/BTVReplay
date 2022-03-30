@@ -480,7 +480,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         if (m_AddEvents && m_PopUpAddWindow == null)
         {
             Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
-            Event.SecondSiteOfInterest = traceID == 0 ? m_signalWindow2.TraceEeg.ElectrodeLabel : m_signalWindow1.TraceEeg.ElectrodeLabel;
+            Event.SecondSiteOfInterest = traceID == 0 ? TracesService.ElectrodeName(1) : TracesService.ElectrodeName(0);
 
             m_PopUpAddWindow = Instantiate(m_AddEventWindowPrefabs, parent);
             EventInfoAdd infoAdd = m_PopUpAddWindow.GetComponent<EventInfoAdd>();

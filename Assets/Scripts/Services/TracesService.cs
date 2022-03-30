@@ -46,6 +46,11 @@ public static class TracesService
         }
     }
 
+    public static int WindowInSeconds(int traceID)
+    {
+        return m_Options.ContainsKey(traceID) ? m_Options[traceID].WindowInSeconds : -1;
+    }
+
     public static int SamplingFrequency(int traceID)
     {
         return m_Options.ContainsKey(traceID) ? m_Options[traceID].SamplingFrequency : -1;

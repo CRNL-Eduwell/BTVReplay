@@ -264,7 +264,7 @@ public class TaskPerformanceTrace : MonoBehaviour
     private void UpdateTimeResolution(int periodInSecond)
     {
         m_PeriopdInSec = periodInSecond;
-        m_NumberOfPoint = m_signalWindow1.TraceEeg.SamplingFrequency * m_PeriopdInSec;
+        m_NumberOfPoint = TracesService.SamplingFrequency(0) * m_PeriopdInSec;
     }
 
     private void UpdateScales()
