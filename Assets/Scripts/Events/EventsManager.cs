@@ -418,7 +418,7 @@ public class EventsManager : MonoBehaviour
 
                 for (int i = 0; i < electrodeCount; i++)
                 {
-                    float[] channel = ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Channels[i].Data;
+                    float[] channel = TracesService.ChannelData(0, i);
                     EventsService.Events[eventIndex].Correlation[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
                 }
             }

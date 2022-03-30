@@ -20,11 +20,11 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             return audioSignal;
         }
     }
-    public EegSignal TraceEeg
+    public float MostRecentValueInPercentOfTrace
     {
         get
         {
-            return eegSignal;
+            return eegSignal.MostRecentValueInPercentOfTrace;
         }
     }
     public GraphGrid GraphGrid

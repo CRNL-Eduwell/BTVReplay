@@ -70,8 +70,8 @@ public class GraphEvents : MonoBehaviour
         {
             float samplingFreq = TracesService.SamplingFrequency(m_parent.TraceId);
             int PeriodInSeconds = TracesService.WindowInSeconds(m_parent.TraceId);
-            float horizontalScale = m_parent.TraceEeg.HorizontalScale;
-            float widthOfGameObject = m_parent.TraceEeg.WidthOfGameObject;
+            float widthOfGameObject = m_parent.gameObject.transform.parent.GetComponent<RectTransform>().rect.width - 10; //TODO : do we get some way of getting that from parent or not
+            float horizontalScale = widthOfGameObject / TracesService.GetOptionsFor(m_parent.TraceId).NumberOfPoint;
 
             int left = milliSecToLook - (PeriodInSeconds * 1000);
             int right = milliSecToLook;
