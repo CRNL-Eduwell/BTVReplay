@@ -205,5 +205,13 @@ namespace BTV.Services.VideoService
 
             return m_ProcessedAudio.Channels[ID];
         }
+
+        public static BtvProgram GetAudioContainer()
+        {
+            if (m_ProcessedAudio == null)
+                return null;
+
+            return m_ProcessedAudio;
+        }
     }
 }

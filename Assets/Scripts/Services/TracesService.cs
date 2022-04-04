@@ -1,5 +1,6 @@
 using BTV.Data;
 using BTV.Services.EegFileService;
+using BTV.Services.VideoService;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,16 +9,25 @@ using UnityEngine;
 public static class TracesService
 {
     private static Dictionary<int, TraceOption> m_Options = new Dictionary<int, TraceOption>();
+    private static AudioTraceOption m_AudioOption = null;
 
     public static void Reset()
     {
         m_Options = new Dictionary<int, TraceOption>();
+        VideoService.AudioDataLoaded -= OnAudioDataLoaded;
     }
 
     public static void InitTraces()
     {
         m_Options.Add(0, new TraceOption(EegFileService.ReturnFirstValidContainer()));
         m_Options.Add(1, new TraceOption(EegFileService.ReturnFirstValidContainer()));
+
+        VideoService.AudioDataLoaded += OnAudioDataLoaded;
+    }
+
+    private static void OnAudioDataLoaded()
+    {
+        m_AudioOption = new AudioTraceOption(VideoService.GetAudioContainer());
     }
 
     public static TraceOption GetOptionsFor(int traceID)
@@ -79,5 +89,13 @@ public static class TracesService
         {
             throw new KeyNotFoundException("No Data for key = " + traceID.ToString());
         }
+    }
+
+    public static float[] AudioChannelData()
+    {
+        if (m_AudioOption == null) return null;
+        if (m_AudioOption.FileID < 0) return null;
+
+        return m_AudioOption.FileHandle.Channels[m_AudioOption.FileID].Data;
     }
 }

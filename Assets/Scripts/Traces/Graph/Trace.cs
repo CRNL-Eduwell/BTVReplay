@@ -13,13 +13,6 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             return traceID;
         }
     }
-    public AudioSignal TraceAudio
-    {
-        get
-        {
-            return audioSignal;
-        }
-    }
     public float MostRecentValueInPercentOfTrace
     {
         get

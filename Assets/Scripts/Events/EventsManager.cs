@@ -413,8 +413,7 @@ public class EventsManager : MonoBehaviour
             if (currentEvent.SiteOfInterest.StartsWith("AUD"))
             {
                 int[] sizes = { beginTimeSample, durationInSample };
-                BtvChannel audioChannel = ApplicationState.Module3D.Window1.TraceAudio.ChannelHandle;
-                float[] baseline = audioChannel.Data;
+                float[] baseline = TracesService.AudioChannelData();
 
                 for (int i = 0; i < electrodeCount; i++)
                 {
