@@ -37,7 +37,7 @@ public class AudioTraceOption : ViewModelBase
     {
         get
         {
-            return m_FileHandle.Frequency.Value;
+            return m_FileHandle != null ? m_FileHandle.Frequency.Value : 0;
         }
     }
     public float Gain

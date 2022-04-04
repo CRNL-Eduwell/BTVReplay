@@ -29,14 +29,14 @@ public class AudioSignal : MonoBehaviour
         if (m_Option.FileHandle != null && m_Option.FileID > -1)
         {
             m_Channel = m_Option.FileHandle.Channels[m_Option.FileID];
+
+            m_dataArray = new Vector3[m_Option.NumberOfPoint];
+            _LineRenderer.positionCount = m_Option.NumberOfPoint;
+            _LineRenderer.sortingOrder = -1;
+
+            UpdateHorizontalScale();
         }
         m_Option.PropertyChanged += OnAudioTraceOptionPropertyChanged;
-
-        m_dataArray = new Vector3[m_Option.NumberOfPoint];
-        _LineRenderer.positionCount = m_Option.NumberOfPoint;
-        _LineRenderer.sortingOrder = -1;
-
-        UpdateHorizontalScale();
 
         m_initDone = true;
     }
@@ -44,6 +44,14 @@ public class AudioSignal : MonoBehaviour
     private void OnDestroy()
     {
         if (m_Option != null) m_Option.PropertyChanged -= OnAudioTraceOptionPropertyChanged;
+    }
+
+    private void OnRectTransformDimensionsChange()
+    {
+        if (m_ParentRectTransform == null) return;
+        if (!m_initDone) return;
+
+        UpdateHorizontalScale();
     }
 
     private void OnAudioTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -65,14 +73,27 @@ public class AudioSignal : MonoBehaviour
                     if (m_Option.FileHandle != null && m_Option.FileID > -1)
                     {
                         m_Channel = m_Option.FileHandle.Channels[m_Option.FileID];
+
+                        m_dataArray = new Vector3[m_Option.NumberOfPoint];
+                        _LineRenderer.positionCount = m_Option.NumberOfPoint;
+                        _LineRenderer.sortingOrder = -1;
+
+                        UpdateHorizontalScale();
                     }
                     break;
                 }
             case "WindowInSeconds":
                 {
+
+                    break;
+                }
+            case "NumberOfPoint":
+                {
                     m_dataArray = new Vector3[m_Option.NumberOfPoint];
                     _LineRenderer.positionCount = m_Option.NumberOfPoint;
                     _LineRenderer.sortingOrder = -1;
+
+                    UpdateHorizontalScale();
                     break;
                 }
             case "FileID":
@@ -127,6 +148,8 @@ public class AudioSignal : MonoBehaviour
 
     public void UpdateHorizontalScale()
     {
+        if (m_dataArray == null) return;
+
         m_WidthOfGameObject = m_ParentRectTransform.rect.width - 10;
         m_HorizontalScale = m_WidthOfGameObject / m_dataArray.Length;
         for (int i = 0; i < m_dataArray.Length; i++)
