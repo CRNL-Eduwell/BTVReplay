@@ -1,69 +1,31 @@
-using System.Collections;
-using System.Collections.Generic;
-using BTV.Data;
-using UnityEngine;
+﻿using BTV.Data;
+using BTV.Services.VideoService;
 
-public class AudioSignal2 : MonoBehaviour
+public class AudioSignal3 : SignalDisp
 {
-    [SerializeField] private LineRenderer _LineRenderer = null;
+    public BtvChannel ChannelHandle { get; private set; } = null;
+    public float OffsetInMilliseconds { get; set; } = 0;
 
-    private RectTransform m_ParentRectTransform = null;
-    private Vector3[] m_dataArray;
-    private float m_WidthOfGameObject = 0.0f;
-    private float m_HorizontalScale = 0.0f;
-    private float m_LimitValue = 0.0f;
-
-    private AudioTraceOption m_Option = null;
-    private bool m_initDone = false;
-    private BtvChannel m_Channel = null;
-
-    private void Awake()
+    public override void Initialize()
     {
-        m_ParentRectTransform = gameObject.transform.parent.GetComponent<RectTransform>();
+        _LineRenderer.gameObject.SetActive(false);
+        base.Initialize();
     }
 
-    public void Initialize(int electrodeID, AudioTraceOption option)
+    public override void UpdateDraw(int milliSecToLook)
     {
-        m_Option = option;
-        m_Option.FileID = electrodeID;
-        m_Channel = m_Option.FileHandle.Channels[m_Option.FileID];
-
-        m_Option.PropertyChanged += OnAudioTraceOptionPropertyChanged;
-
-        m_initDone = true;
-    }
-
-    private void OnDestroy()
-    {
-        if (m_Option != null) m_Option.PropertyChanged -= OnAudioTraceOptionPropertyChanged;
-    }
-
-    private void OnAudioTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        switch (e.PropertyName)
-        {
-            case "Gain":
-                {
-
-                    break;
-                }
-        }
-    }
-
-    public void UpdateDraw(int milliSecToLook)
-    {
-        if (m_Channel == null)
+        if (ChannelHandle == null)
             return;
 
-        int SamplePosition = m_Channel.Frequency.ConvertToCeiledNumberOfSamples((int)(milliSecToLook + m_Option.OffsetInMilliSeconds));
-        int PositionInArray = SamplePosition - m_Option.NumberOfPoint;
-        float limitVal = (m_ParentRectTransform.rect.height - 6.5f) / 2;
+        int SamplePosition = ChannelHandle.Frequency.ConvertToCeiledNumberOfSamples((int)(milliSecToLook + OffsetInMilliseconds));
+        int PositionInArray = SamplePosition - NumberOfPoint;
+        float limitVal = (m_parentRectTransform.rect.height - 6.5f) / 2;
 
         for (int i = 0; i < m_dataArray.Length; i++)
         {
-            if ((i + PositionInArray >= 0) && (i + PositionInArray < m_Channel.NumberOfSample))
+            if ((i + PositionInArray >= 0) && (i + PositionInArray < ChannelHandle.NumberOfSample))
             {
-                float value = m_Option.Gain * m_Channel.GetSample(i + PositionInArray);
+                float value = Gain * ChannelHandle.GetSample(i + PositionInArray);
                 if (value >= -limitVal && value <= limitVal)
                 {
                     m_dataArray[i].y = value;
@@ -87,5 +49,10 @@ public class AudioSignal2 : MonoBehaviour
     public void Show(bool show)
     {
         _LineRenderer.gameObject.SetActive(show);
+    }
+
+    public void UpdateAudioID(int NewId)
+    {
+        ChannelHandle = VideoService.GetSmoothedAudio(NewId);
     }
 }

@@ -22,6 +22,27 @@ public class TraceOption : ViewModelBase
             }
         }
     }
+    public string ElectrodeName
+    {
+        get
+        {
+            return m_FileHandle.GetElectrodeNameFromElectrodeID(m_currentElectrodeID);
+        }
+    }
+    public string ElectrodeLabel
+    {
+        get
+        {
+            if (FileHandle != null)
+            {
+                return Gain >= 0 ? ElectrodeName : (" - " + ElectrodeName);
+            }
+            else
+            {
+                return "";
+            }
+        }
+    }
     public int ElectrodeID
     {
         get

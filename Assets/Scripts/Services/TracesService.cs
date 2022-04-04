@@ -14,6 +14,8 @@ public static class TracesService
     public static void Reset()
     {
         m_Options = new Dictionary<int, TraceOption>();
+        m_AudioOption = null;
+
         VideoService.AudioDataLoaded -= OnAudioDataLoaded;
     }
 
@@ -21,13 +23,14 @@ public static class TracesService
     {
         m_Options.Add(0, new TraceOption(EegFileService.ReturnFirstValidContainer()));
         m_Options.Add(1, new TraceOption(EegFileService.ReturnFirstValidContainer()));
+        m_AudioOption = new AudioTraceOption(null);
 
         VideoService.AudioDataLoaded += OnAudioDataLoaded;
     }
 
     private static void OnAudioDataLoaded()
     {
-        m_AudioOption = new AudioTraceOption(VideoService.GetAudioContainer());
+        m_AudioOption.FileHandle = VideoService.GetAudioContainer();
     }
 
     public static TraceOption GetOptionsFor(int traceID)
@@ -39,6 +42,18 @@ public static class TracesService
         else
         {
             throw new KeyNotFoundException("No Trace options for key = " + traceID.ToString());
+        }
+    }
+
+    public static AudioTraceOption GetAudioOptions()
+    {
+        if (m_AudioOption != null)
+        {
+            return m_AudioOption;
+        }
+        else
+        {
+            return null;
         }
     }
 

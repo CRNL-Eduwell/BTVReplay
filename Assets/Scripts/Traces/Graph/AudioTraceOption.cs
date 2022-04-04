@@ -78,6 +78,18 @@ public class AudioTraceOption : ViewModelBase
             RaisePropertyChanged("NumberOfPoint");
         }
     }
+    public int LineWidth
+    {
+        get
+        {
+            return m_LineWidth;
+        }
+        set
+        {
+            m_LineWidth = value;
+            RaisePropertyChanged();
+        }
+    }
     public int NumberOfPoint
     {
         get
@@ -90,6 +102,7 @@ public class AudioTraceOption : ViewModelBase
     private int m_FileID = -1;
     private float m_Gain = 0;
     private float m_OffsetInMilliSeconds = 0;
+    private int m_LineWidth = 2;
     private int m_WindowInSeconds = 0;
 
     public AudioTraceOption(BtvProgram file, float gain = 1, float offset = 0, int windowInSec = 10)
