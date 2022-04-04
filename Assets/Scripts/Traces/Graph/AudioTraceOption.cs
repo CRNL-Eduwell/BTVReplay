@@ -5,14 +5,6 @@ using UnityEngine;
 
 public class AudioTraceOption : ViewModelBase
 {
-    public bool DataLoaded
-    {
-        get 
-        {
-            return m_DataLoaded;
-        }
-    }
-
     public int FileID
     {
         get
@@ -41,6 +33,13 @@ public class AudioTraceOption : ViewModelBase
             }
         }
     }
+    public int SamplingFrequency
+    {
+        get
+        {
+            return m_FileHandle.Frequency.Value;
+        }
+    }
     public float Gain
     {
         get
@@ -53,27 +52,51 @@ public class AudioTraceOption : ViewModelBase
             RaisePropertyChanged();
         }
     }
-    public float Offset
+    public float OffsetInMilliSeconds
     {
         get
         {
-            return m_Offset;
+            return m_OffsetInMilliSeconds;
         }
         set
         {
-            m_Offset = value;
+            m_OffsetInMilliSeconds = value;
             RaisePropertyChanged();
         }
     }
+    public int WindowInSeconds
+    {
+        get
+        {
+            return m_WindowInSeconds;
+        }
+        set
+        {
+            //TODO : v?rifier que ca sois une valeur correcte sois ici , sois plus haut
+            m_WindowInSeconds = value;
+            RaisePropertyChanged("WindowInSeconds");
+            RaisePropertyChanged("NumberOfPoint");
+        }
+    }
+    public int NumberOfPoint
+    {
+        get
+        {
+            return SamplingFrequency * WindowInSeconds;
+        }
+    }
 
-    private bool m_DataLoaded = false;
     private BtvProgram m_FileHandle = null;
     private int m_FileID = -1;
     private float m_Gain = 0;
-    private float m_Offset = 0;
+    private float m_OffsetInMilliSeconds = 0;
+    private int m_WindowInSeconds = 0;
 
-    public AudioTraceOption()
-    { 
-    
+    public AudioTraceOption(BtvProgram file, float gain = 1, float offset = 0, int windowInSec = 10)
+    {
+        m_FileHandle = file;
+        m_Gain = gain;
+        m_OffsetInMilliSeconds = offset;
+        m_WindowInSeconds = windowInSec;
     }
 }

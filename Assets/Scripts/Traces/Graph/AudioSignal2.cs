@@ -1,0 +1,91 @@
+using System.Collections;
+using System.Collections.Generic;
+using BTV.Data;
+using UnityEngine;
+
+public class AudioSignal2 : MonoBehaviour
+{
+    [SerializeField] private LineRenderer _LineRenderer = null;
+
+    private RectTransform m_ParentRectTransform = null;
+    private Vector3[] m_dataArray;
+    private float m_WidthOfGameObject = 0.0f;
+    private float m_HorizontalScale = 0.0f;
+    private float m_LimitValue = 0.0f;
+
+    private AudioTraceOption m_Option = null;
+    private bool m_initDone = false;
+    private BtvChannel m_Channel = null;
+
+    private void Awake()
+    {
+        m_ParentRectTransform = gameObject.transform.parent.GetComponent<RectTransform>();
+    }
+
+    public void Initialize(int electrodeID, AudioTraceOption option)
+    {
+        m_Option = option;
+        m_Option.FileID = electrodeID;
+        m_Channel = m_Option.FileHandle.Channels[m_Option.FileID];
+
+        m_Option.PropertyChanged += OnAudioTraceOptionPropertyChanged;
+
+        m_initDone = true;
+    }
+
+    private void OnDestroy()
+    {
+        if (m_Option != null) m_Option.PropertyChanged -= OnAudioTraceOptionPropertyChanged;
+    }
+
+    private void OnAudioTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case "Gain":
+                {
+
+                    break;
+                }
+        }
+    }
+
+    public void UpdateDraw(int milliSecToLook)
+    {
+        if (m_Channel == null)
+            return;
+
+        int SamplePosition = m_Channel.Frequency.ConvertToCeiledNumberOfSamples((int)(milliSecToLook + m_Option.OffsetInMilliSeconds));
+        int PositionInArray = SamplePosition - m_Option.NumberOfPoint;
+        float limitVal = (m_ParentRectTransform.rect.height - 6.5f) / 2;
+
+        for (int i = 0; i < m_dataArray.Length; i++)
+        {
+            if ((i + PositionInArray >= 0) && (i + PositionInArray < m_Channel.NumberOfSample))
+            {
+                float value = m_Option.Gain * m_Channel.GetSample(i + PositionInArray);
+                if (value >= -limitVal && value <= limitVal)
+                {
+                    m_dataArray[i].y = value;
+                }
+                else
+                {
+                    if (value >= 0)
+                        m_dataArray[i].y = limitVal;
+                    else
+                        m_dataArray[i].y = -limitVal;
+                }
+            }
+            else
+            {
+                m_dataArray[i].y = 0;
+            }
+        }
+        _LineRenderer.SetPositions(m_dataArray);
+    }
+
+    public void Show(bool show)
+    {
+        _LineRenderer.gameObject.SetActive(show);
+    }
+}

@@ -76,7 +76,7 @@ public class TraceOption : ViewModelBase
         }
         set
         {
-            //TODO : vérifier que ca sois une valeur correcte sois ici , sois plus haut
+            //TODO : v?rifier que ca sois une valeur correcte sois ici , sois plus haut
             m_WindowInSeconds = value;
             RaisePropertyChanged("WindowInSeconds");
             RaisePropertyChanged("NumberOfPoint");
