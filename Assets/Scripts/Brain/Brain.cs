@@ -14,6 +14,8 @@ public class Brain : MonoBehaviour
     private GameObject m_Electrodes = null;
     #endregion
     IElectrodesContext m_ElectrodesContext = null;
+    private TraceOption m_MasterTraceOption = null;
+    private int m_BrainReferentialID = -1;
 
     void Awake()
     {
@@ -21,8 +23,28 @@ public class Brain : MonoBehaviour
         Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
     }
 
+    private void OnMasterTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        UnityEngine.Debug.Log("Brain.cs : OnMasterTraceOptionPropertyChanged");
+        switch (e.PropertyName)
+        {
+            case "FileHandle":
+                {
+                    UnityEngine.Debug.Log("OnMasterTraceOptionPropertyChanged FileHandle");
+                    if (m_BrainReferentialID == 2)
+                    {
+                        int suffix = EegFileService.GetContainerSuffix(m_MasterTraceOption.FileHandle);
+                        List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("ELEC", suffix);
+                        UpdateBrainMesh(sites);
+                    }
+                    break;
+                }
+        }
+    }
+
     void OnDestroy()
     {
+        if(m_MasterTraceOption != null) m_MasterTraceOption.PropertyChanged -= OnMasterTraceOptionPropertyChanged;
         Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
     }
@@ -31,6 +53,9 @@ public class Brain : MonoBehaviour
     {
         if (message.Task == LoaderMessage.LoaderTask.LoadBrain)
         {
+            m_MasterTraceOption = TracesService.GetOptionsFor(0);
+            m_MasterTraceOption.PropertyChanged += OnMasterTraceOptionPropertyChanged;
+
             UnityEngine.Debug.Log("OnLoader Message => LoadBrain");
             if (message.HasAnatomy)
             {
@@ -76,6 +101,8 @@ public class Brain : MonoBehaviour
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.EegTechnology);
         KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList();
+        m_BrainReferentialID = d.Key == "MNI" ? 0 : 1;
+
         m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, d.Value);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
@@ -95,6 +122,8 @@ public class Brain : MonoBehaviour
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(eeg);
         KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList();
+        m_BrainReferentialID = 2;
+
         m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, d.Value);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
@@ -108,6 +137,7 @@ public class Brain : MonoBehaviour
         {
             case 0:
                 Debug.Log("Update Brain Model");
+                m_BrainReferentialID = message.ModelId;
                 UpdateBrainModel(message.ModelId);
                 break;
             case 1:
@@ -149,7 +179,7 @@ public class Brain : MonoBehaviour
                 {
                     m_LeftHemiBrain.gameObject.SetActive(false);
                     m_RightHemiBrain.gameObject.SetActive(false);
-                    int suffix = EegFileService.GetContainerSuffix(TracesService.GetOptionsFor(0).FileHandle);
+                    int suffix = EegFileService.GetContainerSuffix(m_MasterTraceOption.FileHandle);
                     List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("ELEC", suffix);
                     UpdateBrainMesh(sites);
                     break;

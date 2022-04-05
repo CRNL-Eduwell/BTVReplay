@@ -152,25 +152,10 @@ public class Site : MonoBehaviour
 
         Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
-        m_MasterTraceOption.PropertyChanged += OnMasterTraceOptionPropertyChanged;
 
         m_MeshRenderer = gameObject.GetComponent<MeshRenderer>();
         UpdateElectrodeID(m_MasterTraceOption.FileHandle);
         IsFrozen = false;
-    }
-
-    private void OnMasterTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        UnityEngine.Debug.Log("OnMasterTraceOptionPropertyChanged");
-        switch (e.PropertyName)
-        {
-            case "FileHandle":
-                {
-                    UnityEngine.Debug.Log("OnMasterTraceOptionPropertyChanged FileHandle");
-                    UpdateElectrodeID(m_MasterTraceOption.FileHandle);
-                    break;
-                }
-        }
     }
 
     /// <summary>
@@ -211,7 +196,7 @@ public class Site : MonoBehaviour
     /// </summary>
     private void OnDisable()
     {
-        m_MasterTraceOption.PropertyChanged -= OnMasterTraceOptionPropertyChanged;
+        //m_MasterTraceOption.PropertyChanged -= OnMasterTraceOptionPropertyChanged;
 
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
         Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
@@ -219,8 +204,6 @@ public class Site : MonoBehaviour
 
     private void OnDestroy()
     {
-        m_MasterTraceOption.PropertyChanged -= OnMasterTraceOptionPropertyChanged;
-
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
         Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
     }
