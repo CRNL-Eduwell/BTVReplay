@@ -226,6 +226,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             case 7:
                 Debug.Log("Update File Switcher");
                 m_TraceOption.FileHandle = EegFileService.ChangeContainerHandle(m_TraceOption.FileHandle, message.FileID);
+                graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
                 graphLabel.Description = m_TraceOption.FileHandle.Description;
                 UpdateTimeResolution(m_TraceOption.WindowInSeconds);
                 break;
