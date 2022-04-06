@@ -10,6 +10,8 @@ public static class TracesService
 {
     private static Dictionary<int, TraceOption> m_Options = new Dictionary<int, TraceOption>();
     private static AudioTraceOption m_AudioOption = null;
+    private static Color m_blue = new Color(0.6117f, 0.7058f, 0.7960f);
+    private static Color m_yellow = new Color(0.9058f, 0.8784f, 0.0f);
 
     public static void Reset()
     {
@@ -21,8 +23,8 @@ public static class TracesService
 
     public static void InitTraces()
     {
-        m_Options.Add(0, new TraceOption(EegFileService.ReturnFirstValidContainer()));
-        m_Options.Add(1, new TraceOption(EegFileService.ReturnFirstValidContainer()));
+        m_Options.Add(0, new TraceOption(EegFileService.ReturnFirstValidContainer(), m_blue));
+        m_Options.Add(1, new TraceOption(EegFileService.ReturnFirstValidContainer(), m_yellow));
         m_AudioOption = new AudioTraceOption(null);
 
         VideoService.AudioDataLoaded += OnAudioDataLoaded;

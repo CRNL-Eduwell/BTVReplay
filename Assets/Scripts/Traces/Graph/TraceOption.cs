@@ -155,9 +155,10 @@ public class TraceOption : ViewModelBase
     private Color m_Color = Color.white;
     private int m_LineWidth = 2;
     private bool m_IsGridOn = false;
-    public TraceOption(BtvProgram file, float gain = 1, float offset = 0, int windowInSec = 10)
+    public TraceOption(BtvProgram file, Color color, float gain = 1, float offset = 0, int windowInSec = 10)
     {
         m_FileHandle = file;
+        m_Color = color;
         m_Gain = gain;
         m_Offset = offset;
         m_WindowInSeconds = windowInSec;
