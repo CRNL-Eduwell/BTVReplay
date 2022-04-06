@@ -33,6 +33,8 @@ public class AudioSignal : MonoBehaviour
             m_dataArray = new Vector3[m_Option.NumberOfPoint];
             _LineRenderer.positionCount = m_Option.NumberOfPoint;
             _LineRenderer.sortingOrder = -1;
+            _LineRenderer.startWidth = m_Option.LineWidth;
+            _LineRenderer.endWidth = m_Option.LineWidth;
 
             UpdateHorizontalScale();
         }
@@ -77,6 +79,8 @@ public class AudioSignal : MonoBehaviour
                         m_dataArray = new Vector3[m_Option.NumberOfPoint];
                         _LineRenderer.positionCount = m_Option.NumberOfPoint;
                         _LineRenderer.sortingOrder = -1;
+                        _LineRenderer.startWidth = m_Option.LineWidth;
+                        _LineRenderer.endWidth = m_Option.LineWidth;
 
                         UpdateHorizontalScale();
                     }
