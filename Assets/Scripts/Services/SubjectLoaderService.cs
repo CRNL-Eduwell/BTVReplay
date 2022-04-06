@@ -71,19 +71,19 @@ public class SubjectLoaderService : MonoBehaviour
         //===============
         yield return new WaitForSeconds(0.1f);
 
-        BtvProgram btvProgram = EegFileService.ReturnFirstValidContainer();
-        if (btvProgram != null)
-        {
-            foreach (BtvEvent _event in btvProgram.Events)
-            {
-                EventsModificationMessage hackMessage = new EventsModificationMessage
-                {
-                    TaskToExecute = 0,
-                    Event = _event
-                };
-                Messenger.Default.Send(hackMessage, MessageContext.EventsModificationMessage);
-            }
-        }
+        //BtvProgram btvProgram = EegFileService.ReturnFirstValidContainer();
+        //if (btvProgram != null)
+        //{
+        //    foreach (BtvEvent _event in btvProgram.Events)
+        //    {
+        //        EventsModificationMessage hackMessage = new EventsModificationMessage
+        //        {
+        //            TaskToExecute = 0,
+        //            Event = _event
+        //        };
+        //        Messenger.Default.Send(hackMessage, MessageContext.EventsModificationMessage);
+        //    }
+        //}
 
         //kind of an ugly way to deactivate perf at launch time, see to do that by instantiating
         //the window only when needed 
