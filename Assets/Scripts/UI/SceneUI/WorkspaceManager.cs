@@ -226,11 +226,9 @@ public class WorkspaceManager : MonoBehaviour
         opt.LineWidth = (int)traceParameters.Width;
 
         //Try to load the different positions of the traces
-        GameObject Parent = GameObject.Find(traceParameters.Parent);
-        if (Parent != null)
-        {
-            Parent.GetComponent<WindowLayout>().ForceDrop(trace.gameObject, traceParameters.GridLayout, traceParameters.Id);
-        }
+        WindowLayout layout = GameObject.Find(traceParameters.Parent).GetComponent<WindowLayout>();
+        WindowLayout layouthandle = (layout != null) ? _LeftWindowLayout : _RightWindowLayout;
+        layouthandle.ForceDrop(trace.gameObject, traceParameters.GridLayout, traceParameters.Id);
     }
 
     private void SaveLayout(string path)
