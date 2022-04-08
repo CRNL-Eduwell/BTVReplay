@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -107,10 +109,61 @@ namespace BTV.Services.AnatomicalDataService
             {
                 m_Atlas = new MarsAtlas(Application.dataPath);
                 m_Atlas.loadPatientAtlas(filePath);
-                //m_Atlas.findElectrodesWithAtlas(Electrodes);
+                LinkAtlasData(m_Atlas.electrodes_Atlas);
             }
 
             yield return null;
+        }
+
+        private static void LinkAtlasData(MarsAtlas_plot[] atlas_Plots)
+        {
+            int elementCount = m_SitesPerReferential.Count;
+            for (int i = 0; i < elementCount; i++)
+            {
+                KeyValuePair<string, List<AnatomicalSite>> kvp_sites = m_SitesPerReferential.ElementAt(i);
+                List<AnatomicalSite> sites = kvp_sites.Value;
+                for (int j = 0; j < sites.Count; j++)
+                {
+                    string siteLabel = sites[j].Label;
+                    int siteID = int.Parse(new string(siteLabel.Where(char.IsDigit).ToArray()));
+                    string siteIDFormated = siteID.ToString("00");
+
+                    siteLabel = CorrectPlotName(siteLabel.Replace(siteID.ToString(), siteIDFormated));
+                    List<int> idFound = atlas_Plots.Select((item, index) => new { Item = item, Index = index })
+                                            .Where(x => (x.Item.plotName.ToLower() == siteLabel))
+                                            .Select(x => x.Index)
+                                            .ToList();
+
+                    if (idFound.Count > 0)
+                    {
+                        sites[j].MarsAtlas = atlas_Plots[idFound[0]].nameFull;
+                        sites[j].Broadmann = atlas_Plots[idFound[0]].broadman;
+                    }
+                }
+            }
+        }
+
+        private static string CorrectPlotName(string plot)
+        {
+            //== Correct if elec is named Pp1 (P'1)
+            List<int> nbP = plot.ToLower().Select((v, ii) => new { v, ii })
+            .Where(c => c.v.Equals('p'))
+            .Select(c => c.ii).ToList();
+
+            if (nbP.Count > 1)
+            {
+                var stringBuilder = new StringBuilder(plot);
+                stringBuilder[nbP.Count - 1] = '\'';
+                plot = stringBuilder.ToString();
+            }
+            //=========
+            if (plot[0] == 'p' || plot[0] == 'P') //if electrode is p then just to lower case else change p for ' and to lower
+                plot = plot.ToLower();
+            else
+                plot = plot.ToLower().Replace('p', '\'');
+
+            string[] tempPlot = plot.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+            return string.Join(" ", tempPlot);
         }
 
         public static bool IsReferentialValid(string referential)
