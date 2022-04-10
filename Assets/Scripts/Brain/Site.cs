@@ -36,36 +36,12 @@ public class Site : MonoBehaviour
 
     public string MarsAtlasName
     {
-        get
-        {
-            if (m_Plot is Intra_Plot)
-            {
-                Intra_Plot currentPlot = (Intra_Plot)m_Plot;
-                if (currentPlot.Atlas.nameFull != "")
-                    return currentPlot.Atlas.nameFull;
-                else
-                    return "";
-            }
-            else
-                return "";
-        }
+        get { return m_Plot != null ? m_Plot.MarsAtlas : ""; }
     }
 
     public string BroadmanName
     {
-        get
-        {
-            if (m_Plot is Intra_Plot)
-            {
-                Intra_Plot currentPlot = (Intra_Plot)m_Plot;
-                if (currentPlot.Atlas.broadman != "")
-                    return currentPlot.Atlas.broadman;
-                else
-                    return "";
-            }
-            else
-                return "";
-        }
+        get { return m_Plot != null ? m_Plot.Broadmann : ""; }
     }
 
     /// <summary>
@@ -134,7 +110,7 @@ public class Site : MonoBehaviour
     #endregion
 
     #region Private Members
-    private object m_Plot = null; //Reference to the corresponding data element , either a Eeg_Plot or Intra_Plot
+    private AnatomicalSite m_Plot = null; //Reference to the corresponding data element , either a Eeg_Plot or Intra_Plot
     private bool m_IsFrozen = false;
     private MeshRenderer m_MeshRenderer = null;
     private Color m_Color = Color.white;
@@ -145,9 +121,9 @@ public class Site : MonoBehaviour
     private Frequency m_Frequency = null;
     #endregion
 
-    public void Init(object Plot)
+    public void Init(AnatomicalSite site)
     {
-        m_Plot = Plot;
+        m_Plot = site;
         m_MasterTraceOption = TracesService.GetOptionsFor(0);
 
         Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
@@ -177,16 +153,6 @@ public class Site : MonoBehaviour
             m_Channel = container.Channels[ID];
             m_Frequency = m_Channel.Frequency;
         }
-    }
-
-    /// <summary>
-    /// Update object plot behing it , and according to the referential controls whether
-    /// it shows MarsAtlas information or not
-    /// </summary>
-    /// <param name="Plot"></param>
-    public void UpdatePlot(object Plot)
-    {
-        m_Plot = Plot;
     }
 
     /// <summary>

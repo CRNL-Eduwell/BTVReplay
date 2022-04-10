@@ -23,17 +23,13 @@ namespace Assets.Scripts.Data.Factory
             ScalpDataProjector dps = parent.transform.parent.GetChild(2).GetComponent<ScalpDataProjector>();
             for (int i = 0; i < sites.Count; i++)
             {
-                //EEG_Plot CurrentPlot = (EEG_Plot)Electrodes[i];
-                EEG_Plot CurrentPlot = new EEG_Plot(sites[i].Label, sites[i].Coordinates);
                 /********************** /!\Axe x de unity inversé /!\ **********************/
-                //CurrentPlot.Coordinates.Set(CurrentPlot.Coordinates.z, -CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y);
-                CurrentPlot.Coordinates = new Vector3(-CurrentPlot.Coordinates.x, CurrentPlot.Coordinates.y, CurrentPlot.Coordinates.z);
+                Vector3 Coordinates = new Vector3(-sites[i].Coordinates.x, sites[i].Coordinates.y, sites[i].Coordinates.z);
                 /***************************************************************************/
 
-                GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, CurrentPlot.Coordinates, Quaternion.identity);
-                NewPlot.name = CurrentPlot.Label;
-                NewPlot.transform.parent = Electrode.transform;
-                NewPlot.GetComponent<Site>().Init(CurrentPlot.Label);
+                GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, Coordinates, Quaternion.identity, Electrode.transform);
+                NewPlot.name = sites[i].Label;
+                NewPlot.GetComponent<Site>().Init(sites[i]);
                 if (dps != null)
                 {
                     if (NewPlot.activeSelf)

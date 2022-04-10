@@ -15,53 +15,53 @@ namespace Assets.Scripts.Data.Factory
     {
         public void LoadElectrodesOnBrain(GameObject parent, List<AnatomicalSite> sites)
         {
+            int counter = 0;
             GameObject ElectrodePlot_prefab = Resources.Load("Prefabs/Brain-ElecPlot", typeof(GameObject)) as GameObject;
-            List<Intra_Electrode> electrodes = GetIntraElectrodes(sites);
+            List<KeyValuePair<string, List<AnatomicalSite>>> electrodes = GetIntraElectrodes(sites);
             for (int i = 0; i < electrodes.Count; i++)
             {
                 GameObject Electrode = new GameObject();
-                Electrode.name = electrodes[i].Label;
+                Electrode.name = electrodes[i].Key;
                 Electrode.transform.parent = parent.transform;
 
-                for (int j = 0; j < electrodes[i].Plots.Count; j++)
+                for (int j = 0; j < electrodes[i].Value.Count; j++)
                 {
                     /********************** /!\Axe x de unity inversé /!\ **********************/
-                    electrodes[i].Plots[j].Coordinates = new Vector3(-electrodes[i].Plots[j].Coordinates.x,
-                                                                      electrodes[i].Plots[j].Coordinates.y,
-                                                                      electrodes[i].Plots[j].Coordinates.z);
+                    electrodes[i].Value[j].Coordinates = new Vector3(-electrodes[i].Value[j].Coordinates.x,
+                                                                      electrodes[i].Value[j].Coordinates.y,
+                                                                      electrodes[i].Value[j].Coordinates.z);
                     /***************************************************************************/
 
-                    GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, electrodes[i].Plots[j].Coordinates, Quaternion.identity);
-                    NewPlot.name = electrodes[i].Plots[j].Label;
+                    GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, electrodes[i].Value[j].Coordinates, Quaternion.identity);
+                    NewPlot.name = electrodes[i].Value[j].Label;
                     NewPlot.transform.parent = Electrode.transform;
-                    NewPlot.GetComponent<Site>().Init(electrodes[i].Plots[j]);
+                    NewPlot.GetComponent<Site>().Init(sites[counter]);
+                    counter++;
                 }
             }
         }
 
-        private List<Intra_Electrode> GetIntraElectrodes(List<AnatomicalSite> sites)
+        private List<KeyValuePair<string, List<AnatomicalSite>>> GetIntraElectrodes(List<AnatomicalSite> sites)
         {
-            List<Intra_Electrode> IntraElectrodes = new List<Intra_Electrode>();
+            List<KeyValuePair<string, List<AnatomicalSite>>> IntraElectrodes = new List<KeyValuePair<string, List<AnatomicalSite>>>();
             string currentElectrodeName = "";
             for (int i = 0; i < sites.Count; i++)
             {
                 string correctedName = CorrectPlotName(sites[i].Label);
                 Tuple<string, int> intraName = GetIntraPlotInformation(correctedName);
-                Intra_Plot CurrentPlot = new Intra_Plot(intraName.Item1, intraName.Item2, sites[i].Coordinates);
 
-                string ElectrodeName = CurrentPlot.Parent;
+                string ElectrodeName = intraName.Item1;
                 if (ElectrodeName == currentElectrodeName)  //This is just a new plot in current Electrode
                 {
-                    IntraElectrodes[IntraElectrodes.Count - 1].Plots.Add(new Intra_Plot(CurrentPlot));
+                    IntraElectrodes[IntraElectrodes.Count - 1].Value.Add(new AnatomicalSite(correctedName, sites[i].Coordinates, sites[i].Broadmann, sites[i].MarsAtlas));
                 }
                 else    //This is a new Electrode
                 {
                     currentElectrodeName = ElectrodeName;
-                    IntraElectrodes.Add(new Intra_Electrode(ElectrodeName));
-                    IntraElectrodes[IntraElectrodes.Count - 1].Plots.Add(new Intra_Plot(CurrentPlot));
+                    IntraElectrodes.Add(new KeyValuePair<string, List<AnatomicalSite>>(ElectrodeName, new List<AnatomicalSite>()));
+                    IntraElectrodes[IntraElectrodes.Count - 1].Value.Add(new AnatomicalSite(correctedName, sites[i].Coordinates, sites[i].Broadmann, sites[i].MarsAtlas));
                 }
             }
-
             return IntraElectrodes;
         }
 
