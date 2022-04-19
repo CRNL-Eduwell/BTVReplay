@@ -176,8 +176,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
         eegSignal.Initialize(traceID, m_TraceOption);
         audioSignal.Initialize(0, m_AudioOption);
+        graphLabel.Initialize(m_TraceOption);
 
-        graphLabel.Initialize(m_TraceOption.ElectrodeLabel, m_TraceOption.FileHandle.Description);
         graphGrid.init(m_TraceOption.WindowInSeconds);
         graphEvent.init(this);
         graphSonif.Init(this);

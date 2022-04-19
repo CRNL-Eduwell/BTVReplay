@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class GraphLabel : MonoBehaviour
@@ -49,13 +45,17 @@ public class GraphLabel : MonoBehaviour
     [SerializeField] BoxCollider m_Collider = null;
 
     private RectTransform m_LabelRect = null;
+    private TraceOption m_Option = null;
 
-    public void Initialize(string label, string description)
+    public void Initialize(TraceOption option)
     {
         m_LabelRect = ElectrodeLabel.GetComponent<RectTransform>();
 
-        Electrode = label;
-        Description = description;
+        m_Option = option;
+        Electrode = m_Option.ElectrodeLabel;
+        Description = m_Option.FileHandle.Description;
+        m_Option.PropertyChanged += OnTraceOptionPropertyChanged;
+
         ElectrodeColor.gameObject.SetActive(true);
 
         //== Ugly way to adapt the size of the collider to the label of the electrode since
@@ -63,5 +63,28 @@ public class GraphLabel : MonoBehaviour
         float width = LayoutUtility.GetPreferredWidth(m_LabelRect);
         float height = m_LabelRect.rect.height;
         m_Collider.size = new Vector2(width, height);
+    }
+
+    private void OnDestroy()
+    {
+        m_Option.PropertyChanged -= OnTraceOptionPropertyChanged;
+    }
+
+    private void OnTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case "FileHandle":
+                {
+                    Electrode = m_Option.ElectrodeLabel;
+                    Description = m_Option.FileHandle.Description;
+                    break;
+                }
+            case "ElectrodeID":
+                {
+                    Electrode = m_Option.ElectrodeLabel;
+                    break;
+                }
+        }
     }
 }
