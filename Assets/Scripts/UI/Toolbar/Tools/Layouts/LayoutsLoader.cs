@@ -23,6 +23,8 @@ namespace BTV.UI.Module3D.Tools
 
         private void Load()
         {
+            string directory = TracesService.GetOptionsFor(0).FileHandle.Directory;
+
 #if UNITY_STANDALONE_OSX
             FileBrowser.GetExistingFileNameAsync((str) =>
             {
@@ -30,9 +32,9 @@ namespace BTV.UI.Module3D.Tools
                 {
                     LoadFile.Invoke(str);
                 }
-            }, new string[] { "workspace" }, "Select a Workspace File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
+            }, new string[] { "workspace" }, "Select a Workspace File", directory);
 #else
-            string filePath = FileBrowser.GetExistingFileName(new string[] { "workspace" }, "Select a Workspace File", ApplicationState.Module3D.Window1.TraceEeg.FileHandle.Directory);
+            string filePath = FileBrowser.GetExistingFileName(new string[] { "workspace" }, "Select a Workspace File", directory);
             if(!string.IsNullOrEmpty(filePath))
                 LoadFile.Invoke(filePath);
 #endif

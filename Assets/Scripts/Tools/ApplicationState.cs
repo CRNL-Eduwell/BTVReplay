@@ -11,6 +11,7 @@ using BTV.Services.VideoService;
 using BTV.UI;
 using Tools.Unity;
 using BTV.Services.CodeMatchingService;
+using BTV.Services.AnatomicalDataService;
 
 public static class ApplicationState
 {
@@ -35,7 +36,9 @@ public static class ApplicationState
 
     public static void ResetAllServices()
     {
+        AnatomicalDataService.Reset();
         EegFileService.Reset();
+        TracesService.Reset();
         VideoService.Reset();
         EventsService.Reset();
         CodeMatchingService.Reset();

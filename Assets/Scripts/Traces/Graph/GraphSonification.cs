@@ -51,7 +51,7 @@ public class GraphSonification : MonoBehaviour
 
         if (_Video.VideoInterface.IsPlaying)
         {
-            float currentValue = (0.5f + m_curve.TraceEeg.MostRecentValueInPercentOfTrace) / 3;
+            float currentValue = (0.5f + m_curve.MostRecentValueInPercentOfTrace) / 3;
             if (currentValue >= 0 && currentValue <= 0.33f)
             {
                 _AudioSourceScript.pitch = currentValue;

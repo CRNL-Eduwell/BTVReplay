@@ -1,4 +1,7 @@
 ﻿using Assets.Scripts.Data.Factory;
+using BTV.Services.AnatomicalDataService;
+using BTV.Services.EegFileService;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,6 +14,8 @@ public class Brain : MonoBehaviour
     private GameObject m_Electrodes = null;
     #endregion
     IElectrodesContext m_ElectrodesContext = null;
+    private TraceOption m_MasterTraceOption = null;
+    private int m_BrainReferentialID = -1;
 
     void Awake()
     {
@@ -18,8 +23,28 @@ public class Brain : MonoBehaviour
         Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
     }
 
+    private void OnMasterTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        UnityEngine.Debug.Log("Brain.cs : OnMasterTraceOptionPropertyChanged");
+        switch (e.PropertyName)
+        {
+            case "FileHandle":
+                {
+                    UnityEngine.Debug.Log("OnMasterTraceOptionPropertyChanged FileHandle");
+                    if (m_BrainReferentialID == 2)
+                    {
+                        int suffix = EegFileService.GetContainerSuffix(m_MasterTraceOption.FileHandle);
+                        List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("ELEC", suffix);
+                        UpdateBrainMesh(sites);
+                    }
+                    break;
+                }
+        }
+    }
+
     void OnDestroy()
     {
+        if(m_MasterTraceOption != null) m_MasterTraceOption.PropertyChanged -= OnMasterTraceOptionPropertyChanged;
         Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
     }
@@ -28,6 +53,9 @@ public class Brain : MonoBehaviour
     {
         if (message.Task == LoaderMessage.LoaderTask.LoadBrain)
         {
+            m_MasterTraceOption = TracesService.GetOptionsFor(0);
+            m_MasterTraceOption.PropertyChanged += OnMasterTraceOptionPropertyChanged;
+
             UnityEngine.Debug.Log("OnLoader Message => LoadBrain");
             if (message.HasAnatomy)
             {
@@ -72,9 +100,10 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.EegTechnology);
-        m_ElectrodesContext.LoadElectrodes(brainToLoad.Pts);
-        m_ElectrodesContext.LoadAtlasData(brainToLoad.Atlas);
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes);
+        KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList();
+        m_BrainReferentialID = d.Key == "MNI" ? 0 : 1;
+
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, d.Value);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         m_BrainCamera.InitCameraPosition();
@@ -92,8 +121,10 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(eeg);
-        m_ElectrodesContext.LoadDefaultPearl();
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes);
+        KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList();
+        m_BrainReferentialID = 2;
+
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, d.Value);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         m_BrainCamera.InitCameraPosition();
@@ -106,6 +137,7 @@ public class Brain : MonoBehaviour
         {
             case 0:
                 Debug.Log("Update Brain Model");
+                m_BrainReferentialID = message.ModelId;
                 UpdateBrainModel(message.ModelId);
                 break;
             case 1:
@@ -126,30 +158,47 @@ public class Brain : MonoBehaviour
         switch (ModelId)
         {
             case 0:
-                m_LeftHemiBrain.gameObject.SetActive(true);
-                m_RightHemiBrain.gameObject.SetActive(true);
-                ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
-                UpdateBrainMesh(mniContainer);
-                break;
+                {
+                    m_LeftHemiBrain.gameObject.SetActive(true);
+                    m_RightHemiBrain.gameObject.SetActive(true);
+                    ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+                    List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("MNI");
+                    UpdateBrainMesh(mniContainer, sites);
+                    break;
+                }
             case 1:
-                m_LeftHemiBrain.gameObject.SetActive(true);
-                m_RightHemiBrain.gameObject.SetActive(true);
-                ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
-                UpdateBrainMesh(patContainer);
-                break;
+                {
+                    m_LeftHemiBrain.gameObject.SetActive(true);
+                    m_RightHemiBrain.gameObject.SetActive(true);
+                    ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+                    List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("PAT");
+                    UpdateBrainMesh(patContainer, sites);
+                    break;
+                }
             case 2:
-                m_LeftHemiBrain.gameObject.SetActive(false);
-                m_RightHemiBrain.gameObject.SetActive(false);
-                m_ElectrodesContext.UpdateElectrodesPearl(m_Electrodes);
-                break;
+                {
+                    m_LeftHemiBrain.gameObject.SetActive(false);
+                    m_RightHemiBrain.gameObject.SetActive(false);
+                    int suffix = EegFileService.GetContainerSuffix(m_MasterTraceOption.FileHandle);
+                    List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("ELEC", suffix);
+                    UpdateBrainMesh(sites);
+                    break;
+                }
             default:
-                Debug.LogError("UpdateBrainModel => ModelId value is unknown : " + ModelId);
-                break;
+                {
+                    Debug.LogError("UpdateBrainModel => ModelId value is unknown : " + ModelId);
+                    break;
+                }
         }
     }
 
-    private void UpdateBrainMesh(BrainDataContainer brainToLoad)
+    private void UpdateBrainMesh(BrainDataContainer brainToLoad, List<AnatomicalSite> sites)
     {
+        // This is a hack , we put back the brain main object at his original position and then we 
+        // rmove it back at the end of the reinitialisation => TODO : check unity layer system 
+        gameObject.transform.position -= new Vector3(-10000, 0, 0);
+        gameObject.transform.Rotate(new Vector3(-270, 0, 0));
+
         Destroy(GameObject.Find("LeftHemi"));
         m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.LeftHemisphere, brainToLoad.Transformation);
 
@@ -165,10 +214,43 @@ public class Brain : MonoBehaviour
             m_RightHemiBrain.layer = gameObject.layer;
         }
 
-        //TODO : in case of a change beetween ieeg and scalp eeg it will probably not work
-        m_ElectrodesContext.LoadElectrodes(brainToLoad.Pts);
-        m_ElectrodesContext.LoadAtlasData(brainToLoad.Atlas);
-        m_ElectrodesContext.UpdateElectrodesPosition(m_Electrodes);
+        Destroy(GameObject.Find("Electrodes"));
+        m_Electrodes = new GameObject("Electrodes");
+        m_Electrodes.transform.parent = gameObject.transform;
+        m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.EegTechnology);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, sites);
+
+        // Hack part 2 , put it back outside of the canvas
+        gameObject.transform.position += new Vector3(-10000, 0, 0);
+        gameObject.transform.Rotate(new Vector3(270, 0, 0));
+    }
+
+    private void UpdateBrainMesh(List<AnatomicalSite> sites)
+    {
+        // This is a hack , we put back the brain main object at his original position and then we 
+        // rmove it back at the end of the reinitialisation => TODO : check unity layer system 
+        gameObject.transform.position -= new Vector3(-10000, 0, 0);
+        gameObject.transform.Rotate(new Vector3(-270, 0, 0));
+
+        Destroy(GameObject.Find("LeftHemi"));
+        m_LeftHemiBrain = new GameObject("LeftHemi");
+        m_LeftHemiBrain.transform.parent = gameObject.transform;
+        m_LeftHemiBrain.layer = gameObject.layer;
+
+        Destroy(GameObject.Find("RightHemi"));
+        m_RightHemiBrain = new GameObject("RightHemi");
+        m_RightHemiBrain.transform.parent = gameObject.transform;
+        m_RightHemiBrain.layer = gameObject.layer;
+
+        Destroy(GameObject.Find("Electrodes"));
+        m_Electrodes = new GameObject("Electrodes");
+        m_Electrodes.transform.parent = gameObject.transform;
+
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, sites);
+
+        // Hack part 2 , put it back outside of the canvas
+        gameObject.transform.position += new Vector3(-10000, 0, 0);
+        gameObject.transform.Rotate(new Vector3(270, 0, 0));
     }
 
     //Left : sibling 0

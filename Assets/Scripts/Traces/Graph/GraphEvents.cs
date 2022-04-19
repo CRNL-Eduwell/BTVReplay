@@ -68,10 +68,10 @@ public class GraphEvents : MonoBehaviour
         int EventCount = EventsService.Events.Count;
         if (EventCount > 0)
         {
-            float samplingFreq = m_parent.TraceEeg.FileHandle.Frequency.RawValue;
-            int PeriodInSeconds = m_parent.TraceEeg.PeriodInSeconds;
-            float horizontalScale = m_parent.TraceEeg.HorizontalScale;
-            float widthOfGameObject = m_parent.TraceEeg.WidthOfGameObject;
+            float samplingFreq = TracesService.SamplingFrequency(m_parent.TraceId);
+            int PeriodInSeconds = TracesService.WindowInSeconds(m_parent.TraceId);
+            float widthOfGameObject = m_parent.gameObject.transform.GetComponent<RectTransform>().rect.width - 10; //TODO : do we get some way of getting that from parent or not
+            float horizontalScale = widthOfGameObject / TracesService.GetOptionsFor(m_parent.TraceId).NumberOfPoint;
 
             int left = milliSecToLook - (PeriodInSeconds * 1000);
             int right = milliSecToLook;
@@ -90,7 +90,7 @@ public class GraphEvents : MonoBehaviour
 
                 for (int i = 0; i < idRightEnter.Count; i++)
                 {
-                    float positionInsideRect = (((left - EventsService.Events[idRightEnter[i]].TimeInMilliSeconds) * m_parent.TraceEeg.SamplingFrequency) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float positionInsideRect = (((left - EventsService.Events[idRightEnter[i]].TimeInMilliSeconds) * samplingFreq) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
                     float rightevent = right - EventsService.Events[idRightEnter[i]].TimeInMilliSeconds;
                     float size = (rightevent / (right - left)) * widthOfGameObject;
 
@@ -102,7 +102,7 @@ public class GraphEvents : MonoBehaviour
 
                 for (int i = 0; i < idInside.Count; i++)
                 {
-                    float positionInsideRect = (((left - EventsService.Events[idInside[i]].TimeInMilliSeconds) * m_parent.TraceEeg.SamplingFrequency) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float positionInsideRect = (((left - EventsService.Events[idInside[i]].TimeInMilliSeconds) * samplingFreq) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
                     float size = ((float)EventsService.Events[idInside[i]].Duration / (right - left)) * widthOfGameObject;
 
                     if (EventsService.Events[idInside[i]].Duration > 0)
