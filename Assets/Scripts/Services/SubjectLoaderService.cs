@@ -12,6 +12,7 @@ using BTV.Services.EegFileService;
 using System.Linq;
 using System.Collections.Generic;
 using BTV.Services;
+using BTV.Services.AnatomicalDataService;
 
 public class SubjectLoaderService : MonoBehaviour
 {
@@ -50,6 +51,8 @@ public class SubjectLoaderService : MonoBehaviour
         ApplicationState.Module3D.Patient = subject;
 
         yield return StartCoroutine(c_loadEEGFile(subject));
+        TracesService.InitTraces();
+
         LoaderMessage message = new LoaderMessage
         {
             Task = LoaderMessage.LoaderTask.MediaLoader
@@ -58,6 +61,7 @@ public class SubjectLoaderService : MonoBehaviour
 
         yield return StartCoroutine(c_loadVideo(subject.Video));
         yield return StartCoroutine(c_LoadBrainAnatomy(subject));
+
         message = new LoaderMessage
         {
             Task = LoaderMessage.LoaderTask.LoadTrace
@@ -67,19 +71,19 @@ public class SubjectLoaderService : MonoBehaviour
         //===============
         yield return new WaitForSeconds(0.1f);
 
-        BtvProgram btvProgram = EegFileService.ReturnFirstValidContainer();
-        if (btvProgram != null)
-        {
-            foreach (BtvEvent _event in btvProgram.Events)
-            {
-                EventsModificationMessage hackMessage = new EventsModificationMessage
-                {
-                    TaskToExecute = 0,
-                    Event = _event
-                };
-                Messenger.Default.Send(hackMessage, MessageContext.EventsModificationMessage);
-            }
-        }
+        //BtvProgram btvProgram = EegFileService.ReturnFirstValidContainer();
+        //if (btvProgram != null)
+        //{
+        //    foreach (BtvEvent _event in btvProgram.Events)
+        //    {
+        //        EventsModificationMessage hackMessage = new EventsModificationMessage
+        //        {
+        //            TaskToExecute = 0,
+        //            Event = _event
+        //        };
+        //        Messenger.Default.Send(hackMessage, MessageContext.EventsModificationMessage);
+        //    }
+        //}
 
         //kind of an ugly way to deactivate perf at launch time, see to do that by instantiating
         //the window only when needed 
@@ -94,10 +98,88 @@ public class SubjectLoaderService : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
     }
 
+    private IEnumerator c_LoadBrainAnatomy2(Subject subject)
+    {
+        bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+        bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+
+        bool ShouldLoadMniFirst = false, ShouldLoadPatFirst = false;
+        if (hasMniContainer && hasPatContainer)
+        {
+            ShouldLoadMniFirst = (mniContainer.HasAnat && !patContainer.HasAnat) || (mniContainer.HasAnat && patContainer.HasAnat);
+            ShouldLoadPatFirst = !mniContainer.HasAnat && patContainer.HasAnat;
+        }
+        else if (hasMniContainer && !hasPatContainer)
+        {
+            ShouldLoadMniFirst = mniContainer.HasAnat;
+            ShouldLoadPatFirst = false;
+        }
+        else if (!hasMniContainer && hasPatContainer)
+        {
+            ShouldLoadMniFirst = false;
+            ShouldLoadPatFirst = patContainer.HasAnat;
+        }
+        else
+        {
+            ShouldLoadMniFirst = false;
+            ShouldLoadPatFirst = false;
+        }
+
+        if (ShouldLoadMniFirst)
+        {
+            LoaderMessage message = new LoaderMessage
+            {
+                Task = LoaderMessage.LoaderTask.LoadBrain,
+                HasAnatomy = true,
+                Anatomy = mniContainer
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderMessage);
+        }
+        else if (ShouldLoadPatFirst)
+        {
+            LoaderMessage message = new LoaderMessage
+            {
+                Task = LoaderMessage.LoaderTask.LoadBrain,
+                HasAnatomy = true,
+                Anatomy = patContainer
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderMessage);
+        }
+        else
+        {
+            //TODO
+            //When there is no 3D model , we take the value of the mni dropdown for eegtech
+            //if this is not filled this might be wrong, need to find another way to know
+            //if it's intra or scalp
+            LoaderMessage message = new LoaderMessage
+            {
+                Task = LoaderMessage.LoaderTask.LoadBrain,
+                HasAnatomy = false,
+                Techno = EegTechnology.Intra
+            };
+            Messenger.Default.Send(message, MessageContext.LoaderMessage);
+        }
+
+        yield return null;
+    }
+
     private IEnumerator c_LoadBrainAnatomy(Subject subject)
     {
         bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
         bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+
+        if (hasMniContainer && mniContainer.Pts != "") yield return StartCoroutine(AnatomicalDataService.c_Load("MNI", mniContainer));
+        if (hasPatContainer && patContainer.Pts != "") yield return StartCoroutine(AnatomicalDataService.c_Load("PAT", patContainer));
+
+        //TODO
+        //When there is no 3D model , we take the value of the mni dropdown for eegtech
+        //if this is not filled this might be wrong, need to find another way to know
+        //if it's intra or scalp
+        yield return AnatomicalDataService.c_LoadDefaultElectrodes(mniContainer.EegTechnology);
+
+        //TODO 
+        //atlas is loaded in the service and now we'll need to link atlas info in visualisation part 
+        yield return AnatomicalDataService.c_LoadAtlas(patContainer.Atlas);
 
         bool ShouldLoadMniFirst = false, ShouldLoadPatFirst = false;
         if (hasMniContainer && hasPatContainer)

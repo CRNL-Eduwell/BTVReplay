@@ -168,7 +168,8 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         int EventCount = EventsService.Events.Count;
         if (EventCount > 0)
         {
-            int left = milliSecToLook  - (m_curveTrace1.TraceEeg.PeriodInSeconds * 1000);
+            TraceOption opt = TracesService.GetOptionsFor(0);
+            int left = milliSecToLook  - (opt.WindowInSeconds * 1000);
             int right = milliSecToLook;
 
             List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right);
@@ -181,19 +182,19 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
             {
                 if (EventsService.Events[indexes[i]].Correlation2D != null)
                 {
-                    int id = m_curveTrace1.TraceEeg.ElectrodeID;
-                    for (int j = 0; j < m_curveTrace1.TraceEeg.FileHandle.NumberOfElectrodes; j++)
+                    int id = opt.ElectrodeID;
+                    for (int j = 0; j < opt.FileHandle.NumberOfElectrodes; j++)
                     {
-                        string ElectrodeName = m_curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
+                        string ElectrodeName = opt.FileHandle.GetElectrodeNameFromElectrodeID(j);
                         Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].Correlation2D[id][j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
                 else if (EventsService.Events[indexes[i]].Correlation != null)
                 {
-                    for (int j = 0; j < m_curveTrace1.TraceEeg.FileHandle.NumberOfElectrodes; j++)
+                    for (int j = 0; j < opt.FileHandle.NumberOfElectrodes; j++)
                     {
-                        string ElectrodeName = m_curveTrace1.TraceEeg.FileHandle.GetElectrodeNameFromElectrodeID(j);
+                        string ElectrodeName = opt.FileHandle.GetElectrodeNameFromElectrodeID(j);
                         Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].Correlation[j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }

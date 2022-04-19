@@ -1,4 +1,5 @@
 ﻿using BTV.Data;
+using BTV.Services.EegFileService;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,18 +14,11 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             return traceID;
         }
     }
-    public AudioSignal TraceAudio
+    public float MostRecentValueInPercentOfTrace
     {
         get
         {
-            return audioSignal;
-        }
-    }
-    public EegSignal TraceEeg
-    {
-        get
-        {
-            return eegSignal;
+            return eegSignal.MostRecentValueInPercentOfTrace;
         }
     }
     public GraphGrid GraphGrid
@@ -67,6 +61,9 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private float m_WheelSum = 0;
 
+    private TraceOption m_TraceOption = null;
+    private AudioTraceOption m_AudioOption = null;
+
     void Awake()
     {
         m_EditEventWindowPrefabs = Resources.Load("Prefabs/EventInfoEdit", typeof(GameObject)) as GameObject;
@@ -104,7 +101,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         if (m_initDone == false) return;
 
-        IsMouseOver = isOver(Input.mousePosition);
+        IsMouseOver = IsOver(Input.mousePosition);
         if (m_window.hasFocus)
         {
             if (IsMouseOver)
@@ -117,7 +114,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                         if (IsAlmostEqual(Mathf.Abs(Event.current.delta.y), Mathf.Abs(scrollDelta.y)))
                         {
                             //UnityEngine.Debug.Log("ismouse");
-                            UpdateElectrodeById(scrollDelta.y > 0 ? eegSignal.ElectrodeID + 1 : eegSignal.ElectrodeID - 1);
+                            UpdateElectrodeById(scrollDelta.y > 0 ? m_TraceOption.ElectrodeID + 1 : m_TraceOption.ElectrodeID - 1);
                         }
                         else
                         {
@@ -126,12 +123,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                             if (m_WheelSum <= -0.1f)
                             {
                                 m_WheelSum = 0;
-                                UpdateElectrodeById(eegSignal.ElectrodeID - 1);
+                                UpdateElectrodeById(m_TraceOption.ElectrodeID - 1);
                             }
                             else if (m_WheelSum >= 0.1f)
                             {
                                 m_WheelSum = 0;
-                                UpdateElectrodeById(eegSignal.ElectrodeID + 1);
+                                UpdateElectrodeById(m_TraceOption.ElectrodeID + 1);
                             }
                         }
                     }
@@ -166,22 +163,26 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         if (message.Task == LoaderMessage.LoaderTask.LoadTrace)
         {
-            init();
+            Initialization();
         }
     }
 
-    void init()
+    private void Initialization()
     {
         m_rectTransform = gameObject.GetComponent<RectTransform>();
 
-        eegSignal.Initialize();
-        audioSignal.Initialize();
-        graphLabel.Initialize(eegSignal.ElectrodeLabel, eegSignal.FileHandle.Description);
-        graphGrid.init(eegSignal.PeriodInSeconds);
+        m_TraceOption = TracesService.GetOptionsFor(traceID);
+        m_AudioOption = TracesService.GetAudioOptions();
+
+        eegSignal.Initialize(traceID, m_TraceOption);
+        audioSignal.Initialize(0, m_AudioOption);
+        graphLabel.Initialize(m_TraceOption);
+
+        graphGrid.init(m_TraceOption.WindowInSeconds);
         graphEvent.init(this);
         graphSonif.Init(this);
 
-        graphLabel.ElectrodeButton.onClick.AddListener(updateTracesWidth);
+        graphLabel.ElectrodeButton.onClick.AddListener(UpdateTracesWidth);
         m_initDone = true;
     }
 
@@ -194,11 +195,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         {
             case 0:
                 Debug.Log("Update Trace Gain");
-                UpdateTraceGain(message.Gain);
+                m_TraceOption.Gain = message.Gain;
+                graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
                 break;
             case 1:
                 Debug.Log("Update Trace Offset");
-                eegSignal.UpdateOffset(message.Offset);
+                m_TraceOption.Offset = message.Offset;
                 break;
             case 2:
                 Debug.Log("Toggle Grid");
@@ -206,7 +208,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 3:
                 Debug.Log("Update WIndow Period");
-                updateTimeResolution(message.TimeWindow);
+                UpdateTimeResolution(message.TimeWindow);
                 break;
             case 4:
                 Debug.Log("Toggle Sonification");
@@ -218,11 +220,15 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 6:
                 Debug.Log("Update ColorPicker");
-                updateColors(message.Color);
+                graphLabel.Color = message.Color;
+                m_TraceOption.Color = message.Color;
                 break;
             case 7:
                 Debug.Log("Update File Switcher");
-                changeFileID(message.FileID);
+                m_TraceOption.FileHandle = EegFileService.ChangeContainerHandle(m_TraceOption.FileHandle, message.FileID);
+                graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
+                graphLabel.Description = m_TraceOption.FileHandle.Description;
+                UpdateTimeResolution(m_TraceOption.WindowInSeconds);
                 break;
             default:
                 Debug.LogError("Trace.cs : Id of action to execute does not exist : " + message.TaskToExecute);
@@ -236,11 +242,11 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         {
             case 0:
                 Debug.Log("Update Trace Gain");
-                audioSignal.UpdateGain(message.Gain);
+                m_AudioOption.Gain = message.Gain;
                 break;
             case 1:
                 Debug.Log("Update Trace Offset");
-                audioSignal.OffsetInMilliseconds = message.Offset;
+                m_AudioOption.OffsetInMilliSeconds = message.Offset;
                 break;
             case 2:
                 Debug.Log("Toggle Audio Trace");
@@ -248,7 +254,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case 3:
                 Debug.Log("Update Trace Audio File");
-                audioSignal.UpdateAudioID(message.TraceID);
+                m_AudioOption.FileID = message.TraceID;
                 break;
         }
     }
@@ -293,7 +299,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         switch (message.TaskToExecute)
         {
             case 0:
-                plotClicked(message.ClickedElectrode);
+                PlotWasClicked(message.ClickedElectrode);
                 break;
             default:
                 Debug.LogError("Trace.cs : Id of action to execute does not exist : " + message.TaskToExecute);
@@ -331,7 +337,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                     //for electrodes is disabled if it was on before
                 gameObject.SetActive(true);
 
-                plotClicked(null);
+                PlotWasClicked(null);
                 m_window.setBorderColor(blue);
                 m_window.hasFocus = false;
                 break;
@@ -347,53 +353,34 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                     m_handleOtherTrace.setBorderColor(blue);
                 }
 
-                plotClicked(GameObject.Find(eegSignal.ElectrodeName.ToLower()));
+                PlotWasClicked(GameObject.Find(m_TraceOption.ElectrodeName.ToLower()));
                 break;
         }
     }
 
-    void changeFileID(int newId)
+    private void UpdateTimeResolution(int newPeriod)
     {
-        eegSignal.UpdateFileId(newId);
-        graphLabel.Description = eegSignal.FileHandle.Description;
-        updateTimeResolution(eegSignal.PeriodInSeconds);
-    }
-
-    void updateTimeResolution(int newPeriod)
-    {
-        eegSignal.PeriodInSeconds = newPeriod;
+        m_TraceOption.WindowInSeconds = newPeriod;
         eegSignal.UpdateHorizontalScale();
-        audioSignal.PeriodInSeconds = newPeriod;
+        m_AudioOption.WindowInSeconds = newPeriod;
         audioSignal.UpdateHorizontalScale();
         graphGrid.updateGridScale(newPeriod);
     }
 
-    void UpdateTraceGain(float newGain)
-    {
-        eegSignal.UpdateGain(newGain);
-        graphLabel.Electrode = eegSignal.ElectrodeLabel;
-    }
-
     public void UpdateElectrodeById(int newId)
     {
-        eegSignal.ElectrodeID = newId;
-        eegSignal.UpdateOffset();
-        graphLabel.Electrode = eegSignal.ElectrodeLabel;
+        m_TraceOption.ElectrodeID = newId;
+        m_TraceOption.Offset = m_TraceOption.Offset; //update offset, see for autoupdate somewhere ???
+        graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
     }
 
-    void updateTracesWidth()
+    private void UpdateTracesWidth()
     {
         eegSignal.UpdateLineWidth();
         audioSignal.UpdateLineWidth();
     }
 
-    void updateColors(Color color)
-    {
-        graphLabel.Color = color;
-        eegSignal.Color = color;
-    }
-
-    void plotClicked(GameObject plot)
+    private void PlotWasClicked(GameObject plot)
     {
         if (m_window.hasFocus)
         {
@@ -406,7 +393,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    bool isOver(Vector3 mousePos)
+    private bool IsOver(Vector3 mousePos)
     {
         m_rectTransform.GetWorldCorners(m_worldCornerOfBrainPanel);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -433,10 +420,10 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         m_rectTransform.GetWorldCorners(m_worldCorners);
         Vector3 worldClick = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         float perCentX = (worldClick.x - m_worldCorners[1].x) / (m_worldCorners[2].x - m_worldCorners[1].x);
-        float msClicked = (eegSignal.MostRecentTimeInMilliSecs - (eegSignal.PeriodInSeconds * 1000)) + (perCentX * (eegSignal.PeriodInSeconds * 1000));
+        float msClicked = (eegSignal.MostRecentTimeInMilliSecs - (m_TraceOption.WindowInSeconds * 1000)) + (perCentX * (m_TraceOption.WindowInSeconds * 1000));
         if (msClicked >= 0)
         {
-            BtvEvent currentEvent = new BtvEvent(0, (int)msClicked, elecOfInterest: eegSignal.ElectrodeLabel);
+            BtvEvent currentEvent = new BtvEvent(0, (int)msClicked, elecOfInterest: m_TraceOption.ElectrodeLabel);
             //eventWasClicked(currentEvent, traceID);
             OpenEventAdd(currentEvent);
         }
@@ -480,7 +467,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         if (m_AddEvents && m_PopUpAddWindow == null)
         {
             Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
-            Event.SecondSiteOfInterest = traceID == 0 ? m_signalWindow2.TraceEeg.ElectrodeLabel : m_signalWindow1.TraceEeg.ElectrodeLabel;
+            Event.SecondSiteOfInterest = traceID == 0 ? TracesService.ElectrodeName(1) : TracesService.ElectrodeName(0);
 
             m_PopUpAddWindow = Instantiate(m_AddEventWindowPrefabs, parent);
             EventInfoAdd infoAdd = m_PopUpAddWindow.GetComponent<EventInfoAdd>();

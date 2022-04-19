@@ -43,6 +43,16 @@ namespace BTV.Services.EegFileService
             }
         }
 
+        public static int GetContainerSuffix(BtvProgram currentFile)
+        {
+            for (int i = 0; i < m_EegFiles.Length; i++)
+            {
+                if (m_EegFiles[i] == currentFile) 
+                    return i;
+            }
+            return -1;
+        }
+
         public static BtvProgram ChangeContainerHandle(BtvProgram currentFile, int newID)
         {
             return m_EegFiles[newID] != null ? m_EegFiles[newID] : currentFile;

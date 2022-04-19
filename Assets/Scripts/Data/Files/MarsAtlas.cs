@@ -65,20 +65,6 @@ public class MarsAtlas : CppDLLImportBase
         get_electrodes_Atlas(_handle, out electrodes_Atlas, electrodes_Atlas.Length);
     }
 
-    public void findElectrodesWithAtlas(List<object> elecs)
-    {
-        for (int i = 0; i < elecs.Count; i++)
-        {
-            Intra_Plot currentPlot = (Intra_Plot)elecs[i];
-            List<int> idFound = electrodes_Atlas.Select((item, index) => new { Item = item, Index = index })
-                                                .Where(x => (x.Item.plotName.ToLower() == currentPlot.AtlasLabel))
-                                                .Select(x => x.Index)
-                                                .ToList();
-            if (idFound.Count > 0)
-                currentPlot.Atlas = electrodes_Atlas[idFound[0]];
-        }
-    }
-
     #region memory_management
     public MarsAtlas(string applicationPath) : base()
     {
