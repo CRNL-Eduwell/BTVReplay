@@ -11,6 +11,8 @@ public class EventTFViewer : MonoBehaviour
     private Color[] m_ColorJetMap = null;
     private bool m_HasDataToDisplay = false;
     private BTV.Data.BtvEvent m_BtvEvent = null;
+    private float m_begMemory = -1;
+    private float m_endMemory = -1;
 
     // Start is called before the first frame update
     private void Awake()
@@ -19,20 +21,45 @@ public class EventTFViewer : MonoBehaviour
         m_ColorJetMap = DefineColorMap();
     }
 
-    //update
-    //tant que l'update tourne c'est qu'il est visible et donc on update la matrice montrer
-    //en fonction de l'affichage
-    //on doit aussi gerer le passage de la souris sur la matrice de tf
-    //qui nous affcihera dans un tooltip le temps pointé, la fréquence ainsi que la puissance
-    private void Update()
+    public void UpdateTfMap(int LeftTimekInMs, int RightTimeInMs)
     {
         if (!m_HasDataToDisplay) return;
+
+        float samplingFreq = TracesService.SamplingFrequency(0); //TODO : pass information of the parent window because if two different files it will bug
+
+        float leftClockInSample = (LeftTimekInMs * samplingFreq) / 1000;
+        float rightClockInSample = (RightTimeInMs * samplingFreq) / 1000;
+        //
+        float begInSample = m_BtvEvent.TimeInSeconds * samplingFreq;
+        float endInSample = begInSample + ((m_BtvEvent.Duration * samplingFreq) / 1000);
+        //
+        float beg = leftClockInSample - begInSample < 0 ? 0 : leftClockInSample - begInSample;
+        float end = rightClockInSample - endInSample < 0 ? (rightClockInSample - begInSample) : (endInSample - begInSample);
+
+        if (beg != m_begMemory || end != m_endMemory)
+        {
+            m_begMemory = beg;
+            m_endMemory = end;
+
+            int begI = Mathf.RoundToInt((beg / 64) * (64 / 32));
+            int endI = Mathf.RoundToInt((end / 64) * (64 / 32)) - 1;
+
+            bool enterInWindow = (begI == 0 && endI <= 0);
+            bool cameOutOfWindow = (begI >= m_TfData.Length) && (endI >= m_TfData.Length);
+            bool isInsideWindow = (begI >= 0) && (endI <= m_TfData.Length);
+            if (isInsideWindow && !cameOutOfWindow && !enterInWindow)
+            {
+                m_Image.texture = EegData2Colors(m_TfData, begI, endI, m_ColorJetMap);
+            }
+        }
     }
 
     //TODO : Myabe put a lock when doing that in case the tf data is displayed
     public void SetTfData(float[][] data, BTV.Data.BtvEvent btvEvent)
     {
         m_HasDataToDisplay = false;
+        UnityEngine.Debug.Log("Dim 0 : " + data.Length);
+        UnityEngine.Debug.Log("Dim 1 : " + data[0].Length);
 
         m_TfData = null;
         m_TfData = new float[data.Length][];
@@ -46,10 +73,15 @@ public class EventTFViewer : MonoBehaviour
         }
 
         m_BtvEvent = new BTV.Data.BtvEvent(btvEvent);
-        Texture2D map = EegData2Colors(m_TfData, m_ColorJetMap);
-        m_Image.texture = map;
-
         m_HasDataToDisplay = true;
+    }
+
+    public void ResetTfOptions()
+    {
+        m_Image.texture = null;
+        m_begMemory = -1;
+        m_endMemory = -1;
+        m_HasDataToDisplay = false;
     }
 
     private Color[] DefineColorMap()
@@ -134,6 +166,38 @@ public class EventTFViewer : MonoBehaviour
         ////Debug texture generated
         //byte[] d = ImageConversion.EncodeToPNG(cursor);
         //File.WriteAllBytes("/Users/florian/Desktop/dd.png", d);
+
+        return cursor;
+    }
+
+    private Texture2D EegData2Colors(float[][] eegData, int beg, int end, Color[] colormap)
+    {
+        float maxValue = 256;
+        float minValue = 0;
+
+        Texture2D cursor = new Texture2D((end-beg), eegData[0].Length);
+        for (int l = 0; l < eegData[0].Length; l++) //x
+        {
+            int count = 0;
+            for (int m = beg; m < end; m++) //y
+            {
+                float r = (eegData[m][l] - minValue) / (maxValue - minValue);
+
+                int col = Mathf.RoundToInt(0 + (511 * r));
+                if (col < 0)
+                    col = 0;
+                else if (col > 511)
+                    col = 511;
+
+                cursor.SetPixel(count, l, colormap[col]);
+                count++;
+            }
+        }
+        cursor.Apply();
+
+        //Debug texture generated
+        byte[] d = ImageConversion.EncodeToPNG(cursor);
+        File.WriteAllBytes("/Users/florian/Desktop/dd.png", d);
 
         return cursor;
     }

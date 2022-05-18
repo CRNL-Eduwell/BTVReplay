@@ -58,7 +58,7 @@ public class EventOptionToggler : MonoBehaviour
         else
         {
             transform.GetComponent<RawImage>().color = new Color(m_Blue.r, m_Blue.g, m_Blue.b, 0f);
-            transform.GetComponent<RawImage>().texture = null;
+            m_TfViewer.ResetTfOptions();
         }
     }
 

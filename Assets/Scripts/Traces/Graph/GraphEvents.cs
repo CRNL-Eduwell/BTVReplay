@@ -98,6 +98,7 @@ public class GraphEvents : MonoBehaviour
                     m_EventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
                     m_EventsAdded[idRightEnter[i]].SetActive(true);
                     m_EventsAdded[idRightEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -3);
+                    m_EventsAdded[idRightEnter[i]].transform.GetComponent<EventTFViewer>().UpdateTfMap(left, right);
                 }
 
                 for (int i = 0; i < idInside.Count; i++)
@@ -113,6 +114,7 @@ public class GraphEvents : MonoBehaviour
                     m_EventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
                     m_EventsAdded[idInside[i]].SetActive(true);
                     m_EventsAdded[idInside[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -3);
+                    m_EventsAdded[idInside[i]].transform.GetComponent<EventTFViewer>().UpdateTfMap(left, right);
                 }
 
                 for (int i = 0; i < idLeftEnter.Count; i++)
@@ -125,6 +127,7 @@ public class GraphEvents : MonoBehaviour
                     m_EventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
                     m_EventsAdded[idLeftEnter[i]].SetActive(true);
                     m_EventsAdded[idLeftEnter[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -3);
+                    m_EventsAdded[idLeftEnter[i]].transform.GetComponent<EventTFViewer>().UpdateTfMap(left, right);
                 }
 
                 for (int i = 0; i < idOverFlow.Count; i++)
@@ -135,6 +138,7 @@ public class GraphEvents : MonoBehaviour
                     m_EventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
                     m_EventsAdded[idOverFlow[i]].SetActive(true);
                     m_EventsAdded[idOverFlow[i]].transform.localPosition = new Vector3(positionInsideRect, 0, -3);
+                    m_EventsAdded[idOverFlow[i]].transform.GetComponent<EventTFViewer>().UpdateTfMap(left, right);
                 }
             }
         }
