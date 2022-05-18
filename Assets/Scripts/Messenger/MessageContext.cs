@@ -30,5 +30,7 @@ enum MessageContext
     ShowWindowMessage,
     ForceUpdateTraceMessage,
     ShortcutMessage,
-    ForceToggleToolbar
+    ForceToggleToolbar,
+    ProcessCalculationMessage,
+    TimeFrequencyResultMessage
 }

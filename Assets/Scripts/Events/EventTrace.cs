@@ -7,36 +7,21 @@ using BTV.Data;
 
 public class EventTrace : MonoBehaviour, IPointerClickHandler
 {
-    GameObject m_ContextualWindowPrefabs = null;
-    BtvEvent m_Event = null;
-    int parentWinID = -2;
+    public BtvEvent EventOfInterest { get; private set; } = null;
+    public int ParentWindowIndex { get; private set; } = -1;
 
-    GameObject ContextualMenuWindow = null;
-    Button m_EditEvent = null;
-    Button m_DeleteEvent = null;
-    Button m_CloseWindow = null;
+    private GameObject m_ContextualWindowPrefabs = null;
+    private GameObject m_ContextualMenuWindow = null;
+    private Button m_EditEvent = null;
+    private Button m_DeleteEvent = null;
+    private Button m_CloseWindow = null;
 
-    public void init(BtvEvent currentEvent, int winID)
+    public void Init(BtvEvent currentEvent, int winID)
     {
         m_ContextualWindowPrefabs = Resources.Load("Prefabs/EventOptions", typeof(GameObject)) as GameObject;
 
-        m_Event = new BtvEvent(currentEvent);
-        parentWinID = winID;
-    }
-
-    public void UpdateEvent(BtvEvent modifyedEvent)
-    {
-        m_Event = new BtvEvent(modifyedEvent);
-    }
-
-    public void DeleteMe()
-    {
-        EventsModificationMessage message = new EventsModificationMessage
-        {
-            TaskToExecute = 2,
-            Event = m_Event
-        };
-        Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
+        EventOfInterest = new BtvEvent(currentEvent);
+        ParentWindowIndex = winID;
     }
 
     void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
@@ -47,8 +32,8 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
                 EventsToTraceMessage message = new EventsToTraceMessage
                 {
                     TaskToExecute = 5,
-                    Event = m_Event,
-                    ParentWindowIndex = parentWinID
+                    Event = EventOfInterest,
+                    ParentWindowIndex = ParentWindowIndex
                 };
                 Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
                 break;
@@ -60,12 +45,12 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
 
     private void OpenContextualMenu()
     {
-        Transform parent = GameObject.Find("Trace" + (parentWinID + 1) + "Window").transform;
-        ContextualMenuWindow = Instantiate(m_ContextualWindowPrefabs, parent);
+        Transform parent = GameObject.Find("Trace" + (ParentWindowIndex + 1) + "Window").transform;
+        m_ContextualMenuWindow = Instantiate(m_ContextualWindowPrefabs, parent);
 
-        m_EditEvent = ContextualMenuWindow.transform.GetChild(0).GetChild(0).GetComponent<Button>();
-        m_DeleteEvent = ContextualMenuWindow.transform.GetChild(0).GetChild(1).GetComponent<Button>();
-        m_CloseWindow = ContextualMenuWindow.transform.GetChild(0).GetChild(2).GetComponent<Button>();
+        m_EditEvent = m_ContextualMenuWindow.transform.GetChild(0).GetChild(0).GetComponent<Button>();
+        m_DeleteEvent = m_ContextualMenuWindow.transform.GetChild(0).GetChild(1).GetComponent<Button>();
+        m_CloseWindow = m_ContextualMenuWindow.transform.GetChild(0).GetChild(2).GetComponent<Button>();
 
         m_EditEvent.onClick.AddListener(EditEvent);
         m_DeleteEvent.onClick.AddListener(DeleteEvent);
@@ -77,8 +62,8 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
         EventsModificationMessage message = new EventsModificationMessage
         {
             TaskToExecute = 3,
-            Event = m_Event,
-            ParentWindowIndex = parentWinID
+            Event = EventOfInterest,
+            ParentWindowIndex = ParentWindowIndex
         };
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
         CloseContextualMenu();
@@ -94,7 +79,7 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
         EventsModificationMessage message = new EventsModificationMessage
         {
             TaskToExecute = 2,
-            Event = m_Event
+            Event = EventOfInterest
         };
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
         CloseContextualMenu();
@@ -105,6 +90,6 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
         m_EditEvent.onClick.RemoveAllListeners();
         m_DeleteEvent.onClick.RemoveAllListeners();
         m_CloseWindow.onClick.RemoveAllListeners();
-        Destroy(ContextualMenuWindow);
+        Destroy(m_ContextualMenuWindow);
     }
 }

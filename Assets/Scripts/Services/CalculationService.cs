@@ -25,6 +25,9 @@ namespace BTV.Services.CalculationService
         [DllImport("Framework", EntryPoint = "Median", CallingConvention = CallingConvention.Cdecl)]
         static public extern float Median(float[] DataArray, int Size);
 
+        [DllImport("Framework", EntryPoint = "FFT_Magnitude", CallingConvention = CallingConvention.Cdecl)]
+        static public extern void FFT_Magnitude(float[] input, int size, float[] output);
+
         [DllImport("Framework", EntryPoint = "Knn", CallingConvention = CallingConvention.Cdecl)]
         static public extern void Knn(float[] outputValues, float[] coordinates_X, float[] coordinates_Y, int nbOfCoordinates, float[] eegValues, int matrixWidth, int orderInterpolation_M, int nbOfNeighboor_K);
 

@@ -50,7 +50,7 @@ public class GraphEvents : MonoBehaviour
         currentEventToAdd.transform.SetSiblingIndex(id);
         m_EventsAdded.Insert(id, currentEventToAdd);
 
-        currentEventToAdd.GetComponent<EventTrace>().init(currentEvent, m_parent.TraceId);
+        currentEventToAdd.GetComponent<EventTrace>().Init(currentEvent, m_parent.TraceId);
     }
 
     public void DeleteEventFromTrace(int IndexToDelete)
