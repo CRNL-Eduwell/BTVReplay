@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class EventTFCursor : MonoBehaviour
 {
+    [SerializeField] private bool m_IsSlaved = false;
     [SerializeField] private Image m_HorizontalLine = null;
     [SerializeField] private Image m_VerticalLine = null;
 
@@ -13,6 +14,13 @@ public class EventTFCursor : MonoBehaviour
     private void Awake()
     {
         m_Rectransform = gameObject.transform.GetComponent<RectTransform>();
+
+        //Messenger.Default.Register<UiToTFEventsMessage>(this, OnUiToTFEventsMessage, MessageContext.UiToTFEvents);
+    }
+
+    private void OnDestroy()
+    {
+        //Messenger.Default.Unregister(this, MessageContext.UiToTFEvents);
     }
 
     private void OnRectTransformDimensionsChange()
@@ -30,7 +38,7 @@ public class EventTFCursor : MonoBehaviour
     {
         Vector2 Mouse = Input.mousePosition;
         bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_Rectransform, Mouse, Camera.main);
-        if (isOver)
+        if (isOver || m_IsSlaved)
         {
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Rectransform, Mouse, Camera.main, out Vector2 localPosition);
 
@@ -40,5 +48,10 @@ public class EventTFCursor : MonoBehaviour
             m_HorizontalLine.transform.localPosition = new Vector3(m_HorizontalLine.transform.localPosition.x, y, m_HorizontalLine.transform.localPosition.z);
             m_VerticalLine.transform.localPosition = new Vector3(x, m_VerticalLine.transform.localPosition.y, m_VerticalLine.transform.localPosition.z);
         }
+    }
+
+    private void OnUiToTFEventsMessage(UiToTFEventsMessage message)
+    {
+        m_IsSlaved = message.IsSlaved;
     }
 }

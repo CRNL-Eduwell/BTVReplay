@@ -12,6 +12,7 @@ enum MessageContext
     UiToTaskPerformanceMessage,
     UiToVideo,
     UiToEvents,
+    UiToTFEvents,
     UiToLayouts,
     EventsToTraceMessage,
     EventsToTaskPerformanceMessage,

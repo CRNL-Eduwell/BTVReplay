@@ -55,6 +55,13 @@ namespace BTV.UI.Module3D
         [SerializeField] EventsToolbar m_EventsToolbar = null;
         /// <summary>
         /// </summary>
+        public TFToolbar TimeFrequencyToolBar
+        {
+            get { return m_TfToolbar; }
+        }
+        [SerializeField] TFToolbar m_TfToolbar = null;
+        /// <summary>
+        /// </summary>
         public LayoutsToolbar LayoutsToolbar
         {
             get { return m_LayoutsToolbar; }
@@ -77,6 +84,7 @@ namespace BTV.UI.Module3D
             m_PerformanceToolbar.Initialize();
             m_VideoToolbar.Initialize();
             m_EventsToolbar.Initialize();
+            m_TfToolbar.Initialize();
             m_LayoutsToolbar.Initialize();
 
             CurrentToolbar = null;
@@ -87,6 +95,7 @@ namespace BTV.UI.Module3D
             m_PerformanceToolbar.gameObject.SetActive(false);
             m_VideoToolbar.gameObject.SetActive(false);
             m_EventsToolbar.gameObject.SetActive(false);
+            m_TfToolbar.gameObject.SetActive(false);
             m_LayoutsToolbar.gameObject.SetActive(false);
         }
     }
