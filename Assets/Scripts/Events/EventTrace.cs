@@ -7,7 +7,7 @@ using BTV.Data;
 
 public class EventTrace : MonoBehaviour, IPointerClickHandler
 {
-    public BtvEvent EventOfInterest { get; private set; } = null;
+    public BtvEvent EventOfInterest { get; set; } = null;
     public int ParentWindowIndex { get; private set; } = -1;
 
     private GameObject m_ContextualWindowPrefabs = null;

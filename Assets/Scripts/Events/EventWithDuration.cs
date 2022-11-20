@@ -1,37 +1,89 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EventTFViewer : MonoBehaviour
+public class EventWithDuration : EventTrace
 {
+    [SerializeField] private Toggle _ShowEvent = null;
+    [SerializeField] private Toggle _ShowTimeFrequency = null;
+    [SerializeField] private EventTFCursor m_Cursor = null;
+
+    private Color m_Blue = new Color(0.6117f, 0.7058f, 0.7960f);
     private RawImage m_Image = null;
     private float[][] m_TfData = null;
     private Color[] m_ColorJetMap = null;
     private bool m_HasDataToDisplay = false;
-    private BTV.Data.BtvEvent m_BtvEvent = null;
     private float m_begMemory = -1;
     private float m_endMemory = -1;
 
-    // Start is called before the first frame update
     private void Awake()
     {
-        m_Image = transform.GetComponent<RawImage>(); //surement raw image pour tex
+        m_Image = transform.GetComponent<RawImage>();
         m_ColorJetMap = DefineColorMap();
+
+        _ShowEvent.onValueChanged.AddListener(ToggleEventView);
+        _ShowTimeFrequency.onValueChanged.AddListener(ToggleTimeFrequencyView);
+        Messenger.Default.Register<TimeFrequencyResultMessage>(this, OnTimeFrequencyResultMessage, MessageContext.TimeFrequencyResultMessage);
+    }
+
+    private void OnDestroy()
+    {
+        _ShowEvent.onValueChanged.RemoveAllListeners();
+        _ShowTimeFrequency.onValueChanged.RemoveAllListeners();
+        Messenger.Default.Unregister(this, MessageContext.TimeFrequencyResultMessage);
+    }
+
+    private void ToggleEventView(bool isViewable)
+    {
+        m_Image.color = new Color(m_Blue.r, m_Blue.g, m_Blue.b, isViewable ? 0.5f : 0f);
+    }
+
+    private void ToggleTimeFrequencyView(bool isViewable)
+    {
+        if (isViewable)
+        {
+            ProcessCalculationMessage message = new ProcessCalculationMessage
+            {
+                Task = Calculations.TF,
+                EventOfInterest = new BTV.Data.BtvEvent(EventOfInterest),
+                TraceIndex = ParentWindowIndex
+            };
+            Messenger.Default.Send(message, MessageContext.ProcessCalculationMessage);
+
+            m_Image.color = Color.white;
+            m_Cursor.ShowCursor = true;
+        }
+        else
+        {
+            m_Image.color = new Color(m_Blue.r, m_Blue.g, m_Blue.b, 0f);
+            m_Cursor.ShowCursor = false;
+            ResetTfOptions();
+        }
+    }
+
+    private void OnTimeFrequencyResultMessage(TimeFrequencyResultMessage message)
+    {
+        if (message.TraceIndex != ParentWindowIndex) return;
+        if (message.EventOfInterest.Code != EventOfInterest.Code) return;
+        if (message.EventOfInterest.TimeInMilliSeconds != EventOfInterest.TimeInMilliSeconds) return;
+        if (message.EventOfInterest.Duration != EventOfInterest.Duration) return;
+
+        //SetTf Data in Viewer
+        UnityEngine.Debug.Log("OnTimeFrequencyResultMessage : Setting tf ");
+        SetTfData(message.TFData, EventOfInterest);
     }
 
     public void UpdateTfMap(int LeftTimekInMs, int RightTimeInMs)
     {
         if (!m_HasDataToDisplay) return;
 
-        float samplingFreq = TracesService.SamplingFrequency(0); //TODO : pass information of the parent window because if two different files it will bug
+        float samplingFreq = TracesService.SamplingFrequency(ParentWindowIndex);
 
         float leftClockInSample = (LeftTimekInMs * samplingFreq) / 1000;
         float rightClockInSample = (RightTimeInMs * samplingFreq) / 1000;
         //
-        float begInSample = m_BtvEvent.TimeInSeconds * samplingFreq;
-        float endInSample = begInSample + ((m_BtvEvent.Duration * samplingFreq) / 1000);
+        float begInSample = EventOfInterest.TimeInSeconds * samplingFreq;
+        float endInSample = begInSample + ((EventOfInterest.Duration * samplingFreq) / 1000);
         //
         float beg = leftClockInSample - begInSample < 0 ? 0 : leftClockInSample - begInSample;
         float end = rightClockInSample - endInSample < 0 ? (rightClockInSample - begInSample) : (endInSample - begInSample);
@@ -54,8 +106,7 @@ public class EventTFViewer : MonoBehaviour
         }
     }
 
-    //TODO : Myabe put a lock when doing that in case the tf data is displayed
-    public void SetTfData(float[][] data, BTV.Data.BtvEvent btvEvent)
+    private void SetTfData(float[][] data, BTV.Data.BtvEvent btvEvent)
     {
         m_HasDataToDisplay = false;
         UnityEngine.Debug.Log("Dim 0 : " + data.Length);
@@ -72,11 +123,11 @@ public class EventTFViewer : MonoBehaviour
             }
         }
 
-        m_BtvEvent = new BTV.Data.BtvEvent(btvEvent);
+        EventOfInterest = new BTV.Data.BtvEvent(btvEvent);
         m_HasDataToDisplay = true;
     }
 
-    public void ResetTfOptions()
+    private void ResetTfOptions()
     {
         m_Image.texture = null;
         m_begMemory = -1;
@@ -175,7 +226,7 @@ public class EventTFViewer : MonoBehaviour
         float maxValue = 256;
         float minValue = 0;
 
-        Texture2D cursor = new Texture2D((end-beg), eegData[0].Length);
+        Texture2D cursor = new Texture2D((end - beg), eegData[0].Length);
         for (int l = 0; l < eegData[0].Length; l++) //x
         {
             int count = 0;
@@ -196,8 +247,8 @@ public class EventTFViewer : MonoBehaviour
         cursor.Apply();
 
         //Debug texture generated
-        byte[] d = ImageConversion.EncodeToPNG(cursor);
-        File.WriteAllBytes("/Users/florian/Desktop/dd.png", d);
+        //byte[] d = ImageConversion.EncodeToPNG(cursor);
+        //File.WriteAllBytes("/Users/florian/Desktop/dd.png", d);
 
         return cursor;
     }

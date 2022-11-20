@@ -33,5 +33,6 @@ enum MessageContext
     ShortcutMessage,
     ForceToggleToolbar,
     ProcessCalculationMessage,
-    TimeFrequencyResultMessage
+    TimeFrequencyResultMessage,
+    EventsToEventsMessage
 }
