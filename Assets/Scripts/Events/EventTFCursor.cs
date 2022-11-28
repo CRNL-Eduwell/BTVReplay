@@ -18,26 +18,25 @@ public class EventTFCursor : MonoBehaviour
             m_VerticalLine.transform.gameObject.SetActive(m_ShowCursor);
         }
     }
+    public bool IsSlaved { get; set; } = false;
+
     [SerializeField] private Image m_HorizontalLine = null;
     [SerializeField] private Image m_VerticalLine = null;
 
     private RectTransform m_Rectransform = null;
     private RectTransform m_ParentRecttransform = null;
     private bool m_ShowCursor = false;
-    private bool m_isSlaved = false;
 
     private void Awake()
     {
         m_Rectransform = gameObject.transform.GetComponent<RectTransform>();
         m_ParentRecttransform = gameObject.transform.parent.transform.GetComponent<RectTransform>();
 
-        Messenger.Default.Register<UiToTFEventsMessage>(this, OnUiToTFEventsMessage, MessageContext.UiToTFEvents);
         Messenger.Default.Register<EventsToEventsMessage>(this, OnEventsToEventsMessage, MessageContext.EventsToEventsMessage);
     }
 
     private void OnDestroy()
     {
-        Messenger.Default.Unregister(this, MessageContext.UiToTFEvents);
         Messenger.Default.Unregister(this, MessageContext.EventsToEventsMessage);
     }
 
@@ -62,7 +61,7 @@ public class EventTFCursor : MonoBehaviour
             m_HorizontalLine.transform.localPosition = new Vector3(m_HorizontalLine.transform.localPosition.x, localPosition.y, m_HorizontalLine.transform.localPosition.z);
             m_VerticalLine.transform.localPosition = new Vector3(localPosition.x, m_VerticalLine.transform.localPosition.y, m_VerticalLine.transform.localPosition.z);
 
-            if (m_isSlaved)
+            if (IsSlaved)
             {
                 EventsToEventsMessage message = new EventsToEventsMessage
                 {
@@ -74,14 +73,6 @@ public class EventTFCursor : MonoBehaviour
                 };
                 Messenger.Default.Send(message, MessageContext.EventsToEventsMessage);
             }
-        }
-    }
-
-    private void OnUiToTFEventsMessage(UiToTFEventsMessage message)
-    {
-        if (message.TaskToExecute == 0)
-        {
-            m_isSlaved = message.IsSlaved;
         }
     }
 

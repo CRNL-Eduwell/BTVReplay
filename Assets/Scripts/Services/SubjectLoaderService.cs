@@ -52,6 +52,7 @@ public class SubjectLoaderService : MonoBehaviour
 
         yield return StartCoroutine(c_loadEEGFile(subject));
         TracesService.InitTraces();
+        TimeFrequencyService.InitTraces();
 
         LoaderMessage message = new LoaderMessage
         {

@@ -15,6 +15,9 @@ public class EventWithDuration : EventTrace
     private bool m_HasDataToDisplay = false;
     private float m_begMemory = -1;
     private float m_endMemory = -1;
+    private TfTraceOption m_TfTraceOption = null;
+    private float Fs_Max_Visu = 0;
+    private int LeftTimeMemoryMs = 0, RightTimeMemoryMs = 0;
 
     private void Awake()
     {
@@ -23,14 +26,27 @@ public class EventWithDuration : EventTrace
 
         _ShowEvent.onValueChanged.AddListener(ToggleEventView);
         _ShowTimeFrequency.onValueChanged.AddListener(ToggleTimeFrequencyView);
+
+        Messenger.Default.Register<UiToTFEventsMessage>(this, OnUiToTFEventsMessage, MessageContext.UiToTFEvents);
         Messenger.Default.Register<TimeFrequencyResultMessage>(this, OnTimeFrequencyResultMessage, MessageContext.TimeFrequencyResultMessage);
     }
 
     private void OnDestroy()
     {
+        m_TfTraceOption.PropertyChanged -= OnTimeFrequencyTraceOption_PropertyChanged;
         _ShowEvent.onValueChanged.RemoveAllListeners();
         _ShowTimeFrequency.onValueChanged.RemoveAllListeners();
+        Messenger.Default.Unregister(this, MessageContext.UiToTFEvents);
         Messenger.Default.Unregister(this, MessageContext.TimeFrequencyResultMessage);
+    }
+
+    public void Initialize(BTV.Data.BtvEvent currentEvent, int winID)
+    {
+        base.Init(currentEvent, winID);
+
+        Fs_Max_Visu = TracesService.SamplingFrequency(ParentWindowIndex) / 2;
+        m_TfTraceOption = TimeFrequencyService.GetOptionsFor(ParentWindowIndex);
+        m_TfTraceOption.PropertyChanged += OnTimeFrequencyTraceOption_PropertyChanged;
     }
 
     private void ToggleEventView(bool isViewable)
@@ -61,6 +77,48 @@ public class EventWithDuration : EventTrace
         }
     }
 
+    private void OnTimeFrequencyTraceOption_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case "Alpha":
+                {
+                    Color currColor = m_Image.color;
+                    currColor.a = m_TfTraceOption.Alpha;
+                    m_Image.color = currColor;
+                    break;
+                }
+            case "FrequencySlider":
+                {
+                    float samplingFreq = TracesService.SamplingFrequency(ParentWindowIndex);
+                    float Fs_Max = samplingFreq / 2;
+                    Fs_Max_Visu = m_TfTraceOption.FrequencySlider * Fs_Max;
+                    UpdateTfMap(LeftTimeMemoryMs, RightTimeMemoryMs, true);
+                    break;
+                }
+        }
+    }
+
+    private void OnUiToTFEventsMessage(UiToTFEventsMessage message)
+    {
+        if (message.TaskToExecute == 0)
+        {
+            m_Cursor.IsSlaved = message.IsSlaved;
+        }
+        else if (message.TaskToExecute == 1) //alpha => 2 will be frequency
+        {
+            if (message.ParentWindowIndex != ParentWindowIndex) return;
+
+            m_TfTraceOption.Alpha = message.Alpha;
+        }
+        else if (message.TaskToExecute == 2)
+        {
+            if (message.ParentWindowIndex != ParentWindowIndex) return;
+
+            m_TfTraceOption.FrequencySlider = message.FrequencySlider;
+        }
+    }
+
     private void OnTimeFrequencyResultMessage(TimeFrequencyResultMessage message)
     {
         if (message.TraceIndex != ParentWindowIndex) return;
@@ -73,8 +131,11 @@ public class EventWithDuration : EventTrace
         SetTfData(message.TFData, EventOfInterest);
     }
 
-    public void UpdateTfMap(int LeftTimekInMs, int RightTimeInMs)
+    public void UpdateTfMap(int LeftTimekInMs, int RightTimeInMs, bool overrideCheck = false)
     {
+        LeftTimeMemoryMs = LeftTimekInMs;
+        RightTimeMemoryMs = RightTimeInMs;
+
         if (!m_HasDataToDisplay) return;
 
         float samplingFreq = TracesService.SamplingFrequency(ParentWindowIndex);
@@ -88,20 +149,21 @@ public class EventWithDuration : EventTrace
         float beg = leftClockInSample - begInSample < 0 ? 0 : leftClockInSample - begInSample;
         float end = rightClockInSample - endInSample < 0 ? (rightClockInSample - begInSample) : (endInSample - begInSample);
 
-        if (beg != m_begMemory || end != m_endMemory)
+        if (beg != m_begMemory || end != m_endMemory || overrideCheck)
         {
             m_begMemory = beg;
             m_endMemory = end;
 
-            int begI = Mathf.RoundToInt((beg / 64) * (64 / 32));
-            int endI = Mathf.RoundToInt((end / 64) * (64 / 32)) - 1;
+            int begI = Mathf.RoundToInt((beg / 512) * (512 / 256));
+            int endI = Mathf.RoundToInt((end / 512) * (512 / 256)) - 1;
 
             bool enterInWindow = (begI == 0 && endI <= 0);
             bool cameOutOfWindow = (begI >= m_TfData.Length) && (endI >= m_TfData.Length);
             bool isInsideWindow = (begI >= 0) && (endI <= m_TfData.Length);
             if (isInsideWindow && !cameOutOfWindow && !enterInWindow)
             {
-                m_Image.texture = EegData2Colors(m_TfData, begI, endI, m_ColorJetMap);
+                UnityEngine.Debug.Log(Mathf.RoundToInt(Fs_Max_Visu));
+                m_Image.texture = EegData2Colors(m_TfData, begI, endI, m_ColorJetMap, Mathf.RoundToInt(Fs_Max_Visu));
             }
         }
     }
@@ -221,13 +283,15 @@ public class EventWithDuration : EventTrace
         return cursor;
     }
 
-    private Texture2D EegData2Colors(float[][] eegData, int beg, int end, Color[] colormap)
+    private Texture2D EegData2Colors(float[][] eegData, int beg, int end, Color[] colormap, int freqMax = -1)
     {
         float maxValue = 256;
         float minValue = 0;
 
-        Texture2D cursor = new Texture2D((end - beg), eegData[0].Length);
-        for (int l = 0; l < eegData[0].Length; l++) //x
+        int test = freqMax == -1 ? eegData[0].Length : freqMax;
+        UnityEngine.Debug.Log("test " + test);
+        Texture2D cursor = new Texture2D((end - beg), test);
+        for (int l = 0; l < test; l++) //x
         {
             int count = 0;
             for (int m = beg; m < end; m++) //y

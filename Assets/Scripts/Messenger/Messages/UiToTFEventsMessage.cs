@@ -12,4 +12,8 @@ class UiToTFEventsMessage
         get;
         set;
     }
+
+    public int ParentWindowIndex { get; set; }
+    public float Alpha { get; set; }
+    public float FrequencySlider { get; set; }
 }

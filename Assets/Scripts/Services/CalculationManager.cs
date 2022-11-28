@@ -9,8 +9,8 @@ using UnityEngine;
 
 public class CalculationManager : MonoBehaviour
 {
-    private int m_FrameSize = 64;
-    private int m_HopSize = 32;
+    private int m_FrameSize = 512;
+    private int m_HopSize = 256;
     private float[][] m_TimeFrequency = null;
 
     private void Start()
