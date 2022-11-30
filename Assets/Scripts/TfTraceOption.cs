@@ -31,8 +31,22 @@ public class TfTraceOption : ViewModelBase
         }
     }
 
+    public float WindowInMilliseconds
+    {
+        get
+        {
+            return m_WindowInMilliseconds;
+        }
+        set
+        {
+            m_WindowInMilliseconds = value;
+            RaisePropertyChanged();
+        }
+    }
+
     private float m_Alpha = 0.5f;
     private float m_FrequencySlider = 1f;
+    private float m_WindowInMilliseconds = 500f;
 
     public TfTraceOption(float alpha)
     {

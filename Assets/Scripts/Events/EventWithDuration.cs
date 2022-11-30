@@ -44,9 +44,11 @@ public class EventWithDuration : EventTrace
     {
         base.Init(currentEvent, winID);
 
-        Fs_Max_Visu = TracesService.SamplingFrequency(ParentWindowIndex) / 2;
         m_TfTraceOption = TimeFrequencyService.GetOptionsFor(ParentWindowIndex);
         m_TfTraceOption.PropertyChanged += OnTimeFrequencyTraceOption_PropertyChanged;
+
+        Fs_Max_Visu = TracesService.SamplingFrequency(ParentWindowIndex) / 2;
+        Fs_Max_Visu = (Fs_Max_Visu / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
     }
 
     private void ToggleEventView(bool isViewable)
@@ -90,10 +92,28 @@ public class EventWithDuration : EventTrace
                 }
             case "FrequencySlider":
                 {
-                    float samplingFreq = TracesService.SamplingFrequency(ParentWindowIndex);
-                    float Fs_Max = samplingFreq / 2;
-                    Fs_Max_Visu = m_TfTraceOption.FrequencySlider * Fs_Max;
+                    Fs_Max_Visu = m_TfTraceOption.FrequencySlider * TracesService.SamplingFrequency(ParentWindowIndex) / 2;
+                    Fs_Max_Visu = (Fs_Max_Visu / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
                     UpdateTfMap(LeftTimeMemoryMs, RightTimeMemoryMs, true);
+                    break;
+                }
+            case "WindowInMilliseconds":
+                {
+                    Fs_Max_Visu = m_TfTraceOption.FrequencySlider * TracesService.SamplingFrequency(ParentWindowIndex) / 2;
+                    Fs_Max_Visu = (Fs_Max_Visu / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
+
+                    ResetTfOptions();
+                    ProcessCalculationMessage message = new ProcessCalculationMessage
+                    {
+                        Task = Calculations.TF,
+                        EventOfInterest = new BTV.Data.BtvEvent(EventOfInterest),
+                        TraceIndex = ParentWindowIndex
+                    };
+                    Messenger.Default.Send(message, MessageContext.ProcessCalculationMessage);
+
+                    m_Image.color = Color.white;
+                    m_Cursor.ShowCursor = true;
+
                     break;
                 }
         }
@@ -116,6 +136,12 @@ public class EventWithDuration : EventTrace
             if (message.ParentWindowIndex != ParentWindowIndex) return;
 
             m_TfTraceOption.FrequencySlider = message.FrequencySlider;
+        }
+        else if (message.TaskToExecute == 3)
+        {
+            if (message.ParentWindowIndex != ParentWindowIndex) return;
+
+            m_TfTraceOption.WindowInMilliseconds = message.WindowInMs;
         }
     }
 
@@ -149,20 +175,24 @@ public class EventWithDuration : EventTrace
         float beg = leftClockInSample - begInSample < 0 ? 0 : leftClockInSample - begInSample;
         float end = rightClockInSample - endInSample < 0 ? (rightClockInSample - begInSample) : (endInSample - begInSample);
 
+        int frameSize = TimeFrequencyService.GetFrameSizeFor(ParentWindowIndex);
+        int hopSize = frameSize / 2;
         if (beg != m_begMemory || end != m_endMemory || overrideCheck)
         {
             m_begMemory = beg;
             m_endMemory = end;
 
-            int begI = Mathf.RoundToInt((beg / 512) * (512 / 256));
-            int endI = Mathf.RoundToInt((end / 512) * (512 / 256)) - 1;
+            int begI = Mathf.RoundToInt((beg / frameSize) * (frameSize / hopSize));
+            int endI = Mathf.RoundToInt((end / frameSize) * (frameSize / hopSize)) - 1;
+
+            UnityEngine.Debug.Log(begI + " et " + endI);
 
             bool enterInWindow = (begI == 0 && endI <= 0);
             bool cameOutOfWindow = (begI >= m_TfData.Length) && (endI >= m_TfData.Length);
             bool isInsideWindow = (begI >= 0) && (endI <= m_TfData.Length);
             if (isInsideWindow && !cameOutOfWindow && !enterInWindow)
             {
-                UnityEngine.Debug.Log(Mathf.RoundToInt(Fs_Max_Visu));
+                //UnityEngine.Debug.Log(Mathf.RoundToInt(Fs_Max_Visu));
                 m_Image.texture = EegData2Colors(m_TfData, begI, endI, m_ColorJetMap, Mathf.RoundToInt(Fs_Max_Visu));
             }
         }
@@ -289,7 +319,7 @@ public class EventWithDuration : EventTrace
         float minValue = 0;
 
         int test = freqMax == -1 ? eegData[0].Length : freqMax;
-        UnityEngine.Debug.Log("test " + test);
+        //UnityEngine.Debug.Log("test " + test);
         Texture2D cursor = new Texture2D((end - beg), test);
         for (int l = 0; l < test; l++) //x
         {

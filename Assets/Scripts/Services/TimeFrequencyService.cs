@@ -13,8 +13,8 @@ public static class TimeFrequencyService
 
     public static void InitTraces()
     {
-        m_Options.Add(0, new TfTraceOption(1.0f));
-        m_Options.Add(1, new TfTraceOption(1.0f));
+        m_Options.Add(0, new TfTraceOption(1f));
+        m_Options.Add(1, new TfTraceOption(1f));
     }
 
     public static TfTraceOption GetOptionsFor(int traceID)
@@ -28,5 +28,11 @@ public static class TimeFrequencyService
         {
             throw new KeyNotFoundException("No TfTraceOption options for key = " + traceID.ToString());
         }
+    }
+
+    public static int GetFrameSizeFor(int traceID)
+    {
+        float Fs = TracesService.SamplingFrequency(traceID);
+        return Mathf.RoundToInt(m_Options[traceID].WindowInMilliseconds * Fs / 1000);
     }
 }

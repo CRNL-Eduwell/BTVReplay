@@ -9,8 +9,9 @@ using UnityEngine;
 
 public class CalculationManager : MonoBehaviour
 {
-    private int m_FrameSize = 512;
-    private int m_HopSize = 256;
+    private int m_FrameSize = 0;
+    private int m_HopSize = 0;
+
     private float[][] m_TimeFrequency = null;
 
     private void Start()
@@ -73,6 +74,9 @@ public class CalculationManager : MonoBehaviour
 
     private IEnumerator c_ShortTermFourrier(BTV.Data.BtvEvent eventOfInterest, int TraceIndex)
     {
+        m_FrameSize = TimeFrequencyService.GetFrameSizeFor(TraceIndex);
+        m_HopSize = m_FrameSize/2;
+
         float Fs = TracesService.SamplingFrequency(TraceIndex);
         int BeginSample = Mathf.RoundToInt(eventOfInterest.TimeInSeconds * Fs);
         int EndSample = Mathf.RoundToInt(BeginSample + ((float)(eventOfInterest.Duration / 1000) * Fs));
