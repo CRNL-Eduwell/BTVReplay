@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +12,8 @@ public class EventWithDuration : EventTrace
 
     private Color m_Blue = new Color(0.6117f, 0.7058f, 0.7960f);
     private RawImage m_Image = null;
-    private float[][] m_TfData = null;
+    private TimeFrequencyDataStructure m_TfDataStruct = null;
+
     private Color[] m_ColorJetMap = null;
     private bool m_HasDataToDisplay = false;
     private float m_begMemory = -1;
@@ -125,7 +128,7 @@ public class EventWithDuration : EventTrace
         {
             m_Cursor.IsSlaved = message.IsSlaved;
         }
-        else if (message.TaskToExecute == 1) //alpha => 2 will be frequency
+        else if (message.TaskToExecute == 1)
         {
             if (message.ParentWindowIndex != ParentWindowIndex) return;
 
@@ -154,7 +157,7 @@ public class EventWithDuration : EventTrace
 
         //SetTf Data in Viewer
         UnityEngine.Debug.Log("OnTimeFrequencyResultMessage : Setting tf ");
-        SetTfData(message.TFData, EventOfInterest);
+        SetTfData(message.TFDataStructure, EventOfInterest);
     }
 
     public void UpdateTfMap(int LeftTimekInMs, int RightTimeInMs, bool overrideCheck = false)
@@ -185,36 +188,30 @@ public class EventWithDuration : EventTrace
             int begI = Mathf.RoundToInt((beg / frameSize) * (frameSize / hopSize));
             int endI = Mathf.RoundToInt((end / frameSize) * (frameSize / hopSize)) - 1;
 
-            UnityEngine.Debug.Log(begI + " et " + endI);
-
             bool enterInWindow = (begI == 0 && endI <= 0);
-            bool cameOutOfWindow = (begI >= m_TfData.Length) && (endI >= m_TfData.Length);
-            bool isInsideWindow = (begI >= 0) && (endI <= m_TfData.Length);
+            bool cameOutOfWindow = (begI >= m_TfDataStruct.TimeFrameCount) && (endI >= m_TfDataStruct.TimeFrameCount);
+            bool isInsideWindow = (begI >= 0) && (endI <= m_TfDataStruct.TimeFrameCount);
             if (isInsideWindow && !cameOutOfWindow && !enterInWindow)
             {
-                //UnityEngine.Debug.Log(Mathf.RoundToInt(Fs_Max_Visu));
-                m_Image.texture = EegData2Colors(m_TfData, begI, endI, m_ColorJetMap, Mathf.RoundToInt(Fs_Max_Visu));
+                m_Image.texture = EegData2Colors(m_TfDataStruct, begI, endI, m_ColorJetMap, Mathf.RoundToInt(Fs_Max_Visu));
             }
         }
     }
 
-    private void SetTfData(float[][] data, BTV.Data.BtvEvent btvEvent)
+    public void DisplayTfInfo(float xperc, float yperc)
+    {
+        if (!m_HasDataToDisplay) return;
+
+        int x_index = Mathf.CeilToInt(xperc * (m_TfDataStruct.TimeFrameCount - 1));
+        int y_index = Mathf.CeilToInt(yperc * (m_TfDataStruct.FrequencyBinCount - 1));
+
+        UnityEngine.Debug.Log("vlaue is " + m_TfDataStruct.RequestValue(y_index, x_index));
+    }
+
+    private void SetTfData(TimeFrequencyDataStructure data, BTV.Data.BtvEvent btvEvent)
     {
         m_HasDataToDisplay = false;
-        UnityEngine.Debug.Log("Dim 0 : " + data.Length);
-        UnityEngine.Debug.Log("Dim 1 : " + data[0].Length);
-
-        m_TfData = null;
-        m_TfData = new float[data.Length][];
-        for (int i = 0; i < data.Length; i++)
-        {
-            m_TfData[i] = new float[data[i].Length];
-            for (int j = 0; j < data[i].Length; j++)
-            {
-                m_TfData[i][j] = data[i][j];
-            }
-        }
-
+        m_TfDataStruct = new TimeFrequencyDataStructure(data);
         EventOfInterest = new BTV.Data.BtvEvent(btvEvent);
         m_HasDataToDisplay = true;
     }
@@ -313,20 +310,20 @@ public class EventWithDuration : EventTrace
         return cursor;
     }
 
-    private Texture2D EegData2Colors(float[][] eegData, int beg, int end, Color[] colormap, int freqMax = -1)
+    private Texture2D EegData2Colors(TimeFrequencyDataStructure eegData, int beg, int end, Color[] colormap, int freqMax = -1)
     {
         float maxValue = 256;
         float minValue = 0;
 
-        int test = freqMax == -1 ? eegData[0].Length : freqMax;
+        int test = freqMax == -1 ? (int)eegData.FrequencyBinCount : freqMax;
         //UnityEngine.Debug.Log("test " + test);
         Texture2D cursor = new Texture2D((end - beg), test);
-        for (int l = 0; l < test; l++) //x
+        for (int l = 0; l < test; l++)
         {
-            int count = 0;
-            for (int m = beg; m < end; m++) //y
+            float[] data = eegData.GetFrequencyBinData(l);
+            for (int m = beg; m < end; m++)
             {
-                float r = (eegData[m][l] - minValue) / (maxValue - minValue);
+                float r = (data[m] - minValue) / (maxValue - minValue);
 
                 int col = Mathf.RoundToInt(0 + (511 * r));
                 if (col < 0)
@@ -334,8 +331,8 @@ public class EventWithDuration : EventTrace
                 else if (col > 511)
                     col = 511;
 
-                cursor.SetPixel(count, l, colormap[col]);
-                count++;
+                //x,y,color
+                cursor.SetPixel(m, l, colormap[col]);
             }
         }
         cursor.Apply();

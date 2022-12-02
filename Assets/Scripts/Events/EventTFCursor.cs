@@ -73,6 +73,11 @@ public class EventTFCursor : MonoBehaviour
                 };
                 Messenger.Default.Send(message, MessageContext.EventsToEventsMessage);
             }
+
+            float x_not_centered = (localPosition.x + (0.5f * m_ParentRecttransform.rect.width)) / m_ParentRecttransform.rect.width;
+            float y_not_centered = (localPosition.y + (0.5f * m_ParentRecttransform.rect.height)) / m_ParentRecttransform.rect.height;
+
+            transform.parent.GetComponent<EventWithDuration>().DisplayTfInfo(x_not_centered, y_not_centered);
         }
     }
 

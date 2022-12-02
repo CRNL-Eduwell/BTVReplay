@@ -12,7 +12,7 @@ public class CalculationManager : MonoBehaviour
     private int m_FrameSize = 0;
     private int m_HopSize = 0;
 
-    private float[][] m_TimeFrequency = null;
+    private TimeFrequencyDataStructure m_TfDataStruct = null;
 
     private void Start()
     {
@@ -53,7 +53,7 @@ public class CalculationManager : MonoBehaviour
                     UnityEngine.Debug.Log("TF Done");
                     TimeFrequencyResultMessage message = new TimeFrequencyResultMessage
                     {
-                        TFData = m_TimeFrequency,
+                        TFDataStructure = m_TfDataStruct,
                         TraceIndex = TraceIndex,
                         EventOfInterest = eventOfInterest
                     };
@@ -91,12 +91,7 @@ public class CalculationManager : MonoBehaviour
         UnityEngine.Debug.Log("Freq Bin Count : " + FreqBinCount);
         UnityEngine.Debug.Log("Sampling Frequency : " + Fs);
 
-        m_TimeFrequency = new float[FrameCount][];
-        for (int i = 0; i < FrameCount; i++)
-        {
-            m_TimeFrequency[i] = new float[FreqBinCount];
-        }
-
+        m_TfDataStruct = new TimeFrequencyDataStructure(Fs, FreqBinCount, FrameCount);
         for (int i = 0; i < FrameCount; i++)
         {
             int beg = 0 + (i * m_HopSize);
@@ -107,7 +102,7 @@ public class CalculationManager : MonoBehaviour
 
             CalculationService.FFT_Magnitude(input, input.Length, output);
 
-            Array.Copy(output, 0, m_TimeFrequency[i], 0, FreqBinCount);
+            m_TfDataStruct.SetTf_Frame(i, output);
         }
 
         yield return null;
