@@ -66,4 +66,14 @@ public class TimeFrequencyDataStructure
     {
         return Freq_TimeFrame[binIndex][timeIndex];
     }
+
+    //public float RequestFrequency(int binIndex, float freqVisu)
+    //{
+    //    return (freqVisu / m_frequencyBinCount) * binIndex;
+    //}
+
+    public float RequestFrequency(int binIndex, float lowFrequency, float highFrequency)
+    {
+        return (((highFrequency - lowFrequency) / m_frequencyBinCount) * binIndex) + lowFrequency;
+    }
 }

@@ -9,7 +9,6 @@ namespace BTV.UI.Module3D
         [SerializeField] Toggle m_LockCursorsToggle = null;
         [SerializeField] Tools.TfTraceToggler _TraceToggler = null;
         [SerializeField] Slider _AlphaSlider = null;
-        [SerializeField] Slider _FrequencySlider = null;
         [SerializeField] Tools.TfWindow _TfWindow = null;
 
         private int m_CurrentTraceID = 0;
@@ -42,7 +41,7 @@ namespace BTV.UI.Module3D
                 m_CurrentTraceID = traceID;
                 m_Options = TimeFrequencyService.GetOptionsFor(m_CurrentTraceID);
                 _AlphaSlider.SetValueWithoutNotify(m_Options.Alpha);
-                _FrequencySlider.SetValueWithoutNotify(m_Options.FrequencySlider);
+                _TfWindow.SetFrequencyBandWithoutNotify((int)m_Options.LowFrequency, (int)m_Options.HighFrequency);
                 _TfWindow.SetTimePeriodWithoutNotify((int)m_Options.WindowInMilliseconds);
             });
 
@@ -57,13 +56,14 @@ namespace BTV.UI.Module3D
                 Messenger.Default.Send(message, MessageContext.UiToTFEvents);
             });
             
-            _FrequencySlider.onValueChanged.AddListener((sliderValue) =>
+            _TfWindow.UpdateFrequencyBand.AddListener((lowValue, highValue) =>
             {
                 UiToTFEventsMessage message = new UiToTFEventsMessage
                 {
                     TaskToExecute = 2,
                     ParentWindowIndex = m_CurrentTraceID,
-                    FrequencySlider = sliderValue
+                    LowFrequency = lowValue,
+                    HighFrequency = highValue
                 };
                 Messenger.Default.Send(message, MessageContext.UiToTFEvents);
             });

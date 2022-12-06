@@ -17,20 +17,30 @@ public class TfTraceOption : ViewModelBase
             RaisePropertyChanged();
         }
     }
-
-    public float FrequencySlider
+    public float HighFrequency
     {
         get
         {
-            return m_FrequencySlider;
+            return m_HighFrequency;
         }
         set
         {
-            m_FrequencySlider = value;
+            m_HighFrequency = value;
             RaisePropertyChanged();
         }
     }
-
+    public float LowFrequency
+    {
+        get
+        {
+            return m_LowFrequency;
+        }
+        set
+        {
+            m_LowFrequency = value;
+            RaisePropertyChanged();
+        }
+    }
     public float WindowInMilliseconds
     {
         get
@@ -45,8 +55,9 @@ public class TfTraceOption : ViewModelBase
     }
 
     private float m_Alpha = 0.5f;
-    private float m_FrequencySlider = 1f;
     private float m_WindowInMilliseconds = 500f;
+    private float m_LowFrequency = 0f;
+    private float m_HighFrequency = 256f;
 
     public TfTraceOption(float alpha)
     {
