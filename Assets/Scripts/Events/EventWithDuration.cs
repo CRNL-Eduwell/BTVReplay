@@ -9,6 +9,7 @@ public class EventWithDuration : EventTrace
     [SerializeField] private Toggle _ShowEvent = null;
     [SerializeField] private Toggle _ShowTimeFrequency = null;
     [SerializeField] private EventTFCursor m_Cursor = null;
+    [SerializeField] private EventTfValueDisplay m_Display = null;
 
     private Color m_Blue = new Color(0.6117f, 0.7058f, 0.7960f);
     private RawImage m_Image = null;
@@ -95,7 +96,6 @@ public class EventWithDuration : EventTrace
                 }
             case "HighFrequency":
                 {
-                    //Fs_Max_Visu = m_TfTraceOption.FrequencySlider * TracesService.SamplingFrequency(ParentWindowIndex) / 2;
                     Fs_Max_Visu = m_TfTraceOption.HighFrequency - m_TfTraceOption.LowFrequency;
                     Fs_Max_Visu = (Fs_Max_Visu / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
                     UpdateTfMap(LeftTimeMemoryMs, RightTimeMemoryMs, true);
@@ -103,7 +103,6 @@ public class EventWithDuration : EventTrace
                 }
             case "LowFrequency":
                 {
-                    //Fs_Max_Visu = m_TfTraceOption.FrequencySlider * TracesService.SamplingFrequency(ParentWindowIndex) / 2;
                     Fs_Max_Visu = m_TfTraceOption.HighFrequency - m_TfTraceOption.LowFrequency;
                     Fs_Max_Visu = (Fs_Max_Visu / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
                     UpdateTfMap(LeftTimeMemoryMs, RightTimeMemoryMs, true);
@@ -111,7 +110,6 @@ public class EventWithDuration : EventTrace
                 }
             case "WindowInMilliseconds":
                 {
-                    //Fs_Max_Visu = m_TfTraceOption.FrequencySlider * TracesService.SamplingFrequency(ParentWindowIndex) / 2;
                     Fs_Max_Visu = m_TfTraceOption.HighFrequency - m_TfTraceOption.LowFrequency;
                     Fs_Max_Visu = (Fs_Max_Visu / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
 
@@ -216,7 +214,10 @@ public class EventWithDuration : EventTrace
         int x_index = Mathf.CeilToInt(xperc * (m_TfDataStruct.TimeFrameCount - 1));
         int y_index = Mathf.CeilToInt(yperc * (m_TfDataStruct.FrequencyBinCount - 1));
 
-        UnityEngine.Debug.Log("Frequency is " + m_TfDataStruct.RequestFrequency(y_index, m_TfTraceOption.LowFrequency, m_TfTraceOption.HighFrequency) + "value is " + m_TfDataStruct.RequestValue(y_index, x_index));
+        float freq = m_TfDataStruct.RequestFrequency(y_index, m_TfTraceOption.LowFrequency, m_TfTraceOption.HighFrequency);
+        float tfvalue = m_TfDataStruct.RequestValue(y_index, x_index);
+
+        m_Display.UpdateDisplayInformation(freq, tfvalue);
     }
 
     private void SetTfData(TimeFrequencyDataStructure data, BTV.Data.BtvEvent btvEvent)
@@ -296,12 +297,9 @@ public class EventWithDuration : EventTrace
         float maxValue = 256;
         float minValue = 0;
 
-        //int test = freqMax == -1 ? (int)eegData.FrequencyBinCount : freqMax;
-
         int lowBinIndex = Mathf.RoundToInt(m_TfTraceOption.LowFrequency / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
         int highBinIndex = Mathf.RoundToInt(m_TfTraceOption.HighFrequency / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
 
-        //UnityEngine.Debug.Log("test " + test);
         Texture2D cursor = new Texture2D((end - beg), highBinIndex - lowBinIndex);
         for (int l = lowBinIndex; l < highBinIndex; l++)
         {

@@ -22,6 +22,7 @@ public class EventTFCursor : MonoBehaviour
 
     [SerializeField] private Image m_HorizontalLine = null;
     [SerializeField] private Image m_VerticalLine = null;
+    [SerializeField] private EventTfValueDisplay m_Display = null;
 
     private RectTransform m_Rectransform = null;
     private RectTransform m_ParentRecttransform = null;
@@ -77,6 +78,7 @@ public class EventTFCursor : MonoBehaviour
             float x_not_centered = (localPosition.x + (0.5f * m_ParentRecttransform.rect.width)) / m_ParentRecttransform.rect.width;
             float y_not_centered = (localPosition.y + (0.5f * m_ParentRecttransform.rect.height)) / m_ParentRecttransform.rect.height;
 
+            m_Display.Show(true);
             transform.parent.GetComponent<EventWithDuration>().DisplayTfInfo(x_not_centered, y_not_centered);
         }
     }
@@ -85,6 +87,8 @@ public class EventTFCursor : MonoBehaviour
     {
         if (message.TaskToExecute == 0)
         {
+            if (!m_ShowCursor) return;
+
             bool sameWindow = message.ParentWindowIndex == transform.parent.GetComponent<EventWithDuration>().ParentWindowIndex;
             bool sameEvent = message.BTVEvent == transform.parent.GetComponent<EventWithDuration>().EventOfInterest;
             if (!sameWindow && sameEvent)
@@ -93,6 +97,12 @@ public class EventTFCursor : MonoBehaviour
                 float y = message.YPositionPercentage * m_ParentRecttransform.rect.height;
                 m_HorizontalLine.transform.localPosition = new Vector3(m_HorizontalLine.transform.localPosition.x, y, m_HorizontalLine.transform.localPosition.z);
                 m_VerticalLine.transform.localPosition = new Vector3(x, m_VerticalLine.transform.localPosition.y, m_VerticalLine.transform.localPosition.z);
+
+                float x_not_centered = (x + (0.5f * m_ParentRecttransform.rect.width)) / m_ParentRecttransform.rect.width;
+                float y_not_centered = (y + (0.5f * m_ParentRecttransform.rect.height)) / m_ParentRecttransform.rect.height;
+
+                m_Display.Show(true);
+                transform.parent.GetComponent<EventWithDuration>().DisplayTfInfo(x_not_centered, y_not_centered);
             }
         }
     }
