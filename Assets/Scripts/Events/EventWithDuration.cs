@@ -8,6 +8,7 @@ public class EventWithDuration : EventTrace
 {
     [SerializeField] private Toggle _ShowEvent = null;
     [SerializeField] private Toggle _ShowTimeFrequency = null;
+    [SerializeField] private Toggle _NormalizeTimeFrequency = null;
     [SerializeField] private EventTFCursor m_Cursor = null;
     [SerializeField] private EventTfValueDisplay m_Display = null;
 
@@ -23,14 +24,18 @@ public class EventWithDuration : EventTrace
     private float Fs_Max_Visu = 0;
     private int LeftTimeMemoryMs = 0, RightTimeMemoryMs = 0;
 
+    private GameObject m_InputFieldWindowPrefabs = null;
+
     private void Awake()
     {
+        m_InputFieldWindowPrefabs = Resources.Load("Prefabs/NormalizeTF", typeof(GameObject)) as GameObject;
+
         m_Image = transform.GetComponent<RawImage>();
         m_ColorJetMap = DefineColorMap();
 
         _ShowEvent.onValueChanged.AddListener(ToggleEventView);
         _ShowTimeFrequency.onValueChanged.AddListener(ToggleTimeFrequencyView);
-
+        _NormalizeTimeFrequency.onValueChanged.AddListener(NormalizeTimeFrequency);
         Messenger.Default.Register<UiToTFEventsMessage>(this, OnUiToTFEventsMessage, MessageContext.UiToTFEvents);
         Messenger.Default.Register<TimeFrequencyResultMessage>(this, OnTimeFrequencyResultMessage, MessageContext.TimeFrequencyResultMessage);
     }
@@ -40,6 +45,7 @@ public class EventWithDuration : EventTrace
         m_TfTraceOption.PropertyChanged -= OnTimeFrequencyTraceOption_PropertyChanged;
         _ShowEvent.onValueChanged.RemoveAllListeners();
         _ShowTimeFrequency.onValueChanged.RemoveAllListeners();
+        _NormalizeTimeFrequency.onValueChanged.RemoveAllListeners();
         Messenger.Default.Unregister(this, MessageContext.UiToTFEvents);
         Messenger.Default.Unregister(this, MessageContext.TimeFrequencyResultMessage);
     }
@@ -81,6 +87,80 @@ public class EventWithDuration : EventTrace
             m_Cursor.ShowCursor = false;
             ResetTfOptions();
         }
+    }
+
+    private void NormalizeTimeFrequency(bool shoudNormalize)
+    {
+        UnityEngine.Debug.Log("Should Normalize " + shoudNormalize);
+
+        if (shoudNormalize)
+        {
+            NormalizeTF window = SpawFrequencyChoiceWindow();
+            window.Initialize(() =>
+            {
+                if (TimeFrequencyService.BaselineEvent == null)
+                {
+                    if (window.Baseline == null)
+                    {
+                        UnityEngine.Debug.LogError("No baseline events selected, normalized tf will not be processed");
+                    }
+                    else
+                    {
+                        //window baseline
+                        ProcessCalculationMessage message = new ProcessCalculationMessage
+                        {
+                            Task = Calculations.NormalizedTF,
+                            BaselineEvent = new BTV.Data.BtvEvent(window.Baseline),
+                            EventOfInterest = new BTV.Data.BtvEvent(EventOfInterest),
+                            TraceIndex = ParentWindowIndex
+                        };
+                        Messenger.Default.Send(message, MessageContext.ProcessCalculationMessage);
+
+                        m_Image.color = Color.white;
+                        m_Cursor.ShowCursor = true;
+                    }
+                }
+                else
+                {
+                    ProcessCalculationMessage message = new ProcessCalculationMessage
+                    {
+                        Task = Calculations.NormalizedTF,
+                        BaselineEvent = new BTV.Data.BtvEvent(TimeFrequencyService.BaselineEvent),
+                        EventOfInterest = new BTV.Data.BtvEvent(EventOfInterest),
+                        TraceIndex = ParentWindowIndex
+                    };
+                    Messenger.Default.Send(message, MessageContext.ProcessCalculationMessage);
+
+                    m_Image.color = Color.white;
+                    m_Cursor.ShowCursor = true;
+                }
+
+                window.Close();
+            }, () =>
+            {
+                if (window.Baseline == null)
+                {
+                    UnityEngine.Debug.LogError("No baseline events selected, baseline event can not be set");
+                }
+                else
+                {
+                    TimeFrequencyService.BaselineEvent = new BTV.Data.BtvEvent(window.Baseline);
+                }
+            });
+        }
+        else
+        {
+            m_Image.color = new Color(m_Blue.r, m_Blue.g, m_Blue.b, 0f);
+            m_Cursor.ShowCursor = false;
+            ResetTfOptions();
+        }
+    }
+
+    private NormalizeTF SpawFrequencyChoiceWindow()
+    {
+        GameObject viewGameObject = GameObject.Find("Windows");
+        GameObject inputField = Instantiate(m_InputFieldWindowPrefabs, viewGameObject.transform);
+        return inputField.GetComponent<NormalizeTF>();
     }
 
     private void OnTimeFrequencyTraceOption_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

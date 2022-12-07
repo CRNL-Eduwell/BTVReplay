@@ -22,8 +22,14 @@ namespace BTV.Services.CalculationService
         [DllImport("Framework", EntryPoint = "PearsonCorrelationCoefficients", CallingConvention = CallingConvention.Cdecl)]
         static public extern float PearsonCorrelationCoefficients(float[] baseline, float[] channel, int[] sizes);
 
+        [DllImport("Framework", EntryPoint = "Mean", CallingConvention = CallingConvention.Cdecl)]
+        static public extern float Mean(float[] DataArray, int Size);
+
         [DllImport("Framework", EntryPoint = "Median", CallingConvention = CallingConvention.Cdecl)]
         static public extern float Median(float[] DataArray, int Size);
+
+        [DllImport("Framework", EntryPoint = "StandardDeviation", CallingConvention = CallingConvention.Cdecl)]
+        static public extern float StandardDeviation(float[] DataArray, int Size);
 
         [DllImport("Framework", EntryPoint = "FFT_Magnitude", CallingConvention = CallingConvention.Cdecl)]
         static public extern void FFT_Magnitude(float[] input, int size, float[] output);

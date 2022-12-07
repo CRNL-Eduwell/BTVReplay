@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using BTV.Data;
 using UnityEngine;
 
 public static class TimeFrequencyService
 {
+    public static BtvEvent BaselineEvent { get; set; } = null;
     private static Dictionary<int, TfTraceOption> m_Options = new Dictionary<int, TfTraceOption>();
 
     public static void Reset()

@@ -57,6 +57,15 @@ public class TimeFrequencyDataStructure
         }
     }
 
+    public void SetFrequencyBinData(int binIndex, float[] data)
+    {
+        int elementCount = Freq_TimeFrame[binIndex].Length;
+        for (int i = 0; i < elementCount; i++)
+        {
+            Freq_TimeFrame[binIndex][i] = data[i];
+        }
+    }
+
     public float[] GetFrequencyBinData(int binIndex)
     {
         return Freq_TimeFrame[binIndex];

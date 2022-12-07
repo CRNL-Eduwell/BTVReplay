@@ -7,6 +7,8 @@ class ProcessCalculationMessage
 {
     public Calculations Task { get; set; }
 
+    public BtvEvent BaselineEvent { get; set; }
+
     public BtvEvent EventOfInterest { get; set; }
 
     public int TraceIndex { get; set; }
