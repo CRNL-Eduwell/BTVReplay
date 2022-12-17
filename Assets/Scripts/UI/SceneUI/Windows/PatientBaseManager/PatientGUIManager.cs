@@ -66,7 +66,7 @@ public class PatientGUIManager : MonoBehaviour
     public void SetSubjectToGUI(Subject subject)
     {
         LastSubject = GetSubjectsFromGUI();
-        m_Subject = subject;
+        m_Subject = new Subject(subject);
 
         bool mniFound = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
         if (mniFound) _MniGUIManager.SetDataConainerInUI(mniContainer);

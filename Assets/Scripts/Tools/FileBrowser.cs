@@ -1,8 +1,11 @@
 ﻿using System.IO;
+using UnityEngine.Events;
 
 public class FileBrowser
 {
     #region Properties
+    public static GenericEvent<bool> FileBrowserOpen = new GenericEvent<bool>();
+
     private static string m_LastSelectedDirectory = "";
     #endregion
 
@@ -72,9 +75,11 @@ public class FileBrowser
     /// <returns> return an empty path if no directory has been choosen or if an error occurs </returns>
     public static void GetExistingDirectoryNameAsync(System.Action<string> callback, string message = "Select a directory", string directoryPath = "")
     {
+        FileBrowserOpen.Invoke(true);
         SFB.StandaloneFileBrowser.OpenFolderPanelAsync(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, false, (paths) =>
         {
             callback(paths.Length > 0 ? (m_LastSelectedDirectory = paths[0]) : string.Empty);
+            FileBrowserOpen.Invoke(false);
         });
     }
     /// <summary>
@@ -87,6 +92,7 @@ public class FileBrowser
     /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
     public static void GetExistingFileNameAsync(System.Action<string> callback, string[] filtersArray = null, string message = "Select a file", string filePath = "")
     {
+        FileBrowserOpen.Invoke(true);
         SFB.StandaloneFileBrowser.OpenFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) }, false, (paths) =>
         {
             if (paths.Length > 0)
@@ -105,6 +111,7 @@ public class FileBrowser
             {
                 callback(string.Empty);
             }
+            FileBrowserOpen.Invoke(false);
         });
     }
     /// <summary>
@@ -117,7 +124,12 @@ public class FileBrowser
     /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
     public static void GetExistingFileNamesAsync(System.Action<string[]> callback, string[] filtersArray = null, string message = "Select files", string filePath = "")
     {
-        SFB.StandaloneFileBrowser.OpenFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) }, true, callback);
+        FileBrowserOpen.Invoke(true);
+        SFB.StandaloneFileBrowser.OpenFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) }, true, (paths) =>
+        {
+            callback(paths);
+            FileBrowserOpen.Invoke(false);
+        });
     }
     /// <summary>
     /// Open a qt file dialog and return the path of a saved file
@@ -129,7 +141,12 @@ public class FileBrowser
     /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
     public static void GetSavedFileNameAsync(System.Action<string> callback, SFB.ExtensionFilter[] filtersArray = null, string message = "Save to", string filePath = "", string defaultName = "")
     {
-        SFB.StandaloneFileBrowser.SaveFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, defaultName, filtersArray, callback);
+        FileBrowserOpen.Invoke(true);
+        SFB.StandaloneFileBrowser.SaveFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? "" : new FileInfo(filePath).DirectoryName, defaultName, filtersArray, (path) =>
+        {
+            callback(path);
+            FileBrowserOpen.Invoke(false);
+        });
     }
     #endregion
 }

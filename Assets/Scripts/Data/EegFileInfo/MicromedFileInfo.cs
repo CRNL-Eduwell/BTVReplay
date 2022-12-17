@@ -51,6 +51,11 @@ public class MicromedFileInfo : IEegFileInfo
         return base.GetHashCode();
     }
 
+    public object Clone()
+    {
+        return new MicromedFileInfo(Trc);
+    }
+
     public static bool operator ==(MicromedFileInfo a, MicromedFileInfo b)
     {
         if (ReferenceEquals(a, b))

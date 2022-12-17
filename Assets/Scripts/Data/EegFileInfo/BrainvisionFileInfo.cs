@@ -51,6 +51,11 @@ public class BrainvisionFileInfo : IEegFileInfo
         return base.GetHashCode();
     }
 
+    public object Clone()
+    {
+        return new BrainvisionFileInfo(Header);
+    }
+
     public static bool operator ==(BrainvisionFileInfo a, BrainvisionFileInfo b)
     {
         if (ReferenceEquals(a, b))

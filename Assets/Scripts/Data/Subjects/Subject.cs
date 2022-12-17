@@ -71,8 +71,8 @@ public class Subject : ViewModelBase
     public Subject(Subject subjectToCopy)
     {
         PatientName = subjectToCopy.PatientName;
-        AnatomicalSpaces = new Dictionary<string, BrainDataContainer>(subjectToCopy.AnatomicalSpaces);
-        Files = new Dictionary<string, IEegFileInfo>(subjectToCopy.Files);
+        AnatomicalSpaces = subjectToCopy.AnatomicalSpaces.ToDictionary(entry => entry.Key, entry => new BrainDataContainer(entry.Value));
+        Files = subjectToCopy.Files.ToDictionary(entry => entry.Key, entry => (IEegFileInfo)entry.Value.Clone());
         Video = subjectToCopy.Video;
     }
 
