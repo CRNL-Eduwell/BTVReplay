@@ -7,28 +7,28 @@ namespace BTV.UI.PatientBaseManager
 {
     public class TabWidget : MonoBehaviour
     {
-        public BrainDataContainer MNIAnat
-        {
-            get
-            {
-                BrainDataContainer anat = m_Panels[0].GetDataContainer();
-                if (anat.HasAnat)
-                    return anat;
-                else
-                    return null;
-            }
-        }
-        public BrainDataContainer PatientAnat
-        {
-            get
-            {
-                BrainDataContainer anat = m_Panels[1].GetDataContainer();
-                if (anat.HasAnat)
-                    return anat;
-                else
-                    return null;
-            }
-        }
+        //public BrainDataContainer MNIAnat
+        //{
+        //    get
+        //    {
+        //        BrainDataContainer anat = m_Panels[0].GetDataContainer();
+        //        if (anat.HasAnat)
+        //            return anat;
+        //        else
+        //            return null;
+        //    }
+        //}
+        //public BrainDataContainer PatientAnat
+        //{
+        //    get
+        //    {
+        //        BrainDataContainer anat = m_Panels[1].GetDataContainer();
+        //        if (anat.HasAnat)
+        //            return anat;
+        //        else
+        //            return null;
+        //    }
+        //}
 
         [SerializeField] Transform header = null;
         [SerializeField] Transform content = null;
