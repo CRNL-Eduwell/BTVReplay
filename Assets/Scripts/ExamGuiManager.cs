@@ -7,8 +7,6 @@ using UnityEngine.Events;
 
 public class ExamGuiManager : MonoBehaviour
 {
-    public UnityEvent<string> UpdateData { get; } = new GenericEvent<string>();
-
     public bool IsInteractable
     {
         get
@@ -22,14 +20,11 @@ public class ExamGuiManager : MonoBehaviour
             _Video.IsInteractable = value;
         }
     }
-    [SerializeField] private GenericTabWidget _Tabs = null;
     [SerializeField] private EegInfoGUIManager[] _EegFiles = new EegInfoGUIManager[6] { null, null, null, null, null, null, };
     [SerializeField] private BrowseWidget _Video = null;
 
     private void Awake()
     {
-        _Tabs.OnTabClicked.AddListener((string str) => { });
-
         foreach (var eeg in _EegFiles)
         {
             eeg.onEndEditKey.AddListener((str) => { IsKeyOk(str, eeg); });
@@ -38,7 +33,6 @@ public class ExamGuiManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        _Tabs.OnTabClicked.RemoveAllListeners();
         foreach (var eeg in _EegFiles)
         {
             eeg.onEndEditKey.RemoveAllListeners();

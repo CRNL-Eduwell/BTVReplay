@@ -23,23 +23,26 @@ public class PatientGUIManager : MonoBehaviour
         }
     }
 
-    [SerializeField] BrainAnatGUIManager _MniGUIManager = null;
-    [SerializeField] BrainAnatGUIManager _PatGUIManager = null;
-    [SerializeField] ExamGuiManager _ExamGuiManager = null;
+    [SerializeField] private BrainAnatGUIManager _MniGUIManager = null;
+    [SerializeField] private BrainAnatGUIManager _PatGUIManager = null;
+    [SerializeField] private GenericTabWidget _ExamTabs = null;
+    [SerializeField] private ExamGuiManager _ExamGuiManager = null;
 
     private Subject m_Subject = null; /*!< Reference to the last inputed subject , used to keep track of the name of the subject */
 
     private void Awake()
     {
-        _ExamGuiManager.UpdateData.AddListener((string str) =>
-        {
-            //chercher dans le sujet l'exam correpondant
-        });
+        _ExamTabs.OnTabClicked.AddListener(OnTabClicked);
     }
 
     private void OnDestroy()
     {
-        _ExamGuiManager.UpdateData.RemoveAllListeners();
+        _ExamTabs.OnTabClicked.RemoveAllListeners();
+    }
+
+    private void OnTabClicked(string label)
+    {
+        //chercher dans le sujet l'exam correpondant
     }
 
     public void SetToDefault()
