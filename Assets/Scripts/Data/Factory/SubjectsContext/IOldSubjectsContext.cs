@@ -1,10 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Assets.Scripts.Data.Factory
 {
-    public interface ISubjectsContext
+    public interface IOldSubjectsContext
     {
-        List<Subject> Subjects
+        List<OldSubject> Subjects
         {
             get;
         }

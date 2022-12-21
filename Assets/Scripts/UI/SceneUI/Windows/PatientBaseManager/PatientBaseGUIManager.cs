@@ -477,7 +477,8 @@ public class PatientBaseGUIManager : MonoBehaviour
         {
             LoadSubjectMessage message = new LoadSubjectMessage
             {
-                subject = new Subject(updated)
+                subject = new Subject(updated),
+                label = m_PatientManager.GetCurrentExperimentName()
             };
             Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
             Destroy(gameObject);

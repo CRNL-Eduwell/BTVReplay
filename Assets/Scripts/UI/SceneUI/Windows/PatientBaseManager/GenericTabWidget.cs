@@ -8,6 +8,8 @@ public class GenericTabWidget : MonoBehaviour
 {
     public UnityEvent<string> OnTabClicked { get; } = new GenericEvent<string>();
 
+    public int TabCount { get { return m_Buttons.Length; } }
+
     [SerializeField] private Transform _HeaderTabs = null;
 
     private Button[] m_Buttons = null;
@@ -46,5 +48,11 @@ public class GenericTabWidget : MonoBehaviour
 
         Text t = m_Buttons[ID].transform.GetChild(0).GetComponent<Text>();
         OnTabClicked.Invoke(t.text);
+    }
+
+    public void SetTabName(string name, int index)
+    {
+        Text t = m_Buttons[index].transform.GetChild(0).GetComponent<Text>();
+        t.text = name;
     }
 }

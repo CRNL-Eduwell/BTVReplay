@@ -5,6 +5,7 @@ using UnityEngine;
 public class ReloadMedia : MonoBehaviour
 {
     public Subject SubjectToReload { get; set; } = null;
+    public string ExperimentName { get; set; } = "";
     public bool TriggerReload { get; set; } = false;
 
     private void Awake()
@@ -19,7 +20,8 @@ public class ReloadMedia : MonoBehaviour
             ApplicationState.ResetAllServices();
             LoadSubjectMessage message = new LoadSubjectMessage
             {
-                subject = new Subject(SubjectToReload)
+                subject = new Subject(SubjectToReload),
+                label = ExperimentName
             };
             Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
             Destroy(gameObject);

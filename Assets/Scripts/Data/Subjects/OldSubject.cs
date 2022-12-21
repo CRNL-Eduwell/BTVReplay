@@ -1,26 +1,23 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Subject : ViewModelBase
+public class OldSubject : ViewModelBase
 {
     [JsonIgnore]
     public bool IsLoadable
     {
         get
         {
-            if (Experiments.Count == 0) return false;
+            if (Files.Count == 0) return false;
 
             int ErrorCount = 0;
-            foreach (var experiment in Experiments)
+            foreach (var file in Files)
             {
-                foreach (var file in experiment.Files)
-                {
-                    List<ArgumentException> errors = file.Value.ChecKForErrors();
-                    if (errors != null) ErrorCount += errors.Count;
-                }
+                List<ArgumentException> errors = file.Value.ChecKForErrors();
+                if (errors != null) ErrorCount += errors.Count;
             }
             return ErrorCount == 0;
         }
@@ -41,17 +38,18 @@ public class Subject : ViewModelBase
         }
     }
     public Dictionary<string, BrainDataContainer> AnatomicalSpaces { get; set; } = new Dictionary<string, BrainDataContainer>();
-    public List<Experiment> Experiments { get; set; } = new List<Experiment>();
+    public Dictionary<string, IEegFileInfo> Files { get; set; } = new Dictionary<string, IEegFileInfo>();
+    public string Video { get; set; } = "";
 
     [JsonIgnore]
     private string m_PatientName = "";
 
-    public Subject()
+    public OldSubject()
     {
 
     }
 
-    public Subject(string patientName)
+    public OldSubject(string patientName)
     {
         PatientName = patientName;
         BrainDataContainer mni = new BrainDataContainer
@@ -70,11 +68,12 @@ public class Subject : ViewModelBase
         AnatomicalSpaces.Add("PAT", pat);
     }
 
-    public Subject(Subject subjectToCopy)
+    public OldSubject(OldSubject subjectToCopy)
     {
         PatientName = subjectToCopy.PatientName;
         AnatomicalSpaces = subjectToCopy.AnatomicalSpaces.ToDictionary(entry => entry.Key, entry => new BrainDataContainer(entry.Value));
-        Experiments = new List<Experiment>(subjectToCopy.Experiments);
+        Files = subjectToCopy.Files.ToDictionary(entry => entry.Key, entry => (IEegFileInfo)entry.Value.Clone());
+        Video = subjectToCopy.Video;
     }
 
     /// <summary>
@@ -112,29 +111,23 @@ public class Subject : ViewModelBase
                 value.Display();
             }
         }
-        foreach (var item in Experiments)
+        foreach (var item in Files)
         {
-            UnityEngine.Debug.Log("Label : " + item.Label);
-
-            foreach (var file in item.Files)
-            {
-                UnityEngine.Debug.Log("Key : " + file.Key + " - Path : " + file.Value.Files[0]);
-            }
-
-            UnityEngine.Debug.Log("Video : " + item.Video);
-            UnityEngine.Debug.Log("");
+            UnityEngine.Debug.Log("Key : " + item.Key + " - Path : " + item.Value.Files[0]);
         }
+        UnityEngine.Debug.Log("Video : " + Video);
+        UnityEngine.Debug.Log("");
     }
-
     #region operators
     public override bool Equals(object obj)
     {
-        if (obj is Subject subject)
+        if (obj is OldSubject subject)
         {
             bool sameName = PatientName == subject.PatientName;
             bool sameAnat = AnatomicalSpaces.All(k => subject.AnatomicalSpaces.Contains(k)) && AnatomicalSpaces.Count == subject.AnatomicalSpaces.Count;
-            bool sameExperiments = Experiments.All(k => subject.Experiments.Contains(k)) && Experiments.Count == subject.Experiments.Count;
-            return sameName && sameAnat && sameExperiments;
+            bool sameEeg = Files.All(k => subject.Files.Contains(k)) && Files.Count == subject.Files.Count;
+            bool sameVideo = Video == subject.Video;
+            return sameName && sameAnat && sameEeg && sameVideo;
         }
         else
         {
@@ -147,7 +140,7 @@ public class Subject : ViewModelBase
         return base.GetHashCode();
     }
 
-    public static bool operator ==(Subject a, Subject b)
+    public static bool operator ==(OldSubject a, OldSubject b)
     {
         if (ReferenceEquals(a, b))
         {
@@ -161,8 +154,7 @@ public class Subject : ViewModelBase
 
         return a.Equals(b);
     }
-
-    public static bool operator !=(Subject a, Subject b)
+    public static bool operator !=(OldSubject a, OldSubject b)
     {
         return !(a == b);
     }

@@ -29,6 +29,7 @@ public class PatientGUIManager : MonoBehaviour
     [SerializeField] private ExamGuiManager _ExamGuiManager = null;
 
     private Subject m_Subject = null; /*!< Reference to the last inputed subject , used to keep track of the name of the subject */
+    private string m_ExperimentLabel = "";
 
     private void Awake()
     {
@@ -43,6 +44,7 @@ public class PatientGUIManager : MonoBehaviour
     private void OnTabClicked(string label)
     {
         //chercher dans le sujet l'exam correpondant
+        m_ExperimentLabel = label;
     }
 
     public void SetToDefault()
@@ -68,8 +70,10 @@ public class PatientGUIManager : MonoBehaviour
         bool patFound = m_Subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
         if (patFound) _PatGUIManager.SetDataConainerInUI(patContainer);
 
-        _ExamGuiManager.SetEegFiles(m_Subject.Files);
-        _ExamGuiManager.SetVideoFilePath(m_Subject.Video);
+        OnTabClicked(m_Subject.Experiments[0].Label);
+        _ExamTabs.SetTabName(m_Subject.Experiments[0].Label, 0);
+        _ExamGuiManager.SetEegFiles(m_Subject.Experiments[0].Files);
+        _ExamGuiManager.SetVideoFilePath(m_Subject.Experiments[0].Video);
     }
 
     public Subject GetSubjectsFromGUI()
@@ -78,8 +82,26 @@ public class PatientGUIManager : MonoBehaviour
         myPat.PatientName = m_Subject != null ? m_Subject.PatientName : "";
         myPat.AnatomicalSpaces.Add("MNI", _MniGUIManager.GetDataContainer());
         myPat.AnatomicalSpaces.Add("PAT", _PatGUIManager.GetDataContainer());
-        myPat.Files = _ExamGuiManager.GetEegFiles();
-        myPat.Video = _ExamGuiManager.GetVideoFilePath();
+        if (m_Subject != null)
+        {
+            for (int i = 0; i < _ExamTabs.TabCount; i++)
+            {
+                if (m_Subject.Experiments[i] != null && m_Subject.Experiments[i].Label == m_ExperimentLabel)
+                {
+                    Experiment experiment = new Experiment(m_ExperimentLabel, _ExamGuiManager.GetEegFiles(), _ExamGuiManager.GetVideoFilePath());
+                    myPat.Experiments.Add(experiment);
+                }
+                else
+                {
+                    myPat.Experiments.Add(m_Subject.Experiments[i]);
+                }
+            }
+        }
         return myPat;
+    }
+
+    public string GetCurrentExperimentName()
+    {
+        return m_ExperimentLabel;
     }
 }

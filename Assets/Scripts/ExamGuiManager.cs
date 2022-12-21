@@ -39,11 +39,6 @@ public class ExamGuiManager : MonoBehaviour
         }
     }
 
-    private void OnTabClicked(string label)
-    {
-        UpdateData.Invoke(label);
-    }
-
     private void IsKeyOk(string str, EegInfoGUIManager eeg)
     {
         if (string.IsNullOrEmpty(str))
