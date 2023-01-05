@@ -9,8 +9,8 @@ public class DebugFlorian : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.D))
-            SpawnUI("NormalizeTF");
+        //if (Input.GetKeyDown(KeyCode.D))
+        //    SpawnUI("NormalizeTF");
         //if (Input.GetKeyDown(KeyCode.D))
         //    SpawnUI("BugReporterWindow");
         //if (Input.GetKeyDown(KeyCode.D))
