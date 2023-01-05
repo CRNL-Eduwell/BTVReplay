@@ -88,6 +88,11 @@ public class ElanFileInfo : IEegFileInfo
         return base.GetHashCode();
     }
 
+    public object Clone()
+    {
+        return new ElanFileInfo(Eeg, Pos, Notes);
+    }
+
     public static bool operator ==(ElanFileInfo a, ElanFileInfo b)
     {
         if (ReferenceEquals(a, b))

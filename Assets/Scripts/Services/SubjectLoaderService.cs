@@ -13,6 +13,7 @@ using System.Linq;
 using System.Collections.Generic;
 using BTV.Services;
 using BTV.Services.AnatomicalDataService;
+using BTV.Services.SubjectInfoService;
 
 public class SubjectLoaderService : MonoBehaviour
 {
@@ -35,22 +36,17 @@ public class SubjectLoaderService : MonoBehaviour
 
     private void OnLoadSubjectMessage(LoadSubjectMessage message)
     {
-        LoadSubject(message.subject);
-    }
-
-    private void LoadSubject(Subject subject)
-    {
         if (loaded == true)
-            ResetValues(subject);
+            ResetValues(message.subject, message.label);
         else
-            StartCoroutine(c_load(subject));
+            StartCoroutine(c_load(message.subject, message.label));
     }
 
-    private IEnumerator c_load(Subject subject)
+    private IEnumerator c_load(Subject subject, string experimentName)
     {
-        ApplicationState.Module3D.Patient = subject;
-
-        yield return StartCoroutine(c_loadEEGFile(subject));
+        SubjectInfoService.SetSubject(subject, experimentName);
+        
+        yield return StartCoroutine(c_loadEEGFile(SubjectInfoService.GetSubjectFilesAndDescription()));
         TracesService.InitTraces();
         TimeFrequencyService.InitTraces();
 
@@ -60,7 +56,7 @@ public class SubjectLoaderService : MonoBehaviour
         };
         Messenger.Default.Send(message, MessageContext.LoaderMessage);
 
-        yield return StartCoroutine(c_loadVideo(subject.Video));
+        yield return StartCoroutine(c_loadVideo(SubjectInfoService.VideoPath));
         yield return StartCoroutine(c_LoadBrainAnatomy(subject));
 
         message = new LoaderMessage
@@ -71,20 +67,6 @@ public class SubjectLoaderService : MonoBehaviour
 
         //===============
         yield return new WaitForSeconds(0.1f);
-
-        //BtvProgram btvProgram = EegFileService.ReturnFirstValidContainer();
-        //if (btvProgram != null)
-        //{
-        //    foreach (BtvEvent _event in btvProgram.Events)
-        //    {
-        //        EventsModificationMessage hackMessage = new EventsModificationMessage
-        //        {
-        //            TaskToExecute = 0,
-        //            Event = _event
-        //        };
-        //        Messenger.Default.Send(hackMessage, MessageContext.EventsModificationMessage);
-        //    }
-        //}
 
         //kind of an ugly way to deactivate perf at launch time, see to do that by instantiating
         //the window only when needed 
@@ -242,7 +224,7 @@ public class SubjectLoaderService : MonoBehaviour
         yield return null;
     }
 
-    private IEnumerator c_loadEEGFile(Subject subject)
+    private IEnumerator c_loadEEGFile(List<KeyValuePair<string, IEegFileInfo>> eegfiles)
     {
         loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, GameObject.Find("CircleWindow").transform) as GameObject).GetComponent<LoadingCircle>();
         loadingCircle.transform.localPosition = new Vector3(0, 0, 0);
@@ -250,40 +232,18 @@ public class SubjectLoaderService : MonoBehaviour
         yield return Ninja.JumpToUnity;
         loadingCircle.Set(0, "Finding files");
 
-        loadingCircle.Set(0.1f, "Loading File 1");
-        yield return Ninja.JumpBack;
-        yield return Process(subject, 0);
-        yield return Ninja.JumpToUnity;
-
-        loadingCircle.Set(0.2f, "Loading File 2");
-        yield return Ninja.JumpBack;
-        yield return Process(subject, 1);
-        yield return Ninja.JumpToUnity;
-
-        loadingCircle.Set(0.4f, "Loading File 3");
-        yield return Ninja.JumpBack;
-        yield return Process(subject, 2);
-        yield return Ninja.JumpToUnity;
-
-        loadingCircle.Set(0.6f, "Loading File 4");
-        yield return Ninja.JumpBack;
-        yield return Process(subject, 3);
-        yield return Ninja.JumpToUnity;
-
-        loadingCircle.Set(0.8f, "Loading File 5");
-        yield return Ninja.JumpBack;
-        yield return Process(subject, 4);
-        yield return Ninja.JumpToUnity;
-
-        loadingCircle.Set(1.0f, "Loading File 6");
-        yield return Ninja.JumpBack;
-        yield return Process(subject, 5);
-        yield return Ninja.JumpToUnity;
+        for (int i = 0; i < eegfiles.Count; i++)
+        {
+            loadingCircle.Set(0.1f + ((0.9f / eegfiles.Count) * i), "Loading File " + (i+1));
+            yield return Ninja.JumpBack;
+            yield return Process(eegfiles[i], i);
+            yield return Ninja.JumpToUnity;
+        }
+        loadingCircle.Set(1f, "Files have been loaded");
     }
 
-    private YieldInstruction Process(Subject subject, int FileID)
+    private YieldInstruction Process(KeyValuePair<string, IEegFileInfo> kvp, int FileID)
     {
-        KeyValuePair<string, IEegFileInfo> kvp = subject.Files.ElementAtOrDefault(FileID);
         if (!kvp.Equals(default(KeyValuePair<string, IEegFileInfo>)))
         {
             // I give my callback to the process
@@ -309,13 +269,14 @@ public class SubjectLoaderService : MonoBehaviour
         yield return null;
     }
 
-    private void ResetValues(Subject subject)
+    private void ResetValues(Subject subject, string experimentName)
     {
         GameObject reloadGameObject = Instantiate(Resources.Load("Prefabs/Media-Reload", typeof(GameObject))) as GameObject;
         reloadGameObject.name = "ReloadMedia";
 
         ReloadMedia r = reloadGameObject.GetComponent<ReloadMedia>();
         r.SubjectToReload = new Subject(subject);
+        r.ExperimentName = experimentName;
         r.TriggerReload = true;
         SceneManager.LoadScene("_main");
     }

@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.Data.Factory;
 using BTV.Services.AnatomicalDataService;
 using BTV.Services.EegFileService;
+using BTV.Services.SubjectInfoService;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -161,7 +162,7 @@ public class Brain : MonoBehaviour
                 {
                     m_LeftHemiBrain.gameObject.SetActive(true);
                     m_RightHemiBrain.gameObject.SetActive(true);
-                    ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+                    BrainDataContainer mniContainer = SubjectInfoService.GetBrainDataContainer("MNI");
                     List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("MNI");
                     UpdateBrainMesh(mniContainer, sites);
                     break;
@@ -170,7 +171,7 @@ public class Brain : MonoBehaviour
                 {
                     m_LeftHemiBrain.gameObject.SetActive(true);
                     m_RightHemiBrain.gameObject.SetActive(true);
-                    ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+                    BrainDataContainer patContainer = SubjectInfoService.GetBrainDataContainer("MNI");
                     List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("PAT");
                     UpdateBrainMesh(patContainer, sites);
                     break;

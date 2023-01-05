@@ -68,11 +68,10 @@ public class EegInfoGUIManager : MonoBehaviour
         }
     }
 
-    public void SetEegFileInfoToGUI(KeyValuePair<string, IEegFileInfo> kvp)
+    public void SetEegFileInfoToGUI(string key, string filePath)
     {
-        bool isDefaultValue = kvp.Equals(default(KeyValuePair<string, IEegFileInfo>));
-        _EegFile.TextWithoutPopUp = isDefaultValue ? "" : kvp.Value.Files[0];
-        _KeyField.text = isDefaultValue ? "" : kvp.Key;
+        _EegFile.TextWithoutPopUp = filePath;
+        _KeyField.text = key;
     }
 
     public void RevertKeyField()

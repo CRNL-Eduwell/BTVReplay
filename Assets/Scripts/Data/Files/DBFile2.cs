@@ -5,9 +5,9 @@ using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 
-public class DBFile2 : ISubjectsContext
+public class DBFile2 : IOldSubjectsContext
 {
-    public List<Subject> Subjects { get; set; } = new List<Subject>();
+    public List<OldSubject> Subjects { get; set; } = new List<OldSubject>();
     public string FilePath { get; set; } = "";
 
     public DBFile2()
@@ -31,7 +31,7 @@ public class DBFile2 : ISubjectsContext
         {
             using (StreamReader streamReader = new StreamReader(FilePath))
             {
-                Subjects = JsonConvert.DeserializeObject<List<Subject>>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                Subjects = JsonConvert.DeserializeObject<List<OldSubject>>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
             }
 
             return 0;
@@ -40,12 +40,12 @@ public class DBFile2 : ISubjectsContext
         {
             Console.WriteLine("The patient database file could not be read:");
             Console.WriteLine(e.Message);
-            Subjects = new List<Subject>();
+            Subjects = new List<OldSubject>();
             return -1;
         }
     }
 
-    public static void Save(string FilePath, List<Subject> subjects)
+    public static void Save(string FilePath, List<OldSubject> subjects)
     {
         try
         {
@@ -66,10 +66,10 @@ public class DBFile2 : ISubjectsContext
     public static void ConvertOldDbFiles(string FilePath, List<Patient> patients)
     {
         string[] oldKeys = new string[6] {"sm0", "sm250", "sm500", "sm1000", "sm2500", "sm5000" };
-        List<Subject> subjects = new List<Subject>();
+        List<OldSubject> subjects = new List<OldSubject>();
         foreach (Patient patient in patients)
         {
-            Subject subject = new Subject();
+            OldSubject subject = new OldSubject();
             subject.PatientName = patient.PatientName;
 
             BrainDataContainer mni = new BrainDataContainer

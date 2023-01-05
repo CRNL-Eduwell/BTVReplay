@@ -19,33 +19,72 @@ public class PatientGUIManager : MonoBehaviour
         {
             _MniGUIManager.IsInteractable = value;
             _PatGUIManager.IsInteractable = value;
-            foreach (var eeg in _EegFiles)
-                eeg.IsInteractable = value;
-            _Video.IsInteractable = value;
+            _ExamGuiManager.IsInteractable = value;
         }
     }
 
-    [SerializeField] BrainAnatGUIManager _MniGUIManager = null;
-    [SerializeField] BrainAnatGUIManager _PatGUIManager = null;
-    [SerializeField] EegInfoGUIManager[] _EegFiles = new EegInfoGUIManager[6] { null, null, null, null, null, null, };
-    [SerializeField] BrowseWidget _Video = null;
+    [SerializeField] private BrainAnatGUIManager _MniGUIManager = null;
+    [SerializeField] private BrainAnatGUIManager _PatGUIManager = null;
+    [SerializeField] private GenericTabWidget _ExamTabs = null;
+    [SerializeField] private ExamGuiManager _ExamGuiManager = null;
 
     private Subject m_Subject = null; /*!< Reference to the last inputed subject , used to keep track of the name of the subject */
+    private string m_ExperimentLabel = "";
 
     private void Awake()
     {
-        foreach (var eeg in _EegFiles)
-        {
-            eeg.onEndEditKey.AddListener((str)=> { IsKeyOk(str, eeg); });
-        }
+        _ExamTabs.OnTabAdded.AddListener(OnTabAdded);
+        _ExamTabs.OnTabClicked.AddListener(OnTabClicked);
+        _ExamTabs.OnTabRenamed.AddListener(OnTabRenamed);
+        _ExamTabs.OnTabRemoved.AddListener(OnTabRemoved);
     }
 
     private void OnDestroy()
     {
-        foreach (var eeg in _EegFiles)
+        _ExamTabs.OnTabClicked.RemoveAllListeners();
+    }
+
+    private void OnTabAdded(int index, string label)
+    {
+        m_ExperimentLabel = label;
+
+        m_Subject.Experiments.Insert(index, new Experiment(label, new Dictionary<string, IEegFileInfo>(), ""));
+        _ExamGuiManager.SetEegFiles(new Dictionary<string, IEegFileInfo>());
+        _ExamGuiManager.SetVideoFilePath("");
+    }
+
+    private void OnTabClicked(string label)
+    {
+        //update data from what is in the gui for the previously selected item
+        int index = m_Subject.Experiments.FindIndex(x => x.Label == m_ExperimentLabel);
+        if (index != -1)
         {
-            eeg.onEndEditKey.RemoveAllListeners();
+            m_Subject.Experiments[index].Files = _ExamGuiManager.GetEegFiles();
+            m_Subject.Experiments[index].Video = _ExamGuiManager.GetVideoFilePath();
         }
+
+        //set data for the current item
+        m_ExperimentLabel = label;
+
+        index = m_Subject.Experiments.FindIndex(x => x.Label == m_ExperimentLabel);
+        //_ExamTabs.SetTabName(m_Subject.Experiments[index].Label, index);
+        _ExamGuiManager.SetEegFiles(m_Subject.Experiments[index].Files);
+        _ExamGuiManager.SetVideoFilePath(m_Subject.Experiments[index].Video);
+    }
+
+    private void OnTabRenamed(int index, string label)
+    {
+        if (m_Subject.Experiments[index].Label == m_ExperimentLabel)
+        {
+            m_ExperimentLabel = label;
+        }
+        m_Subject.Experiments[index].Label = label;
+    }
+
+    private void OnTabRemoved(int index, string label)
+    {
+        m_Subject.Experiments.RemoveAt(index);
+        m_ExperimentLabel = label;
     }
 
     public void SetToDefault()
@@ -56,88 +95,54 @@ public class PatientGUIManager : MonoBehaviour
         _MniGUIManager.SetDataConainerInUI(new BrainDataContainer());
         _PatGUIManager.SetDataConainerInUI(new BrainDataContainer());
 
-        int fileCount = _EegFiles.Length;
-        for (int i = 0; i < fileCount; i++)
-            _EegFiles[i].SetEegFileInfoToGUI(default);
-
-        _Video.TextWithoutPopUp = "";
+        _ExamGuiManager.SetEegFiles(new Dictionary<string, IEegFileInfo>());
+        _ExamGuiManager.SetVideoFilePath("");
     }
 
     public void SetSubjectToGUI(Subject subject)
     {
         LastSubject = GetSubjectsFromGUI();
-        m_Subject = subject;
+        m_Subject = new Subject(subject);
 
-        bool mniFound = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+        bool mniFound = m_Subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
         if (mniFound) _MniGUIManager.SetDataConainerInUI(mniContainer);
 
-        bool patFound = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+        bool patFound = m_Subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
         if (patFound) _PatGUIManager.SetDataConainerInUI(patContainer);
 
-        int fileCount = _EegFiles.Length;
-        for (int i = 0; i < fileCount; i++)
-            _EegFiles[i].SetEegFileInfoToGUI(subject.Files.ElementAtOrDefault(i));
+        m_ExperimentLabel = m_Subject.Experiments[0].Label;
 
-        _Video.TextWithoutPopUp = subject.Video;
-    }
-
-    private void IsKeyOk(string str, EegInfoGUIManager eeg)
-    {
-        if (string.IsNullOrEmpty(str))
-        {
-            ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to define a key for the eeg file that is not a null/empty string");
-            eeg.RevertKeyField();
-            return;
-        }
-
-        List<string> keys = new List<string>(); 
-        int fileCount = _EegFiles.Length;
-        for (int i = 0; i < fileCount; i++)
-        {
-            if (_EegFiles[i] == eeg) continue; //if this is the one modified , we don't want to take it into account
-            KeyValuePair<string, IEegFileInfo> kvp = _EegFiles[i].GetEegFileInfoFromGUI();
-            keys.Add(kvp.Key);
-        }
-
-        if (keys.Contains(str))
-        {
-            ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to have a different key for each eeg file");
-            eeg.RevertKeyField();
-            return;
-        }
+        _ExamTabs.SetTabs(m_Subject.Experiments.Select(item => item.Label).ToList(), 0);
+        _ExamGuiManager.SetEegFiles(m_Subject.Experiments[0].Files);
+        _ExamGuiManager.SetVideoFilePath(m_Subject.Experiments[0].Video);
     }
 
     public Subject GetSubjectsFromGUI()
     {
         Subject myPat = new Subject();
         myPat.PatientName = m_Subject != null ? m_Subject.PatientName : "";
-
         myPat.AnatomicalSpaces.Add("MNI", _MniGUIManager.GetDataContainer());
         myPat.AnatomicalSpaces.Add("PAT", _PatGUIManager.GetDataContainer());
-        int fileCount = _EegFiles.Length;
-        for (int i = 0; i < fileCount; i++)
+        if (m_Subject != null)
         {
-            KeyValuePair<string, IEegFileInfo> kvp = _EegFiles[i].GetEegFileInfoFromGUI();
-            if (!kvp.Equals(default(KeyValuePair<string, IEegFileInfo>)))
+            for (int i = 0; i < _ExamTabs.TabCount; i++)
             {
-                if (string.IsNullOrEmpty(kvp.Key))
+                if (m_Subject.Experiments[i] != null && m_Subject.Experiments[i].Label == m_ExperimentLabel)
                 {
-                    ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to define a key for the eeg file that is not a null/empty string");
-                    continue;
-                }
-                else if (myPat.Files.ContainsKey(kvp.Key))
-                {
-                    ApplicationState.displayMessage("Key Error", "NOK", "Error ading Eeg File : you need to have a different key for each eeg file");
-                    continue;
+                    Experiment experiment = new Experiment(m_ExperimentLabel, _ExamGuiManager.GetEegFiles(), _ExamGuiManager.GetVideoFilePath());
+                    myPat.Experiments.Add(experiment);
                 }
                 else
                 {
-                    myPat.Files.Add(kvp.Key, kvp.Value);
+                    myPat.Experiments.Add(m_Subject.Experiments[i]);
                 }
             }
         }
-        myPat.Video = _Video.Text;
-
         return myPat;
+    }
+
+    public string GetCurrentExperimentName()
+    {
+        return m_ExperimentLabel;
     }
 }
