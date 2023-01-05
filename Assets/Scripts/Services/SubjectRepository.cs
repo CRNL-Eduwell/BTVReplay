@@ -35,7 +35,7 @@ namespace BTV.Services.DatabaseService
             }
             private set
             {
-                m_ShortName = value.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "");
+                m_ShortName = value.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv2", "");
                 RaisePropertyChanged("ShortName");
             }
         }
@@ -63,6 +63,7 @@ namespace BTV.Services.DatabaseService
             ISubjectsContext fileContext = SubjectsFactory.GetSubjectsContext(file.FullName);
             m_Subjects = new ObservableCollection<Subject>(fileContext.Subjects);
             Subjects = new ReadOnlyObservableCollection<Subject>(m_Subjects);
+            FilePath = fileContext.FilePath;
         }
 
         public SubjectRepository(string path = "", List<Subject> subjects = null)
@@ -110,7 +111,7 @@ namespace BTV.Services.DatabaseService
         {
             if (string.IsNullOrEmpty(path)) path = FilePath;
 
-            string backupPath = path.Replace(".dbtv", "BU.dbtv");
+            string backupPath = path.Replace(".dbtv2", "BU.dbtv2");
             if (File.Exists(path) && File.Exists(backupPath))
             {
                 File.Copy(path, backupPath, true);

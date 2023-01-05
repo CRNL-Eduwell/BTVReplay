@@ -33,7 +33,10 @@ public class PatientGUIManager : MonoBehaviour
 
     private void Awake()
     {
+        _ExamTabs.OnTabAdded.AddListener(OnTabAdded);
         _ExamTabs.OnTabClicked.AddListener(OnTabClicked);
+        _ExamTabs.OnTabRenamed.AddListener(OnTabRenamed);
+        _ExamTabs.OnTabRemoved.AddListener(OnTabRemoved);
     }
 
     private void OnDestroy()
@@ -41,9 +44,46 @@ public class PatientGUIManager : MonoBehaviour
         _ExamTabs.OnTabClicked.RemoveAllListeners();
     }
 
+    private void OnTabAdded(int index, string label)
+    {
+        m_ExperimentLabel = label;
+
+        m_Subject.Experiments.Insert(index, new Experiment(label, new Dictionary<string, IEegFileInfo>(), ""));
+        _ExamGuiManager.SetEegFiles(new Dictionary<string, IEegFileInfo>());
+        _ExamGuiManager.SetVideoFilePath("");
+    }
+
     private void OnTabClicked(string label)
     {
-        //chercher dans le sujet l'exam correpondant
+        //update data from what is in the gui for the previously selected item
+        int index = m_Subject.Experiments.FindIndex(x => x.Label == m_ExperimentLabel);
+        if (index != -1)
+        {
+            m_Subject.Experiments[index].Files = _ExamGuiManager.GetEegFiles();
+            m_Subject.Experiments[index].Video = _ExamGuiManager.GetVideoFilePath();
+        }
+
+        //set data for the current item
+        m_ExperimentLabel = label;
+
+        index = m_Subject.Experiments.FindIndex(x => x.Label == m_ExperimentLabel);
+        //_ExamTabs.SetTabName(m_Subject.Experiments[index].Label, index);
+        _ExamGuiManager.SetEegFiles(m_Subject.Experiments[index].Files);
+        _ExamGuiManager.SetVideoFilePath(m_Subject.Experiments[index].Video);
+    }
+
+    private void OnTabRenamed(int index, string label)
+    {
+        if (m_Subject.Experiments[index].Label == m_ExperimentLabel)
+        {
+            m_ExperimentLabel = label;
+        }
+        m_Subject.Experiments[index].Label = label;
+    }
+
+    private void OnTabRemoved(int index, string label)
+    {
+        m_Subject.Experiments.RemoveAt(index);
         m_ExperimentLabel = label;
     }
 
@@ -70,8 +110,9 @@ public class PatientGUIManager : MonoBehaviour
         bool patFound = m_Subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
         if (patFound) _PatGUIManager.SetDataConainerInUI(patContainer);
 
-        OnTabClicked(m_Subject.Experiments[0].Label);
-        _ExamTabs.SetTabName(m_Subject.Experiments[0].Label, 0);
+        m_ExperimentLabel = m_Subject.Experiments[0].Label;
+
+        _ExamTabs.SetTabs(m_Subject.Experiments.Select(item => item.Label).ToList(), 0);
         _ExamGuiManager.SetEegFiles(m_Subject.Experiments[0].Files);
         _ExamGuiManager.SetVideoFilePath(m_Subject.Experiments[0].Video);
     }

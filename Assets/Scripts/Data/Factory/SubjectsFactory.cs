@@ -31,6 +31,10 @@ namespace Assets.Scripts.Data.Factory
                         DBFile3.ConvertOldDbFiles(FilePath, file.Subjects);
                         return new DBFile3(FilePath.Replace(".dbtv", ".dbtv2"));
                     }
+                case ".dbtv2":
+                    {
+                        return new DBFile3(FilePath);
+                    }
                 default:
                     throw new ArgumentException("SubjectsFactory.GetSubjectsContext : file extension not supported => " + fileInfo.Extension); ;
             }

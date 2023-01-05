@@ -27,4 +27,46 @@ public class Experiment
         Files = experiment.Files.ToDictionary(entry => entry.Key, entry => (IEegFileInfo)entry.Value.Clone());
         Video = experiment.Video;
     }
+
+    #region operators
+    public override bool Equals(object obj)
+    {
+        if (obj is Experiment experiment)
+        {
+            bool sameName = Label == experiment.Label;
+            bool sameFiles = Files.All(k => experiment.Files.Contains(k)) && Files.Count == experiment.Files.Count;
+            bool sameVideo = Video == experiment.Video;
+            return sameName && sameFiles && sameVideo;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public static bool operator ==(Experiment a, Experiment b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (((object)a == null) || ((object)b == null))
+        {
+            return false;
+        }
+
+        return a.Equals(b);
+    }
+
+    public static bool operator !=(Experiment a, Experiment b)
+    {
+        return !(a == b);
+    }
+    #endregion
 }

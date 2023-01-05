@@ -48,7 +48,7 @@ namespace BTV.Services.DatabaseService
                 UnityEngine.Debug.Log("Update DB Name, contains element");
                 int index = Databases.IndexOf(element);
                 string filePath = Databases[index].FilePath;
-                Databases[index].FilePath = filePath.Replace(oldName + ".dbtv", newName + ".dbtv");
+                Databases[index].FilePath = filePath.Replace(oldName + ".dbtv2", newName + ".dbtv2");
             }
         }
 
