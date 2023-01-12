@@ -110,11 +110,14 @@ public class PatientGUIManager : MonoBehaviour
         bool patFound = m_Subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
         if (patFound) _PatGUIManager.SetDataConainerInUI(patContainer);
 
-        m_ExperimentLabel = m_Subject.Experiments[0].Label;
+        if (m_Subject.Experiments.Count > 0)
+        {
+            m_ExperimentLabel = m_Subject.Experiments[0].Label;
 
-        _ExamTabs.SetTabs(m_Subject.Experiments.Select(item => item.Label).ToList(), 0);
-        _ExamGuiManager.SetEegFiles(m_Subject.Experiments[0].Files);
-        _ExamGuiManager.SetVideoFilePath(m_Subject.Experiments[0].Video);
+            _ExamTabs.SetTabs(m_Subject.Experiments.Select(item => item.Label).ToList(), 0);
+            _ExamGuiManager.SetEegFiles(m_Subject.Experiments[0].Files);
+            _ExamGuiManager.SetVideoFilePath(m_Subject.Experiments[0].Video);
+        }
     }
 
     public Subject GetSubjectsFromGUI()

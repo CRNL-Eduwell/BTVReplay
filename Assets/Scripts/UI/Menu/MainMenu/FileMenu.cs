@@ -47,7 +47,7 @@ namespace BTV.UI.MainWindow
             string str = FileBrowser.GetExistingFileName(_FileExtensions);
             if (!string.IsNullOrEmpty(str))
             {
-                dd(str);
+                OpenDataset(str);
             }
 #endif
         }
