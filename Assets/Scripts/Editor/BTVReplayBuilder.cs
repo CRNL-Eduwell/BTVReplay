@@ -7,7 +7,7 @@ using UnityEngine;
 public class BTVReplayBuilder : MonoBehaviour
 {
     private static string m_Data = "Assets/Config/";
-    private static string m_DataBuild = "Config/";
+    private static string m_DataBuild = "Contents/Config/";
 
     public static void DefaultBuild()
     {
@@ -28,6 +28,7 @@ public class BTVReplayBuilder : MonoBehaviour
                 os = "linux64";
                 break;
             case BuildTarget.StandaloneOSX:
+                UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.OSXStandalone.MacOSArchitecture.ARM64;
                 os = "macos64";
                 break;
         }
@@ -45,7 +46,7 @@ public class BTVReplayBuilder : MonoBehaviour
                 break;
             case BuildTarget.StandaloneOSX:
                 executableName += ".app";
-                dataDirectory += executableName + "/Contents/";
+                dataDirectory += executableName + "/";
                 break;
         }
 
@@ -73,21 +74,36 @@ public class BTVReplayBuilder : MonoBehaviour
             file.Delete();
         }
 
-        if (target == BuildTarget.StandaloneLinux64)
+        switch (target)
         {
-            DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/Linux");
-            DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "BTVReplay_Data/Plugins/x86_64");
-            pluginsDirectory.CopyFilesRecursively(newPluginsDirectory);
-            foreach (var metaFile in newPluginsDirectory.GetFiles("*.meta"))
-            {
-                metaFile.Delete();
-            }
+            case BuildTarget.StandaloneWindows64:
+                {
+
+                }
+                break;
+            case BuildTarget.StandaloneLinux64:
+                {
+                    DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/Linux");
+                    DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "BTVReplay_Data/Plugins/x86_64");
+                    pluginsDirectory.CopyFilesRecursively(newPluginsDirectory);
+                    foreach (var metaFile in newPluginsDirectory.GetFiles("*.meta"))
+                    {
+                        metaFile.Delete();
+                    }
+                }
+                break;
+            case BuildTarget.StandaloneOSX:
+                {
+                    if (UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.OSXStandalone.MacOSArchitecture.ARM64)
+                    {
+                        string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
+                        DirectoryInfo pluginsDirectory = new DirectoryInfo(pluginsPath);
+                        DirectoryInfo arm64PluginsDirectory = new DirectoryInfo(Path.Join(pluginsPath, "ARM64"));
+                        arm64PluginsDirectory.CopyFilesRecursively(pluginsDirectory);
+                        arm64PluginsDirectory.Delete(true);
+                    }
+                }
+                break;
         }
-
-        //FileInfo readme = new FileInfo(projectPath + "README.md");
-        //readme.CopyTo(buildDirectory + readme.Name);
-
-        //FileInfo documentation = new FileInfo(projectPath + "Docs/LaTeX/HiBoP_user_manual.pdf");
-        //documentation.CopyTo(buildDirectory + documentation.Name);
     }
 }
