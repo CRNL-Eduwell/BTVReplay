@@ -144,6 +144,14 @@ public class PatientGUIManager : MonoBehaviour
         return myPat;
     }
 
+    public void UpdateSubjectName(string name)
+    {
+        if (m_Subject != null)
+        {
+            m_Subject.PatientName = name;
+        }
+    }
+
     public string GetCurrentExperimentName()
     {
         return m_ExperimentLabel;

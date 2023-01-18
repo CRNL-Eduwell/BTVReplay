@@ -365,6 +365,7 @@ public class PatientBaseGUIManager : MonoBehaviour
                     () =>
                     {
                         DatabaseService.EditSubjectName(SelectedDB[0], SelectedSubjects[0], window.StringValue);
+                        m_PatientManager.UpdateSubjectName(window.StringValue);
                         window.Close();
                     }, () =>
                     {
