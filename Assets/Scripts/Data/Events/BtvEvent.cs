@@ -47,7 +47,8 @@ namespace BTV.Data
         {
             if (obj is BtvEvent baseData)
             {
-                return baseData.Duration == Duration &&
+                return baseData.TimeInMilliSeconds.Equals(TimeInMilliSeconds) &&
+                        baseData.Duration == Duration &&
                         baseData.SiteOfInterest == SiteOfInterest &&
                         baseData.SecondSiteOfInterest == SecondSiteOfInterest &&
                         baseData.Comment == Comment;
