@@ -19,7 +19,21 @@ public class PatientGUIManager : MonoBehaviour
         {
             _MniGUIManager.IsInteractable = value;
             _PatGUIManager.IsInteractable = value;
-            _ExamGuiManager.IsInteractable = value;
+            if (value)
+            {
+                if (_ExamTabs.TabCount > 0)
+                {
+                    _ExamGuiManager.IsInteractable = value;
+                }
+                else
+                {
+                    _ExamGuiManager.IsInteractable = !value;
+                }
+            }
+            else
+            {
+                _ExamGuiManager.IsInteractable = value;
+            }
         }
     }
 
@@ -37,6 +51,8 @@ public class PatientGUIManager : MonoBehaviour
         _ExamTabs.OnTabClicked.AddListener(OnTabClicked);
         _ExamTabs.OnTabRenamed.AddListener(OnTabRenamed);
         _ExamTabs.OnTabRemoved.AddListener(OnTabRemoved);
+
+        _ExamGuiManager.IsInteractable = false;
     }
 
     private void OnDestroy()
@@ -51,6 +67,11 @@ public class PatientGUIManager : MonoBehaviour
         m_Subject.Experiments.Insert(index, new Experiment(label, new Dictionary<string, IEegFileInfo>(), ""));
         _ExamGuiManager.SetEegFiles(new Dictionary<string, IEegFileInfo>());
         _ExamGuiManager.SetVideoFilePath("");
+
+        if (_ExamTabs.TabCount > 0)
+        {
+            _ExamGuiManager.IsInteractable = true;
+        }
     }
 
     private void OnTabClicked(string label)
@@ -85,6 +106,11 @@ public class PatientGUIManager : MonoBehaviour
     {
         m_Subject.Experiments.RemoveAt(index);
         m_ExperimentLabel = label;
+
+        if (_ExamTabs.TabCount == 0)
+        {
+            _ExamGuiManager.IsInteractable = false;
+        }
     }
 
     public void SetToDefault()
