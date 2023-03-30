@@ -6,6 +6,24 @@ using UnityEngine.Events;
 
 public class AnatomicalDataWidget : MonoBehaviour
 {
+    public bool IsInteractable
+    {
+        get
+        {
+            return _LeftHemi.IsInteractable;
+        }
+        set
+        {
+            _LeftHemi.IsInteractable = value;
+            _RightHemi.IsInteractable = value;
+            _Transform.IsInteractable = value;
+            _Pts.IsInteractable = value;
+            _Atlas.IsInteractable = value;
+            _MeshConfiguration.interactable = value;
+            _EegTechnology.interactable = value;
+        }
+    }
+
     [SerializeField] private Transform _HeaderTabs = null;
     [SerializeField] private BrowseWidget _LeftHemi = null;
     [SerializeField] private BrowseWidget _RightHemi = null;
@@ -34,11 +52,17 @@ public class AnatomicalDataWidget : MonoBehaviour
         _LeftHemi.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Lhemi.tri" : "";
         _RightHemi.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/MNI_single_hight_Rhemi.tri" : "";
         _Transform.Text = m_IsMni ? Application.dataPath + "/Config/Data/MNI/transfo_mni.trm" : "";
-
+        //===
+        _LeftHemi.TextUpdated.AddListener((string str) => { GetDataFromUI(str, 0); });
+        _RightHemi.TextUpdated.AddListener((string str) => { GetDataFromUI(str, 1); });
+        _Transform.TextUpdated.AddListener((string str) => { GetDataFromUI(str, 2); });
+        _Pts.TextUpdated.AddListener((string str) => { GetDataFromUI(str, 3); });
+        _Atlas.TextUpdated.AddListener((string str) => { GetDataFromUI(str, 4); });
         _MeshConfiguration.onValueChanged.AddListener(OnMeshConfigurationValueChanged);
         _EegTechnology.onValueChanged.AddListener(OnEegTechnologyValueChanged);
-        OnTabClicked.AddListener(OnTabClickedUpdate);
 
+        OnTabClicked.AddListener(OnTabClickedUpdate);
+        //===
         AddTab("MNI");
         AddTab("PAT");
         m_Buttons[0].SetColor(m_selectedColor);
@@ -51,6 +75,11 @@ public class AnatomicalDataWidget : MonoBehaviour
     {
         OnTabClicked.RemoveAllListeners();
 
+        _LeftHemi.TextUpdated.RemoveAllListeners();
+        _RightHemi.TextUpdated.RemoveAllListeners();
+        _Transform.TextUpdated.RemoveAllListeners();
+        _Pts.TextUpdated.RemoveAllListeners();
+        _Atlas.TextUpdated.RemoveAllListeners();
         _MeshConfiguration.onValueChanged.RemoveAllListeners();
         _EegTechnology.onValueChanged.RemoveAllListeners();
 
@@ -63,8 +92,11 @@ public class AnatomicalDataWidget : MonoBehaviour
     public void SetDefault()
     {
         m_Subject = null;
+        m_Label = "";
+        m_IsMni = false;
 
         SetDataInUI(new BrainDataContainer());
+        IsInteractable = false;
     }
 
     public void SetSubject(Subject subject)
@@ -78,14 +110,7 @@ public class AnatomicalDataWidget : MonoBehaviour
             m_IsMni = true;
             SetDataInUI(mniContainer);
         }
-
-        //bool patFound = m_Subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
-        //if (patFound)
-        //{
-        //    m_Label = "PAT";
-        //    m_IsMni = false;
-        //    SetDataInUI(patContainer);
-        //}
+        IsInteractable = true;
     }
 
     private void AddTab(string name)
@@ -178,11 +203,10 @@ public class AnatomicalDataWidget : MonoBehaviour
 
     private void SetDataInUI(BrainDataContainer container)
     {
-        _MeshConfiguration.value = (int)container.MeshConfiguration;
-        _MeshConfiguration.onValueChanged.Invoke((int)container.MeshConfiguration);
-        //check that on value changed is not called two times
+        _MeshConfiguration.SetValueWithoutNotify((int)container.MeshConfiguration);
+        _EegTechnology.SetValueWithoutNotify((int)container.EegTechnology);
 
-        _EegTechnology.value = (int)container.EegTechnology;
+        //will loop back to GetDataFromUI , see to maybe use a lock when doing that
         _LeftHemi.TextWithoutPopUp = container.LeftHemisphere;
         _RightHemi.TextWithoutPopUp = container.RightHemisphere;
         _Transform.TextWithoutPopUp = container.Transformation;
@@ -190,24 +214,45 @@ public class AnatomicalDataWidget : MonoBehaviour
         if (!m_IsMni) _Atlas.TextWithoutPopUp = container.Atlas;
     }
 
-    private void OnTabClickedUpdate(string label)
+    private void GetDataFromUI(string text, int data)
     {
-        if (m_Subject != null)
+        if (m_Subject == null) return;
+
+        if (m_Subject.AnatomicalSpaces.ContainsKey(m_Label))
         {
-            //Get ui data and put it in old container
-            bool isFound = m_Subject.AnatomicalSpaces.TryGetValue(m_Label, out BrainDataContainer container);
-            if (isFound)
+            switch (data)
             {
-                container.LeftHemisphere = _LeftHemi.Text;
-                container.RightHemisphere = _RightHemi.Text;
-                container.Transformation = _Transform.Text;
-                container.Pts = _Pts.Text;
-                container.Atlas = !m_IsMni ? _Atlas.Text : "";
-                container.SetMeshConfigurationFromString(_MeshConfiguration.captionText.text);
-                container.SetEegTechnologyFromString(_EegTechnology.captionText.text);
+                case 0:
+                    {
+                        m_Subject.AnatomicalSpaces[m_Label].LeftHemisphere = text;
+                        break;
+                    }
+                case 1:
+                    {
+                        m_Subject.AnatomicalSpaces[m_Label].RightHemisphere = text;
+                        break;
+                    }
+                case 2:
+                    {
+                        m_Subject.AnatomicalSpaces[m_Label].Transformation = text;
+                        break;
+                    }
+                case 3:
+                    {
+                        m_Subject.AnatomicalSpaces[m_Label].Pts = text;
+                        break;
+                    }
+                case 4:
+                    {
+                        m_Subject.AnatomicalSpaces[m_Label].Atlas = !m_IsMni ? text : "";
+                        break;
+                    }
             }
         }
+    }
 
+    private void OnTabClickedUpdate(string label)
+    {
         //find new container and put data in UI
         m_Label = label;
         m_IsMni = m_Label == "MNI";

@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class SubjectWidget : MonoBehaviour
 {
-    //Interactable ?
     public Subject MemorySubject { get { return m_MemorySubject; } }
     public Subject Subject { get { return m_Subject; } }
+    public int ExperimentIndex { get { return _ExperimentDataWidget.ExperimentIndex; } }
 
     [SerializeField] private AnatomicalDataWidget _AnatomicalDataWidget = null;
     [SerializeField] private ExperimentDataWidget _ExperimentDataWidget = null;
@@ -18,6 +18,9 @@ public class SubjectWidget : MonoBehaviour
     {
         m_MemorySubject = null;
         m_Subject = null;
+
+        _AnatomicalDataWidget.SetDefault();
+        _ExperimentDataWidget.SetDefault();
     }
 
     public void SetSubject(Subject subject)
@@ -26,6 +29,6 @@ public class SubjectWidget : MonoBehaviour
         m_Subject = new Subject(subject);
 
         _AnatomicalDataWidget.SetSubject(m_Subject);
-        //_ExperimentDataWidget.SetSubject(m_Subject);
+        _ExperimentDataWidget.SetSubject(m_Subject);
     }
 }

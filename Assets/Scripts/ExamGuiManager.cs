@@ -27,7 +27,7 @@ public class ExamGuiManager : MonoBehaviour
     {
         foreach (var eeg in _EegFiles)
         {
-            eeg.onEndEditKey.AddListener((str) => { IsKeyOk(str, eeg); });
+            //eeg.onEndEditKey.AddListener((str) => { IsKeyOk(str, eeg); });
         }
     }
 

@@ -35,15 +35,13 @@ public class SubjectDatabaseWindow : MonoBehaviour
         }
 
         ((ISelectionCountable)_DatabaseList).OnSelectionChanged.AddListener(UpdateShownDatabase);
-
         ((ISelectionCountable)_SubjectList).OnSelectionChanged.AddListener(OnSubjectSelectionChanged);
-        //SUPP maybe ((ISelectionCountable)_SubjectList).OnSelectionChanged.AddListener(UpdateShownSubject);
-        //m_LoadSubject.onClick.AddListener(LoadSelectedSubject);
+        _LoadSubject.onClick.AddListener(LoadSelectedSubject);
     }
 
     private void OnDestroy()
     {
-        //m_LoadSubject.onClick.RemoveAllListeners();
+        _LoadSubject.onClick.RemoveAllListeners();
         ((ISelectionCountable)_SubjectList).OnSelectionChanged.RemoveAllListeners();
         ((ISelectionCountable)_DatabaseList).OnSelectionChanged.RemoveAllListeners();
 
@@ -403,40 +401,22 @@ public class SubjectDatabaseWindow : MonoBehaviour
         }
     }
 
-    private void UpdateShownSubject()
-    {
-        Subject[] SelectedElements = _SubjectList.ObjectsSelected;
-        if (SelectedElements.Length > 0)
-        {
-            //_SubjectWidget.IsInteractable = true;
-            _SubjectWidget.SetSubject(SelectedElements[0]);
-        }
-        else
-        {
-            //_SubjectWidget.IsInteractable = false;
-            _SubjectWidget.SetDefault();
-        }
-    }
-
     public void OnSubjectSelectionChanged()
     {
         if (m_LastSelectedRepository != null && m_LastSelectedSUbject != null)
         {
-            //if (_SubjectWidget.Subject != null)
+            int repoIndex = DatabaseService.Databases.IndexOf(m_LastSelectedRepository);
+            Subject updated = new Subject(_SubjectWidget.Subject);
+            Subject outdated = new Subject(_SubjectWidget.MemorySubject);
+            if (updated != outdated)
             {
-                int repoIndex = DatabaseService.Databases.IndexOf(m_LastSelectedRepository);
-                Subject updated = new Subject(_SubjectWidget.Subject);
-                Subject outdated = new Subject(_SubjectWidget.MemorySubject);
-                if (updated != outdated)
-                {
-                    ApplicationState.displayConfirmation("Keep Modifications ?", "There seems to have been some modifications, do you want to save them ?",
-                        () =>
-                        {
-                            DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
-                            DatabaseService.Databases[repoIndex].Save();
-                        },
-                        () => { });
-                }
+                ApplicationState.displayConfirmation("Keep Modifications ?", "There seems to have been some modifications, do you want to save them ?",
+                    () =>
+                    {
+                        DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
+                        DatabaseService.Databases[repoIndex].Save();
+                    },
+                    () => { });
             }
         }
 
@@ -444,12 +424,10 @@ public class SubjectDatabaseWindow : MonoBehaviour
         m_LastSelectedSUbject = (SelectedElements.Length > 0) ? SelectedElements[0] : null;
         if (SelectedElements.Length > 0)
         {
-            //_SubjectWidget.IsInteractable = true;
             _SubjectWidget.SetSubject(SelectedElements[0]);
         }
         else
         {
-            //_SubjectWidget.IsInteractable = false;
             _SubjectWidget.SetDefault();
         }
     }
@@ -458,6 +436,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
     {
         Subject updated = new Subject(_SubjectWidget.Subject);
         Subject outdated = new Subject(_SubjectWidget.MemorySubject);
+        string experimentlabel = updated.Experiments[_SubjectWidget.ExperimentIndex].Label;
         if (updated != outdated)
         {
             ApplicationState.displayConfirmation("Keep Modifications ?", "There seems to have been some modifications, do you want to save them ?",
@@ -468,34 +447,34 @@ public class SubjectDatabaseWindow : MonoBehaviour
                 DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
                 DatabaseService.Databases[repoIndex].Save();
                 m_dbSwitch = false;
-                LoadSubject(updated);
+                LoadSubject(updated, experimentlabel);
             },
             () =>
             {
-                LoadSubject(updated);
+                LoadSubject(updated, experimentlabel);
             });
         }
         else
         {
-            LoadSubject(updated);
+            LoadSubject(updated, experimentlabel);
         }
     }
 
-    private void LoadSubject(Subject updated)
+    private void LoadSubject(Subject updated, string experimentLabel)
     {
-        //if (updated.IsLoadable)
-        //{
-        //    LoadSubjectMessage message = new LoadSubjectMessage
-        //    {
-        //        subject = new Subject(updated),
-        //        label = m_PatientManager.GetCurrentExperimentName()
-        //    };
-        //    Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
-        //    Destroy(gameObject);
-        //}
-        //else
-        //{
-        //    ApplicationState.displayMessage("Can not load Subject", "NOK", "Please check that all your eeg files exists at the given path and have the correct extensions");
-        //}
+        if (updated.IsLoadable)
+        {
+            LoadSubjectMessage message = new LoadSubjectMessage
+            {
+                subject = new Subject(updated),
+                label = experimentLabel
+            };
+            Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
+            Destroy(gameObject);
+        }
+        else
+        {
+            ApplicationState.displayMessage("Can not load Subject", "NOK", "Please check that all your eeg files exists at the given path and have the correct extensions");
+        }
     }
 }
