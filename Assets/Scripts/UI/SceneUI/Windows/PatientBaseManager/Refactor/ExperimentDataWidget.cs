@@ -19,8 +19,8 @@ public class ExperimentDataWidget : MonoBehaviour
 
     private GameObject m_ButtonPrefab = null;
     private List<ExtendedButton> m_Buttons = new List<ExtendedButton>();
-    private Color m_normalColor = new Color(0.203921f, 0.203921f, 0.203921f, 1); //52
-    private Color m_selectedColor = new Color(0.125490f, 0.125490f, 0.125490f, 1); //32
+    private Color m_normalColor = new Color(0.149019f, 0.149019f, 0.149019f, 1); //38
+    private Color m_selectedColor = new Color(0.231372f, 0.478431f, 0.760784f, 1); //59 / 122 / 194
 
     private Subject m_Subject = null;
     private int m_ExperimentID = 0;
@@ -134,7 +134,8 @@ public class ExperimentDataWidget : MonoBehaviour
         }
         AddTabInGui(name);
         m_Subject.Experiments.Insert(m_Buttons.Count - 1, new Experiment(name, new Dictionary<string, IEegFileInfo>(), ""));
-        ClickOntTab(m_Buttons.Count - 1);
+        SwitchTo(m_Buttons[m_Buttons.Count - 1]);
+        //ClickOntTab(m_Buttons.Count - 1);
     }
 
     private void AddTabInGui(string name)
