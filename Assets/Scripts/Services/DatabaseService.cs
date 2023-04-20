@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using BTV.Services.UserPreferencesService;
 
@@ -48,7 +49,7 @@ namespace BTV.Services.DatabaseService
                 UnityEngine.Debug.Log("Update DB Name, contains element");
                 int index = Databases.IndexOf(element);
                 string filePath = Databases[index].FilePath;
-                Databases[index].FilePath = filePath.Replace(oldName + ".dbtv", newName + ".dbtv");
+                Databases[index].FilePath = filePath.Replace(oldName + ".dbtv2", newName + ".dbtv2");
             }
         }
 
@@ -82,7 +83,19 @@ namespace BTV.Services.DatabaseService
             {
                 UnityEngine.Debug.Log("Add New Default Patient");
                 int index = Databases.IndexOf(element);
-                Subject subject = new Subject("Default Name");
+
+                string name = "DefaultName";
+                int count = 0;
+                while (true)
+                {
+                    string temp = string.Format("{0}({1})", name, ++count);
+                    if (Databases[index].Subjects.FirstOrDefault(x => x.PatientName == temp) == default)
+                    {
+                        name = temp;
+                        break;
+                    }
+                }
+                Subject subject = new Subject(name);
                 Databases[index].Add(subject);
             }
         }

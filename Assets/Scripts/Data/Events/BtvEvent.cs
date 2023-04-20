@@ -42,5 +42,45 @@ namespace BTV.Data
             if (btvEvent.Correlation != null)
                 Array.Copy(btvEvent.Correlation, Correlation, Correlation.Length);
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is BtvEvent baseData)
+            {
+                return baseData.TimeInMilliSeconds.Equals(TimeInMilliSeconds) &&
+                        baseData.Duration == Duration &&
+                        baseData.SiteOfInterest == SiteOfInterest &&
+                        baseData.SecondSiteOfInterest == SecondSiteOfInterest &&
+                        baseData.Comment == Comment;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public static bool operator ==(BtvEvent a, BtvEvent b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            if (((object)a == null) || ((object)b == null))
+            {
+                return false;
+            }
+
+            return a.Equals(b);
+        }
+        public static bool operator !=(BtvEvent a, BtvEvent b)
+        {
+            return !(a == b);
+        }
     }
 }

@@ -12,6 +12,7 @@ enum MessageContext
     UiToTaskPerformanceMessage,
     UiToVideo,
     UiToEvents,
+    UiToTFEvents,
     UiToLayouts,
     EventsToTraceMessage,
     EventsToTaskPerformanceMessage,
@@ -30,5 +31,8 @@ enum MessageContext
     ShowWindowMessage,
     ForceUpdateTraceMessage,
     ShortcutMessage,
-    ForceToggleToolbar
+    ForceToggleToolbar,
+    ProcessCalculationMessage,
+    TimeFrequencyResultMessage,
+    EventsToEventsMessage
 }

@@ -194,7 +194,7 @@ public class PatientBaseGUIManager : MonoBehaviour
                     SubjectRepository[] SelectedElements = m_DatabaseList.ObjectsSelected;
                     if (SelectedElements.Length > 0)
                     {
-                        var extensionList = new[] { new ExtensionFilter("BrainTV Database Files", "dbtv") };
+                        var extensionList = new[] { new ExtensionFilter("BrainTV Database Files", "dbtv2") };
                         FileInfo file = new FileInfo(SelectedElements[0].FilePath);
 #if UNITY_STANDALONE_OSX
                         FileBrowser.GetSavedFileNameAsync((str) =>
@@ -327,7 +327,7 @@ public class PatientBaseGUIManager : MonoBehaviour
         if (SelectedElements.Length > 0)
         {
             FileInfo fileinfo = new FileInfo(SelectedElements[0].FilePath);
-            string name = fileinfo.Name.Replace(".dbtv", "");
+            string name = fileinfo.Name.Replace(".dbtv2", "");
 
             InputFieldWindow window = ApplicationState.SpawFrequencyChoiceWindow();
             window.Initialize("Database Name", "Choose a new name for your Database",
@@ -365,6 +365,7 @@ public class PatientBaseGUIManager : MonoBehaviour
                     () =>
                     {
                         DatabaseService.EditSubjectName(SelectedDB[0], SelectedSubjects[0], window.StringValue);
+                        m_PatientManager.UpdateSubjectName(window.StringValue);
                         window.Close();
                     }, () =>
                     {
@@ -405,7 +406,7 @@ public class PatientBaseGUIManager : MonoBehaviour
             Subject[] SelectedSubjects = m_SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                SubjectRepository destinationDb = m_DatabaseList.Objects.First(x => x.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "") == database);
+                SubjectRepository destinationDb = m_DatabaseList.Objects.First(x => x.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv2", "") == database);
                 foreach (var subject in SelectedSubjects)
                 {
                     bool added = DatabaseService.AddSubjectToDatabase(destinationDb, subject);
@@ -430,7 +431,7 @@ public class PatientBaseGUIManager : MonoBehaviour
             Subject[] SelectedSubjects = m_SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                SubjectRepository destinationDb = m_DatabaseList.Objects.First(x => x.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv", "") == database);
+                SubjectRepository destinationDb = m_DatabaseList.Objects.First(x => x.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv2", "") == database);
                 foreach (var subject in SelectedSubjects)
                 {
                     bool added = DatabaseService.AddSubjectToDatabase(destinationDb, subject);
@@ -477,7 +478,8 @@ public class PatientBaseGUIManager : MonoBehaviour
         {
             LoadSubjectMessage message = new LoadSubjectMessage
             {
-                subject = new Subject(updated)
+                subject = new Subject(updated),
+                label = m_PatientManager.GetCurrentExperimentName()
             };
             Messenger.Default.Send(message, MessageContext.LoadSubjectMessage);
             Destroy(gameObject);

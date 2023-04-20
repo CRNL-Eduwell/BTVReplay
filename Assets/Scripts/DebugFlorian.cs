@@ -10,7 +10,7 @@ public class DebugFlorian : MonoBehaviour
     private void Update()
     {
         //if (Input.GetKeyDown(KeyCode.D))
-        //    SpawnUI("GeneralOptionsPreferences");
+        //    SpawnUI("NormalizeTF");
         //if (Input.GetKeyDown(KeyCode.D))
         //    SpawnUI("BugReporterWindow");
         //if (Input.GetKeyDown(KeyCode.D))

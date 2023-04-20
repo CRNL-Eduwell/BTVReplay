@@ -125,10 +125,13 @@ namespace BTV.Services.AnatomicalDataService
                 for (int j = 0; j < sites.Count; j++)
                 {
                     string siteLabel = sites[j].Label;
-                    int siteID = int.Parse(new string(siteLabel.Where(char.IsDigit).ToArray()));
-                    string siteIDFormated = siteID.ToString("00");
+                    string IdString = new string(siteLabel.Where(char.IsDigit).ToArray());
+                    if (int.TryParse(IdString, out int siteID))
+                    {
+                        string siteIDFormated = siteID.ToString("00");
+                        siteLabel = CorrectPlotName(siteLabel.Replace(siteID.ToString(), siteIDFormated));
+                    }
 
-                    siteLabel = CorrectPlotName(siteLabel.Replace(siteID.ToString(), siteIDFormated));
                     List<int> idFound = atlas_Plots.Select((item, index) => new { Item = item, Index = index })
                                             .Where(x => (x.Item.plotName.ToLower() == siteLabel))
                                             .Select(x => x.Index)

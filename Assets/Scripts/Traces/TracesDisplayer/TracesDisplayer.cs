@@ -435,6 +435,13 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         }
         FileHandle = EegFileService.ChangeContainerHandle(FileHandle, m_ContainerId);
         Channel = FileHandle.Channels[m_currentElectrodeID];
+
+        m_downsamplingFactor = Mathf.Max(1, Mathf.CeilToInt(m_NumberOfPixelsByPoint * (float)Channel.NumberOfSample / (m_rectTransform.rect.width)));
+        m_dataArray = new Vector3[Channel.NumberOfSample / m_downsamplingFactor];
+        m_dataProcessed = new float[m_dataArray.Length];
+        m_LineRenderer.positionCount = m_dataArray.Length;
+        UpdateHorizontalScale();
+
         m_FileLabel.Label = FileHandle.Description;
         GetDataToDisplay();
     }

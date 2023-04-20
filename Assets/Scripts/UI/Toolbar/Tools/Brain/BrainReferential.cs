@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using BTV.Services.SubjectInfoService;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -35,11 +36,11 @@ namespace BTV.UI.Module3D.Tools
             switch (VisuID)
             {
                 case 0:
-                    ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
+                    BrainDataContainer mniContainer = SubjectInfoService.GetBrainDataContainer("MNI");
                     ChangeReferentialSafely(mniContainer.HasAnat, VisuID);
                     break;
                 case 1:
-                    ApplicationState.Module3D.Patient.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
+                    BrainDataContainer patContainer = SubjectInfoService.GetBrainDataContainer("PAT");
                     ChangeReferentialSafely(patContainer.HasAnat, VisuID);
                     break;
                 case 2:

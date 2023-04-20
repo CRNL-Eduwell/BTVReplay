@@ -67,7 +67,7 @@ public class GraphLabel : MonoBehaviour
 
     private void OnDestroy()
     {
-        m_Option.PropertyChanged -= OnTraceOptionPropertyChanged;
+        if(m_Option != null) m_Option.PropertyChanged -= OnTraceOptionPropertyChanged;
     }
 
     private void OnTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

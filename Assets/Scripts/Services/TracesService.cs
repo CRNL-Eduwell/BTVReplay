@@ -88,11 +88,12 @@ public static class TracesService
         return m_Options.ContainsKey(traceID) ? m_Options[traceID].FileHandle.NumberOfElectrodes : -1;
     }
 
-    public static float[] ChannelData(int traceID, int electrodeID)
+    public static float[] ChannelData(int traceID, int electrodeID = -1)
     {
         if (m_Options.ContainsKey(traceID))
         {
             BtvProgram handle = m_Options[traceID].FileHandle;
+            if (electrodeID == -1) electrodeID = m_Options[traceID].ElectrodeID;
             if (electrodeID < handle.NumberOfElectrodes)
             {
                 return handle.Channels[electrodeID].Data;

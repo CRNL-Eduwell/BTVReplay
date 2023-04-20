@@ -7,7 +7,8 @@ using UnityEngine.UI;
 
 public class EegInfoGUIManager : MonoBehaviour
 {
-    public StringEvent onEndEditKey = new StringEvent();
+    public UnityEvent<string, string> TextUpdated { get; } = new GenericEvent<string, string>();
+    public UnityEvent<string, string> onEndEditKey = new GenericEvent<string, string>();
 
     public bool IsInteractable
     {
@@ -31,12 +32,14 @@ public class EegInfoGUIManager : MonoBehaviour
 
     private void Awake()
     {
-        _KeyField.onEndEdit.AddListener((str) => { onEndEditKey.Invoke(str); m_memory = _KeyField.text; });
+        _EegFile.TextUpdated.AddListener((str) => { TextUpdated.Invoke(_KeyField.text, str); });
+        _KeyField.onEndEdit.AddListener((str) => { onEndEditKey.Invoke(m_memory, str); m_memory = _KeyField.text; });
     }
 
     private void OnDestroy()
     {
         _KeyField.onEndEdit.RemoveAllListeners();
+        _EegFile.TextUpdated.RemoveAllListeners();
     }
 
     public KeyValuePair<string, IEegFileInfo> GetEegFileInfoFromGUI()
@@ -68,11 +71,10 @@ public class EegInfoGUIManager : MonoBehaviour
         }
     }
 
-    public void SetEegFileInfoToGUI(KeyValuePair<string, IEegFileInfo> kvp)
+    public void SetEegFileInfoToGUI(string key, string filePath)
     {
-        bool isDefaultValue = kvp.Equals(default(KeyValuePair<string, IEegFileInfo>));
-        _EegFile.TextWithoutPopUp = isDefaultValue ? "" : kvp.Value.Files[0];
-        _KeyField.text = isDefaultValue ? "" : kvp.Key;
+        _EegFile.TextWithoutPopUp = filePath;
+        _KeyField.text = key;
     }
 
     public void RevertKeyField()

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using BTV.Services.EegFileService;
+using BTV.Services.SubjectInfoService;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -44,18 +45,14 @@ namespace BTV.UI.Module3D.Tools
             }
         }
 
-        //TODO : At one point create something of a Subject info service that returns info
-        //like the labels of the files and informations for which you don't need to have 
-        //access to the data structures
         private void SetFileLabels()
         {
-            Subject subject = ApplicationState.Module3D.Patient;
+            List<string> keys = SubjectInfoService.GetSubjectFileKeys();
 
             m_EegFiles.options.Clear();
-            foreach (var item in subject.Files)
+            foreach (var item in keys)
             {
-                string label = item.Equals(default(KeyValuePair<string, IEegFileInfo>)) ? "NO FILE" : item.Key;
-                m_EegFiles.options.Add(new Dropdown.OptionData(label));
+                m_EegFiles.options.Add(new Dropdown.OptionData(item));
             }
         }
 

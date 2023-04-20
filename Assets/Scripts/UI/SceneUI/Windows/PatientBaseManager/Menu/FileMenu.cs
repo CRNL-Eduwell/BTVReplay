@@ -40,7 +40,7 @@ namespace BTV.UI.PatientBaseManager
 
         private void CreateNewDatabase()
         {
-            var extensionList = new[] { new ExtensionFilter("BrainTV Database Files", "dbtv") };
+            var extensionList = new[] { new ExtensionFilter("BrainTV Database Files", "dbtv2") };
 #if UNITY_STANDALONE_OSX
             FileBrowser.GetSavedFileNameAsync((str) =>
             {
@@ -74,9 +74,9 @@ namespace BTV.UI.PatientBaseManager
                     FilePath = str
                 };
                 Messenger.Default.Send(message, MessageContext.FileMenuMessage);
-            }, new string[] { "txt", "dbtv" }, "Select a BrainTV Database File", DatabaseService.DefaultPath);
+            }, new string[] { "txt", "dbtv", "dbtv2" }, "Select a BrainTV Database File", DatabaseService.DefaultPath);
 #else
-            string filePath = FileBrowser.GetExistingFileName(new string[] { "txt", "dbtv" }, "Select a BrainTV Database File", DatabaseService.DefaultPath);
+            string filePath = FileBrowser.GetExistingFileName(new string[] { "txt", "dbtv", "dbtv2" }, "Select a BrainTV Database File", DatabaseService.DefaultPath);
             FileMenuMessage message = new FileMenuMessage
             {
                 TaskToExecute = 1,

@@ -51,6 +51,11 @@ public class EdfFileInfo : IEegFileInfo
         return base.GetHashCode();
     }
 
+    public object Clone()
+    {
+        return new EdfFileInfo(Edf);
+    }
+
     public static bool operator ==(EdfFileInfo a, EdfFileInfo b)
     {
         if (ReferenceEquals(a, b))
