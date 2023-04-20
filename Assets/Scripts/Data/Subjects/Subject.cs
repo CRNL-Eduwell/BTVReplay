@@ -74,7 +74,7 @@ public class Subject : ViewModelBase
     {
         PatientName = subjectToCopy.PatientName;
         AnatomicalSpaces = subjectToCopy.AnatomicalSpaces.ToDictionary(entry => entry.Key, entry => new BrainDataContainer(entry.Value));
-        Experiments = new List<Experiment>(subjectToCopy.Experiments);
+        Experiments = subjectToCopy.Experiments.ConvertAll(e => new Experiment(e.Label, e.Files, e.Video));
     }
 
     /// <summary>

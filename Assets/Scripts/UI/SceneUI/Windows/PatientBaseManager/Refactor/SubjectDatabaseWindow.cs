@@ -17,7 +17,6 @@ public class SubjectDatabaseWindow : MonoBehaviour
     [SerializeField] Button _LoadSubject = null;
 
     private SubjectRepository m_LastSelectedRepository = null;
-    private Subject m_LastSelectedSUbject = null;
     private bool m_dbSwitch = false;
 
     private void Start()
@@ -403,7 +402,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
 
     public void OnSubjectSelectionChanged()
     {
-        if (m_LastSelectedRepository != null && m_LastSelectedSUbject != null)
+        if (m_LastSelectedRepository != null && _SubjectWidget.Subject != null)
         {
             int repoIndex = DatabaseService.Databases.IndexOf(m_LastSelectedRepository);
             Subject updated = new Subject(_SubjectWidget.Subject);
@@ -421,7 +420,6 @@ public class SubjectDatabaseWindow : MonoBehaviour
         }
 
         Subject[] SelectedElements = _SubjectList.ObjectsSelected;
-        m_LastSelectedSUbject = (SelectedElements.Length > 0) ? SelectedElements[0] : null;
         if (SelectedElements.Length > 0)
         {
             _SubjectWidget.SetSubject(SelectedElements[0]);
