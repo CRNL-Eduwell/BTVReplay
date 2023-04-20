@@ -42,6 +42,8 @@ public class ExperimentDataWidget : MonoBehaviour
         {
             if (m_Subject == null) return;
             if (m_ExperimentID >= m_Subject.Experiments.Count) return;
+            if (m_LockFeedback) return;
+          
             m_Subject.Experiments[m_ExperimentID].Video = str;
         });
         UpdateInteractability();
@@ -135,7 +137,6 @@ public class ExperimentDataWidget : MonoBehaviour
         AddTabInGui(name);
         m_Subject.Experiments.Insert(m_Buttons.Count - 1, new Experiment(name, new Dictionary<string, IEegFileInfo>(), ""));
         SwitchTo(m_Buttons[m_Buttons.Count - 1]);
-        //ClickOntTab(m_Buttons.Count - 1);
     }
 
     private void AddTabInGui(string name)
