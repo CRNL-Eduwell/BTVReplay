@@ -7,7 +7,8 @@ using UnityEngine.UI;
 
 public class EegInfoGUIManager : MonoBehaviour
 {
-    public StringEvent onEndEditKey = new StringEvent();
+    public UnityEvent<string, string> TextUpdated { get; } = new GenericEvent<string, string>();
+    public UnityEvent<string, string> onEndEditKey = new GenericEvent<string, string>();
 
     public bool IsInteractable
     {
@@ -31,12 +32,14 @@ public class EegInfoGUIManager : MonoBehaviour
 
     private void Awake()
     {
-        _KeyField.onEndEdit.AddListener((str) => { onEndEditKey.Invoke(str); m_memory = _KeyField.text; });
+        _EegFile.TextUpdated.AddListener((str) => { TextUpdated.Invoke(_KeyField.text, str); });
+        _KeyField.onEndEdit.AddListener((str) => { onEndEditKey.Invoke(m_memory, str); m_memory = _KeyField.text; });
     }
 
     private void OnDestroy()
     {
         _KeyField.onEndEdit.RemoveAllListeners();
+        _EegFile.TextUpdated.RemoveAllListeners();
     }
 
     public KeyValuePair<string, IEegFileInfo> GetEegFileInfoFromGUI()

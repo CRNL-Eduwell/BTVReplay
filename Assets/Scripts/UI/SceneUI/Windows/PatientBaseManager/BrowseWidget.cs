@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class BrowseWidget : MonoBehaviour
 {
+    public UnityEvent<string> TextUpdated { get; } = new GenericEvent<string>();
+
     public bool IsInteractable
     {
         get
@@ -160,6 +162,8 @@ public class BrowseWidget : MonoBehaviour
 
         if(_ShowIndicator)
             ToggleIndicator(isStringOk, fileExists, isExtensionOk);
+
+        TextUpdated.Invoke(_InputField.text);
     }
 
     private void ToggleIndicator(bool isStringOk, bool fileExists, bool isExtensionOk)
