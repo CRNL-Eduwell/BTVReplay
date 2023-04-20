@@ -101,8 +101,7 @@ namespace BTV.Services.DatabaseService
                 {
                     UnityEngine.Debug.Log("Replacing Subject in repository");
                     UnityEngine.Debug.Log("Index : " + index);
-                    //m_Subjects[index] = null;
-                    m_Subjects[index] = newSubject;
+                    m_Subjects[index] = new Subject(newSubject);
                 }
             }
         }
