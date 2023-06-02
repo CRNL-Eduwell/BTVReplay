@@ -18,7 +18,7 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
     /// Exact Time of the video
     /// In MilliSeconds
     /// </summary>
-    public long CurrentTime { get; set; } = 0;
+    public long ClockTime { get; set; } = 0;
     /// <summary>
     /// Time of the video, there is no possible offset due to user input 
     /// In MilliSeconds
@@ -94,9 +94,9 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
     {
         if (m_internalTimer != null && m_internalTimer.IsRunning)
         {
-            CurrentTime = CurrentTime + (m_internalTimer.ElapsedMilliseconds - m_internalLastTime);
+            ClockTime = ClockTime + (m_internalTimer.ElapsedMilliseconds - m_internalLastTime);
             m_internalLastTime = m_internalTimer.ElapsedMilliseconds;
-            if (CurrentTime > TotalVideoTime)
+            if (ClockTime > TotalVideoTime)
                 SetTime(0);
         }
     }
@@ -133,7 +133,7 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
     public void Stop()
     {
         m_internalTimer.Reset();
-        CurrentTime = 0;
+        ClockTime = 0;
         m_internalLastTime = 0;
         m_paused = false;
         m_playing = false;
@@ -142,12 +142,12 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public void MoveTime(long secondsToAdd)
     {
-        CurrentTime += (secondsToAdd * 1000);
+        ClockTime += (secondsToAdd * 1000);
     }
 
     public void SetTime(long timeMilliSec)
     {
-        CurrentTime = timeMilliSec;
+        ClockTime = timeMilliSec;
     }
 
     public void SetVolume(float volume) { }
