@@ -95,6 +95,7 @@ public class CustomVideoPlayer : MonoBehaviour
                             m_VideoWasPlaying = false;
                             VideoInterface.Play();
                         }
+                        m_CurrentTime = VideoInterface.ClockTime;
                     }
                 }
                 else
@@ -102,13 +103,9 @@ public class CustomVideoPlayer : MonoBehaviour
                     m_CurrentTime = VideoInterface.ClockTime;
                 }
 
-                if (m_LoopMode)
-                {
-                    if (m_CurrentTime > m_MaxTimeClick)
-                        SetTime(Math.Max(0, m_MinTimeClick), true);
-                    if (m_CurrentTime < m_MinTimeClick)
-                        SetTime(Math.Min(VideoInterface.TotalVideoTime, m_MaxTimeClick), true);
-                }
+                if (m_LoopMode && VideoInterface.IsPlaying)
+                    if (_LoopScrollbar.value >= 1)
+                        SetTime(m_MinTimeClick, true);
 
                 if (VideoInterface.ClockTime > VideoInterface.TotalVideoTime)
                     Stop();
@@ -174,7 +171,6 @@ public class CustomVideoPlayer : MonoBehaviour
         onEndScrollbarEditTriggerEntry.callback.AddListener((eventData) =>
         {
             VideoInterface.SetTime(m_CurrentTime);
-            _BufferingImage.Show();
         });
         scrollBarTrigger.triggers.Add(onEndScrollbarEditTriggerEntry);
 
@@ -231,7 +227,20 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         if (m_ListenerLock) return;
 
-        SetTime((long)(value * VideoInterface.TotalVideoTime));
+        long time = (long)(value * VideoInterface.TotalVideoTime);
+        if (m_LoopMode)
+        {
+            if (time > m_MaxTimeClick)
+                SetTime(Math.Min(VideoInterface.TotalVideoTime, m_MaxTimeClick), true);
+            else if (time < m_MinTimeClick)
+                SetTime(Math.Max(0, m_MinTimeClick), true);
+            else
+                SetTime(time);
+        }
+        else
+        {
+            SetTime(time);
+        }
     }
 
     private void OnValueChangeLoopScrollBar(float value)
@@ -241,7 +250,7 @@ public class CustomVideoPlayer : MonoBehaviour
         if (VideoInterface.IsPlaying)
             TogglePlay();
         m_LoopOffset = (long)(value * m_LoopLength * 2) - m_LoopLength;
-        SetTime(m_TimeClick + m_LoopOffset);
+        _TimeScrollbar.value = (float)(m_TimeClick + m_LoopOffset) / VideoInterface.TotalVideoTime;
         VideoInterface.SetTime(m_TimeClick + m_LoopOffset);
     }
 
@@ -301,6 +310,7 @@ public class CustomVideoPlayer : MonoBehaviour
             _BufferingImage.Show();
         }
         m_WaitToSync = true;
+        _BufferingImage.Show();
         if (VideoInterface.IsPlaying)
         {
             m_VideoWasPlaying = true;
@@ -309,6 +319,7 @@ public class CustomVideoPlayer : MonoBehaviour
     }
     public void ToggleLoopMode()
     {
+        m_ListenerLock = true;
         if (!_LoopScrollbar.gameObject.activeSelf)
         {
             VideoInterface.SetVolume(0.0f);
@@ -316,6 +327,7 @@ public class CustomVideoPlayer : MonoBehaviour
             _LoopScrollbar.gameObject.SetActive(true);
             UpdateTimeClick(VideoInterface.ClockTime);
             _TimeScrollbar.transform.GetChild(0).GetChild(1).GetComponent<Image>().sprite = m_texHandleSlave;
+            _LoopScrollbar.value = 0.5f;
         }
         else
         {
@@ -323,9 +335,9 @@ public class CustomVideoPlayer : MonoBehaviour
             m_LoopMode = false;
             m_LoopOffset = 0;
             m_TimeClick = -1;
-            _LoopScrollbar.value = 0.5f;
             _LoopScrollbar.gameObject.SetActive(false);
             _TimeScrollbar.transform.GetChild(0).GetChild(1).GetComponent<Image>().sprite = m_texHandle;
         }
+        m_ListenerLock = false;
     }
 }

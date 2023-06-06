@@ -25,7 +25,6 @@ public class BufferingImage : MonoBehaviour
     public void Show()
     {
         gameObject.SetActive(true);
-        m_Timer = 0;
     }
     public void Hide()
     {
