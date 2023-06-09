@@ -11,7 +11,7 @@ namespace BTV.Services.EegFileService
 {
     public static class EegFileService
     {
-        private static List<BtvMontage> m_Montages = new List<BtvMontage>();
+        private static List<BtvMontage> m_Montages = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
         public static int SelectedMontageID { get; set; } = 0;
         private static BtvMontage m_CurrentMontage { get { return m_Montages[SelectedMontageID]; } }
 
@@ -25,13 +25,13 @@ namespace BTV.Services.EegFileService
             if (FileID >= 6)
                 throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
 
-            BtvProgram[] eegFiles = new BtvProgram[6];
+            BtvProgram eegFile = null;
             if (fileInfo.Files.Length > 0 && System.IO.File.Exists(fileInfo.Files[0]))
             {
                 IEegDataContainer container = new IEegDataContainer(fileInfo);
-                eegFiles[FileID] = new BtvProgram(container, description);
+                eegFile = new BtvProgram(container, description);
             }
-            m_Montages[0] = new BtvMontage("Default", eegFiles);
+            m_Montages[0].SetEEGFile(eegFile, FileID);
 
             yield return null;
         }
@@ -41,13 +41,13 @@ namespace BTV.Services.EegFileService
             if (FileID >= 6)
                 throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
 
-            BtvProgram[] eegFiles = new BtvProgram[6];
+            BtvProgram eegFile = null;
             if (fileInfo.Files.Length > 0 && System.IO.File.Exists(fileInfo.Files[0]))
             {
                 IEegDataContainer container = new IEegDataContainer(fileInfo);
-                eegFiles[FileID] = new BtvProgram(container, description);
+                eegFile = new BtvProgram(container, description);
             }
-            m_Montages[0] = new BtvMontage("Default", eegFiles);
+            m_Montages[0].SetEEGFile(eegFile, FileID);
         }
 
         public static int GetContainerSuffix(BtvProgram currentFile)

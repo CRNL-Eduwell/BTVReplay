@@ -67,6 +67,11 @@ namespace BTV.UI.Module3D
             get { return m_LayoutsToolbar; }
         }
         [SerializeField] LayoutsToolbar m_LayoutsToolbar = null;
+        public MontageToolbar MontageToolbar
+        {
+            get { return m_MontageToolbar; }
+        }
+        [SerializeField] MontageToolbar m_MontageToolbar = null;
 
         private void Awake()
         {
@@ -86,6 +91,7 @@ namespace BTV.UI.Module3D
             m_EventsToolbar.Initialize();
             m_TfToolbar.Initialize();
             m_LayoutsToolbar.Initialize();
+            m_MontageToolbar.Initialize();
 
             CurrentToolbar = null;
 
@@ -97,6 +103,7 @@ namespace BTV.UI.Module3D
             m_EventsToolbar.gameObject.SetActive(false);
             m_TfToolbar.gameObject.SetActive(false);
             m_LayoutsToolbar.gameObject.SetActive(false);
+            m_MontageToolbar.gameObject.SetActive(false);
         }
     }
 }
