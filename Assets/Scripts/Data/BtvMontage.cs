@@ -12,7 +12,7 @@ namespace BTV.Data
         public string Name { get; private set; } = "Default";
         public BtvProgram[] EegFiles { get; private set; } = new BtvProgram[6] { null, null, null, null, null, null };
         public bool IsCustom { get; private set; } = false;
-        private Dictionary<string, string> m_MontageDescription = new Dictionary<string, string>();
+        public List<ChannelCorrespondance> MontageDescription { get; private set; } = new List<ChannelCorrespondance>();
         #endregion
 
         #region Public Methods
@@ -20,13 +20,13 @@ namespace BTV.Data
         {
             Name = name;
             EegFiles = eegFiles;
-            m_MontageDescription = new Dictionary<string, string>();
+            MontageDescription = new List<ChannelCorrespondance>();
             IsCustom = false;
         }
-        public BtvMontage(string name, BtvMontage baseMontage, Dictionary<string, string> montageDescription)
+        public BtvMontage(string name, BtvMontage baseMontage, List<ChannelCorrespondance> montageDescription)
         {
             Name = name;
-            m_MontageDescription = montageDescription;
+            MontageDescription = montageDescription;
 
             for (int i = 0; i < 6; ++i)
             {
@@ -41,10 +41,10 @@ namespace BTV.Data
 
                 foreach (var channel in EegFiles[i].Channels)
                 {
-                    if (!m_MontageDescription.TryGetValue(channel.Label, out string description))
-                        description = channel.Label;
+                    ChannelCorrespondance correspondance = MontageDescription.FirstOrDefault(c => c.BaseLabel == channel.Label);
+                    if (correspondance == null) correspondance = new ChannelCorrespondance(channel.Label, channel.Label);
 
-                    Node descriptionNode = Parser.Parse(description);
+                    Node descriptionNode = Parser.Parse(correspondance.CorrespondingLabel);
                     for (int j = 0; j < channel.Data.Length; ++j)
                     {
                         context.Index = j;
@@ -59,8 +59,8 @@ namespace BTV.Data
         {
             EegFiles[id] = eegFile;
             foreach (var channel in eegFile.Channels)
-                if (!m_MontageDescription.ContainsKey(channel.Label))
-                    m_MontageDescription.Add(channel.Label, channel.Label);
+                if (MontageDescription.FirstOrDefault(c => c.BaseLabel == channel.Label) == null)
+                    MontageDescription.Add(new ChannelCorrespondance(channel.Label, channel.Label));
         }
         public void Save(string path)
         {

@@ -4,6 +4,7 @@ using Tools.CSharp.EEG;
 using BTV.Data;
 using CielaSpike;
 using System.Collections.Generic;
+using System.Linq;
 
 //If need destructor https://stackoverflow.com/questions/4364665/static-destructor
 
@@ -13,7 +14,8 @@ namespace BTV.Services.EegFileService
     {
         private static List<BtvMontage> m_Montages = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
         public static int SelectedMontageID { get; set; } = 0;
-        private static BtvMontage m_CurrentMontage { get { return m_Montages[SelectedMontageID]; } }
+        public static BtvMontage CurrentMontage { get { return m_Montages[SelectedMontageID]; } }
+        public static BtvMontage DefaultMontage { get { return m_Montages[0]; } }
 
         public static void Reset()
         {
@@ -52,9 +54,9 @@ namespace BTV.Services.EegFileService
 
         public static int GetContainerSuffix(BtvProgram currentFile)
         {
-            for (int i = 0; i < m_CurrentMontage.EegFiles.Length; i++)
+            for (int i = 0; i < CurrentMontage.EegFiles.Length; i++)
             {
-                if (m_CurrentMontage.EegFiles[i] == currentFile) 
+                if (CurrentMontage.EegFiles[i] == currentFile) 
                     return i;
             }
             return -1;
@@ -62,15 +64,15 @@ namespace BTV.Services.EegFileService
 
         public static BtvProgram ChangeContainerHandle(BtvProgram currentFile, int newID)
         {
-            return m_CurrentMontage.EegFiles[newID] != null ? m_CurrentMontage.EegFiles[newID] : currentFile;
+            return CurrentMontage.EegFiles[newID] != null ? CurrentMontage.EegFiles[newID] : currentFile;
         }
 
         public static BtvProgram ReturnFirstValidContainer()
         {
-            for (int i = 0; i < m_CurrentMontage.EegFiles.Length; i++)
+            for (int i = 0; i < CurrentMontage.EegFiles.Length; i++)
             {
-                if (m_CurrentMontage.EegFiles[i] != null)
-                    return m_CurrentMontage.EegFiles[i];
+                if (CurrentMontage.EegFiles[i] != null)
+                    return CurrentMontage.EegFiles[i];
             }
 
             return null;
@@ -81,18 +83,39 @@ namespace BTV.Services.EegFileService
             if (FileID < 0) return false;
             if (FileID >= 6) return false;
 
-            return m_CurrentMontage.EegFiles[FileID] != null;
+            return CurrentMontage.EegFiles[FileID] != null;
         }
 
         public static void AddNewChannel(float[] Data, string Name, int SamplingFrequency, int ProgramID)
         {
-            if (m_CurrentMontage.EegFiles[ProgramID] == null)
+            if (CurrentMontage.EegFiles[ProgramID] == null)
                 throw new Exception("Error : Attempting to add data to an empty program");
 
-            if (m_CurrentMontage.EegFiles[ProgramID].Frequency.Value != SamplingFrequency)
+            if (CurrentMontage.EegFiles[ProgramID].Frequency.Value != SamplingFrequency)
                 throw new Exception("Error : Sampling Frequency from new data is different from the program");
 
-            m_CurrentMontage.EegFiles[ProgramID].AddData(Data, Name);
+            CurrentMontage.EegFiles[ProgramID].AddData(Data, Name);
+        }
+
+        public static void AddMontage(string name, List<ChannelCorrespondance> correspondance)
+        {
+            // Generate unique name
+            if (m_Montages.Any(m => m.Name == name))
+            {
+                int count = 1;
+                string newName = string.Format("{0}({1})", name, count);
+                while (m_Montages.Any(g => g.Name == newName))
+                {
+                    count++;
+                    newName = string.Format("{0}({1})", name, count);
+                }
+                name = newName;
+            }
+            m_Montages.Add(new BtvMontage(name, DefaultMontage, correspondance));
+        }
+        public static void RemoveSelectedMontage()
+        {
+            m_Montages.Remove(CurrentMontage);
         }
     }
 }

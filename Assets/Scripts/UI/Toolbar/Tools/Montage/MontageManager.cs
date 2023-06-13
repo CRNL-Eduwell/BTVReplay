@@ -12,8 +12,14 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField] Button m_RemoveSelectedMontageButton;
         [SerializeField] Button m_EditSelectedMontageButton;
 
+        [SerializeField] GameObject m_MontageWindowPrefab;
+
         public override void Initialize()
         {
+            m_AddMontageButton.onClick.AddListener(() =>
+            {
+                Instantiate(m_MontageWindowPrefab, GetComponentInParent<Canvas>().transform);
+            });
         }
     }
 }
