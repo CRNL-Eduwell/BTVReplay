@@ -29,10 +29,9 @@ public class DebugFlorian : MonoBehaviour
         Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
     }
 
-
     string bp1String = "";
-    string bp2String = "B'2-B'1";
-    string bp3String = "B'3-B'2";
+    string bp2String = "B'2 - B'1";
+    string bp3String = "B'3 - B'2";
     private void TestParser()
     {
         int dataLength = 5;

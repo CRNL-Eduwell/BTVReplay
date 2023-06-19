@@ -14,14 +14,37 @@ namespace BTV.Services.EegFileService
 {
     public static class EegFileService
     {
-        private static List<BtvMontage> m_Montages = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
-        public static int SelectedMontageID { get; set; } = 0;
-        public static BtvMontage CurrentMontage { get { return m_Montages[SelectedMontageID]; } }
-        public static BtvMontage DefaultMontage { get { return m_Montages[0]; } }
+        public static List<BtvMontage> Montages { get; private set; } = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
+        private static int m_SelectedMontageID = 0;
+        public static int SelectedMontageID
+        {
+            get
+            {
+                return m_SelectedMontageID;
+            }
+            set
+            {
+                m_SelectedMontageID = value;
+                MontageMessage message = new MontageMessage
+                {
+                    TaskToExecute = 1,
+                    SelectedMontageID = value
+                };
+                Messenger.Default.Send(message, MessageContext.MontageMessage);
+            }
+        }
+        public static BtvMontage CurrentMontage { get { return Montages[SelectedMontageID]; } }
+        public static BtvMontage DefaultMontage { get { return Montages[0]; } }
 
         public static void Reset()
         {
-            m_Montages = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
+            Montages = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
+            MontageMessage message = new MontageMessage
+            {
+                TaskToExecute = 0,
+                SelectedMontageID = 0
+            };
+            Messenger.Default.Send(message, MessageContext.MontageMessage);
         }
 
         public static IEnumerator c_Load(IEegFileInfo fileInfo, int FileID, string description)
@@ -35,7 +58,7 @@ namespace BTV.Services.EegFileService
                 IEegDataContainer container = new IEegDataContainer(fileInfo);
                 eegFile = new BtvProgram(container, description);
             }
-            m_Montages[0].SetEEGFile(eegFile, FileID);
+            Montages[0].SetEEGFile(eegFile, FileID);
 
             yield return null;
         }
@@ -51,7 +74,7 @@ namespace BTV.Services.EegFileService
                 IEegDataContainer container = new IEegDataContainer(fileInfo);
                 eegFile = new BtvProgram(container, description);
             }
-            m_Montages[0].SetEEGFile(eegFile, FileID);
+            Montages[0].SetEEGFile(eegFile, FileID);
         }
 
         public static int GetContainerSuffix(BtvProgram currentFile)
@@ -102,23 +125,54 @@ namespace BTV.Services.EegFileService
         public static void AddMontage(string name, List<ChannelCorrespondance> montageDescription)
         {
             // Generate unique name
-            if (m_Montages.Any(m => m.Name == name))
+            if (Montages.Any(m => m.Name == name))
             {
                 int count = 1;
                 string newName = string.Format("{0}({1})", name, count);
-                while (m_Montages.Any(g => g.Name == newName))
+                while (Montages.Any(g => g.Name == newName))
                 {
                     count++;
                     newName = string.Format("{0}({1})", name, count);
                 }
                 name = newName;
             }
-            // Generate montage
+            Montages.Add(new BtvMontage(name, GenerateMontage(montageDescription), montageDescription));
+            MontageMessage message = new MontageMessage
+            {
+                TaskToExecute = 0,
+                SelectedMontageID = Montages.Count - 1
+            };
+            Messenger.Default.Send(message, MessageContext.MontageMessage);
+        }
+        public static void RemoveSelectedMontage()
+        {
+            if (CurrentMontage.IsCustom)
+            {
+                Montages.Remove(CurrentMontage);
+                MontageMessage message = new MontageMessage
+                {
+                    TaskToExecute = 0,
+                    SelectedMontageID = 0
+                };
+                Messenger.Default.Send(message, MessageContext.MontageMessage);
+            }
+        }
+        public static void EditMontage(BtvMontage montage, string name, List<ChannelCorrespondance> montageDescription)
+        {
+            montage.Load(name, GenerateMontage(montageDescription), montageDescription);
+            MontageMessage message = new MontageMessage
+            {
+                TaskToExecute = 0,
+                SelectedMontageID = Montages.IndexOf(montage)
+            };
+            Messenger.Default.Send(message, MessageContext.MontageMessage);
+        }
+        // TODO : make this a coroutine
+        private static BtvProgram[] GenerateMontage(List<ChannelCorrespondance> montageDescription)
+        {
             BtvProgram[] eegFiles = new BtvProgram[6];
             for (int i = 0; i < 6; ++i)
             {
-                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                sw.Start();
                 BtvProgram baseEEGFile = DefaultMontage.EegFiles[i];
 
                 if (baseEEGFile == null)
@@ -141,14 +195,8 @@ namespace BTV.Services.EegFileService
                     }
                     context.Reset();
                 }
-                sw.Stop();
-                Debug.Log(sw.ElapsedMilliseconds);
             }
-            m_Montages.Add(new BtvMontage(name, eegFiles, montageDescription));
-        }
-        public static void RemoveSelectedMontage()
-        {
-            m_Montages.Remove(CurrentMontage);
+            return eegFiles;
         }
     }
 }

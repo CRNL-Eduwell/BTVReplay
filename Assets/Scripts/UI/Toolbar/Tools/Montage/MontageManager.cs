@@ -12,14 +12,64 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField] Button m_RemoveSelectedMontageButton;
         [SerializeField] Button m_EditSelectedMontageButton;
 
-        [SerializeField] GameObject m_MontageWindowPrefab;
-
         public override void Initialize()
         {
-            m_AddMontageButton.onClick.AddListener(() =>
-            {
-                Instantiate(m_MontageWindowPrefab, GetComponentInParent<Canvas>().transform);
-            });
+            Messenger.Default.Register<MontageMessage>(this, OnMontageMessage, MessageContext.MontageMessage);
+            m_AddMontageButton.onClick.AddListener(AddNewMontage);
+            m_SelectMontageDropdown.onValueChanged.AddListener(UpdateSelectedMontage);
+            m_RemoveSelectedMontageButton.onClick.AddListener(RemoveSelectedMontage);
+            m_EditSelectedMontageButton.onClick.AddListener(EditSelectedMontage);
         }
+
+        private void OnDestroy()
+        {
+            Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
+        }
+
+        private void OnMontageMessage(MontageMessage message)
+        {
+            if (message.TaskToExecute == 0)
+            {
+                m_SelectMontageDropdown.options.Clear();
+                foreach (var montage in Services.EegFileService.EegFileService.Montages)
+                {
+                    m_SelectMontageDropdown.options.Add(new Dropdown.OptionData(montage.Name));
+                }
+                m_SelectMontageDropdown.value = message.SelectedMontageID;
+            }
+        }
+
+        private void AddNewMontage()
+        {
+            ShowWindowMessage message = new ShowWindowMessage
+            {
+                TaskToExecute = 0,
+                WindowName = "MontageWindow"
+            };
+            Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
+        }
+
+        private void UpdateSelectedMontage(int value)
+        {
+            Services.EegFileService.EegFileService.SelectedMontageID = value;
+        }
+
+        private void RemoveSelectedMontage()
+        {
+            Services.EegFileService.EegFileService.RemoveSelectedMontage();
+        }
+
+        private void EditSelectedMontage()
+        {
+            ShowWindowMessage message = new ShowWindowMessage
+            {
+                TaskToExecute = 0,
+                WindowName = "MontageWindow"
+            };
+            Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
+            GameObject.Find(message.WindowName).GetComponent<MontageWindow>().SetMontage(Services.EegFileService.EegFileService.CurrentMontage);
+        }
+
+
     }
 }

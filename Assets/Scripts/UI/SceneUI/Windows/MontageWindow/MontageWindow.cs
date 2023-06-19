@@ -11,20 +11,33 @@ namespace BTV.UI
     {
         [SerializeField] InputField m_MontageName;
         [SerializeField] ChannelCorrespondanceList m_ChannelCorrespondanceList;
+        private BtvMontage m_EditedMontage = null;
 
         protected override void SetFields()
         {
             base.SetFields();
-            BtvMontage defaultMontage = Services.EegFileService.EegFileService.DefaultMontage;
-            foreach (var label in defaultMontage.MontageDescription.Select(c => c.BaseLabel))
+            foreach (var label in Services.EegFileService.EegFileService.DefaultMontage.MontageDescription.Select(c => c.BaseLabel))
             {
                 m_ChannelCorrespondanceList.Add(new ChannelCorrespondance(label, label));
             }
         }
 
+        public void SetMontage(BtvMontage montage)
+        {
+            m_ChannelCorrespondanceList.Set(montage.MontageDescription.Select(cc => new ChannelCorrespondance(cc.BaseLabel, cc.CorrespondingLabel)));
+            m_ChannelCorrespondanceList.Refresh();
+        }
+
         public void OK()
         {
-            Services.EegFileService.EegFileService.AddMontage(m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList());
+            if (m_EditedMontage != null)
+            {
+                Services.EegFileService.EegFileService.EditMontage(m_EditedMontage, m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList());
+            }
+            else
+            {
+                Services.EegFileService.EegFileService.AddMontage(m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList());
+            }
             Close();
         }
     }

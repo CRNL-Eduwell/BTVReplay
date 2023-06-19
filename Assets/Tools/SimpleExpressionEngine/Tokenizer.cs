@@ -113,13 +113,13 @@ namespace SimpleExpressionEngine
                 return;
             }
 
-            // Identifier - starts with letter or underscore or apostrophe
-            if (char.IsLetter(_currentChar) || _currentChar == '_' || _currentChar == '\'')
+            // Identifier - starts with letter or underscore
+            if (char.IsLetter(_currentChar) || _currentChar == '_')
             {
                 var sb = new StringBuilder();
 
-                // Accept letter, digit or underscore
-                while (char.IsLetterOrDigit(_currentChar) || _currentChar == '_' || _currentChar == '\'')
+                // Accept any char except white space
+                while (!char.IsWhiteSpace(_currentChar) && _currentChar != '\0')
                 {
                     sb.Append(_currentChar);
                     NextChar();

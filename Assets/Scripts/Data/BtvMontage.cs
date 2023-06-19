@@ -18,6 +18,17 @@ namespace BTV.Data
         #region Public Methods
         public BtvMontage(string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription = null)
         {
+            Load(name, eegFiles, montageDescription);
+        }
+        public void SetEEGFile(BtvProgram eegFile, int id)
+        {
+            EegFiles[id] = eegFile;
+            foreach (var channel in eegFile.Channels)
+                if (MontageDescription.FirstOrDefault(c => c.BaseLabel == channel.Label) == null)
+                    MontageDescription.Add(new ChannelCorrespondance(channel.Label, channel.Label));
+        }
+        public void Load(string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription)
+        {
             Name = name;
             EegFiles = eegFiles;
             if (montageDescription == null)
@@ -30,13 +41,6 @@ namespace BTV.Data
                 MontageDescription = montageDescription;
                 IsCustom = true;
             }
-        }
-        public void SetEEGFile(BtvProgram eegFile, int id)
-        {
-            EegFiles[id] = eegFile;
-            foreach (var channel in eegFile.Channels)
-                if (MontageDescription.FirstOrDefault(c => c.BaseLabel == channel.Label) == null)
-                    MontageDescription.Add(new ChannelCorrespondance(channel.Label, channel.Label));
         }
         public void Save(string path)
         {
