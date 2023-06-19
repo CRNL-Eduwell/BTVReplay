@@ -19,20 +19,30 @@ namespace SimpleExpressionEngine
         List<BtvChannel> m_Channels;
         public int Index { get; set; }
 
+        Dictionary<string, BtvChannel> m_ChannelCache = new Dictionary<string, BtvChannel>();
+
         public double ResolveVariable(string name)
         {
-            BtvChannel channel = m_Channels.FirstOrDefault(c => c.Label == name);
-            if (channel == null)
-                throw new InvalidDataException($"Unknown channel: '{name}'");
-            if (Index >= channel.Data.Length)
-                throw new InvalidDataException("Index out of range");
-
+            if (!m_ChannelCache.TryGetValue(name, out BtvChannel channel))
+            {
+                channel = m_Channels.FirstOrDefault(c => c.Label == name);
+                if (channel == null)
+                    throw new InvalidDataException($"Unknown channel: '{name}'");
+                if (Index >= channel.Data.Length)
+                    throw new InvalidDataException("Index out of range");
+                m_ChannelCache.Add(name, channel);
+            }
             return channel.Data[Index];
         }
 
         public double CallFunction(string name, double[] arguments)
         {
             throw new NotImplementedException();
+        }
+
+        public void Reset()
+        {
+            m_ChannelCache.Clear();
         }
     }
 }

@@ -16,44 +16,20 @@ namespace BTV.Data
         #endregion
 
         #region Public Methods
-        public BtvMontage(string name, BtvProgram[] eegFiles)
+        public BtvMontage(string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription = null)
         {
             Name = name;
             EegFiles = eegFiles;
-            MontageDescription = new List<ChannelCorrespondance>();
-            IsCustom = false;
-        }
-        public BtvMontage(string name, BtvMontage baseMontage, List<ChannelCorrespondance> montageDescription)
-        {
-            Name = name;
-            MontageDescription = montageDescription;
-
-            for (int i = 0; i < 6; ++i)
+            if (montageDescription == null)
             {
-                BtvProgram baseEEGFile = baseMontage.EegFiles[i];
-
-                if (baseEEGFile == null)
-                    continue;
-
-                EegFiles[i] = new BtvProgram(baseEEGFile);
-
-                ChannelContext context = new ChannelContext(baseEEGFile.Channels);
-
-                foreach (var channel in EegFiles[i].Channels)
-                {
-                    ChannelCorrespondance correspondance = MontageDescription.FirstOrDefault(c => c.BaseLabel == channel.Label);
-                    if (correspondance == null) correspondance = new ChannelCorrespondance(channel.Label, channel.Label);
-
-                    Node descriptionNode = Parser.Parse(correspondance.CorrespondingLabel);
-                    for (int j = 0; j < channel.Data.Length; ++j)
-                    {
-                        context.Index = j;
-                        channel.Data[j] = (float)descriptionNode.Eval(context);
-                    }
-                }
+                MontageDescription = new List<ChannelCorrespondance>();
+                IsCustom = false;
             }
-
-            IsCustom = true;
+            else
+            {
+                MontageDescription = montageDescription;
+                IsCustom = true;
+            }
         }
         public void SetEEGFile(BtvProgram eegFile, int id)
         {

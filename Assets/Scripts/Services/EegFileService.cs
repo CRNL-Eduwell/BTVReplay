@@ -5,6 +5,8 @@ using BTV.Data;
 using CielaSpike;
 using System.Collections.Generic;
 using System.Linq;
+using SimpleExpressionEngine;
+using UnityEngine;
 
 //If need destructor https://stackoverflow.com/questions/4364665/static-destructor
 
@@ -97,7 +99,7 @@ namespace BTV.Services.EegFileService
             CurrentMontage.EegFiles[ProgramID].AddData(Data, Name);
         }
 
-        public static void AddMontage(string name, List<ChannelCorrespondance> correspondance)
+        public static void AddMontage(string name, List<ChannelCorrespondance> montageDescription)
         {
             // Generate unique name
             if (m_Montages.Any(m => m.Name == name))
@@ -111,7 +113,38 @@ namespace BTV.Services.EegFileService
                 }
                 name = newName;
             }
-            m_Montages.Add(new BtvMontage(name, DefaultMontage, correspondance));
+            // Generate montage
+            BtvProgram[] eegFiles = new BtvProgram[6];
+            for (int i = 0; i < 6; ++i)
+            {
+                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                sw.Start();
+                BtvProgram baseEEGFile = DefaultMontage.EegFiles[i];
+
+                if (baseEEGFile == null)
+                    continue;
+
+                eegFiles[i] = new BtvProgram(baseEEGFile);
+
+                ChannelContext context = new ChannelContext(baseEEGFile.Channels);
+
+                foreach (var channel in eegFiles[i].Channels)
+                {
+                    ChannelCorrespondance correspondance = montageDescription.FirstOrDefault(c => c.BaseLabel == channel.Label);
+                    if (correspondance == null) correspondance = new ChannelCorrespondance(channel.Label, channel.Label);
+
+                    Node descriptionNode = Parser.Parse(correspondance.CorrespondingLabel);
+                    for (int j = 0; j < channel.Data.Length; ++j)
+                    {
+                        context.Index = j;
+                        channel.Data[j] = (float)descriptionNode.Eval(context);
+                    }
+                    context.Reset();
+                }
+                sw.Stop();
+                Debug.Log(sw.ElapsedMilliseconds);
+            }
+            m_Montages.Add(new BtvMontage(name, eegFiles, montageDescription));
         }
         public static void RemoveSelectedMontage()
         {
