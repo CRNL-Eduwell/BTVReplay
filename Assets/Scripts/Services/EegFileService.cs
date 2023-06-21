@@ -8,6 +8,7 @@ using System.Linq;
 using SimpleExpressionEngine;
 using UnityEngine;
 using UnityEngine.Events;
+using System.IO;
 
 //If need destructor https://stackoverflow.com/questions/4364665/static-destructor
 
@@ -189,6 +190,25 @@ namespace BTV.Services.EegFileService
                 Messenger.Default.Send(message, MessageContext.MontageMessage);
             };
             LoadingManager.Load(c_GenerateMontage(montageDescription, onChangeProgress, editSelectedMontage), onChangeProgress);
+        }
+        public static void LoadMontage(string path)
+        {
+            string name = "";
+            List<ChannelCorrespondance> montageDescription = new List<ChannelCorrespondance>();
+            string line = "";
+            using (StreamReader sr = new StreamReader(path))
+            {
+                name = sr.ReadLine();
+                while ((line = sr.ReadLine()) != null)
+                {
+                    string[] splits = line.Split(',');
+                    if (splits.Length == 2)
+                    {
+                        montageDescription.Add(new ChannelCorrespondance(splits[0], splits[1]));
+                    }
+                }
+            }
+            AddMontage(name, montageDescription);
         }
         private static IEnumerator c_GenerateMontage(List<ChannelCorrespondance> montageDescription, GenericEvent<float, string> onChangeProgress, Action<BtvProgram[]> onEnd)
         {

@@ -1,6 +1,7 @@
 using SimpleExpressionEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -44,7 +45,14 @@ namespace BTV.Data
         }
         public void Save(string path)
         {
-
+            using (StreamWriter sw = new StreamWriter(path))
+            {
+                sw.WriteLine(Name);
+                foreach (var channelCorrespondance in MontageDescription)
+                {
+                    sw.WriteLine(string.Format("{0},{1}", channelCorrespondance.BaseLabel, channelCorrespondance.CorrespondingLabel));
+                }
+            }
         }
         #endregion
     }
