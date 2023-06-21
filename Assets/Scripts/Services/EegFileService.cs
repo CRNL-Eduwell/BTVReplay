@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SimpleExpressionEngine;
 using UnityEngine;
+using UnityEngine.Events;
 
 //If need destructor https://stackoverflow.com/questions/4364665/static-destructor
 
@@ -129,20 +130,25 @@ namespace BTV.Services.EegFileService
             {
                 int count = 1;
                 string newName = string.Format("{0}({1})", name, count);
-                while (Montages.Any(g => g.Name == newName))
+                while (Montages.Any(m => m.Name == newName))
                 {
                     count++;
                     newName = string.Format("{0}({1})", name, count);
                 }
                 name = newName;
             }
-            Montages.Add(new BtvMontage(name, GenerateMontage(montageDescription), montageDescription));
-            MontageMessage message = new MontageMessage
+            GenericEvent<float, string> onChangeProgress = new GenericEvent<float, string>();
+            Action<BtvProgram[]> addGeneratedMontage = (eegFiles) =>
             {
-                TaskToExecute = 0,
-                SelectedMontageID = Montages.Count - 1
+                Montages.Add(new BtvMontage(name, eegFiles, montageDescription));
+                MontageMessage message = new MontageMessage
+                {
+                    TaskToExecute = 0,
+                    SelectedMontageID = Montages.Count - 1
+                };
+                Messenger.Default.Send(message, MessageContext.MontageMessage);
             };
-            Messenger.Default.Send(message, MessageContext.MontageMessage);
+            LoadingManager.Load(c_GenerateMontage(montageDescription, onChangeProgress, addGeneratedMontage), onChangeProgress);
         }
         public static void RemoveSelectedMontage()
         {
@@ -159,17 +165,35 @@ namespace BTV.Services.EegFileService
         }
         public static void EditMontage(BtvMontage montage, string name, List<ChannelCorrespondance> montageDescription)
         {
-            montage.Load(name, GenerateMontage(montageDescription), montageDescription);
-            MontageMessage message = new MontageMessage
+            // Generate unique name
+            if (Montages.Any(m => m.Name == name && m != montage))
             {
-                TaskToExecute = 0,
-                SelectedMontageID = Montages.IndexOf(montage)
+                int count = 1;
+                string newName = string.Format("{0}({1})", name, count);
+                while (Montages.Any(m => m.Name == newName && m != montage))
+                {
+                    count++;
+                    newName = string.Format("{0}({1})", name, count);
+                }
+                name = newName;
+            }
+            GenericEvent<float, string> onChangeProgress = new GenericEvent<float, string>();
+            Action<BtvProgram[]> editSelectedMontage = (eegFiles) =>
+            {
+                montage.Load(name, eegFiles, montageDescription);
+                MontageMessage message = new MontageMessage
+                {
+                    TaskToExecute = 0,
+                    SelectedMontageID = Montages.IndexOf(montage)
+                };
+                Messenger.Default.Send(message, MessageContext.MontageMessage);
             };
-            Messenger.Default.Send(message, MessageContext.MontageMessage);
+            LoadingManager.Load(c_GenerateMontage(montageDescription, onChangeProgress, editSelectedMontage), onChangeProgress);
         }
-        // TODO : make this a coroutine
-        private static BtvProgram[] GenerateMontage(List<ChannelCorrespondance> montageDescription)
+        private static IEnumerator c_GenerateMontage(List<ChannelCorrespondance> montageDescription, GenericEvent<float, string> onChangeProgress, Action<BtvProgram[]> onEnd)
         {
+            int globalProgress = 0;
+            int totalNumberOfValidFiles = DefaultMontage.EegFiles.Count(f => f != null);
             BtvProgram[] eegFiles = new BtvProgram[6];
             for (int i = 0; i < 6; ++i)
             {
@@ -178,12 +202,21 @@ namespace BTV.Services.EegFileService
                 if (baseEEGFile == null)
                     continue;
 
+                yield return Ninja.JumpToUnity;
+                onChangeProgress.Invoke((float)globalProgress / totalNumberOfValidFiles, string.Format("Preparing file {0}", baseEEGFile.Description));
+                yield return Ninja.JumpBack;
                 eegFiles[i] = new BtvProgram(baseEEGFile);
 
                 ChannelContext context = new ChannelContext(baseEEGFile.Channels);
 
+                float localProgress = 0;
+                float localProgressStep = 1f / eegFiles[i].Channels.Count;
                 foreach (var channel in eegFiles[i].Channels)
                 {
+                    yield return Ninja.JumpToUnity;
+                    onChangeProgress.Invoke((float)(globalProgress + localProgress) / totalNumberOfValidFiles, string.Format("File {0} (channel {1})", baseEEGFile.Description, channel.Label));
+                    yield return Ninja.JumpBack;
+
                     ChannelCorrespondance correspondance = montageDescription.FirstOrDefault(c => c.BaseLabel == channel.Label);
                     if (correspondance == null) correspondance = new ChannelCorrespondance(channel.Label, channel.Label);
 
@@ -194,9 +227,12 @@ namespace BTV.Services.EegFileService
                         channel.Data[j] = (float)descriptionNode.Eval(context);
                     }
                     context.Reset();
+                    localProgress += localProgressStep;
                 }
+                globalProgress++;
             }
-            return eegFiles;
+            yield return Ninja.JumpToUnity;
+            onEnd(eegFiles);
         }
     }
 }
