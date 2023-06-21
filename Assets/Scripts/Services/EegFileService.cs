@@ -215,6 +215,7 @@ namespace BTV.Services.EegFileService
             int globalProgress = 0;
             int totalNumberOfValidFiles = DefaultMontage.EegFiles.Count(f => f != null);
             BtvProgram[] eegFiles = new BtvProgram[6];
+            string errorList = "";
             for (int i = 0; i < 6; ++i)
             {
                 BtvProgram baseEEGFile = DefaultMontage.EegFiles[i];
@@ -240,18 +241,34 @@ namespace BTV.Services.EegFileService
                     ChannelCorrespondance correspondance = montageDescription.FirstOrDefault(c => c.BaseLabel == channel.Label);
                     if (correspondance == null) correspondance = new ChannelCorrespondance(channel.Label, channel.Label);
 
-                    Node descriptionNode = Parser.Parse(correspondance.CorrespondingLabel);
-                    for (int j = 0; j < channel.Data.Length; ++j)
+                    try
                     {
-                        context.Index = j;
-                        channel.Data[j] = (float)descriptionNode.Eval(context);
+                        Node descriptionNode = Parser.Parse(correspondance.CorrespondingLabel);
+                        for (int j = 0; j < channel.Data.Length; ++j)
+                        {
+                            context.Index = j;
+                            channel.Data[j] = (float)descriptionNode.Eval(context);
+                        }
+                        context.Reset();
                     }
-                    context.Reset();
+                    catch (Exception e)
+                    {
+                        errorList += string.Format("Could not parse correspondance {0} of channel {1} in file {2}. Keeping base values. Reason: {3}\n", correspondance.CorrespondingLabel, correspondance.BaseLabel, baseEEGFile.Description, e.Message);
+                        Node descriptionNode = Parser.Parse(correspondance.BaseLabel);
+                        for (int j = 0; j < channel.Data.Length; ++j)
+                        {
+                            context.Index = j;
+                            channel.Data[j] = (float)descriptionNode.Eval(context);
+                        }
+                        context.Reset();
+                    }
                     localProgress += localProgressStep;
                 }
                 globalProgress++;
             }
             yield return Ninja.JumpToUnity;
+            if (!string.IsNullOrEmpty(errorList)) // TODO : make this visible for user maybe
+                Debug.Log(errorList);
             onEnd(eegFiles);
         }
     }

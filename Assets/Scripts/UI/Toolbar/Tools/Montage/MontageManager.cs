@@ -56,18 +56,24 @@ namespace BTV.UI.Module3D.Tools
 
         private void RemoveSelectedMontage()
         {
-            Services.EegFileService.EegFileService.RemoveSelectedMontage();
+            if (Services.EegFileService.EegFileService.CurrentMontage.IsCustom)
+            {
+                Services.EegFileService.EegFileService.RemoveSelectedMontage();
+            }
         }
 
         private void EditSelectedMontage()
         {
-            ShowWindowMessage message = new ShowWindowMessage
+            if (Services.EegFileService.EegFileService.CurrentMontage.IsCustom)
             {
-                TaskToExecute = 0,
-                WindowName = "MontageWindow"
-            };
-            Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
-            GameObject.Find(message.WindowName).GetComponent<MontageWindow>().SetMontage(Services.EegFileService.EegFileService.CurrentMontage);
+                ShowWindowMessage message = new ShowWindowMessage
+                {
+                    TaskToExecute = 0,
+                    WindowName = "MontageWindow"
+                };
+                Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
+                GameObject.Find(message.WindowName).GetComponent<MontageWindow>().SetMontage(Services.EegFileService.EegFileService.CurrentMontage);
+            }
         }
 
 
