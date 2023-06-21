@@ -11,6 +11,7 @@ namespace BTV.UI
     public class MontageWindow : Window
     {
         [SerializeField] InputField m_MontageName;
+        [SerializeField] Dropdown m_FileDropdown;
         [SerializeField] ChannelCorrespondanceList m_ChannelCorrespondanceList;
         private BtvMontage m_EditedMontage = null;
 
@@ -26,6 +27,11 @@ namespace BTV.UI
             {
                 m_ChannelCorrespondanceList.Add(new ChannelCorrespondance(label, label));
             }
+            List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
+            options.Add(new Dropdown.OptionData("All files"));
+            options.AddRange(Services.EegFileService.EegFileService.DefaultMontage.EegFiles.Where(e => e != null).Select(e => new Dropdown.OptionData(e.Description)));
+            m_FileDropdown.options = options;
+            m_FileDropdown.value = 0;
             m_PresetsButton.onClick.AddListener(() => m_PresetsPanel.SetActive(!m_PresetsPanel.activeSelf));
             m_MonopolarButton.onClick.AddListener(Monopolar);
             m_BipolarButton.onClick.AddListener(Bipolar);
@@ -42,11 +48,11 @@ namespace BTV.UI
         {
             if (m_EditedMontage != null)
             {
-                Services.EegFileService.EegFileService.EditMontage(m_EditedMontage, m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList());
+                Services.EegFileService.EegFileService.EditMontage(m_EditedMontage, m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList(), m_FileDropdown.value == 0 ? "" : m_FileDropdown.options[m_FileDropdown.value].text);
             }
             else
             {
-                Services.EegFileService.EegFileService.AddMontage(m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList());
+                Services.EegFileService.EegFileService.AddMontage(m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList(), m_FileDropdown.value == 0 ? "" : m_FileDropdown.options[m_FileDropdown.value].text);
             }
             Close();
         }
