@@ -79,7 +79,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         Messenger.Default.Register<EventsToTraceMessage>(this, OnEventsToTraceMessage, MessageContext.EventsToTraceMessage);
         Messenger.Default.Register<BrainWardenToTraceMessage>(this, OnBrainWardenToTraceMessage, MessageContext.BrainWardenToTraceMessage);
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
-        
+        Messenger.Default.Register<MontageMessage>(this, OnMontageMessage, MessageContext.MontageMessage);
     }
 
     void OnDestroy()
@@ -320,6 +320,17 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             audioSignal.UpdateDraw((int)message.TimeMilliseconds);
             graphEvent.UpdateEventsOnTrace((int)message.TimeMilliseconds);
             graphSonif.UpdateSonification((int)message.TimeMilliseconds);
+        }
+    }
+
+    private void OnMontageMessage(MontageMessage message)
+    {
+        if (message.TaskToExecute == 1)
+        {
+            m_TraceOption.FileHandle = EegFileService.ReturnFirstValidContainer(); // FIXME : keep ID of selected file
+            graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
+            graphLabel.Description = m_TraceOption.FileHandle.Description;
+            UpdateTimeResolution(m_TraceOption.WindowInSeconds);
         }
     }
 
