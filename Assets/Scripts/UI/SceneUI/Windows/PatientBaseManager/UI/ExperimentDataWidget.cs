@@ -245,7 +245,12 @@ public class ExperimentDataWidget : MonoBehaviour
     private void GetDataFromUI(string key, string text)
     {
         if (m_LockFeedback) return;
-        if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(text)) return;
+        if (string.IsNullOrEmpty(key)) return;
+        if (string.IsNullOrEmpty(text))
+        {
+            m_Subject.Experiments[m_ExperimentID].Files.Remove(key);
+            return;
+        }
 
         if (m_Subject.Experiments[m_ExperimentID].Files.ContainsKey(key))
         {
