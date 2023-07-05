@@ -20,11 +20,28 @@ public class TimeFrequencyDataStructure
             return m_timeFrameCount;
         }
     }
-    public float MaxValue { get; private set; } = 0;
+    public float TopValue
+    {
+        get
+        {
+            if (m_TopValueNeedsUpdate)
+            {
+                var values = Freq_TimeFrame.Values.SelectMany(v => v).OrderBy(v => v).ToArray();
+                int index = (int)(values.Length * 0.90f);
+                if (index <= 0) index = 0;
+                if (index >= values.Length) index = values.Length - 1;
+                m_TopValue = values[index];
+                m_TopValueNeedsUpdate = false;
+            }
+            return m_TopValue;
+        }
+    }
 
     private float m_SamplingFrequency = 0;
     private int m_frequencyBinCount = 0;
     private int m_timeFrameCount = 0;
+    private float m_TopValue = 0;
+    private bool m_TopValueNeedsUpdate = false;
     private Dictionary<int, float[]> Freq_TimeFrame = null;
 
     public TimeFrequencyDataStructure(TimeFrequencyDataStructure tfds)
@@ -32,7 +49,7 @@ public class TimeFrequencyDataStructure
         m_SamplingFrequency = tfds.m_SamplingFrequency;
         m_frequencyBinCount = tfds.m_frequencyBinCount;
         m_timeFrameCount = tfds.m_timeFrameCount;
-        MaxValue = tfds.MaxValue;
+        m_TopValue = tfds.TopValue;
 
         Freq_TimeFrame = new Dictionary<int, float[]>();
         Freq_TimeFrame = tfds.Freq_TimeFrame.ToDictionary(entry => entry.Key, entry => entry.Value);
@@ -56,8 +73,7 @@ public class TimeFrequencyDataStructure
         for (int i = 0; i < Freq_TimeFrame.Count; i++)
         {
             Freq_TimeFrame[i].SetValue(data[i], frame);
-            if (data[i] > MaxValue)
-                MaxValue = data[i];
+            m_TopValueNeedsUpdate = true;
         }
     }
 
@@ -67,8 +83,7 @@ public class TimeFrequencyDataStructure
         for (int i = 0; i < elementCount; i++)
         {
             Freq_TimeFrame[binIndex][i] = data[i];
-            if (data[i] > MaxValue)
-                MaxValue = data[i];
+            m_TopValueNeedsUpdate = true;
         }
     }
 

@@ -381,8 +381,10 @@ public class EventWithDuration : EventTrace
 
     private Texture2D EegData2Colors(TimeFrequencyDataStructure eegData, int beg, int end)
     {
-        float maxValue = m_TfTraceOption.MaxValueFactor * eegData.MaxValue;
-        float minValue = m_TfTraceOption.MinValueFactor * eegData.MaxValue;
+        float maxBoundary = eegData.TopValue > 256 ? eegData.TopValue : 256;
+        float maxValue = m_TfTraceOption.MaxValueFactor * maxBoundary;
+        float minValue = m_TfTraceOption.MinValueFactor * maxBoundary;
+        if (maxValue == minValue) maxValue = minValue + 1; // to prevent some kind of discontinuity
 
         int lowBinIndex = Mathf.RoundToInt(m_TfTraceOption.LowFrequency / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
         int highBinIndex = Mathf.RoundToInt(m_TfTraceOption.HighFrequency / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
