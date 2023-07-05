@@ -20,6 +20,7 @@ public class TimeFrequencyDataStructure
             return m_timeFrameCount;
         }
     }
+    public float MaxValue { get; private set; } = 0;
 
     private float m_SamplingFrequency = 0;
     private int m_frequencyBinCount = 0;
@@ -31,6 +32,7 @@ public class TimeFrequencyDataStructure
         m_SamplingFrequency = tfds.m_SamplingFrequency;
         m_frequencyBinCount = tfds.m_frequencyBinCount;
         m_timeFrameCount = tfds.m_timeFrameCount;
+        MaxValue = tfds.MaxValue;
 
         Freq_TimeFrame = new Dictionary<int, float[]>();
         Freq_TimeFrame = tfds.Freq_TimeFrame.ToDictionary(entry => entry.Key, entry => entry.Value);
@@ -54,6 +56,8 @@ public class TimeFrequencyDataStructure
         for (int i = 0; i < Freq_TimeFrame.Count; i++)
         {
             Freq_TimeFrame[i].SetValue(data[i], frame);
+            if (data[i] > MaxValue)
+                MaxValue = data[i];
         }
     }
 
@@ -63,12 +67,18 @@ public class TimeFrequencyDataStructure
         for (int i = 0; i < elementCount; i++)
         {
             Freq_TimeFrame[binIndex][i] = data[i];
+            if (data[i] > MaxValue)
+                MaxValue = data[i];
         }
     }
 
     public float[] GetFrequencyBinData(int binIndex)
     {
-        return Freq_TimeFrame[binIndex];
+        if (Freq_TimeFrame.TryGetValue(binIndex, out float[] values))
+        {
+            return values;
+        }
+        return new float[m_timeFrameCount];
     }
 
     public float RequestValue(int binIndex, int timeIndex)

@@ -53,11 +53,37 @@ public class TfTraceOption : ViewModelBase
             RaisePropertyChanged();
         }
     }
+    public float MinValueFactor
+    {
+        get
+        {
+            return m_MinValueFactor;
+        }
+        set
+        {
+            m_MinValueFactor = value;
+            RaisePropertyChanged();
+        }
+    }
+    public float MaxValueFactor
+    {
+        get
+        {
+            return m_MaxValueFactor;
+        }
+        set
+        {
+            m_MaxValueFactor = value;
+            RaisePropertyChanged();
+        }
+    }
 
     private float m_Alpha = 0.5f;
     private float m_WindowInMilliseconds = 500f;
     private float m_LowFrequency = 0f;
     private float m_HighFrequency = 256f;
+    private float m_MinValueFactor = 0f;
+    private float m_MaxValueFactor = 1f;
 
     public TfTraceOption(float alpha)
     {
