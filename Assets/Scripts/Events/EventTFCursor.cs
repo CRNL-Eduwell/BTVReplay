@@ -55,6 +55,8 @@ public class EventTFCursor : MonoBehaviour
 
         Vector2 Mouse = Input.mousePosition;
         bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_Rectransform, Mouse, Camera.main);
+        m_HorizontalLine.transform.gameObject.SetActive(isOver);
+        m_VerticalLine.transform.gameObject.SetActive(isOver);
         if (isOver)
         {
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Rectransform, Mouse, Camera.main, out Vector2 localPosition);
