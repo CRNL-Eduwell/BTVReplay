@@ -13,6 +13,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     [SerializeField] Camera brainCam = null;
     private RectTransform m_parentRectTransform = null;
     private RectTransform m_textureRectTransform = null;
+    private RawImage m_rawImage = null;
     private Vector3[] m_worldCornerOfBrainPanel = new Vector3[4];
     private Window m_winTrace1 = null;
     private Window m_winTrace2 = null;
@@ -26,6 +27,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     {
         m_elecOptionPrefab = Resources.Load("Prefabs/Brain-ElecOptions", typeof(GameObject)) as GameObject;
         m_textureRectTransform = gameObject.GetComponent<RectTransform>();
+        m_rawImage = GetComponent<RawImage>();
         m_parentRectTransform = m_textureRectTransform.transform.parent.gameObject.GetComponent<RectTransform>();
 
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
@@ -44,10 +46,24 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
     }
 
-    private void OnRectTransformDimensionsChange()
+    private void Update()
     {
-        if (m_textureRectTransform != null)
-            m_textureRectTransform.sizeDelta = new Vector2(m_parentRectTransform.rect.size.y, m_parentRectTransform.rect.size.y);
+        if (m_textureRectTransform.hasChanged)
+        {
+            if (m_textureRectTransform.rect.width > 0 && m_textureRectTransform.rect.height > 0)
+            {
+                RenderTexture renderTexture = new RenderTexture((int)m_textureRectTransform.rect.width, (int)m_textureRectTransform.rect.height, 24);
+                renderTexture.antiAliasing = 1;
+
+                if (brainCam.targetTexture)
+                    brainCam.targetTexture.Release();
+
+                brainCam.targetTexture = renderTexture;
+                brainCam.aspect = m_textureRectTransform.rect.width / m_textureRectTransform.rect.height;
+                m_rawImage.texture = brainCam.targetTexture;
+            }
+            m_textureRectTransform.hasChanged = false;
+        }
     }
 
     private void OnGUI()
