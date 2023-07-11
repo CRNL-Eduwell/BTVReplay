@@ -47,6 +47,7 @@ public class EventItem : Tools.Unity.Lists.SelectableItem<BtvEvent>
         int s = timeInSec % 60;
 
         m_time.transform.GetChild(0).GetComponent<Text>().text = h.ToString("00") + ":" + m.ToString("00") + ":" + s.ToString("00");
+        m_time.onClick.RemoveAllListeners();
         m_time.onClick.AddListener(() =>
         {
             ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
