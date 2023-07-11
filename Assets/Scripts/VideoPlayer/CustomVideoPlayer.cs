@@ -307,10 +307,12 @@ public class CustomVideoPlayer : MonoBehaviour
         if (updateVideoTime)
         {
             VideoInterface.SetTime(time);
-            _BufferingImage.Show();
+            if (!(VideoInterface is GhostVideoPlayer))
+                _BufferingImage.Show();
         }
         m_WaitToSync = true;
-        _BufferingImage.Show();
+        if (!(VideoInterface is GhostVideoPlayer))
+            _BufferingImage.Show();
         if (VideoInterface.IsPlaying)
         {
             m_VideoWasPlaying = true;

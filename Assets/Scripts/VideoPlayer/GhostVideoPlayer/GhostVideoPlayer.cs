@@ -118,6 +118,7 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 
         m_paused = false;
         m_playing = true;
+        Destroy(m_TextureForVideo.texture);
     }
 
     public void Pause()
