@@ -323,18 +323,19 @@ public class ExperimentDataWidget : MonoBehaviour
         }
         else
         {
-            if (!string.IsNullOrEmpty(oldstr) && string.IsNullOrEmpty(str))
+            if (oldstr != str)
             {
                 if (m_Subject.Experiments[m_ExperimentID].Files.ContainsKey(oldstr))
                 {
                     m_Subject.Experiments[m_ExperimentID].Files.Remove(oldstr);
+                    UnityEngine.Debug.Log("Removing : " + oldstr);
                 }
             }
-            else
-            {
-                KeyValuePair<string, IEegFileInfo> kvp = eeg.GetEegFileInfoFromGUI();
-                GetDataFromUI(kvp.Key, kvp.Value.Files[0]);
-            }
+
+            KeyValuePair<string, IEegFileInfo> kvp = eeg.GetEegFileInfoFromGUI();
+            string key = kvp.Key;
+            string text = kvp.Value == null ? null : kvp.Value.Files[0];
+            GetDataFromUI(key, text);
         }
 
         UpdateInteractability();

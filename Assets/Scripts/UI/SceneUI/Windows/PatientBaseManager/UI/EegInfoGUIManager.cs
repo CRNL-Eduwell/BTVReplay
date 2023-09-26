@@ -75,6 +75,7 @@ public class EegInfoGUIManager : MonoBehaviour
     {
         _EegFile.TextWithoutPopUp = filePath;
         _KeyField.text = key;
+        m_memory = key;
     }
 
     public void RevertKeyField()
