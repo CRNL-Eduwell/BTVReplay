@@ -24,22 +24,29 @@ public class CustomVideoPlayer : MonoBehaviour
     [SerializeField] Scrollbar _TimeScrollbar = null;
     [SerializeField] Scrollbar _VolumeScrollbar = null;
     [SerializeField] Scrollbar _LoopScrollbar = null;
+    [SerializeField] BufferingImage _BufferingImage = null;
     [SerializeField] Button _RecordVideo = null;
     #endregion
 
     #region private members
-    private bool m_scrollbarnotclicked = true, m_initDone = false, m_forceMove = false;
-    private EventTrigger m_trigger = null, m_triggerSlaved = null;
+    private bool m_Initialized = false;
     private Texture2D m_texPlay = null, m_texPause = null, m_texLogo = null;
     private Sprite m_texHandle = null, m_texHandleSlave = null;
     private GameObject m_RecorderPrefab = null;
 
-    private bool m_slaved = false, m_keyForceMove = false;
-    private long m_timeClick = -1;
-    private float m_minTimeClick = 0.0f, m_maxTimeClick = 0.0f;
-    private float m_scrollVal = 0.0f, m_scrollMemory = 0.0f;
+    private bool m_LoopMode = false;
+    private long m_TimeClick = -1;
+    private long m_MinTimeClick = 0, m_MaxTimeClick = 0;
+    private long m_LoopOffset = 0;
+    private long m_LoopLength = 2000;
     private VideoToModulesMessage m_message = new VideoToModulesMessage();
 
+
+    private bool m_ListenerLock = false;
+    private long m_CurrentTime = 0;
+    private long m_BeforeVideoTime = 0;
+    private bool m_WaitToSync = false;
+    private bool m_VideoWasPlaying = false;
     #endregion
 
     private void Awake()
@@ -52,7 +59,7 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
         Messenger.Default.Unregister(this, MessageContext.ModulesToVideoMessage);
-        if (m_initDone)
+        if (m_Initialized)
         {
             VideoInterface.Cleanup();
             RemoveListeners();
@@ -71,33 +78,48 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void Update()
     {
-        if (m_initDone)
+        if (m_Initialized)
         {
-            if(!VideoInterface.IsStopped)
+            if (!VideoInterface.IsStopped)
             {
                 VideoInterface.Update();
-                if (VideoInterface.CurrentTime > VideoInterface.TotalVideoTime)
+
+                if (m_WaitToSync)
+                {
+                    if (VideoInterface.ClockTime != m_BeforeVideoTime)
+                    {
+                        m_WaitToSync = false;
+                        _BufferingImage.Hide();
+                        if (m_VideoWasPlaying)
+                        {
+                            m_VideoWasPlaying = false;
+                            VideoInterface.Play();
+                        }
+                        m_CurrentTime = VideoInterface.ClockTime;
+                    }
+                }
+                else
+                {
+                    m_CurrentTime = VideoInterface.ClockTime;
+                }
+
+                if (m_LoopMode && VideoInterface.IsPlaying)
+                    if (_LoopScrollbar.value >= 1)
+                        SetTime(m_MinTimeClick, true);
+
+                if (VideoInterface.ClockTime > VideoInterface.TotalVideoTime)
                     Stop();
 
-                if (m_slaved && !m_forceMove)
-                {
-                    if (VideoInterface.CurrentTime > m_timeClick + 2000)
-                        UpdateTime((int)Math.Max(0, m_timeClick - 2000));
-                    if (VideoInterface.CurrentTime < m_timeClick - 2000)
-                        UpdateTime((int)Math.Min(VideoInterface.TotalVideoTime, m_timeClick + 2000));
-                }
                 UpdateScrollBarPosition();
             }
 
-            if (m_slaved)
+            if (m_LoopMode)
             {
                 if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.J))
-                    ForceMoveLoopScroll(-0.05f);
-
+                    _LoopScrollbar.value -= 0.05f;
                 if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.K))
-                    ForceMoveLoopScroll(0.05f);
+                    _LoopScrollbar.value += 0.05f;
             }
-
         }
     }
 
@@ -124,69 +146,35 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void OnModulesToVideoMessage(ModulesToVideoMessage message)
     {
-        long TimeMilliseconds = (long)message.TimeMilliseconds;
+        long timeMilliseconds = (long)message.TimeMilliseconds;
 
         if (message.UpdateClickPosition)
-            UpdateTimeClick(TimeMilliseconds);
-        UpdateTime(TimeMilliseconds);
+            UpdateTimeClick(timeMilliseconds);
+        SetTime(timeMilliseconds, true);
     }
 
     private void AddListeners()
     {
-        _Play.onClick.AddListener(Play);
+        _Play.onClick.AddListener(TogglePlay);
         _Stop.onClick.AddListener(Stop);
         _GoBkwd10.onClick.AddListener(() => VideoInterface.MoveTime(-10));
         _GoBkwd1.onClick.AddListener(() => VideoInterface.MoveTime(-1));
         _GoFwd10.onClick.AddListener(() => VideoInterface.MoveTime(10));
         _TimeScrollbar.onValueChanged.AddListener(OnValueChangeScrollBar);
+        _LoopScrollbar.onValueChanged.AddListener(OnValueChangeLoopScrollBar);
         _VolumeScrollbar.onValueChanged.AddListener((float newVolume) => VideoInterface.SetVolume(newVolume));
         _RecordVideo.onClick.AddListener(InstantiateVideoRecorder);
 
-        m_trigger = _TimeScrollbar.gameObject.AddComponent<EventTrigger>();
-
-        EventTrigger.Entry entry = new EventTrigger.Entry();
-        entry.eventID = EventTriggerType.PointerDown;
-        entry.callback.AddListener((eventData) =>
+        EventTrigger scrollBarTrigger = _TimeScrollbar.gameObject.AddComponent<EventTrigger>();
+        EventTrigger.Entry onEndScrollbarEditTriggerEntry = new EventTrigger.Entry();
+        onEndScrollbarEditTriggerEntry.eventID = EventTriggerType.PointerUp;
+        onEndScrollbarEditTriggerEntry.callback.AddListener((eventData) =>
         {
-            if (!m_slaved)
-                InitForceMoveLoopScroll();
+            VideoInterface.SetTime(m_CurrentTime);
         });
-        m_trigger.triggers.Add(entry);
+        scrollBarTrigger.triggers.Add(onEndScrollbarEditTriggerEntry);
 
-        EventTrigger.Entry entry2 = new EventTrigger.Entry();
-        entry2.eventID = EventTriggerType.PointerUp;
-        entry2.callback.AddListener((eventData) =>
-        {
-            if (!m_scrollbarnotclicked)
-            {
-                if (m_forceMove)
-                    m_forceMove = false;
-
-                SetTimeIfValueChanged();
-                m_scrollbarnotclicked = true;
-            }
-        });
-        m_trigger.triggers.Add(entry2);
-
-        m_triggerSlaved = _LoopScrollbar.gameObject.AddComponent<EventTrigger>();
-
-        EventTrigger.Entry entry3 = new EventTrigger.Entry();
-        entry3.eventID = EventTriggerType.BeginDrag;
-        entry3.callback.AddListener((eventData) =>
-        {
-            InitForceMoveLoopScroll();
-        });
-        m_triggerSlaved.triggers.Add(entry3);
-
-        EventTrigger.Entry entry4 = new EventTrigger.Entry();
-        entry4.eventID = EventTriggerType.EndDrag;
-        entry4.callback.AddListener((eventData) =>
-        {
-            FinishForceMoveLoopScroll();
-        });
-        m_triggerSlaved.triggers.Add(entry4);
-
-        m_initDone = true;
+        m_Initialized = true;
     }
 
     private void RemoveListeners()
@@ -200,17 +188,14 @@ public class CustomVideoPlayer : MonoBehaviour
         _VolumeScrollbar.onValueChanged.RemoveAllListeners();
         _RecordVideo.onClick.RemoveAllListeners();
 
-        for (int i = 0; i < m_trigger.triggers.Count; i++)
-            m_trigger.triggers[i].callback.RemoveAllListeners();
+        EventTrigger scrollBarTrigger = _TimeScrollbar.gameObject.GetComponent<EventTrigger>();
+        for (int i = 0; i < scrollBarTrigger.triggers.Count; i++)
+            scrollBarTrigger.triggers[i].callback.RemoveAllListeners();
 
-        for (int i = 0; i < m_triggerSlaved.triggers.Count; i++)
-            m_triggerSlaved.triggers[i].callback.RemoveAllListeners();
-
-        Destroy(m_trigger); //Not done before if it bugs ? 
-        Destroy(m_triggerSlaved); //Not done before if it bugs ? 
+        Destroy(scrollBarTrigger); //Not done before if it bugs ? 
     }
 
-    private void Play()
+    private void TogglePlay()
     {
         if (VideoInterface.IsPaused || VideoInterface.IsStopped)
         {
@@ -240,8 +225,33 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void OnValueChangeScrollBar(float value)
     {
-        if (VideoInterface.IsPlaying && !m_scrollbarnotclicked)
-            VideoInterface.SetTime((long)(value * VideoInterface.TotalVideoTime));
+        if (m_ListenerLock) return;
+
+        long time = (long)(value * VideoInterface.TotalVideoTime);
+        if (m_LoopMode)
+        {
+            if (time > m_MaxTimeClick)
+                SetTime(Math.Min(VideoInterface.TotalVideoTime, m_MaxTimeClick), true);
+            else if (time < m_MinTimeClick)
+                SetTime(Math.Max(0, m_MinTimeClick), true);
+            else
+                SetTime(time);
+        }
+        else
+        {
+            SetTime(time);
+        }
+    }
+
+    private void OnValueChangeLoopScrollBar(float value)
+    {
+        if (m_ListenerLock) return;
+
+        if (VideoInterface.IsPlaying)
+            TogglePlay();
+        m_LoopOffset = (long)(value * m_LoopLength * 2) - m_LoopLength;
+        _TimeScrollbar.value = (float)(m_TimeClick + m_LoopOffset) / VideoInterface.TotalVideoTime;
+        VideoInterface.SetTime(m_TimeClick + m_LoopOffset);
     }
 
     private void InstantiateVideoRecorder()
@@ -254,136 +264,82 @@ public class CustomVideoPlayer : MonoBehaviour
         Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
     }
 
-    private void SetTimeIfValueChanged()
-    {
-        if (m_scrollMemory != _TimeScrollbar.value)
-        {
-            if (VideoInterface.IsPaused)
-                Play();
-            m_scrollMemory = _TimeScrollbar.value;
-        }
-        else
-        {
-            if (VideoInterface.IsPlaying)
-                Play();
-        }
-    }
-
     private void UpdateScrollBarPosition()
     {
-        if (m_scrollbarnotclicked)
-        {
-            _TimeScrollbar.value = ((float)VideoInterface.CurrentTime) / VideoInterface.TotalVideoTime;
-            UpdateTimeText((long)(VideoInterface.CurrentTime * 0.001f));
-        }
-        else if (m_slaved)
-        {
-            if (m_forceMove)
-                SetTimeIfValueChanged();
-
-            m_scrollVal = (_LoopScrollbar.value * 4000) - 2000;
-            _TimeScrollbar.value = (float)(m_timeClick + m_scrollVal) / VideoInterface.TotalVideoTime;
-            UpdateTimeText((long)(VideoInterface.CurrentTime * 0.001f));
-
-            if (m_keyForceMove)
-                FinishForceMoveLoopScroll();
-        }
-        else
-        {
-            if (m_forceMove)
-                SetTimeIfValueChanged();
-            UpdateTimeText((long)(_TimeScrollbar.value * VideoInterface.TotalVideoTime * 0.001f));
-        }
+        m_ListenerLock = true;
+        UpdateTimeText(m_CurrentTime);
+        _TimeScrollbar.value = (float)m_CurrentTime / VideoInterface.TotalVideoTime;
+        if (m_LoopMode)
+            _LoopScrollbar.value = Mathf.InverseLerp(m_TimeClick - m_LoopLength, m_TimeClick + m_LoopLength, m_CurrentTime);
+        m_ListenerLock = false;
     }
 
     /// <summary>
     /// Update Display of Current Time and send message to the outside
     /// with the current time in milliseconds
     /// </summary>
-    /// <param name="seconds">Current time in seconds</param>
-    private void UpdateTimeText(long seconds)
+    /// <param name="milliseconds">Current time in seconds</param>
+    private void UpdateTimeText(long milliseconds)
     {
-        _CurrentTime.DisplayToTimeFormat(seconds);
+        _CurrentTime.DisplayToTimeFormat((long)(milliseconds * 0.001f));
         long totalTimeSec = Mathf.RoundToInt(VideoInterface.TotalVideoTime * 0.001f);
         _TotalTime.DisplayToTimeFormat(totalTimeSec);
 
         //Send Message with timing information to the outside
         m_message.IsStopped = false;
-        m_message.TimeMilliseconds = m_scrollbarnotclicked ? VideoInterface.CurrentTime : _TimeScrollbar.value * VideoInterface.TotalVideoTime;
+        m_message.TimeMilliseconds = m_CurrentTime;
         Messenger.Default.Send(m_message, MessageContext.VideoToModulesMessage);
-    }
-
-    private void UpdateTime(long timeMilliSec)
-    {
-        m_scrollbarnotclicked = false;
-        VideoInterface.SetTime(timeMilliSec);
-        m_scrollbarnotclicked = true;
     }
 
     private void UpdateTimeClick(long timeMS)
     {
-        m_timeClick = timeMS;
-        m_minTimeClick = m_timeClick - (2 * 1000);
-        m_maxTimeClick = m_timeClick + (2 * 1000);
+        m_TimeClick = timeMS;
+        m_MinTimeClick = m_TimeClick - m_LoopLength;
+        m_MaxTimeClick = m_TimeClick + m_LoopLength;
     }
 
-    #region loopMode
-    public void SlaveMode()
+    private void SetTime(long time, bool updateVideoTime = false)
     {
+        if (time == VideoInterface.ClockTime) return;
+
+        m_BeforeVideoTime = VideoInterface.ClockTime;
+        m_CurrentTime = time;
+        if (updateVideoTime)
+        {
+            VideoInterface.SetTime(time);
+            if (!(VideoInterface is GhostVideoPlayer))
+                _BufferingImage.Show();
+        }
+        m_WaitToSync = true;
+        if (!(VideoInterface is GhostVideoPlayer))
+            _BufferingImage.Show();
+        if (VideoInterface.IsPlaying)
+        {
+            m_VideoWasPlaying = true;
+            VideoInterface.Pause();
+        }
+    }
+    public void ToggleLoopMode()
+    {
+        m_ListenerLock = true;
         if (!_LoopScrollbar.gameObject.activeSelf)
         {
             VideoInterface.SetVolume(0.0f);
-            if (VideoInterface.IsPlaying)
-                Play();
-            m_slaved = true;
+            m_LoopMode = true;
             _LoopScrollbar.gameObject.SetActive(true);
-            m_timeClick = VideoInterface.CurrentTime;
-            m_minTimeClick = m_timeClick - (2 * 1000);
-            m_maxTimeClick = m_timeClick + (2 * 1000);
+            UpdateTimeClick(VideoInterface.ClockTime);
             _TimeScrollbar.transform.GetChild(0).GetChild(1).GetComponent<Image>().sprite = m_texHandleSlave;
+            _LoopScrollbar.value = 0.5f;
         }
         else
         {
             VideoInterface.SetVolume(_VolumeScrollbar.value);
-            if (VideoInterface.IsPaused)
-                Play();
-            m_slaved = false;
-            m_scrollVal = 0;
-            m_timeClick = -1;
-            _LoopScrollbar.value = 0.5f;
+            m_LoopMode = false;
+            m_LoopOffset = 0;
+            m_TimeClick = -1;
             _LoopScrollbar.gameObject.SetActive(false);
             _TimeScrollbar.transform.GetChild(0).GetChild(1).GetComponent<Image>().sprite = m_texHandle;
         }
+        m_ListenerLock = false;
     }
-
-    private void InitForceMoveLoopScroll()
-    {
-        m_scrollbarnotclicked = false;
-        if (VideoInterface.IsPaused)
-        {
-            m_forceMove = true;
-            Play();
-        }
-    }
-
-    private void FinishForceMoveLoopScroll()
-    {
-        if (!m_scrollbarnotclicked)
-        {
-            if (VideoInterface.IsPlaying)
-                Play();
-
-            m_forceMove = false;
-            m_scrollbarnotclicked = true;
-            m_keyForceMove = false;
-        }
-    }
-
-    private void ForceMoveLoopScroll(float value)
-    {
-        m_keyForceMove = true;
-        InitForceMoveLoopScroll();
-        _LoopScrollbar.value += value;
-    }
-    #endregion
 }

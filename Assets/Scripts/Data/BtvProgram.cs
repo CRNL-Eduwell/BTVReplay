@@ -63,6 +63,17 @@ namespace BTV.Data
             int removedCount = Events.RemoveAll(x => x.TimeInMilliSeconds > TotalDurationInMilliseconds);
         }
 
+        public BtvProgram(BtvProgram copy)
+        {
+            foreach (var channel in copy.Channels)
+                Channels.Add(new BtvChannel(channel));
+            foreach (var ev in copy.Events)
+                Events.Add(new BtvEvent(ev));
+            Frequency = new Frequency(copy.Frequency.RawValue);
+            m_FilePath = copy.m_FilePath;
+            Description = copy.Description;
+        }
+
         public int GetElectrodeIDFromElectrodeName(string Name, bool IsLowerCaseName = false)
         {
             if (IsLowerCaseName)

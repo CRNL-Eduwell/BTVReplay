@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Remoting.Contexts;
 using UnityEditor;
 using UnityEngine;
 
 public class BTVReplayBuilder : MonoBehaviour
 {
     private static string m_Data = "Assets/Config/";
-    private static string m_DataBuild = "Contents/Config/";
+    private static string m_DataBuild = "";
 
     public static void DefaultBuild()
     {
@@ -23,13 +24,16 @@ public class BTVReplayBuilder : MonoBehaviour
         {
             case BuildTarget.StandaloneWindows64:
                 os = "win64";
+                m_DataBuild = "BTVReplay_Data/Config";
                 break;
             case BuildTarget.StandaloneLinux64:
                 os = "linux64";
+                m_DataBuild = "BTVReplay_Data/Config";
                 break;
             case BuildTarget.StandaloneOSX:
                 UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.OSXStandalone.MacOSArchitecture.ARM64;
                 os = "macos64";
+                m_DataBuild = "Contents/Config";
                 break;
         }
         string buildName = string.Format("{0}.{1}.{2}", Application.productName, Application.version, os);

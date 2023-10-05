@@ -350,7 +350,7 @@ namespace VLCSharp
         /// This is an extrapolation of the time returned by VLC API since we need a greater precision
         /// In MilliSeconds
         /// </summary>
-        public long CurrentTime
+        public long ClockTime
         {
             get
             {
@@ -376,7 +376,7 @@ namespace VLCSharp
         {
             get
             {
-                return (long)(CurrentTime);
+                return (long)(ClockTime);
             }
         }
 
@@ -388,7 +388,7 @@ namespace VLCSharp
         {
             get
             {
-                return (long)((CurrentTime - m_offsetVideoMilliSec));
+                return (long)((ClockTime - m_offsetVideoMilliSec));
             }
         }
 
@@ -566,7 +566,7 @@ namespace VLCSharp
 
         public void MoveTime(long secondsToAdd)
         {
-            m_VideoPlayer.setTime(CurrentTime + (secondsToAdd * 1000));
+            m_VideoPlayer.setTime(ClockTime + (secondsToAdd * 1000));
         }
 
         public void SetTime(long timeMilliSec)

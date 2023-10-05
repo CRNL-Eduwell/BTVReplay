@@ -9,11 +9,11 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
     /// <summary>
     /// Same as time, see if both are usefull ????
     /// </summary>
-    public long CurrentTime { get { return (long)((m_VideoPlayer.clockTime * 1000) + m_OffsetVideoMilliSec); } }
+    public long ClockTime { get { return (long)((m_VideoPlayer.clockTime * 1000) + m_OffsetVideoMilliSec); } }
 
-    public long Time { get { return CurrentTime; } }
+    public long Time { get { return (long)((m_VideoPlayer.time * 1000) + m_OffsetVideoMilliSec); } }
 
-    public long VideoTime { get { return CurrentTime - m_OffsetVideoMilliSec; } }
+    public long VideoTime { get { return ClockTime - m_OffsetVideoMilliSec; } }
 
     //! Ugly ass patch due to Unity update making length = 0 sometimes when
     // dragging scrollbar , TODO correct me

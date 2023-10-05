@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,11 +15,13 @@ public class EventTFCursor : MonoBehaviour
         set
         {
             m_ShowCursor = value;
-            m_HorizontalLine.transform.gameObject.SetActive(m_ShowCursor);
-            m_VerticalLine.transform.gameObject.SetActive(m_ShowCursor);
+            m_HorizontalLine.gameObject.SetActive(m_ShowCursor);
+            m_VerticalLine.gameObject.SetActive(m_ShowCursor);
         }
     }
     public bool IsSlaved { get; set; } = false;
+    public static Dictionary<int, bool> IsOverDictionary = new Dictionary<int, bool>();
+    public bool IsOver { get { return RectTransformUtility.RectangleContainsScreenPoint(m_Rectransform, Input.mousePosition, Camera.main); } }
 
     [SerializeField] private Image m_HorizontalLine = null;
     [SerializeField] private Image m_VerticalLine = null;
@@ -53,11 +56,22 @@ public class EventTFCursor : MonoBehaviour
     {
         if (!m_ShowCursor) return;
 
-        Vector2 Mouse = Input.mousePosition;
-        bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_Rectransform, Mouse, Camera.main);
-        if (isOver)
+        IsOverDictionary[transform.parent.GetComponent<EventWithDuration>().ParentWindowIndex] = IsOver;
+        if (IsSlaved)
         {
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Rectransform, Mouse, Camera.main, out Vector2 localPosition);
+            bool isOneOver = IsOverDictionary.Values.Any(isOver => isOver);
+            m_HorizontalLine.gameObject.SetActive(isOneOver);
+            m_VerticalLine.gameObject.SetActive(isOneOver);
+        }
+        else
+        {
+            m_HorizontalLine.gameObject.SetActive(IsOver);
+            m_VerticalLine.gameObject.SetActive(IsOver);
+        }
+
+        if (IsOver)
+        {
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_Rectransform, Input.mousePosition, Camera.main, out Vector2 localPosition);
 
             m_HorizontalLine.transform.localPosition = new Vector3(m_HorizontalLine.transform.localPosition.x, localPosition.y, m_HorizontalLine.transform.localPosition.z);
             m_VerticalLine.transform.localPosition = new Vector3(localPosition.x, m_VerticalLine.transform.localPosition.y, m_VerticalLine.transform.localPosition.z);

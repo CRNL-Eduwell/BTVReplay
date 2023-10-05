@@ -10,6 +10,7 @@ namespace BTV.UI.Module3D
         [SerializeField] Tools.TfTraceToggler _TraceToggler = null;
         [SerializeField] Slider _AlphaSlider = null;
         [SerializeField] Tools.TfWindow _TfWindow = null;
+        [SerializeField] Tools.TfAmplitude _TfAmplitude = null;
 
         private int m_CurrentTraceID = 0;
         private TfTraceOption m_Options = null;
@@ -18,6 +19,7 @@ namespace BTV.UI.Module3D
         {
             m_Tools.Add(_TraceToggler);
             m_Tools.Add(_TfWindow);
+            m_Tools.Add(_TfAmplitude);
         }
 
         protected override void AddListeners()
@@ -43,6 +45,7 @@ namespace BTV.UI.Module3D
                 _AlphaSlider.SetValueWithoutNotify(m_Options.Alpha);
                 _TfWindow.SetFrequencyBandWithoutNotify((int)m_Options.LowFrequency, (int)m_Options.HighFrequency);
                 _TfWindow.SetTimePeriodWithoutNotify((int)m_Options.WindowInMilliseconds);
+                _TfAmplitude.SetAmplitudeWithoutNotify(m_Options.MinValueFactor, m_Options.MaxValueFactor);
             });
 
             _AlphaSlider.onValueChanged.AddListener((sliderValue) =>
@@ -75,6 +78,18 @@ namespace BTV.UI.Module3D
                     TaskToExecute = 3,
                     ParentWindowIndex = m_CurrentTraceID,
                     WindowInMs = windowValue
+                };
+                Messenger.Default.Send(message, MessageContext.UiToTFEvents);
+            });
+
+            _TfAmplitude.UpdateAmplitude.AddListener((min, max) =>
+            {
+                UiToTFEventsMessage message = new UiToTFEventsMessage
+                {
+                    TaskToExecute = 4,
+                    ParentWindowIndex = m_CurrentTraceID,
+                    MinValueFactor = min,
+                    MaxValueFactor = max
                 };
                 Messenger.Default.Send(message, MessageContext.UiToTFEvents);
             });

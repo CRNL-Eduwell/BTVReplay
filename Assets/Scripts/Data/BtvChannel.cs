@@ -37,6 +37,10 @@ namespace BTV.Data
             m_Max = Data.Max();
             MaxValue = Math.Max(Math.Abs(m_Min), Math.Abs(m_Max));
         }
+        public BtvChannel(BtvChannel copy) : this(copy.Label, copy.ID, copy.Frequency.RawValue, copy.Data.ToArray())
+        {
+
+        }
 
         public float GetSample(int index, bool centered = false)
         {

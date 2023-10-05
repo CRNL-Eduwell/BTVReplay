@@ -175,12 +175,6 @@ public class EventWithDuration : EventTrace
                     break;
                 }
             case "HighFrequency":
-                {
-                    Fs_Max_Visu = m_TfTraceOption.HighFrequency - m_TfTraceOption.LowFrequency;
-                    Fs_Max_Visu = (Fs_Max_Visu / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
-                    UpdateTfMap(LeftTimeMemoryMs, RightTimeMemoryMs, true);
-                    break;
-                }
             case "LowFrequency":
                 {
                     Fs_Max_Visu = m_TfTraceOption.HighFrequency - m_TfTraceOption.LowFrequency;
@@ -205,6 +199,12 @@ public class EventWithDuration : EventTrace
                     m_Image.color = Color.white;
                     m_Cursor.ShowCursor = true;
 
+                    break;
+                }
+            case "MinValueFactor":
+            case "MaxValueFactor":
+                {
+                    UpdateTfMap(LeftTimeMemoryMs, RightTimeMemoryMs, true);
                     break;
                 }
         }
@@ -235,6 +235,13 @@ public class EventWithDuration : EventTrace
 
             m_TfTraceOption.WindowInMilliseconds = message.WindowInMs;
         }
+        else if (message.TaskToExecute == 4)
+        {
+            if (message.ParentWindowIndex != ParentWindowIndex) return;
+
+            m_TfTraceOption.MinValueFactor = message.MinValueFactor;
+            m_TfTraceOption.MaxValueFactor = message.MaxValueFactor;
+        }
     }
 
     private void OnTimeFrequencyResultMessage(TimeFrequencyResultMessage message)
@@ -264,8 +271,8 @@ public class EventWithDuration : EventTrace
         float begInSample = EventOfInterest.TimeInSeconds * samplingFreq;
         float endInSample = begInSample + ((EventOfInterest.Duration * samplingFreq) / 1000);
         //
-        float beg = leftClockInSample - begInSample < 0 ? 0 : leftClockInSample - begInSample;
-        float end = rightClockInSample - endInSample < 0 ? (rightClockInSample - begInSample) : (endInSample - begInSample);
+        float beg = (leftClockInSample - begInSample) < 0 ? 0 : leftClockInSample - begInSample;
+        float end = (rightClockInSample - endInSample) < 0 ? (rightClockInSample - begInSample) : (endInSample - begInSample);
 
         int frameSize = TimeFrequencyService.GetFrameSizeFor(ParentWindowIndex);
         int hopSize = frameSize / 2;
@@ -374,11 +381,16 @@ public class EventWithDuration : EventTrace
 
     private Texture2D EegData2Colors(TimeFrequencyDataStructure eegData, int beg, int end)
     {
-        float maxValue = 256;
-        float minValue = 0;
+        float maxBoundary = eegData.TopValue > 256 ? eegData.TopValue : 256;
+        float maxValue = m_TfTraceOption.MaxValueFactor * maxBoundary;
+        float minValue = m_TfTraceOption.MinValueFactor * maxBoundary;
+        if (maxValue == minValue) maxValue = minValue + 1; // to prevent some kind of discontinuity
 
         int lowBinIndex = Mathf.RoundToInt(m_TfTraceOption.LowFrequency / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
         int highBinIndex = Mathf.RoundToInt(m_TfTraceOption.HighFrequency / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
+
+        if (end - beg <= 0 || highBinIndex - lowBinIndex <= 0)
+            return new Texture2D(1, 1);
 
         Texture2D cursor = new Texture2D((end - beg), highBinIndex - lowBinIndex);
         for (int l = lowBinIndex; l < highBinIndex; l++)
@@ -395,7 +407,7 @@ public class EventWithDuration : EventTrace
                     col = 511;
 
                 //x,y,color
-                cursor.SetPixel(m, l - lowBinIndex, m_ColorJetMap[col]);
+                cursor.SetPixel(m - beg, l - lowBinIndex, m_ColorJetMap[col]);
             }
         }
         cursor.Apply();

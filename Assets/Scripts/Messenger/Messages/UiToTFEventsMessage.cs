@@ -15,8 +15,9 @@ class UiToTFEventsMessage
 
     public int ParentWindowIndex { get; set; }
     public float Alpha { get; set; }
-    //public float FrequencySlider { get; set; }
     public int HighFrequency { get; set; }
     public int LowFrequency { get; set; }
     public float WindowInMs { get; set; }
+    public float MinValueFactor { get; set; }
+    public float MaxValueFactor { get; set; }
 }

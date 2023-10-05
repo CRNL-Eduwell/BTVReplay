@@ -22,6 +22,7 @@ namespace BTV.UI.Module3D
         [SerializeField] ExtendedToggle m_EventsToggle = null;
         [SerializeField] ExtendedToggle m_TimeFrequencyAnalysisToggle = null;
         [SerializeField] ExtendedToggle m_WorkspaceToggle = null;
+        [SerializeField] ExtendedToggle m_MontageToggle = null;
 
         private Dictionary<ExtendedToggle, Toolbar> m_Toolbars = new Dictionary<ExtendedToggle, Toolbar>();
 
@@ -37,6 +38,7 @@ namespace BTV.UI.Module3D
             m_Toolbars.Add(m_EventsToggle, m_ToolbarMenu.EventsToolBar);
             m_Toolbars.Add(m_TimeFrequencyAnalysisToggle, m_ToolbarMenu.TimeFrequencyToolBar);
             m_Toolbars.Add(m_WorkspaceToggle, m_ToolbarMenu.LayoutsToolbar);
+            m_Toolbars.Add(m_MontageToggle, m_ToolbarMenu.MontageToolbar);
 
             AddListeners();
         }
@@ -93,6 +95,11 @@ namespace BTV.UI.Module3D
             {
                 UnityEngine.Debug.Log("Update Workspace Opt : " + UiOptionIndex);
                 ChangeToolbar(m_WorkspaceToggle, UiOptionIndex);
+            });
+            m_MontageToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
+            {
+                UnityEngine.Debug.Log("Update Montage Opt : " + UiOptionIndex);
+                ChangeToolbar(m_MontageToggle, UiOptionIndex);
             });
         }
 

@@ -7,7 +7,7 @@ public interface IVideoPlayer
     /// Exact Time of the video
     /// In MilliSeconds
     /// </summary>
-    long CurrentTime { get; }
+    long ClockTime { get; }
     long Time { get; }
     long VideoTime { get; }
     /// <summary>
