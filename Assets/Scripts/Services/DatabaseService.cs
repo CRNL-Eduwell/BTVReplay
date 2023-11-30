@@ -28,17 +28,17 @@ namespace BTV.Services.DatabaseService
         {
             if (string.IsNullOrEmpty(filePath))
             {
-                UnityEngine.Debug.LogError("Filepath " + filePath + " is null or empty");
+                UnityEngine.Debug.Log("OpenDatabase : Filepath is null or empty");
                 return;
             }
             FileInfo file = new FileInfo(filePath);
             if (!file.Exists)
             {
-                UnityEngine.Debug.LogError("Filepath " + filePath + "does not exist");
+                UnityEngine.Debug.LogError("OpenDatabase : Filepath " + filePath + "does not exist");
                 return;
             }
 
-            UnityEngine.Debug.Log("Opening db file => " + filePath);
+            UnityEngine.Debug.Log("OpenDatabase => " + filePath);
             Databases.Add(new SubjectRepository(filePath));
         }
 
