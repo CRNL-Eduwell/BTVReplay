@@ -225,9 +225,13 @@ public class WorkspaceManager : MonoBehaviour
         opt.Color = traceParameters.Color;
         opt.LineWidth = (int)traceParameters.Width;
 
-        //Try to load the different positions of the traces
-        WindowLayout layout = GameObject.Find(traceParameters.Parent).GetComponent<WindowLayout>();
-        WindowLayout layouthandle = (layout != null) ? _LeftWindowLayout : _RightWindowLayout;
+        //Try to load the different positions of the traces.
+        // Guard the lookup (Find returns null on a missing/blank saved parent name, which used to
+        // NRE), and route by *which* layout the saved parent actually is - the old ternary found
+        // a layout then ignored it, degenerating to "found anything -> left, else right".
+        GameObject parentObject = string.IsNullOrEmpty(traceParameters.Parent) ? null : GameObject.Find(traceParameters.Parent);
+        WindowLayout layout = parentObject != null ? parentObject.GetComponent<WindowLayout>() : null;
+        WindowLayout layouthandle = (layout == _LeftWindowLayout) ? _LeftWindowLayout : _RightWindowLayout;
         layouthandle.ForceDrop(trace.gameObject, traceParameters.GridLayout, traceParameters.Id);
     }
 

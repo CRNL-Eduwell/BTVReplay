@@ -123,6 +123,8 @@ public class ExperimentDataWidget : MonoBehaviour
 
     private void AddTab()
     {
+        if (m_Subject == null) return; // buttons can be clicked before a subject is assigned
+
         string name = "TASK";
         int count = 0;
         while (true)
@@ -166,7 +168,9 @@ public class ExperimentDataWidget : MonoBehaviour
 
     private void RemoveSelectedTab()
     {
-        for (int i = 0; i < m_Buttons.Count; i++)
+        // Iterate backwards: RemoveTab mutates m_Buttons, so a forward loop skipped entries and
+        // could shift the index past the intended tab.
+        for (int i = m_Buttons.Count - 1; i >= 0; i--)
         {
             if (m_Buttons[i].Color == m_selectedColor)
             {
