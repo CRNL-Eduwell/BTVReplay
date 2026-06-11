@@ -8,7 +8,6 @@ namespace BTV.UI.Module3D
         Tools.LayoutsLoader m_LayoutsLoader = null;
         [SerializeField]
         Tools.LayoutsSaver m_LayoutsSaver = null;
-        [SerializeField]
 
         protected override void AddTools()
         {
