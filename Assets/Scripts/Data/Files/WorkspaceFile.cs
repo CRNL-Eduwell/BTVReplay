@@ -34,11 +34,7 @@ public class WorkspaceFile : IWorkspaceContext
         {
             using (StreamReader streamReader = new StreamReader(FilePath))
             {
-                JsonSerializerSettings serializerSettings = new JsonSerializerSettings()
-                {
-                    TypeNameHandling = TypeNameHandling.Auto,
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                    Converters = new List<JsonConverter>() { new ColorConverter(), new Vector2Converter(), new Vector3Converter() }
+                JsonSerializerSettings serializerSettings = BtvJson.WriteSettings
                 };
 
                 Workspace = JsonConvert.DeserializeObject<Workspace>(streamReader.ReadToEnd(), serializerSettings);
@@ -61,11 +57,7 @@ public class WorkspaceFile : IWorkspaceContext
         {
             using (StreamWriter streamWriter = new StreamWriter(FilePath))
             {
-                JsonSerializerSettings serializerSettings = new JsonSerializerSettings()
-                {
-                    TypeNameHandling = TypeNameHandling.Auto,
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                    Converters = new List<JsonConverter>() { new ColorConverter(), new Vector2Converter(), new Vector3Converter() }
+                JsonSerializerSettings serializerSettings = BtvJson.WriteSettings
                 };
 
                 string json = JsonConvert.SerializeObject(workspace, Formatting.Indented, serializerSettings );

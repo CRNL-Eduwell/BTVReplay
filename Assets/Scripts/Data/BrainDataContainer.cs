@@ -6,6 +6,9 @@ using System.Runtime.Serialization;
 
 public class BrainDataContainer
 {
+    // Computed (does FileInfo.Exists on possibly-UNC paths). [JsonIgnore] stops it being
+    // serialized into every .dbtv2 - which also did synchronous network I/O on every save.
+    [Newtonsoft.Json.JsonIgnore]
     public bool HasAnat
     {
         get
