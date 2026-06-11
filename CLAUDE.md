@@ -5,7 +5,8 @@ epilepsy monitoring review (CHUV). Loads patient databases, draws EEG traces, re
 brain (MNI or patient meshes) with electrode activity, computes time-frequency maps and
 correlations, all synchronized to a video clock.
 
-- Unity **2021.3.16f1** (EOL — upgrade planned), C#, uGUI (no UI Toolkit, no TMP usage).
+- Unity **6.4 (6000.4.10f1)**, C#, uGUI 2.0 (no UI Toolkit, no TMP usage). Upgraded from
+  2021.3.16f1 in June 2026.
 - Single scene: `Assets/_main.unity`, YAML (Force Text serialization since June 2026).
 - No asmdefs, no tests.
 - Comments and commit messages are a French/English mix; UI strings English.
