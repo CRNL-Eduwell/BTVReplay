@@ -23,7 +23,8 @@ namespace BTV.UI.Module3D.Tools
 
         private void OnDestroy()
         {
-            Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
+            // Must match the context registered in Initialize (was LoaderMessage by copy-paste).
+            Messenger.Default.Unregister(this, MessageContext.MontageMessage);
         }
 
         private void OnMontageMessage(MontageMessage message)

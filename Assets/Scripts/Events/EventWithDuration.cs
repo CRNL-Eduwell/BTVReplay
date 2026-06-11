@@ -17,6 +17,7 @@ public class EventWithDuration : EventTrace
     private TimeFrequencyDataStructure m_TfDataStruct = null;
 
     private Color[] m_ColorJetMap = null;
+    private Texture2D m_TfTexture = null;
     private bool m_HasDataToDisplay = false;
     private float m_begMemory = -1;
     private float m_endMemory = -1;
@@ -42,12 +43,16 @@ public class EventWithDuration : EventTrace
 
     private void OnDestroy()
     {
-        m_TfTraceOption.PropertyChanged -= OnTimeFrequencyTraceOption_PropertyChanged;
+        // Guard: Initialize (which sets m_TfTraceOption) may never have run; the bare deref
+        // used to NRE here and skip the unregisters below it.
+        if (m_TfTraceOption != null)
+            m_TfTraceOption.PropertyChanged -= OnTimeFrequencyTraceOption_PropertyChanged;
         _ShowEvent.onValueChanged.RemoveAllListeners();
         _ShowTimeFrequency.onValueChanged.RemoveAllListeners();
         _NormalizeTimeFrequency.onValueChanged.RemoveAllListeners();
         Messenger.Default.Unregister(this, MessageContext.UiToTFEvents);
         Messenger.Default.Unregister(this, MessageContext.TimeFrequencyResultMessage);
+        if (m_TfTexture != null) Destroy(m_TfTexture);
     }
 
     public void Initialize(BTV.Data.BtvEvent currentEvent, int winID)
@@ -289,7 +294,12 @@ public class EventWithDuration : EventTrace
             bool isInsideWindow = (begI >= 0) && (endI <= m_TfDataStruct.TimeFrameCount);
             if (isInsideWindow && !cameOutOfWindow && !enterInWindow)
             {
-                m_Image.texture = EegData2Colors(m_TfDataStruct, begI, endI);
+                // Destroy the previous texture before replacing it; this runs as the playback
+                // window shifts, so without it each new Texture2D leaked native memory.
+                Texture2D newTexture = EegData2Colors(m_TfDataStruct, begI, endI);
+                if (m_TfTexture != null) Destroy(m_TfTexture);
+                m_TfTexture = newTexture;
+                m_Image.texture = newTexture;
             }
         }
     }
@@ -318,6 +328,7 @@ public class EventWithDuration : EventTrace
     private void ResetTfOptions()
     {
         m_Image.texture = null;
+        if (m_TfTexture != null) { Destroy(m_TfTexture); m_TfTexture = null; }
         m_begMemory = -1;
         m_endMemory = -1;
         m_HasDataToDisplay = false;
@@ -375,6 +386,11 @@ public class EventWithDuration : EventTrace
             colorMap[compteur] = new Color(r, g, b);
             compteur++;
         }
+
+        // The bands above are authored in 0-255; Unity's Color expects 0-1, so without this the
+        // jet map clamped to a few saturated colours. Normalise (alpha stays opaque).
+        for (int i = 0; i < colorMap.Length; i++)
+            colorMap[i] = new Color(colorMap[i].r / 255f, colorMap[i].g / 255f, colorMap[i].b / 255f, 1f);
 
         return colorMap;
     }
