@@ -6,7 +6,7 @@ brain (MNI or patient meshes) with electrode activity, computes time-frequency m
 correlations, all synchronized to a video clock.
 
 - Unity **2021.3.16f1** (EOL — upgrade planned), C#, uGUI (no UI Toolkit, no TMP usage).
-- Single scene: `Assets/_main.unity`. **Binary-serialized** (switch to Force Text pending).
+- Single scene: `Assets/_main.unity`, YAML (Force Text serialization since June 2026).
 - No asmdefs, no tests.
 - Comments and commit messages are a French/English mix; UI strings English.
 
