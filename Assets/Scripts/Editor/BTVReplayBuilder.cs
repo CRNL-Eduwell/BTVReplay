@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+using System;
 using System.IO;
-using System.Runtime.Remoting.Contexts;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 public class BTVReplayBuilder : MonoBehaviour
@@ -10,11 +9,17 @@ public class BTVReplayBuilder : MonoBehaviour
     private static string m_Data = "Assets/Config/";
     private static string m_DataBuild = "";
 
+    /// <summary>
+    /// Headless entry point (Unity -batchmode -executeMethod BTVReplayBuilder.DefaultBuild).
+    /// Output directory comes from "-buildOutput &lt;path&gt;" on the command line, the
+    /// BTV_BUILD_OUTPUT environment variable, or defaults to &lt;project&gt;/Builds/.
+    /// </summary>
     public static void DefaultBuild()
     {
-        BuildProjectAndZipIt(@"/Users/florian/Desktop/builds/", false, BuildTarget.StandaloneWindows64);
-        BuildProjectAndZipIt(@"/Users/florian/Desktop/builds/", false, BuildTarget.StandaloneLinux64);
-        BuildProjectAndZipIt(@"/Users/florian/Desktop/builds/", false, BuildTarget.StandaloneOSX);
+        string buildsDirectory = ResolveDefaultBuildsDirectory();
+        BuildProjectAndZipIt(buildsDirectory, false, BuildTarget.StandaloneWindows64);
+        BuildProjectAndZipIt(buildsDirectory, false, BuildTarget.StandaloneLinux64);
+        BuildProjectAndZipIt(buildsDirectory, false, BuildTarget.StandaloneOSX);
     }
 
     public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target)
@@ -62,7 +67,19 @@ public class BTVReplayBuilder : MonoBehaviour
             scenes = new string[] { "Assets/_main.unity" },
             options = buildOptions
         };
-        BuildPipeline.BuildPlayer(buildPlayerOptions);
+        BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
+
+        // Abort the post-build steps (copying Config, plugins) if the player build itself
+        // failed - otherwise we copy data into a missing/partial directory and the real
+        // failure is buried under confusing IO errors.
+        if (report.summary.result != BuildResult.Succeeded)
+        {
+            Debug.LogError(string.Format("BTVReplayBuilder: {0} build FAILED ({1}) with {2} error(s); skipping data/plugin copy.",
+                target, report.summary.result, report.summary.totalErrors));
+            return;
+        }
+        Debug.Log(string.Format("BTVReplayBuilder: {0} build succeeded -> {1} ({2:0.0} MB)",
+            target, buildDirectory, report.summary.totalSize / (1024f * 1024f)));
 
         string projectPath = Application.dataPath;
         projectPath = projectPath.Remove(projectPath.Length - 6);
@@ -103,11 +120,42 @@ public class BTVReplayBuilder : MonoBehaviour
                         string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
                         DirectoryInfo pluginsDirectory = new DirectoryInfo(pluginsPath);
                         DirectoryInfo arm64PluginsDirectory = new DirectoryInfo(Path.Join(pluginsPath, "ARM64"));
-                        arm64PluginsDirectory.CopyFilesRecursively(pluginsDirectory);
-                        arm64PluginsDirectory.Delete(true);
+                        // Older Unity nested arm64 native plugins under PlugIns/ARM64; flatten them
+                        // up one level. Guarded in case a future Unity places them directly.
+                        if (arm64PluginsDirectory.Exists)
+                        {
+                            arm64PluginsDirectory.CopyFilesRecursively(pluginsDirectory);
+                            arm64PluginsDirectory.Delete(true);
+                        }
+                        else
+                        {
+                            Debug.LogWarning("BTVReplayBuilder: Contents/PlugIns/ARM64 not found; assuming arm64 plugins are already placed correctly. Verify the .app loads native libraries.");
+                        }
                     }
                 }
                 break;
         }
+    }
+
+    private static string ResolveDefaultBuildsDirectory()
+    {
+        string[] args = Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length - 1; i++)
+        {
+            if (args[i] == "-buildOutput") return EnsureTrailingSlash(args[i + 1]);
+        }
+        string env = Environment.GetEnvironmentVariable("BTV_BUILD_OUTPUT");
+        if (!string.IsNullOrEmpty(env)) return EnsureTrailingSlash(env);
+
+        // <project>/Builds/ (Application.dataPath is <project>/Assets; this is git-ignored)
+        string projectRoot = Directory.GetParent(Application.dataPath).FullName;
+        return EnsureTrailingSlash(Path.Combine(projectRoot, "Builds"));
+    }
+
+    private static string EnsureTrailingSlash(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return path;
+        char last = path[path.Length - 1];
+        return (last == '/' || last == '\\') ? path : path + "/";
     }
 }
