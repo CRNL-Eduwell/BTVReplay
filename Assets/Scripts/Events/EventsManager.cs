@@ -343,6 +343,11 @@ public class EventsManager : MonoBehaviour
     private void DeleteEvent(BtvEvent Event)
     {
         int id = EventsService.GetEventId(Event);
+        if (id < 0)
+        {
+            UnityEngine.Debug.LogWarning("DeleteEvent: event not found in the service, nothing to delete.");
+            return;
+        }
         EventsService.RemoveEventAt(id);
 
         m_EventsTexture.RemoveEvent(Event);

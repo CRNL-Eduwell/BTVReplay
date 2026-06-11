@@ -96,7 +96,7 @@ namespace BTV.Services.EventsService
 
         public static void RemoveEventAt(int ID)
         {
-            if (ID < Events.Count)
+            if (ID >= 0 && ID < Events.Count)
             {
                 Events.RemoveAt(ID);
                 UnityEngine.Debug.Log("Event has been removed");
@@ -105,10 +105,10 @@ namespace BTV.Services.EventsService
 
         public static int GetEventId(BtvEvent Event)
         {
-            return Events.Select((item, index) => new { Item = item, Index = index })
-                         .Where(x => x.Item.TimeInMilliSeconds == Event.TimeInMilliSeconds)
-                         .Select(x => x.Index)
-                         .First();
+            // Match the full event identity (BtvEvent.Equals), not just the timestamp: two events
+            // at the same millisecond used to resolve to the wrong index. Returns -1 if absent
+            // (the old .First() threw); callers guard on a negative result.
+            return Events.FindIndex(e => e.Equals(Event));
         }
 
         public static List<int> FindIndexes(int SearchValue)
