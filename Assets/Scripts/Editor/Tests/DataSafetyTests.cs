@@ -227,4 +227,36 @@ public class DataSafetyTests
         Assert.AreEqual(0.2f, copy.Correlation2D[0][1]);
     }
     #endregion
+
+    #region Polymorphic serialization (BtvJson type allow-list)
+    [Test]
+    public void BtvJson_RoundTripsAllowedFileInfoType()
+    {
+        Subject subject = new Subject { PatientName = "T" };
+        var files = new System.Collections.Generic.Dictionary<string, IEegFileInfo>
+        {
+            { "sm0", new MicromedFileInfo("/fake/x.TRC") }
+        };
+        subject.Experiments.Add(new Experiment("Exp", files, ""));
+
+        string json = JsonConvert.SerializeObject(
+            new System.Collections.Generic.List<Subject> { subject }, BtvJson.WriteSettings);
+        var loaded = JsonConvert.DeserializeObject<System.Collections.Generic.List<Subject>>(json, BtvJson.ReadSettings);
+
+        // The concrete polymorphic type must survive the round-trip (backward-compatible with
+        // existing .dbtv2 files, which embed "$type": "MicromedFileInfo, Assembly-CSharp").
+        IEegFileInfo restored = loaded[0].Experiments[0].Files["sm0"];
+        Assert.IsInstanceOf<MicromedFileInfo>(restored);
+        Assert.AreEqual("/fake/x.TRC", ((MicromedFileInfo)restored).Trc);
+    }
+
+    [Test]
+    public void BtvJson_RejectsDisallowedType()
+    {
+        // A crafted $type outside the allow-list must be refused (closes the RCE gadget vector).
+        string evil = "{\"$type\":\"System.IO.FileInfo, mscorlib\",\"fileName\":\"/etc/passwd\"}";
+        Assert.That(() => JsonConvert.DeserializeObject<IEegFileInfo>(evil, BtvJson.ReadSettings),
+            Throws.Exception);
+    }
+    #endregion
 }

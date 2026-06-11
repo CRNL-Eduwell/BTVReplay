@@ -37,7 +37,7 @@ namespace Assets.Scripts.Data.Files
             {
                 using (StreamReader streamReader = new StreamReader(FilePath))
                 {
-                    Pairs = JsonConvert.DeserializeObject<List<CodeCommentPair>>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                    Pairs = JsonConvert.DeserializeObject<List<CodeCommentPair>>(streamReader.ReadToEnd(), BtvJson.ReadSettings);
                 }
 
                 return 0;
