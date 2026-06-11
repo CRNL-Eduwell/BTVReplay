@@ -146,7 +146,7 @@ namespace BTV.UI.PatientBaseManager
             {
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
                     {
-                        UnityEngine.Debug.Log("Adding a Database element : ");
+                        BtvLog.Log("Adding a Database element : ");
                         SubjectRepository itemToAdd = (SubjectRepository)e.NewItems[0]; //list of new items, only one at a time normally
                         m_MoveSubjectsSubMenu.AddSubMenuItem(itemToAdd);
                         m_CopySubjectsSubMenu.AddSubMenuItem(itemToAdd);
@@ -154,12 +154,12 @@ namespace BTV.UI.PatientBaseManager
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
                     {
-                        UnityEngine.Debug.Log("Moving a Database element : ");
+                        BtvLog.Log("Moving a Database element : ");
                         break;
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
                     {
-                        UnityEngine.Debug.Log("Removing a Database element : ");
+                        BtvLog.Log("Removing a Database element : ");
                         SubjectRepository itemToRemove = (SubjectRepository)e.OldItems[0];
                         m_MoveSubjectsSubMenu.RemoveSubMenuItem(itemToRemove);
                         m_CopySubjectsSubMenu.RemoveSubMenuItem(itemToRemove);
@@ -167,12 +167,12 @@ namespace BTV.UI.PatientBaseManager
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
                     {
-                        UnityEngine.Debug.Log("Replacing a Database element : ");
+                        BtvLog.Log("Replacing a Database element : ");
                         break;
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
                     {
-                        UnityEngine.Debug.Log("Reseting a Database element : ");
+                        BtvLog.Log("Reseting a Database element : ");
                         break;
                     }
             }

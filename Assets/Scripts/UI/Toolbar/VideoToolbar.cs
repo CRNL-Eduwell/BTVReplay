@@ -48,7 +48,7 @@ namespace BTV.UI.Module3D
 
         private void UpdateAudioTraceGain(float NewGain)
         {
-            UnityEngine.Debug.Log("Update audio trace gain");
+            BtvLog.Log("Update audio trace gain");
             UiToVideoMessage message = new UiToVideoMessage
             {
                 TaskToExecute = 0,
@@ -59,7 +59,7 @@ namespace BTV.UI.Module3D
 
         private void UpdateAudioTraceOffset(float NewOffset)
         {
-            UnityEngine.Debug.Log("Update audio trace offset");
+            BtvLog.Log("Update audio trace offset");
             UiToVideoMessage message = new UiToVideoMessage
             {
                 TaskToExecute = 1,
@@ -70,7 +70,7 @@ namespace BTV.UI.Module3D
 
         private void ToggleAudioTrace(bool IsOn)
         {
-            UnityEngine.Debug.Log("Toggle Audio Trace");
+            BtvLog.Log("Toggle Audio Trace");
             UiToVideoMessage message = new UiToVideoMessage
             {
                 TaskToExecute = 2,
@@ -81,7 +81,7 @@ namespace BTV.UI.Module3D
 
         private void UpdateAudioTraceFile(int NewIdSm)
         {
-            UnityEngine.Debug.Log("Update Audio Trace File");
+            BtvLog.Log("Update Audio Trace File");
             UiToVideoMessage message = new UiToVideoMessage
             {
                 TaskToExecute = 3,

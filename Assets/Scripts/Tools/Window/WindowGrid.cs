@@ -25,7 +25,7 @@ public class WindowGrid
 
     public void DefineGrid()
     {
-        UnityEngine.Debug.Log("WindowGrid => DefineGrid from Rect Size");
+        BtvLog.Log("WindowGrid => DefineGrid from Rect Size");
         for (int i = 0; i < RowCount; i++)
         {
             for (int j = 0; j < ColumnCount; j++)

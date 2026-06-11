@@ -37,7 +37,7 @@ public class NormalizeTF : MonoBehaviour
             }
             else
             {
-                UnityEngine.Debug.Log("index : " + indexOf);
+                BtvLog.Log("index : " + indexOf);
                 _NormalizedEventList.Select(_NormalizedEventList.Objects[indexOf]);
             }
         }

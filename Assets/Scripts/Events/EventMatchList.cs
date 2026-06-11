@@ -21,7 +21,7 @@ public class EventMatchList : Tools.Unity.Lists.SelectableList<KeyValuePair<int,
     }
     public void DeleteAllEvents()
     {
-        UnityEngine.Debug.Log("Deleting " + m_DisplayedObjects.Count + " objects");
+        BtvLog.Log("Deleting " + m_DisplayedObjects.Count + " objects");
         for (int i = m_DisplayedObjects.Count - 1; i >= 0; i--)
         {
             Remove(m_DisplayedObjects[i]);

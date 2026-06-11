@@ -150,7 +150,7 @@ public class ExperimentDataWidget : MonoBehaviour
         addMe.OnSingleClick.AddListener(() => { SwitchTo(addMe); });
         addMe.OnDoubleClick.AddListener(() =>
         {
-            InputFieldWindow window = ApplicationState.SpawFrequencyChoiceWindow();
+            InputFieldWindow window = ApplicationState.SpawnFrequencyChoiceWindow();
             window.Initialize("Label", "Choose a new label for you tab",
                 () =>
                 {
@@ -258,7 +258,7 @@ public class ExperimentDataWidget : MonoBehaviour
 
         if (m_Subject.Experiments[m_ExperimentID].Files.ContainsKey(key))
         {
-            UnityEngine.Debug.Log("Update coming from " + key + " new value is " + text);
+            BtvLog.Log("Update coming from " + key + " new value is " + text);
             FileInfo fileInfo = new FileInfo(text);
             if (fileInfo.Extension == ".TRC")
             {
@@ -283,7 +283,7 @@ public class ExperimentDataWidget : MonoBehaviour
         }
         else
         {
-            UnityEngine.Debug.Log("Adding key " + key + " new value is " + text);
+            BtvLog.Log("Adding key " + key + " new value is " + text);
             FileInfo fileInfo = new FileInfo(text);
             if (fileInfo.Extension == ".TRC")
             {
@@ -332,7 +332,7 @@ public class ExperimentDataWidget : MonoBehaviour
                 if (m_Subject.Experiments[m_ExperimentID].Files.ContainsKey(oldstr))
                 {
                     m_Subject.Experiments[m_ExperimentID].Files.Remove(oldstr);
-                    UnityEngine.Debug.Log("Removing : " + oldstr);
+                    BtvLog.Log("Removing : " + oldstr);
                 }
             }
 

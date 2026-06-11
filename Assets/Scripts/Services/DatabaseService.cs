@@ -17,7 +17,7 @@ namespace BTV.Services.DatabaseService
         {
             if (!string.IsNullOrEmpty(filePath))
             {
-                UnityEngine.Debug.Log("Creating new db to " + filePath);
+                BtvLog.Log("Creating new db to " + filePath);
                 SubjectRepository db = new SubjectRepository(filePath, null);
                 db.Save();
                 Databases.Add(db);
@@ -28,7 +28,7 @@ namespace BTV.Services.DatabaseService
         {
             if (string.IsNullOrEmpty(filePath))
             {
-                UnityEngine.Debug.Log("OpenDatabase : Filepath is null or empty");
+                BtvLog.Log("OpenDatabase : Filepath is null or empty");
                 return;
             }
             FileInfo file = new FileInfo(filePath);
@@ -38,7 +38,7 @@ namespace BTV.Services.DatabaseService
                 return;
             }
 
-            UnityEngine.Debug.Log("OpenDatabase => " + filePath);
+            BtvLog.Log("OpenDatabase => " + filePath);
             Databases.Add(new SubjectRepository(filePath));
         }
 
@@ -46,7 +46,7 @@ namespace BTV.Services.DatabaseService
         {
             if (Databases.Contains(element))
             {
-                UnityEngine.Debug.Log("Update DB Name, contains element");
+                BtvLog.Log("Update DB Name, contains element");
                 int index = Databases.IndexOf(element);
                 string filePath = Databases[index].FilePath;
                 Databases[index].FilePath = filePath.Replace(oldName + ".dbtv2", newName + ".dbtv2");
@@ -57,7 +57,7 @@ namespace BTV.Services.DatabaseService
         {
             if (Databases.Contains(element))
             {
-                UnityEngine.Debug.Log("Deleting DB, contains element");
+                BtvLog.Log("Deleting DB, contains element");
                 int index = Databases.IndexOf(element);
                 Databases.RemoveAt(index);
             }
@@ -70,7 +70,7 @@ namespace BTV.Services.DatabaseService
                 int index = Databases.IndexOf(element);
                 if (Databases[index].Subjects.Contains(subject))
                 {
-                    UnityEngine.Debug.Log("Update Subject Name, contains element");
+                    BtvLog.Log("Update Subject Name, contains element");
                     int subIndex = Databases[index].Subjects.IndexOf(subject);
                     Databases[index].Subjects[subIndex].PatientName = newName;
                 }
@@ -81,7 +81,7 @@ namespace BTV.Services.DatabaseService
         {
             if (Databases.Contains(element))
             {
-                UnityEngine.Debug.Log("Add New Default Patient");
+                BtvLog.Log("Add New Default Patient");
                 int index = Databases.IndexOf(element);
 
                 string name = "DefaultName";
@@ -107,7 +107,7 @@ namespace BTV.Services.DatabaseService
                 int index = Databases.IndexOf(element);
                 if (!Databases[index].Subjects.Contains(subject))
                 {
-                    UnityEngine.Debug.Log("Add Already existing Patient");
+                    BtvLog.Log("Add Already existing Patient");
                     Databases[index].Add(subject);
                     return true;
                 }
@@ -119,9 +119,9 @@ namespace BTV.Services.DatabaseService
         {
             if (Databases.Contains(element))
             {
-                UnityEngine.Debug.Log("Remove subject , Repository found");
+                BtvLog.Log("Remove subject , Repository found");
                 int index = Databases.IndexOf(element);
-                UnityEngine.Debug.Log("Remove subject , Trying to remove subject");
+                BtvLog.Log("Remove subject , Trying to remove subject");
                 Databases[index].Remove(subject);
             }
         }
@@ -133,7 +133,7 @@ namespace BTV.Services.DatabaseService
                 int index = Databases.IndexOf(element);
                 if (index != -1)
                 {
-                    UnityEngine.Debug.Log("Replace subject , Repository found");
+                    BtvLog.Log("Replace subject , Repository found");
                     Databases[index].Update(oldSubject, newSubject);
                 }
             }
@@ -143,7 +143,7 @@ namespace BTV.Services.DatabaseService
         {
             if (dbIndex != -1)
             {
-                UnityEngine.Debug.Log("Replace subject in " + dbIndex + " , Repository found");
+                BtvLog.Log("Replace subject in " + dbIndex + " , Repository found");
                 Databases[dbIndex].Update(oldSubject, newSubject);
             }
         }

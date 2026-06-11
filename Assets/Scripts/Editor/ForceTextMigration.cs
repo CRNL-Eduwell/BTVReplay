@@ -15,6 +15,6 @@ public static class ForceTextMigration
         EditorSettings.serializationMode = SerializationMode.ForceText;
         AssetDatabase.ForceReserializeAssets();
         AssetDatabase.SaveAssets();
-        Debug.Log("ForceTextMigration: serialization mode set to ForceText, all assets re-serialized.");
+        BtvLog.Log("ForceTextMigration: serialization mode set to ForceText, all assets re-serialized.");
     }
 }

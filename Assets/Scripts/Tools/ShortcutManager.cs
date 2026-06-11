@@ -138,7 +138,7 @@ public class ShortcutManager : MonoBehaviour
     //    Event e = Event.current;
     //    if (e.isKey)
     //    {
-    //        Debug.Log("Detected key code: " + e.keyCode);
+    //        BtvLog.Log("Detected key code: " + e.keyCode);
     //    }
     //}
 
@@ -147,7 +147,7 @@ public class ShortcutManager : MonoBehaviour
         m_Timer += Time.deltaTime;
         if (MoveBrainActionPerformed)
         {
-            UnityEngine.Debug.Log("Move Brain Keyboard Shortcut");
+            BtvLog.Log("Move Brain Keyboard Shortcut");
             m_Timer = 0;
             m_Message = new ShortcutMessage
             {
@@ -160,7 +160,7 @@ public class ShortcutManager : MonoBehaviour
         else if (MoveWindow1ActionPerformed)
         {
             m_Timer = 0;
-            UnityEngine.Debug.Log("Move Window 1 Shortcut");
+            BtvLog.Log("Move Window 1 Shortcut");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.Move,
@@ -173,7 +173,7 @@ public class ShortcutManager : MonoBehaviour
         else if (MoveWindow2ActionPerformed)
         {
             m_Timer = 0;
-            UnityEngine.Debug.Log("Move Window 2 Shortcut");
+            BtvLog.Log("Move Window 2 Shortcut");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.Move,
@@ -185,7 +185,7 @@ public class ShortcutManager : MonoBehaviour
         }
         else if (FocusWindow1ActionPerformed)
         {
-            UnityEngine.Debug.Log("Focus Window 1 Shortcut");
+            BtvLog.Log("Focus Window 1 Shortcut");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.Focus,
@@ -197,7 +197,7 @@ public class ShortcutManager : MonoBehaviour
         }
         else if (FocusWindow2ActionPerformed)
         {
-            UnityEngine.Debug.Log("Focus Window 2 Shortcut");
+            BtvLog.Log("Focus Window 2 Shortcut");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.Focus,
@@ -210,7 +210,7 @@ public class ShortcutManager : MonoBehaviour
         else if (ChangeOptionValueActionPerformed)
         {
             m_Timer = 0;
-            UnityEngine.Debug.Log("Update Window Option Up Shortcut");
+            BtvLog.Log("Update Window Option Up Shortcut");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.UpdateOptionValue,
@@ -222,7 +222,7 @@ public class ShortcutManager : MonoBehaviour
         }
         else if (FocusTracesDisplayerActionperformed)
         {
-            UnityEngine.Debug.Log("Focus Trace Displayer Shortcut");
+            BtvLog.Log("Focus Trace Displayer Shortcut");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.Focus,
@@ -233,7 +233,7 @@ public class ShortcutManager : MonoBehaviour
         }
         else if (ChangeSelectedOptionLeft_TracesDisplayerActionperformed)
         {
-            UnityEngine.Debug.Log("Change Trace Displayer Selected Option Shortcut (left)");
+            BtvLog.Log("Change Trace Displayer Selected Option Shortcut (left)");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.ChangeOption,
@@ -244,7 +244,7 @@ public class ShortcutManager : MonoBehaviour
         }
         else if (ChangeSelectedOptionRight_TracesDisplayerActionperformed)
         {
-            UnityEngine.Debug.Log("Change Trace Displayer Selected Option Shortcut (right)");
+            BtvLog.Log("Change Trace Displayer Selected Option Shortcut (right)");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.ChangeOption,
@@ -256,7 +256,7 @@ public class ShortcutManager : MonoBehaviour
         else if (ChangeOptionValueUp_TracesDisplayerActionperformed)
         {
             m_Timer = 0;
-            UnityEngine.Debug.Log("Update Trace Displayer Option value Shortcut (up)");
+            BtvLog.Log("Update Trace Displayer Option value Shortcut (up)");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.UpdateOptionValue,
@@ -268,7 +268,7 @@ public class ShortcutManager : MonoBehaviour
         else if (ChangeOptionValueDown_TracesDisplayerActionperformed)
         {
             m_Timer = 0;
-            UnityEngine.Debug.Log("Update Trace Displayer Option value Shortcut (down)");
+            BtvLog.Log("Update Trace Displayer Option value Shortcut (down)");
             m_Message = new ShortcutMessage
             {
                 Action = ShortcutActions.UpdateOptionValue,

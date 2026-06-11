@@ -124,7 +124,7 @@ namespace BTV.Services.VideoService
 
         public static IEnumerator c_RecordVideoSnippet(string OutputVideoPath, string durationInSeconds)
         {
-            UnityEngine.Debug.Log("Record " + OutputVideoPath + " et duree " + durationInSeconds);
+            BtvLog.Log("Record " + OutputVideoPath + " et duree " + durationInSeconds);
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.FileName = m_VlcPath;

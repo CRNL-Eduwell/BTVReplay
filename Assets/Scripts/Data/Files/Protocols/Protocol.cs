@@ -70,7 +70,7 @@ public class Protocol
                                     window[0] = 0;
                                     window[1] = 0;
                                     tempBloc.dispBloc.epochWindow = window;
-                                    //Debug.Log("Problème avec la fenêtre");
+                                    //BtvLog.Log("Problème avec la fenêtre");
                                 }
                                 break;
                             case 5:
@@ -86,7 +86,7 @@ public class Protocol
                                     baseLineWindow[0] = 0;
                                     baseLineWindow[1] = 0;
                                     tempBloc.dispBloc.baselineWindow = baseLineWindow;
-                                    //Debug.Log("Problème avec la baseline");
+                                    //BtvLog.Log("Problème avec la baseline");
                                 }
                                 break;
                             case 6:
@@ -122,7 +122,7 @@ public class Protocol
                                 tempBloc.dispBloc.sort = resSplit[i];
                                 break;
                             default:
-                                //Debug.Log("Problème avec le .prov");
+                                //BtvLog.Log("Problème avec le .prov");
                                 break;
                         }
                     }

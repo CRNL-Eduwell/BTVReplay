@@ -67,7 +67,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
     //and init everything with init functions in all necessary classes
     private void InitDisplay()
     {
-        UnityEngine.Debug.Log("Init");
+        BtvLog.Log("Init");
         _ResizableGrid.Init();
 
         _ResizableGrid.VerticalHandlers[0].MagneticPosition = 0.25f;
@@ -211,7 +211,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
             FileInfo fileinfo = new FileInfo(SelectedElements[0].FilePath);
             string name = fileinfo.Name.Replace(".dbtv2", "");
 
-            InputFieldWindow window = ApplicationState.SpawFrequencyChoiceWindow();
+            InputFieldWindow window = ApplicationState.SpawnFrequencyChoiceWindow();
             window.Initialize("Database Name", "Choose a new name for your Database",
                 () =>
                 {
@@ -242,7 +242,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
             Subject[] SelectedSubjects = _SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                InputFieldWindow window = ApplicationState.SpawFrequencyChoiceWindow();
+                InputFieldWindow window = ApplicationState.SpawnFrequencyChoiceWindow();
                 window.Initialize("Subject Name", "Choose a new name for your Subject",
                     () =>
                     {
@@ -332,25 +332,25 @@ public class SubjectDatabaseWindow : MonoBehaviour
         switch (e.Action)
         {
             case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
-                UnityEngine.Debug.Log("Adding a Database element : ");
+                BtvLog.Log("Adding a Database element : ");
                 SubjectRepository itemToAdd = (SubjectRepository)e.NewItems[0]; //list of new items, only one at a time normally
                 ((INotifyCollectionChanged)itemToAdd.Subjects).CollectionChanged += UpdateSubjectCollection;
                 _DatabaseList.AddElement(itemToAdd);
                 break;
             case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
-                UnityEngine.Debug.Log("Moving a Database element : ");
+                BtvLog.Log("Moving a Database element : ");
                 break;
             case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
-                UnityEngine.Debug.Log("Removing a Database element : ");
+                BtvLog.Log("Removing a Database element : ");
                 SubjectRepository itemToRemove = (SubjectRepository)e.OldItems[0];
                 ((INotifyCollectionChanged)itemToRemove.Subjects).CollectionChanged -= UpdateSubjectCollection;
                 _DatabaseList.RemoveElement(itemToRemove);
                 break;
             case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
-                UnityEngine.Debug.Log("Replacing a Database element : ");
+                BtvLog.Log("Replacing a Database element : ");
                 break;
             case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
-                UnityEngine.Debug.Log("Reseting a Database element : ");
+                BtvLog.Log("Reseting a Database element : ");
                 break;
         }
     }
@@ -361,19 +361,19 @@ public class SubjectDatabaseWindow : MonoBehaviour
         {
             case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
                 {
-                    UnityEngine.Debug.Log("Adding a Subject element : ");
+                    BtvLog.Log("Adding a Subject element : ");
                     Subject itemToAdd = (Subject)e.NewItems[0]; //list of new items, only one at a time normally
                     _SubjectList.AddElement(itemToAdd);
                     break;
                 }
             case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
                 {
-                    UnityEngine.Debug.Log("Moving a Subject element : ");
+                    BtvLog.Log("Moving a Subject element : ");
                     break;
                 }
             case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
                 {
-                    UnityEngine.Debug.Log("Removing a Subject element : ");
+                    BtvLog.Log("Removing a Subject element : ");
                     Subject itemToRemove = (Subject)e.OldItems[0];
                     _SubjectList.RemoveElement(itemToRemove);
                     break;
@@ -385,7 +385,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
                     //underlying collection to be updated
                     if (!m_dbSwitch)
                     {
-                        UnityEngine.Debug.Log("Replacing a Subject element : ");
+                        BtvLog.Log("Replacing a Subject element : ");
                         Subject itemToRemove = (Subject)e.OldItems[0];
                         Subject itemToAdd = (Subject)e.NewItems[0];
                         _SubjectList.ReplaceElement(itemToRemove, itemToAdd);
@@ -394,7 +394,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
                 break;
             case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
                 {
-                    UnityEngine.Debug.Log("Reseting a Subject element : ");
+                    BtvLog.Log("Reseting a Subject element : ");
                     break;
                 }
         }

@@ -96,11 +96,11 @@ public class EventWithDuration : EventTrace
 
     private void NormalizeTimeFrequency(bool shoudNormalize)
     {
-        UnityEngine.Debug.Log("Should Normalize " + shoudNormalize);
+        BtvLog.Log("Should Normalize " + shoudNormalize);
 
         if (shoudNormalize)
         {
-            NormalizeTF window = SpawFrequencyChoiceWindow();
+            NormalizeTF window = SpawnFrequencyChoiceWindow();
             window.Initialize(() =>
             {
                 if (TimeFrequencyService.BaselineEvent == null)
@@ -161,7 +161,7 @@ public class EventWithDuration : EventTrace
         }
     }
 
-    private NormalizeTF SpawFrequencyChoiceWindow()
+    private NormalizeTF SpawnFrequencyChoiceWindow()
     {
         GameObject viewGameObject = GameObject.Find("Windows");
         GameObject inputField = Instantiate(m_InputFieldWindowPrefabs, viewGameObject.transform);
@@ -257,7 +257,7 @@ public class EventWithDuration : EventTrace
         if (message.EventOfInterest.Duration != EventOfInterest.Duration) return;
 
         //SetTf Data in Viewer
-        UnityEngine.Debug.Log("OnTimeFrequencyResultMessage : Setting tf ");
+        BtvLog.Log("OnTimeFrequencyResultMessage : Setting tf ");
         SetTfData(message.TFDataStructure, EventOfInterest);
     }
 

@@ -55,7 +55,7 @@ public class CalculationManager : MonoBehaviour
             case TaskState.Done:
                 {
                     yield return Ninja.JumpToUnity;
-                    UnityEngine.Debug.Log("TF Done");
+                    BtvLog.Log("TF Done");
                     TimeFrequencyResultMessage message = new TimeFrequencyResultMessage
                     {
                         TFDataStructure = m_TfDataStruct,
@@ -94,9 +94,9 @@ public class CalculationManager : MonoBehaviour
         int FrameCount = ((DataToProcess.Length - m_FrameSize) / m_HopSize) + 1;
         int FreqBinCount = (m_FrameSize / 2) + 1;
 
-        UnityEngine.Debug.Log("Frame Count : " + FrameCount);
-        UnityEngine.Debug.Log("Freq Bin Count : " + FreqBinCount);
-        UnityEngine.Debug.Log("Sampling Frequency : " + Fs);
+        BtvLog.Log("Frame Count : " + FrameCount);
+        BtvLog.Log("Freq Bin Count : " + FreqBinCount);
+        BtvLog.Log("Sampling Frequency : " + Fs);
 
         m_TfDataStruct = new TimeFrequencyDataStructure(Fs, FreqBinCount, FrameCount);
         for (int i = 0; i < FrameCount; i++)
@@ -124,7 +124,7 @@ public class CalculationManager : MonoBehaviour
             case TaskState.Done:
                 {
                     yield return Ninja.JumpToUnity;
-                    UnityEngine.Debug.Log("TF Normalization Done");
+                    BtvLog.Log("TF Normalization Done");
                     TimeFrequencyResultMessage message = new TimeFrequencyResultMessage
                     {
                         TFDataStructure = m_TfDataStruct,
@@ -188,9 +188,9 @@ public class CalculationManager : MonoBehaviour
         int FrameCount = ((DataToProcess.Length - frameSize) / HopSize) + 1;
         int FreqBinCount = (frameSize / 2) + 1;
 
-        UnityEngine.Debug.Log("Frame Count : " + FrameCount);
-        UnityEngine.Debug.Log("Freq Bin Count : " + FreqBinCount);
-        UnityEngine.Debug.Log("Sampling Frequency : " + Fs);
+        BtvLog.Log("Frame Count : " + FrameCount);
+        BtvLog.Log("Freq Bin Count : " + FreqBinCount);
+        BtvLog.Log("Sampling Frequency : " + Fs);
 
         TimeFrequencyDataStructure tfDataStruct = new TimeFrequencyDataStructure(Fs, FreqBinCount, FrameCount);
         for (int i = 0; i < FrameCount; i++)
