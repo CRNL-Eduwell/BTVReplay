@@ -23,6 +23,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     private GameObject m_elecOption = null;
 
     private int m_lastRtWidth = -1, m_lastRtHeight = -1;
+    private RenderTexture m_ownedRt = null;
     private Site[] m_cachedSites = null;
     private Dictionary<string, Site> m_siteByName = null;
 
@@ -63,11 +64,15 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
                 RenderTexture renderTexture = new RenderTexture(w, h, 24);
                 renderTexture.antiAliasing = 1;
 
-                RenderTexture old = brainCam.targetTexture;
                 brainCam.targetTexture = renderTexture;
                 brainCam.aspect = (float)w / h;
                 m_rawImage.texture = renderTexture;
-                if (old != null) { old.Release(); Destroy(old); }
+
+                // Only free RenderTextures we created here. The camera's initial targetTexture
+                // is a scene asset, and Destroy() on an asset throws "Destroying assets is not
+                // permitted" - so we track and release only our own runtime instances.
+                if (m_ownedRt != null) { m_ownedRt.Release(); Destroy(m_ownedRt); }
+                m_ownedRt = renderTexture;
 
                 m_lastRtWidth = w;
                 m_lastRtHeight = h;
