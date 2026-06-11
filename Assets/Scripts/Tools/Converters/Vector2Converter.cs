@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Json converter capable of Handling UnityEngine.Color struct
 /// </summary>
-class Vector2Converter : JsonConverter
+public class Vector2Converter : JsonConverter
 {
     public override bool CanConvert(Type objectType)
     {
@@ -34,11 +34,16 @@ class Vector2Converter : JsonConverter
     /// <returns></returns>
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
-        string[] splitedString = ((string)reader.Value).Split(new char[] { '(', ')', ','}, StringSplitOptions.None);
+        // Expected format: "(1.00, 2.00)" (Vector2.ToString())
+        string[] splitedString = ((string)reader.Value).Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+        if (splitedString.Length == 0) return Vector2.zero;
 
-        NumberExtensions.TryParseFloat(splitedString[0], out float x);
-        NumberExtensions.TryParseFloat(splitedString[1], out float y);
+        string[] components = splitedString[splitedString.Length - 1].Split(',');
+        if (components.Length != 2) return Vector2.zero;
 
-        return splitedString.Length == 3 ? new Vector2(x, y) : new Vector2(0, 0);
+        NumberExtensions.TryParseFloat(components[0], out float x);
+        NumberExtensions.TryParseFloat(components[1], out float y);
+
+        return new Vector2(x, y);
     }
 }

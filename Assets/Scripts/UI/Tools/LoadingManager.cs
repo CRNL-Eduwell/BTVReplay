@@ -41,7 +41,8 @@ public class LoadingManager : MonoBehaviour
     public static IEnumerator c_Load(IEnumerator action, GenericEvent<float, string> onChangeProgress, Action<TaskState> callBack = null)
     {
         LoadingCircle loadingCircle = Open();
-        onChangeProgress.AddListener((progress, message) => loadingCircle.Set(progress, message));
+        UnityAction<float, string> progressHandler = (progress, message) => loadingCircle.Set(progress, message);
+        onChangeProgress.AddListener(progressHandler);
         yield return m_Instance.StartCoroutineAsync(action, out Task task);
         switch (task.State)
         {
@@ -49,9 +50,15 @@ public class LoadingManager : MonoBehaviour
                 yield return new WaitForSeconds(0.2f);
                 break;
             case TaskState.Error:
-                Exception exception = task.Exception;
+                Debug.LogError("LoadingManager: a background loading task failed.");
+                if (task.Exception != null)
+                {
+                    Debug.LogException(task.Exception);
+                    ApplicationState.displayMessage("Loading failed", "NOK", task.Exception.Message);
+                }
                 break;
         }
+        onChangeProgress.RemoveListener(progressHandler);
         loadingCircle.Close();
         if (callBack != null) callBack.Invoke(task.State);
     }

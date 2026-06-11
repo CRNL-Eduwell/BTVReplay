@@ -50,7 +50,7 @@ public class ElanFileInfo : IEegFileInfo
         {
             List<ArgumentException> notesError = CheckFileForError(Notes, ".txt");
             if (notesError != null)
-                Errors.Concat(notesError).ToList();
+                Errors = Errors.Concat(notesError).ToList();
         }
 
         return Errors;

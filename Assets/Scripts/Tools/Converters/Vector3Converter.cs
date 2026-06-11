@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Json converter capable of Handling UnityEngine.Color struct
 /// </summary>
-class Vector3Converter : JsonConverter
+public class Vector3Converter : JsonConverter
 {
     public override bool CanConvert(Type objectType)
     {
@@ -34,12 +34,17 @@ class Vector3Converter : JsonConverter
     /// <returns></returns>
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
-        string[] splitedString = ((string)reader.Value).Split(new char[] { '(', ')', ','}, StringSplitOptions.None);
+        // Expected format: "(1.00, 2.00, 3.00)" (Vector3.ToString())
+        string[] splitedString = ((string)reader.Value).Split(new char[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+        if (splitedString.Length == 0) return Vector3.zero;
 
-        NumberExtensions.TryParseFloat(splitedString[0], out float x);
-        NumberExtensions.TryParseFloat(splitedString[1], out float y);
-        NumberExtensions.TryParseFloat(splitedString[2], out float z);
+        string[] components = splitedString[splitedString.Length - 1].Split(',');
+        if (components.Length != 3) return Vector3.zero;
 
-        return splitedString.Length == 3 ? new Vector3(x, y, z) : new Vector3(0, 0, 0);
+        NumberExtensions.TryParseFloat(components[0], out float x);
+        NumberExtensions.TryParseFloat(components[1], out float y);
+        NumberExtensions.TryParseFloat(components[2], out float z);
+
+        return new Vector3(x, y, z);
     }
 }

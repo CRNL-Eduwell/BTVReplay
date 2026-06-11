@@ -53,7 +53,7 @@ namespace Assets.Scripts.Data
                     line = sr.ReadLine();
                     string[] split = line.Split(new string[] { "\t" }, System.StringSplitOptions.RemoveEmptyEntries);
 
-                    if (split.Length >= 3)
+                    if (split.Length >= 4)
                     {
                         string plot = split.GetValue(0).ToString().ToLower();
 
