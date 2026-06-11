@@ -430,10 +430,16 @@ public class RangeSlider : Selectable, IDragHandler, IInitializePotentialDragHan
 
         UpdateCachedReferences();
         Set(m_MinValue, m_MaxValue, Handle.None, false);
-        // Update rects since other things might affect them even if value didn't change.
-        UpdateVisuals();
-        UpdateSelectionState();
-        TransitionToSelectionState(true);
+        // Defer the visual update: it sets RectTransform anchors, which triggers a
+        // SendMessage (OnRectTransformDimensionsChange) that Unity forbids during OnValidate.
+        // Running it on the next editor tick avoids the warning Unity 6 raises here.
+        UnityEditor.EditorApplication.delayCall += () =>
+        {
+            if (this == null) return;
+            UpdateVisuals();
+            UpdateSelectionState();
+            TransitionToSelectionState(true);
+        };
     }
 #endif
     protected override void OnEnable()

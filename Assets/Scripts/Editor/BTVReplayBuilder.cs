@@ -31,7 +31,7 @@ public class BTVReplayBuilder : MonoBehaviour
                 m_DataBuild = "BTVReplay_Data/Config";
                 break;
             case BuildTarget.StandaloneOSX:
-                UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.OSXStandalone.MacOSArchitecture.ARM64;
+                UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.Build.OSArchitecture.ARM64;
                 os = "macos64";
                 m_DataBuild = "Contents/Config";
                 break;
@@ -98,7 +98,7 @@ public class BTVReplayBuilder : MonoBehaviour
                 break;
             case BuildTarget.StandaloneOSX:
                 {
-                    if (UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.OSXStandalone.MacOSArchitecture.ARM64)
+                    if (UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.Build.OSArchitecture.ARM64)
                     {
                         string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
                         DirectoryInfo pluginsDirectory = new DirectoryInfo(pluginsPath);
