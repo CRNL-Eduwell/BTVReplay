@@ -6,6 +6,7 @@ using NUnit.Framework;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 /// <summary>
 /// Edit-mode tests for the patient-database persistence layer, covering the historical
@@ -136,6 +137,10 @@ public class DataSafetyTests
     [Test]
     public void Save_RefusesToOverwriteWhenLoadFailed()
     {
+        // The load failure and the save refusal both log errors on purpose; the runner would
+        // otherwise auto-fail the test for emitting them.
+        LogAssert.ignoreFailingMessages = true;
+
         string path = Path.Combine(m_TestDir, "corrupt.dbtv2");
         string garbage = "{ this is not json";
         File.WriteAllText(path, garbage);
