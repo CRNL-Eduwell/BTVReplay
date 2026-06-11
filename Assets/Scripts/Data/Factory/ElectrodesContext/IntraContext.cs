@@ -15,6 +15,12 @@ namespace Assets.Scripts.Data.Factory
     {
         public void LoadElectrodesOnBrain(GameObject parent, List<AnatomicalSite> sites)
         {
+            if (sites == null || sites.Count == 0)
+            {
+                Debug.LogWarning("IntraContext.LoadElectrodesOnBrain: no electrode sites for this subject; skipping electrode placement.");
+                return;
+            }
+
             int counter = 0;
             GameObject ElectrodePlot_prefab = Resources.Load("Prefabs/Brain-ElecPlot", typeof(GameObject)) as GameObject;
             List<KeyValuePair<string, List<AnatomicalSite>>> electrodes = GetIntraElectrodes(sites);

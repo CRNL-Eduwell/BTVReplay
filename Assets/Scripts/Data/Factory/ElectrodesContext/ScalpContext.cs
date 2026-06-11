@@ -15,6 +15,12 @@ namespace Assets.Scripts.Data.Factory
         /// <param name="parent">Root Brain Gameobject</param>
         public void LoadElectrodesOnBrain(GameObject parent, List<AnatomicalSite> sites)
         {
+            if (sites == null || sites.Count == 0)
+            {
+                Debug.LogWarning("ScalpContext.LoadElectrodesOnBrain: no electrode sites for this subject; skipping electrode placement.");
+                return;
+            }
+
             GameObject ElectrodePlot_prefab = Resources.Load("Prefabs/Brain-ElecPlot", typeof(GameObject)) as GameObject;
 
             GameObject Electrode = new GameObject();
