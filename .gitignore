@@ -23,3 +23,10 @@
 # Unity3D generated meta files
 *.pidb.meta
 # Unity3D Generated File On Crash Reports
+# Local-only assets (stripped from history during GitHub migration, June 2026)
+# Drum2.wav: 116MB, exceeds GitHub 100MB limit. ben*.dbtv2: hospital-internal paths.
+Assets/Config/Sounds/Drum2.wav
+Assets/Config/Sounds/Drum2.wav.meta
+Assets/Config/PatientBase/ben*.dbtv2
+Assets/Config/PatientBase/ben*.dbtv2.meta
+*.VC.db
