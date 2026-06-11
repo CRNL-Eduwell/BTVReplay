@@ -78,7 +78,7 @@ public class BTVReplayBuilder : MonoBehaviour
                 target, report.summary.result, report.summary.totalErrors));
             return;
         }
-        Debug.Log(string.Format("BTVReplayBuilder: {0} build succeeded -> {1} ({2:0.0} MB)",
+        BtvLog.Log(string.Format("BTVReplayBuilder: {0} build succeeded -> {1} ({2:0.0} MB)",
             target, buildDirectory, report.summary.totalSize / (1024f * 1024f)));
 
         string projectPath = Application.dataPath;

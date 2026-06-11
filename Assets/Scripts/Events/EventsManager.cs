@@ -69,7 +69,7 @@ public class EventsManager : MonoBehaviour
         {
             case 0:
                 {
-                    Debug.Log("Load File");
+                    BtvLog.Log("Load File");
                     ApplicationState.displayConfirmation("Loading Events", "Do you want to delete all previous events or add to them ?",
                         () =>
                         {
@@ -83,12 +83,12 @@ public class EventsManager : MonoBehaviour
                 }
             case 1:
                 {
-                    Debug.Log("Save File");
+                    BtvLog.Log("Save File");
                     FileInfo file = new FileInfo(message.FilePathToSave);
                     if (file.Extension == ".pos")
                     {
                         string path = message.FilePathToSave.Replace(".pos", "_btv.pos");
-                        InputFieldWindow window = SpawFrequencyChoiceWindow();
+                        InputFieldWindow window = SpawnFrequencyChoiceWindow();
                         window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { EventsService.SaveEvents(path, window.IntValue); window.Close(); }, () => { window.Close(); });
                     }
                     else
@@ -99,7 +99,7 @@ public class EventsManager : MonoBehaviour
                 }
             case 2:
                 {
-                    Debug.Log("Toggle Add Event");
+                    BtvLog.Log("Toggle Add Event");
                     EventsToTraceMessage EventsMessage = new EventsToTraceMessage
                     {
                         TaskToExecute = 0,
@@ -110,7 +110,7 @@ public class EventsManager : MonoBehaviour
                 }
             case 3:
                 {
-                    Debug.Log("Toggle Show Event");
+                    BtvLog.Log("Toggle Show Event");
                     EventsToTraceMessage EventsMessage = new EventsToTraceMessage
                     {
                         TaskToExecute = 1,
@@ -121,13 +121,13 @@ public class EventsManager : MonoBehaviour
                 }
             case 4:
                 {
-                    Debug.Log("Delete Selected Notes");
+                    BtvLog.Log("Delete Selected Notes");
                     ApplicationState.displayConfirmation("Deleting Notes", "You are going to delete " + ((ISelectionCountable)m_EventsList).NumberOfItemSelected + " Notes, are you sure ? ", () => { DeleteSelectedEvents(); }, () => { });
                     break;
                 }
             case 5:
                 {
-                    Debug.Log("Load CodeMatching file");
+                    BtvLog.Log("Load CodeMatching file");
                     CodeMatchingService.Load(message.FilePathToLoad);
                     m_EventsMatchList.DeleteAllEvents();
                     m_EventsMatchList.LoadEvents(CodeMatchingService.GetCodesAndComment());
@@ -142,25 +142,25 @@ public class EventsManager : MonoBehaviour
         {
             case 0:
                 {
-                    Debug.Log("Add Event");
+                    BtvLog.Log("Add Event");
                     AddEvent(message.Event);
                     break;
                 }
             case 1:
                 {
-                    Debug.Log("Modify Event");
+                    BtvLog.Log("Modify Event");
                     UpdateEvent(message.Event, message.EventMemory);
                     break;
                 }
             case 2:
                 {
-                    Debug.Log("Delete Event");
+                    BtvLog.Log("Delete Event");
                     DeleteEvent(message.Event);
                     break;
                 }
             case 3:
                 {
-                    Debug.Log("Edit Event");
+                    BtvLog.Log("Edit Event");
                     //Events to trace with parent gameobject (or mouse position) and event
                     EventsToTraceMessage messageToTrace = new EventsToTraceMessage
                     {
@@ -173,13 +173,13 @@ public class EventsManager : MonoBehaviour
                 }
             case 4:
                 {
-                    Debug.Log("Correlation 1D");
+                    BtvLog.Log("Correlation 1D");
                     StartCoroutine(ProcessCorrelation(message.Event));
                     break;
                 }
             case 5:
                 {
-                    Debug.Log("Correlation 2D");
+                    BtvLog.Log("Correlation 2D");
                     StartCoroutine(Process2dCorrelation(message.Event));
                     break;
                 }
@@ -228,7 +228,7 @@ public class EventsManager : MonoBehaviour
         }
     }
 
-    private InputFieldWindow SpawFrequencyChoiceWindow()
+    private InputFieldWindow SpawnFrequencyChoiceWindow()
     {
         GameObject viewGameObject = GameObject.Find("Windows");
         GameObject inputField = Instantiate(m_InputFieldWindowPrefabs, viewGameObject.transform);
@@ -241,7 +241,7 @@ public class EventsManager : MonoBehaviour
         FileInfo file = new FileInfo(filePath);
         if (file.Extension.Equals(".pos"))
         {
-            InputFieldWindow window = SpawFrequencyChoiceWindow();
+            InputFieldWindow window = SpawnFrequencyChoiceWindow();
             window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { LoadEvents(file.FullName, window.IntValue, clearPreviousEvents); window.Close(); }, () => { window.Close(); });
         }
         else

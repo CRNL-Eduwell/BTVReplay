@@ -16,7 +16,7 @@ public class OldSubject : ViewModelBase
             int ErrorCount = 0;
             foreach (var file in Files)
             {
-                List<ArgumentException> errors = file.Value.ChecKForErrors();
+                List<ArgumentException> errors = file.Value.CheckForErrors();
                 if (errors != null) ErrorCount += errors.Count;
             }
             return ErrorCount == 0;
@@ -93,9 +93,9 @@ public class OldSubject : ViewModelBase
 
     public void Display()
     {
-        UnityEngine.Debug.Log("");
-        UnityEngine.Debug.Log("Patient : " + PatientName);
-        UnityEngine.Debug.Log("MNI Referential");
+        BtvLog.Log("");
+        BtvLog.Log("Patient : " + PatientName);
+        BtvLog.Log("MNI Referential");
         if (HasAllInformationForSpace("MNI"))
         {
             if (AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer value))
@@ -103,7 +103,7 @@ public class OldSubject : ViewModelBase
                 value.Display();
             }
         }
-        UnityEngine.Debug.Log("Patient Referential");
+        BtvLog.Log("Patient Referential");
         if (HasAllInformationForSpace("PAT"))
         {
             if (AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer value))
@@ -113,10 +113,10 @@ public class OldSubject : ViewModelBase
         }
         foreach (var item in Files)
         {
-            UnityEngine.Debug.Log("Key : " + item.Key + " - Path : " + item.Value.Files[0]);
+            BtvLog.Log("Key : " + item.Key + " - Path : " + item.Value.Files[0]);
         }
-        UnityEngine.Debug.Log("Video : " + Video);
-        UnityEngine.Debug.Log("");
+        BtvLog.Log("Video : " + Video);
+        BtvLog.Log("");
     }
     #region operators
     public override bool Equals(object obj)
@@ -137,7 +137,7 @@ public class OldSubject : ViewModelBase
 
     public override int GetHashCode()
     {
-        return base.GetHashCode();
+        return System.HashCode.Combine(PatientName, AnatomicalSpaces.Count, Files.Count, Video);
     }
 
     public static bool operator ==(OldSubject a, OldSubject b)

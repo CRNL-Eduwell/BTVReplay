@@ -115,12 +115,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                     {
                         if (IsAlmostEqual(Mathf.Abs(Event.current.delta.y), Mathf.Abs(scrollDelta.y)))
                         {
-                            //UnityEngine.Debug.Log("ismouse");
+                            //BtvLog.Log("ismouse");
                             UpdateElectrodeById(scrollDelta.y > 0 ? m_TraceOption.ElectrodeID + 1 : m_TraceOption.ElectrodeID - 1);
                         }
                         else
                         {
-                            //UnityEngine.Debug.Log("ispad");
+                            //BtvLog.Log("ispad");
                             m_WheelSum += scrollDelta.y;
                             if (m_WheelSum <= -0.1f)
                             {
@@ -196,37 +196,37 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         switch (message.TaskToExecute)
         {
             case 0:
-                Debug.Log("Update Trace Gain");
+                BtvLog.Log("Update Trace Gain");
                 m_TraceOption.Gain = message.Gain;
                 graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
                 break;
             case 1:
-                Debug.Log("Update Trace Offset");
+                BtvLog.Log("Update Trace Offset");
                 m_TraceOption.Offset = message.Offset;
                 break;
             case 2:
-                Debug.Log("Toggle Grid");
+                BtvLog.Log("Toggle Grid");
                 graphGrid.IsOn = message.IsGridOn;
                 break;
             case 3:
-                Debug.Log("Update WIndow Period");
+                BtvLog.Log("Update WIndow Period");
                 UpdateTimeResolution(message.TimeWindow);
                 break;
             case 4:
-                Debug.Log("Toggle Sonification");
+                BtvLog.Log("Toggle Sonification");
                 graphSonif.Toggle(message.IsSonificationOn);
                 break;
             case 5:
-                Debug.Log("Update Sonification Sound");
+                BtvLog.Log("Update Sonification Sound");
                 graphSonif.ChangeAudioClip(message.NewSonificationId);
                 break;
             case 6:
-                Debug.Log("Update ColorPicker");
+                BtvLog.Log("Update ColorPicker");
                 graphLabel.Color = message.Color;
                 m_TraceOption.Color = message.Color;
                 break;
             case 7:
-                Debug.Log("Update File Switcher");
+                BtvLog.Log("Update File Switcher");
                 m_TraceOption.FileHandle = EegFileService.ChangeContainerHandle(m_TraceOption.FileHandle, message.FileID);
                 graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
                 graphLabel.Description = m_TraceOption.FileHandle.Description;
@@ -243,19 +243,19 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         switch (message.TaskToExecute)
         {
             case 0:
-                Debug.Log("Update Trace Gain");
+                BtvLog.Log("Update Trace Gain");
                 m_AudioOption.Gain = message.Gain;
                 break;
             case 1:
-                Debug.Log("Update Trace Offset");
+                BtvLog.Log("Update Trace Offset");
                 m_AudioOption.OffsetInMilliSeconds = message.Offset;
                 break;
             case 2:
-                Debug.Log("Toggle Audio Trace");
+                BtvLog.Log("Toggle Audio Trace");
                 audioSignal.Show(message.IsTraceOn);
                 break;
             case 3:
-                Debug.Log("Update Trace Audio File");
+                BtvLog.Log("Update Trace Audio File");
                 m_AudioOption.FileID = message.TraceID;
                 break;
         }
@@ -338,7 +338,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     public void UpdateWindowState(int state)
     {
-        UnityEngine.Debug.Log("Updating Trace " + TraceId + " Ui State");
+        BtvLog.Log("Updating Trace " + TraceId + " Ui State");
         m_State = state;
         switch (m_State)
         {

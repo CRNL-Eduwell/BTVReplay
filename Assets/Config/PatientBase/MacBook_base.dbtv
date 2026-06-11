@@ -1,0 +1,90 @@
+[
+  {
+    "PatientName": "LYONNEURO_2017_DAMa_BTV",
+    "AnatomicalSpaces": {
+      "MNI": {
+        "HasAnat": false,
+        "LeftHemisphere": "/Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/MNI_single_hight_Lhemi.tri",
+        "RightHemisphere": "/Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/MNI_single_hight_Rhemi.tri",
+        "Transformation": "/Users/fl6985/Documents/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/transfo_mni.trm",
+        "Pts": "/Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_MNI.pts",
+        "Atlas": "",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      },
+      "PAT": {
+        "HasAnat": false,
+        "LeftHemisphere": "",
+        "RightHemisphere": "",
+        "Transformation": "",
+        "Pts": "",
+        "Atlas": "",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      }
+    },
+    "Files": {
+      "sm0": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "/Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm0.eeg",
+        "Ent": "/Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm0.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      },
+      "sm250": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "/Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm250.eeg",
+        "Ent": "/Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV_f50f150/LYONNEURO_2017_DAMa_BTV_f50f150_ds8_sm250.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      }
+    },
+    "Video": "/Users/fsipp/Documents/Arbeit/Data/BTV/LYONNEURO_2017_DAMA/LYONNEURO_2017_DAMa_BTV.AVI"
+  },
+  {
+    "PatientName": "LYONNEURO_2019_LUIv_MCSE",
+    "AnatomicalSpaces": {
+      "MNI": {
+        "HasAnat": false,
+        "LeftHemisphere": "/Users/fsipp/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Lhemi.tri",
+        "RightHemisphere": "/Users/fsipp/Documents/Arbeit/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/MNI_single_hight_Rhemi.tri",
+        "Transformation": "/Users/fl6985/Documents/Repository/Unity/BTVReplay/Assets/Config/Data/MNI/transfo_mni.trm",
+        "Pts": "/Users/fsipp/Documents/Arbeit/Data/Epilepsy/LYONNEURO_2019_LUIv/implantation/LYONNEURO_2019_LUIv_MNI.pts",
+        "Atlas": "",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      },
+      "PAT": {
+        "HasAnat": false,
+        "LeftHemisphere": "/Users/fsipp/Documents/Arbeit/Data/Epilepsy/LYONNEURO_2019_LUIv/t1mri/T1pre_2019-4-18/default_analysis/segmentation/mesh/LYONNEURO_2019_LUIv_Lhemi.gii",
+        "RightHemisphere": "/Users/fsipp/Documents/Arbeit/Data/Epilepsy/LYONNEURO_2019_LUIv/t1mri/T1pre_2019-4-18/default_analysis/segmentation/mesh/LYONNEURO_2019_LUIv_Rhemi.gii",
+        "Transformation": "",
+        "Pts": "/Users/fsipp/Documents/Arbeit/Data/Epilepsy/LYONNEURO_2019_LUIv/implantation/LYONNEURO_2019_LUIv.pts",
+        "Atlas": "/Users/fsipp/Documents/Arbeit/Data/Epilepsy/LYONNEURO_2019_LUIv/implantation/LYONNEURO_2019_LUIv.csv",
+        "MeshConfiguration": 0,
+        "EegTechnology": 0
+      }
+    },
+    "Files": {
+      "sm0": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "/Users/fsipp/Documents/Arbeit/Data/LocaDB/2019/LYONNEURO_2019_LUIv/LYONNEURO_2019_LUIv_MCSE/LYONNEURO_2019_LUIv_MCSE_f50f150/LYONNEURO_2019_LUIv_MCSE_f50f150_ds8_sm0.eeg",
+        "Ent": "/Users/fsipp/Documents/Arbeit/Data/LocaDB/2019/LYONNEURO_2019_LUIv/LYONNEURO_2019_LUIv_MCSE/LYONNEURO_2019_LUIv_MCSE_f50f150/LYONNEURO_2019_LUIv_MCSE_f50f150_ds8_sm0.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      },
+      "sm250": {
+        "$type": "ElanFileInfo, Assembly-CSharp",
+        "FileType": 0,
+        "Eeg": "/Users/fsipp/Documents/Arbeit/Data/LocaDB/2019/LYONNEURO_2019_LUIv/LYONNEURO_2019_LUIv_MCSE/LYONNEURO_2019_LUIv_MCSE_f50f150/LYONNEURO_2019_LUIv_MCSE_f50f150_ds8_sm250.eeg",
+        "Ent": "/Users/fsipp/Documents/Arbeit/Data/LocaDB/2019/LYONNEURO_2019_LUIv/LYONNEURO_2019_LUIv_MCSE/LYONNEURO_2019_LUIv_MCSE_f50f150/LYONNEURO_2019_LUIv_MCSE_f50f150_ds8_sm250.eeg.ent",
+        "Pos": "",
+        "Notes": ""
+      }
+    },
+    "Video": ""
+  }
+]

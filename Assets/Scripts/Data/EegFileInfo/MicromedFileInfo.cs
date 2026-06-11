@@ -23,7 +23,7 @@ public class MicromedFileInfo : IEegFileInfo
         Trc = trc;
     }
 
-    public List<ArgumentException> ChecKForErrors()
+    public List<ArgumentException> CheckForErrors()
     {
         List<ArgumentException> Errors = new List<ArgumentException>();
         if (string.IsNullOrEmpty(Trc)) Errors.Add(new ArgumentException("Trc file path should not be a null string"));

@@ -41,7 +41,7 @@ public class DatabaseItem : Tools.Unity.Lists.SelectableItem<SubjectRepository>
     {
         if (e.PropertyName == "ShortName")
         {
-            UnityEngine.Debug.Log("Repository FilePath property updated");
+            BtvLog.Log("Repository FilePath property updated");
             SetLabelValue();
         }
     }

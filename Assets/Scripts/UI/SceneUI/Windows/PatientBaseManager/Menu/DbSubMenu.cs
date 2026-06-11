@@ -39,7 +39,7 @@ public class DbSubMenu : MonoBehaviour
     {
         if (e.PropertyName == "ShortName")
         {
-            UnityEngine.Debug.Log("DBSubmenu : Database Name updated");
+            BtvLog.Log("DBSubmenu : Database Name updated");
             SubjectRepository item = sender as SubjectRepository;
             if (m_ChildElements.ContainsKey(item))
             {

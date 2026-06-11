@@ -28,6 +28,6 @@ public static class AppIconSetter
 
         PlayerSettings.SetIcons(target, icons, IconKind.Application);
         AssetDatabase.SaveAssets();
-        Debug.Log("AppIconSetter: Standalone application icon set from " + k_IconPath + " (" + icons.Length + " size slot(s)).");
+        BtvLog.Log("AppIconSetter: Standalone application icon set from " + k_IconPath + " (" + icons.Length + " size slot(s)).");
     }
 }

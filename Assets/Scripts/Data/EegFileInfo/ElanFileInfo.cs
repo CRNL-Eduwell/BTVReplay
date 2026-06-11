@@ -29,7 +29,7 @@ public class ElanFileInfo : IEegFileInfo
         Notes = notes;
     }
 
-    public List<ArgumentException> ChecKForErrors()
+    public List<ArgumentException> CheckForErrors()
     {
         List<ArgumentException> Errors = new List<ArgumentException>();
 

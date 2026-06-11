@@ -29,7 +29,7 @@ namespace BTV.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            //UnityEngine.Debug.Log("Init brain gain");
+            //BtvLog.Log("Init brain gain");
             m_Label.text = "Gain : " + m_Gain;
             m_AddGain.onClick.AddListener(() =>
             {

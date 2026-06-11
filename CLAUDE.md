@@ -62,6 +62,13 @@ correlations, all synchronized to a video clock.
   scene objects breaks runtime behavior.
 - Never add `using UnityEditor;` to runtime scripts without an `#if UNITY_EDITOR` guard —
   it breaks standalone player builds (a whole batch of these was removed in phase 0).
+- **Logging**: use `BtvLog.Log(...)` for informational logs (it's `[Conditional]` — compiled
+  out of release builds, kept in editor/dev). Keep `Debug.LogWarning/LogError/LogException`
+  for things that must always be visible.
+- `EegSignal2`, `AudioSignal2`, `SignalDisp`, `DebugFlorian` look unused by a code-only search
+  but are **wired into the Trace prefabs / main scene** (verified by GUID). Do NOT delete them —
+  it would create missing-script references. Always GUID-check the scene + prefabs before
+  deleting a MonoBehaviour script.
 
 ## Git & GitHub rules
 

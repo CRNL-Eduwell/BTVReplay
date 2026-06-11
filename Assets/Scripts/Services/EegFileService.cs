@@ -271,7 +271,7 @@ namespace BTV.Services.EegFileService
             }
             yield return Ninja.JumpToUnity;
             if (!string.IsNullOrEmpty(errorList)) // TODO : make this visible for user maybe
-                Debug.Log(errorList);
+                BtvLog.Log(errorList);
             onEnd(eegFiles);
         }
     }

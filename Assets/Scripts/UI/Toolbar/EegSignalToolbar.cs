@@ -91,7 +91,7 @@ namespace BTV.UI.Module3D
 
         private void UpdateTraceGain(float NewGain)
         {
-            UnityEngine.Debug.Log("Update Trace gain");
+            BtvLog.Log("Update Trace gain");
             UiToTraceMessage message = new UiToTraceMessage
             {
                 TaskToExecute = 0,
@@ -103,7 +103,7 @@ namespace BTV.UI.Module3D
 
         private void UpdateTraceOffset(float NewOffset)
         {
-            UnityEngine.Debug.Log("Update Trace offset");
+            BtvLog.Log("Update Trace offset");
             UiToTraceMessage message = new UiToTraceMessage
             {
                 TaskToExecute = 1,
@@ -115,7 +115,7 @@ namespace BTV.UI.Module3D
 
         private void ToggleTraceGrid(bool isGridOn)
         {
-            UnityEngine.Debug.Log("Update Grid Toggle");
+            BtvLog.Log("Update Grid Toggle");
             UiToTraceMessage message = new UiToTraceMessage
             {
                 TaskToExecute = 2,
@@ -127,7 +127,7 @@ namespace BTV.UI.Module3D
 
         private void UpdateTracePeriod(int NewPeriod)
         {
-            UnityEngine.Debug.Log("Update Trace period");
+            BtvLog.Log("Update Trace period");
             UiToTraceMessage message = new UiToTraceMessage
             {
                 TaskToExecute = 3,
@@ -139,7 +139,7 @@ namespace BTV.UI.Module3D
 
         private void ToggleSonification(bool IsSonificationOn)
         {
-            UnityEngine.Debug.Log("Toggle sonification");
+            BtvLog.Log("Toggle sonification");
             UiToTraceMessage message = new UiToTraceMessage
             {
                 TaskToExecute = 4,
@@ -151,7 +151,7 @@ namespace BTV.UI.Module3D
 
         private void UpdateSonificationSound(int NewIdSound)
         {
-            UnityEngine.Debug.Log("Update sonification sound");
+            BtvLog.Log("Update sonification sound");
             UiToTraceMessage message = new UiToTraceMessage
             {
                 TaskToExecute = 5,
@@ -163,7 +163,7 @@ namespace BTV.UI.Module3D
 
         private void UpdateTraceColor(Color NewColor)
         {
-            UnityEngine.Debug.Log("Update Trace Color");
+            BtvLog.Log("Update Trace Color");
             UiToTraceMessage message = new UiToTraceMessage
             {
                 TaskToExecute = 6,
@@ -175,7 +175,7 @@ namespace BTV.UI.Module3D
 
         private void UpdateTraceCurrentFile(int NewFileId)
         {
-            UnityEngine.Debug.Log("Update File ID");
+            BtvLog.Log("Update File ID");
             UiToTraceMessage message = new UiToTraceMessage
             {
                 TaskToExecute = 7,

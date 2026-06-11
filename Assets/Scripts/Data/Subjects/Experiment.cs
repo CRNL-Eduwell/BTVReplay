@@ -46,7 +46,7 @@ public class Experiment
 
     public override int GetHashCode()
     {
-        return base.GetHashCode();
+        return System.HashCode.Combine(Label, Files.Count, Video);
     }
 
     public static bool operator ==(Experiment a, Experiment b)

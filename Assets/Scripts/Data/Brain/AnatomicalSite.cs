@@ -25,8 +25,8 @@ public class AnatomicalSite
 
     public void Display()
     {
-        Debug.Log("Anatomical Site");
-        Debug.Log("Name : " + Label);
-        Debug.Log("Coordinates : " + Coordinates.ToString());
+        BtvLog.Log("Anatomical Site");
+        BtvLog.Log("Name : " + Label);
+        BtvLog.Log("Coordinates : " + Coordinates.ToString());
     }
 }

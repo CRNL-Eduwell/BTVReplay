@@ -37,7 +37,7 @@ public class WorkspaceManager : MonoBehaviour
 
     private void InitDisplay()
     {
-        UnityEngine.Debug.Log("Init");
+        BtvLog.Log("Init");
         m_grid.Init();
 
         m_grid.VerticalHandlers[0].MagneticPosition = 0.495f;
@@ -59,13 +59,13 @@ public class WorkspaceManager : MonoBehaviour
         {
             case 0:
                 {
-                    UnityEngine.Debug.Log("Should Load a layout from : " + message.Path);
+                    BtvLog.Log("Should Load a layout from : " + message.Path);
                     LoadLayout(message.Path);
                     break;
                 }
             case 1:
                 {
-                    UnityEngine.Debug.Log("Should save layout at : " + message.Path);
+                    BtvLog.Log("Should save layout at : " + message.Path);
                     SaveLayout(message.Path);
                     break;
                 }

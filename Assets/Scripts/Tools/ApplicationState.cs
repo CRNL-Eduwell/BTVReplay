@@ -74,7 +74,7 @@ public static class ApplicationState
         yield return null;
     }
 
-    public static InputFieldWindow SpawFrequencyChoiceWindow()
+    public static InputFieldWindow SpawnFrequencyChoiceWindow()
     {
         m_InputFieldWindowPrefabs = Resources.Load("Prefabs/UIElements/InputFieldWindow", typeof(GameObject)) as GameObject; //enlever d'ici quand le debug de la nouvelle db est finis
 

@@ -55,50 +55,50 @@ namespace BTV.UI.Module3D
         {
             m_BrainToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update Brain Opt : " + UiOptionIndex);
+                BtvLog.Log("Update Brain Opt : " + UiOptionIndex);
                 ChangeToolbar(m_BrainToggle, UiOptionIndex);
             });
             m_Eeg1Toggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update EEG1 : " + UiOptionIndex);
+                BtvLog.Log("Update EEG1 : " + UiOptionIndex);
                 ChangeToolbar(m_Eeg1Toggle, UiOptionIndex);
                 ApplicationState.Module3D.Window1.UpdateWindowState(UiOptionIndex);
             });
             m_Eeg2Toggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update EEG2 : " + UiOptionIndex);
+                BtvLog.Log("Update EEG2 : " + UiOptionIndex);
                 ChangeToolbar(m_Eeg2Toggle, UiOptionIndex);
                 ApplicationState.Module3D.Window2.UpdateWindowState(UiOptionIndex);
             });
             m_PerformanceToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update Performance Opt : " + UiOptionIndex);
+                BtvLog.Log("Update Performance Opt : " + UiOptionIndex);
                 ChangeToolbar(m_PerformanceToggle, UiOptionIndex);
                 ApplicationState.Module3D.TaskPerformanceWindow.UpdateWindowState(UiOptionIndex);
             });
             m_VideoToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update Video Opt : " + UiOptionIndex);
+                BtvLog.Log("Update Video Opt : " + UiOptionIndex);
                 ChangeToolbar(m_VideoToggle, UiOptionIndex);
             });
             m_EventsToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update Events Opt : " + UiOptionIndex);
+                BtvLog.Log("Update Events Opt : " + UiOptionIndex);
                 ChangeToolbar(m_EventsToggle, UiOptionIndex);
             });
             m_TimeFrequencyAnalysisToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update Tf Opt : " + UiOptionIndex);
+                BtvLog.Log("Update Tf Opt : " + UiOptionIndex);
                 ChangeToolbar(m_TimeFrequencyAnalysisToggle, UiOptionIndex);
             });
             m_WorkspaceToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update Workspace Opt : " + UiOptionIndex);
+                BtvLog.Log("Update Workspace Opt : " + UiOptionIndex);
                 ChangeToolbar(m_WorkspaceToggle, UiOptionIndex);
             });
             m_MontageToggle.UpdateUiAndModuleLayout.AddListener((UiOptionIndex) =>
             {
-                UnityEngine.Debug.Log("Update Montage Opt : " + UiOptionIndex);
+                BtvLog.Log("Update Montage Opt : " + UiOptionIndex);
                 ChangeToolbar(m_MontageToggle, UiOptionIndex);
             });
         }

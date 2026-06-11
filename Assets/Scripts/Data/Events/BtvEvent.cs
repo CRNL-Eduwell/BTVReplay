@@ -77,7 +77,7 @@ namespace BTV.Data
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return System.HashCode.Combine(TimeInMilliSeconds, Duration, SiteOfInterest, SecondSiteOfInterest, Comment);
         }
 
         public static bool operator ==(BtvEvent a, BtvEvent b)

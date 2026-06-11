@@ -18,7 +18,7 @@ public class VersionMenu : MonoBehaviour
         //        wc.Headers.Add("User-Agent: Other");
         //        string jsonString = wc.DownloadString("https://api.github.com/repos/floriansipp/BTVReplay/releases/latest");
         //        var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionInfo>(jsonString);
-        //        UnityEngine.Debug.Log(versionInfo.VersionNumber);
+        //        BtvLog.Log(versionInfo.VersionNumber);
         //        m_Image.gameObject.SetActive(string.Compare(versionInfo.VersionNumber, Application.version) > 0);
         //    }
         //    catch (Exception e)

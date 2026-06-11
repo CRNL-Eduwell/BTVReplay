@@ -15,7 +15,7 @@ public class GraphEvents : MonoBehaviour
         {
             if (value == false)
                 HideActiveEvents();
-            UnityEngine.Debug.Log("Setting displa " + value);
+            BtvLog.Log("Setting displa " + value);
             m_DisplayEvents = value;
         }
     }
@@ -37,7 +37,7 @@ public class GraphEvents : MonoBehaviour
 
     public void AddEventToTrace(BtvEvent currentEvent, int id)
     {
-        UnityEngine.Debug.Log("Add event to trace");
+        BtvLog.Log("Add event to trace");
         GameObject currentEventToAdd = null;
         if (currentEvent.Duration == 0)
             currentEventToAdd = Instantiate(m_EventZeroDurationPrefab);

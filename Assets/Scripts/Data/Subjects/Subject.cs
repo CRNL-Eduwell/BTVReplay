@@ -18,7 +18,7 @@ public class Subject : ViewModelBase
             {
                 foreach (var file in experiment.Files)
                 {
-                    List<ArgumentException> errors = file.Value.ChecKForErrors();
+                    List<ArgumentException> errors = file.Value.CheckForErrors();
                     if (errors != null) ErrorCount += errors.Count;
                 }
             }
@@ -94,9 +94,9 @@ public class Subject : ViewModelBase
 
     public void Display()
     {
-        UnityEngine.Debug.Log("");
-        UnityEngine.Debug.Log("Patient : " + PatientName);
-        UnityEngine.Debug.Log("MNI Referential");
+        BtvLog.Log("");
+        BtvLog.Log("Patient : " + PatientName);
+        BtvLog.Log("MNI Referential");
         if (HasAllInformationForSpace("MNI"))
         {
             if (AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer value))
@@ -104,7 +104,7 @@ public class Subject : ViewModelBase
                 value.Display();
             }
         }
-        UnityEngine.Debug.Log("Patient Referential");
+        BtvLog.Log("Patient Referential");
         if (HasAllInformationForSpace("PAT"))
         {
             if (AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer value))
@@ -114,15 +114,15 @@ public class Subject : ViewModelBase
         }
         foreach (var item in Experiments)
         {
-            UnityEngine.Debug.Log("Label : " + item.Label);
+            BtvLog.Log("Label : " + item.Label);
 
             foreach (var file in item.Files)
             {
-                UnityEngine.Debug.Log("Key : " + file.Key + " - Path : " + file.Value.Files[0]);
+                BtvLog.Log("Key : " + file.Key + " - Path : " + file.Value.Files[0]);
             }
 
-            UnityEngine.Debug.Log("Video : " + item.Video);
-            UnityEngine.Debug.Log("");
+            BtvLog.Log("Video : " + item.Video);
+            BtvLog.Log("");
         }
     }
 
@@ -144,7 +144,9 @@ public class Subject : ViewModelBase
 
     public override int GetHashCode()
     {
-        return base.GetHashCode();
+        // Consistent with Equals (name + collection membership): equal subjects share name and
+        // counts, so they hash equal. base.GetHashCode() was identity-based and broke that.
+        return System.HashCode.Combine(PatientName, AnatomicalSpaces.Count, Experiments.Count);
     }
 
     public static bool operator ==(Subject a, Subject b)

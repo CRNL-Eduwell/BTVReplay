@@ -28,7 +28,7 @@ namespace BTV.UI.Module3D
 
             m_LockCursorsToggle.onValueChanged.AddListener((IsOn) =>
             {
-                UnityEngine.Debug.Log("Toggle TF Cursors Lock");
+                BtvLog.Log("Toggle TF Cursors Lock");
                 //Send Message
                 UiToTFEventsMessage message = new UiToTFEventsMessage
                 {

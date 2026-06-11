@@ -87,7 +87,7 @@ namespace BTV.Services.DatabaseService
         {
             if (m_Subjects == null) throw new NullReferenceException("Subject Observable Collection is null");
 
-            UnityEngine.Debug.Log("Subject Added to repository");
+            BtvLog.Log("Subject Added to repository");
             m_Subjects.Add(subject);
         }
 
@@ -95,7 +95,7 @@ namespace BTV.Services.DatabaseService
         {
             if (m_Subjects.Contains(subject))
             {
-                UnityEngine.Debug.Log("Subject removed from repository");
+                BtvLog.Log("Subject removed from repository");
                 m_Subjects.Remove(subject);
             }
         }
@@ -104,13 +104,13 @@ namespace BTV.Services.DatabaseService
         {
             if (m_Subjects.Contains(oldSubject))
             {
-                UnityEngine.Debug.Log("Old Subject found in repository, tring to replace");
+                BtvLog.Log("Old Subject found in repository, tring to replace");
 
                 int index = m_Subjects.IndexOf(oldSubject);
                 if (index != -1)
                 {
-                    UnityEngine.Debug.Log("Replacing Subject in repository");
-                    UnityEngine.Debug.Log("Index : " + index);
+                    BtvLog.Log("Replacing Subject in repository");
+                    BtvLog.Log("Index : " + index);
                     m_Subjects[index] = new Subject(newSubject);
                 }
             }

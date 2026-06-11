@@ -104,12 +104,12 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
                 {
                     if (IsAlmostEqual(Mathf.Abs(Event.current.delta.y), Mathf.Abs(scrollDelta.y)))
                     {
-                        //UnityEngine.Debug.Log("ismouse");
+                        //BtvLog.Log("ismouse");
                         UpdateTracesParameters(scrollDelta.y > 0 ? true : false);
                     }
                     else
                     {
-                        //UnityEngine.Debug.Log("ispad");
+                        //BtvLog.Log("ispad");
                         m_WheelSum += scrollDelta.y;
                         if (m_WheelSum <= -0.1f)
                         {
@@ -253,12 +253,12 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         {
             case 0:
                 {
-                    UnityEngine.Debug.Log("Reseting Data");
+                    BtvLog.Log("Reseting Data");
                     break;
                 }
             case 1:
                 {
-                    UnityEngine.Debug.Log("Normalizing Data");
+                    BtvLog.Log("Normalizing Data");
                     if (message.EndTimeBaseline * FileHandle.Frequency.RawValue > Channel.NumberOfSample)
                     {
                         ApplicationState.displayMessage("Can not normalize data", "NOK", "You can not normlize data using an event that finishes after the end of the file");

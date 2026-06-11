@@ -48,7 +48,7 @@ public class ColumnGUIManager : MonoBehaviour
     {
         if (m_RectTransform.hasChanged)
         {
-            UnityEngine.Debug.Log("Recttransform changed minimed column");
+            BtvLog.Log("Recttransform changed minimed column");
             m_MinimizedGameObject.SetActive(IsMinimized);
             m_RectTransform.hasChanged = false;
         }

@@ -24,7 +24,7 @@ namespace BTV.UI.Module3D.Tools
             //plug only one of the toggle since they are in a toggle group it will automatically trigger the other
             m_FirstToggle.onValueChanged.AddListener((isOn) =>
             {
-                UnityEngine.Debug.Log("First is " + isOn);
+                BtvLog.Log("First is " + isOn);
                 SelectedTrace.Invoke(isOn ? 0 : 1);
             });
         }

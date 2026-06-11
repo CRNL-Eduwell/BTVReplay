@@ -9,5 +9,5 @@ public interface IEegFileInfo : ICloneable
     File.FileType FileType { get; }
     string[] Files { get; }
 
-    List<ArgumentException> ChecKForErrors();
+    List<ArgumentException> CheckForErrors();
 }

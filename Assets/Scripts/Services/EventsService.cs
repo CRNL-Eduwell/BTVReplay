@@ -90,7 +90,7 @@ namespace BTV.Services.EventsService
             if (Events.Contains(EventToRemove))
             {
                 bool result = Events.Remove(EventToRemove);
-                UnityEngine.Debug.Log("Event has been removed : " + result);
+                BtvLog.Log("Event has been removed : " + result);
             }
         }
 
@@ -99,7 +99,7 @@ namespace BTV.Services.EventsService
             if (ID >= 0 && ID < Events.Count)
             {
                 Events.RemoveAt(ID);
-                UnityEngine.Debug.Log("Event has been removed");
+                BtvLog.Log("Event has been removed");
             }
         }
 
