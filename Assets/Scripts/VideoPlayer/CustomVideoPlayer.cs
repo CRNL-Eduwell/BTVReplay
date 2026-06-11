@@ -133,6 +133,17 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void Init(string videoPath, int eegFileDurationInMillisec)
     {
+        // Tear down a previous player + listeners before re-initialising, otherwise a second
+        // LoadVideo stacks another VideoPlayer component and a duplicate set of button listeners
+        // (every click would then fire twice).
+        if (m_Initialized)
+        {
+            VideoInterface.Cleanup();
+            RemoveListeners();
+            if (VideoInterface is MonoBehaviour previousPlayer) Destroy(previousPlayer);
+            m_Initialized = false;
+        }
+
         if (videoPath == "")
             VideoInterface = gameObject.AddComponent<GhostVideoPlayer>();
         else
