@@ -65,7 +65,8 @@ correlations, all synchronized to a video clock.
 
 ## Git & GitHub rules
 
-- **No Co-Authored-By** in commit messages.
+- **No Co-Authored-By** in commit messages, and **no "Generated with Claude Code" / tool
+  attribution** in commit messages or PR bodies.
 - **PR/branch target**: work happens on feature branches off `develop`; PRs target `develop`.
   `master` is the release branch, only updated by merging `develop` (historical flow of this
   repo, kept as-is).
