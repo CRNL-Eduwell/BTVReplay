@@ -18,43 +18,39 @@ public class DBFile : IPatientsContext
         if (File.Exists(FilePath))
             Load(FilePath);
         else
-            Debug.LogError("DBFile => Filepath : " + FilePath + " does not exist ");
+            throw new FileNotFoundException("DBFile => Filepath : " + FilePath + " does not exist ");
     }
 
-    private int Load(string FilePath)
+    private void Load(string FilePath)
     {
-        try
-        {
-            if (Patients.Count > 0)
-                Patients = new List<Patient>();
-
-            using (StreamReader sr = new StreamReader(FilePath))
-            {
-                string[] fileSplited = sr.ReadToEnd().Split(new string[] { "[----------]" }, StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < fileSplited.Length - 1; i++)   // -1 because of last line jump
-                {
-                    Patient currentPat = new Patient();
-                    string[] currentPatSplit = fileSplited[i].Split(new string[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    for (int j = 0; j < currentPatSplit.Length; j++)
-                    {
-                        string[] splitPath = currentPatSplit[j].Split(new string[] { " : " }, StringSplitOptions.RemoveEmptyEntries);
-                        loadValue(currentPat, splitPath);
-                    }
-
-                    Patients.Add(currentPat);
-                }
-
-                sr.Close();
-                return 0;
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("The patient database file could not be read:");
-            Console.WriteLine(e.Message);
+        if (Patients.Count > 0)
             Patients = new List<Patient>();
-            return -1;
+
+        string rawContent;
+        using (StreamReader sr = new StreamReader(FilePath))
+        {
+            rawContent = sr.ReadToEnd();
         }
+
+        string[] fileSplited = rawContent.Split(new string[] { "[----------]" }, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < fileSplited.Length - 1; i++)   // -1 because of last line jump
+        {
+            Patient currentPat = new Patient();
+            string[] currentPatSplit = fileSplited[i].Split(new string[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            for (int j = 0; j < currentPatSplit.Length; j++)
+            {
+                string[] splitPath = currentPatSplit[j].Split(new string[] { " : " }, StringSplitOptions.RemoveEmptyEntries);
+                loadValue(currentPat, splitPath);
+            }
+
+            Patients.Add(currentPat);
+        }
+
+        // A non-empty file that yields no patient is not a v1 database (e.g. a JSON file that
+        // ended up with a .txt extension). Failing here prevents the conversion chain from
+        // propagating an empty patient list over valid files.
+        if (Patients.Count == 0 && rawContent.Trim().Length > 0)
+            throw new FormatException("DBFile => " + FilePath + " is not a valid BrainTV v1 (.txt) database: no patient block found");
     }
 
     /// <summary>
