@@ -5,9 +5,10 @@ epilepsy monitoring review (CHUV). Loads patient databases, draws EEG traces, re
 brain (MNI or patient meshes) with electrode activity, computes time-frequency maps and
 correlations, all synchronized to a video clock.
 
-- Unity **2021.3.16f1** (EOL — upgrade planned), C#, uGUI (no UI Toolkit, no TMP usage).
-- Single scene: `Assets/_main.unity`. **Binary-serialized** (switch to Force Text pending).
-- No asmdefs, no tests. `Assets/csc.rsp` has `-unsafe` (only needed by dead VLC code).
+- Unity **6.4 (6000.4.10f1)**, C#, uGUI 2.0 (no UI Toolkit, no TMP usage). Upgraded from
+  2021.3.16f1 in June 2026.
+- Single scene: `Assets/_main.unity`, YAML (Force Text serialization since June 2026).
+- No asmdefs, no tests.
 - Comments and commit messages are a French/English mix; UI strings English.
 
 ## Layout
@@ -28,9 +29,10 @@ correlations, all synchronized to a video clock.
   rendered by a dedicated camera at x=-10000 into a RenderTexture shown via `BrainWarden`.
 - `Assets/Scripts/Traces/` — LineRenderer-based EEG traces, full redraw on every video tick.
 - `Assets/Scripts/VideoPlayer/` — `IVideoPlayer`: `UnityVideoPlayer` (default),
-  `GhostVideoPlayer` (fake clock when no video), `VlcVideoPlayer/` (dead code + ~200 MB unused
-  VLC binaries in `Assets/Plugins/`, removal planned). **The video clock is the master**:
+  `GhostVideoPlayer` (fake clock when no video). **The video clock is the master**:
   `CustomVideoPlayer.Update` broadcasts time every frame; all modules redraw from it.
+  (`VideoService` additionally drives a system-installed VLC executable for audio
+  extraction/recording — an external-tool dependency, not a bundled library.)
 - `Assets/Scripts/UI/` — toolbar system (`ToolbarSelector` → `Toolbar` subclasses → `Tool`
   components), windows spawned by name via `Tools/WindowsManager.cs`, dock/drag system in
   `Assets/Scripts/Tools/Window/`. Parts vendored from HiBoP (virtualized list, handlers).
@@ -56,13 +58,15 @@ correlations, all synchronized to a video clock.
   thread in several places; don't add new cross-thread mutation, marshal results back instead.
 - Messenger: one handler per (recipient, context) — duplicates are silently dropped; always
   pair Register/Unregister with the **same** context.
-- Several runtime scripts have stray `using UnityEditor;` that break player builds.
 - Many GameObject lookups are by scene-object name string (`GameObject.Find`) — renaming
   scene objects breaks runtime behavior.
+- Never add `using UnityEditor;` to runtime scripts without an `#if UNITY_EDITOR` guard —
+  it breaks standalone player builds (a whole batch of these was removed in phase 0).
 
 ## Git & GitHub rules
 
-- **No Co-Authored-By** in commit messages.
+- **No Co-Authored-By** in commit messages, and **no "Generated with Claude Code" / tool
+  attribution** in commit messages or PR bodies.
 - **PR/branch target**: work happens on feature branches off `develop`; PRs target `develop`.
   `master` is the release branch, only updated by merging `develop` (historical flow of this
   repo, kept as-is).

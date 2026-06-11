@@ -23,48 +23,39 @@ public class DBFile3 : ISubjectsContext
         if (File.Exists(FilePath))
             Load(FilePath);
         else
-            Debug.LogError("DBFile3 => Filepath : " + FilePath + " does not exist ");
+            throw new FileNotFoundException("DBFile3 => Filepath : " + FilePath + " does not exist ");
     }
 
-    private int Load(string FilePath)
+    private void Load(string FilePath)
     {
-        try
+        using (StreamReader streamReader = new StreamReader(FilePath))
         {
-            using (StreamReader streamReader = new StreamReader(FilePath))
-            {
-                Subjects = JsonConvert.DeserializeObject<List<Subject>>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
-            }
-
-            return 0;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("The patient database file could not be read:");
-            Console.WriteLine(e.Message);
-            Subjects = new List<Subject>();
-            return -1;
+            Subjects = JsonConvert.DeserializeObject<List<Subject>>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto }) ?? new List<Subject>();
         }
     }
 
-    public static void Save(string FilePath, List<Subject> subjects)
+    public static bool Save(string FilePath, List<Subject> subjects)
     {
         try
         {
-            using (StreamWriter streamWriter = new StreamWriter(FilePath))
-            {
-                string json = JsonConvert.SerializeObject(subjects, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
-                streamWriter.Write(json);
-                streamWriter.Close();
-            }
+            string json = JsonConvert.SerializeObject(subjects, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
+            BrainTV.Tools.AtomicFile.WriteAllText(FilePath, json);
+            return true;
         }
         catch (Exception e)
         {
             Debug.LogError("Error saving .dbtv2 file at " + FilePath);
             Debug.LogException(e);
+            return false;
         }
     }
 
-    public static void ConvertOldDbFiles(string FilePath, List<OldSubject> subjects)
+    /// <summary>
+    /// Converts v2 subjects and saves them to <paramref name="TargetFilePath"/> (must be a
+    /// .dbtv2 path, distinct from the source file - the caller computes it explicitly so the
+    /// source can never be overwritten).
+    /// </summary>
+    public static void ConvertOldDbFiles(string TargetFilePath, List<OldSubject> subjects)
     {
         List<Subject> newSubjects = new List<Subject>();
         foreach (OldSubject patient in subjects)
@@ -78,6 +69,6 @@ public class DBFile3 : ISubjectsContext
             newSubjects.Add(newSubject);
         }
 
-        Save(FilePath.Replace(".dbtv", ".dbtv2"), newSubjects);
+        Save(TargetFilePath, newSubjects);
     }
 }

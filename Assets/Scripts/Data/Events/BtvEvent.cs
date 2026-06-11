@@ -40,7 +40,23 @@ namespace BTV.Data
             Comment = btvEvent.Comment;
 
             if (btvEvent.Correlation != null)
-                Array.Copy(btvEvent.Correlation, Correlation, Correlation.Length);
+            {
+                Correlation = new float[btvEvent.Correlation.Length];
+                Array.Copy(btvEvent.Correlation, Correlation, btvEvent.Correlation.Length);
+            }
+
+            if (btvEvent.Correlation2D != null)
+            {
+                Correlation2D = new float[btvEvent.Correlation2D.Length][];
+                for (int i = 0; i < btvEvent.Correlation2D.Length; i++)
+                {
+                    if (btvEvent.Correlation2D[i] != null)
+                    {
+                        Correlation2D[i] = new float[btvEvent.Correlation2D[i].Length];
+                        Array.Copy(btvEvent.Correlation2D[i], Correlation2D[i], btvEvent.Correlation2D[i].Length);
+                    }
+                }
+            }
         }
 
         public override bool Equals(object obj)

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEditor;
 using Newtonsoft.Json;
 
 public class TraceParameters

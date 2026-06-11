@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class BTVReplayBuilderWindow : EditorWindow
 {
-    private string m_BuildDirectory = @"/Users/florian/Desktop/builds/";
+    private const string k_BuildDirPref = "BTVReplay.BuildDirectory";
+
+    private string m_BuildDirectory = "";
     private bool m_DevelopmentBuild = false;
     private bool m_Windows = true;
     private bool m_Linux = true;
@@ -16,6 +18,13 @@ public class BTVReplayBuilderWindow : EditorWindow
     {
         BTVReplayBuilderWindow window = (BTVReplayBuilderWindow)GetWindow(typeof(BTVReplayBuilderWindow));
         window.Show();
+    }
+
+    private void OnEnable()
+    {
+        // Remember the last folder; default to <project>/Builds/ (git-ignored).
+        string fallback = System.IO.Path.Combine(System.IO.Directory.GetParent(Application.dataPath).FullName, "Builds") + "/";
+        m_BuildDirectory = EditorPrefs.GetString(k_BuildDirPref, fallback);
     }
 
     void OnGUI()
@@ -34,10 +43,16 @@ public class BTVReplayBuilderWindow : EditorWindow
         m_MacOSX = GUILayout.Toggle(m_MacOSX, "MacOSX");
         if (GUILayout.Button("Build!"))
         {
+            if (string.IsNullOrEmpty(m_BuildDirectory))
+            {
+                EditorUtility.DisplayDialog("BTVReplay Builder", "Please choose a builds directory.", "OK");
+                return;
+            }
             if (m_BuildDirectory[m_BuildDirectory.Length - 1] != '/' && m_BuildDirectory[m_BuildDirectory.Length - 1] != '\\')
             {
                 m_BuildDirectory += '/';
             }
+            EditorPrefs.SetString(k_BuildDirPref, m_BuildDirectory);
             if (m_Windows)
             {
                 BTVReplayBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneWindows64);

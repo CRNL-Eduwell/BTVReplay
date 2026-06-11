@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using BTV.Services.EventsService;
 
 public class BrainWarden : MonoBehaviour, IPointerClickHandler
@@ -22,6 +21,11 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     private GameObject m_elecOptionPrefab = null;
     private GameObject m_elecOption = null;
+
+    private int m_lastRtWidth = -1, m_lastRtHeight = -1;
+    private RenderTexture m_ownedRt = null;
+    private Site[] m_cachedSites = null;
+    private Dictionary<string, Site> m_siteByName = null;
 
     private void Awake()
     {
@@ -50,17 +54,28 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     {
         if (m_textureRectTransform.hasChanged)
         {
-            if (m_textureRectTransform.rect.width > 0 && m_textureRectTransform.rect.height > 0)
+            int w = (int)m_textureRectTransform.rect.width;
+            int h = (int)m_textureRectTransform.rect.height;
+            // Only rebuild when the size actually changed (hasChanged also fires on moves), and
+            // destroy the previous RenderTexture - it was only Released before, so the objects
+            // accumulated while dragging the window.
+            if (w > 0 && h > 0 && (w != m_lastRtWidth || h != m_lastRtHeight))
             {
-                RenderTexture renderTexture = new RenderTexture((int)m_textureRectTransform.rect.width, (int)m_textureRectTransform.rect.height, 24);
+                RenderTexture renderTexture = new RenderTexture(w, h, 24);
                 renderTexture.antiAliasing = 1;
 
-                if (brainCam.targetTexture)
-                    brainCam.targetTexture.Release();
-
                 brainCam.targetTexture = renderTexture;
-                brainCam.aspect = m_textureRectTransform.rect.width / m_textureRectTransform.rect.height;
-                m_rawImage.texture = brainCam.targetTexture;
+                brainCam.aspect = (float)w / h;
+                m_rawImage.texture = renderTexture;
+
+                // Only free RenderTextures we created here. The camera's initial targetTexture
+                // is a scene asset, and Destroy() on an asset throws "Destroying assets is not
+                // permitted" - so we track and release only our own runtime instances.
+                if (m_ownedRt != null) { m_ownedRt.Release(); Destroy(m_ownedRt); }
+                m_ownedRt = renderTexture;
+
+                m_lastRtWidth = w;
+                m_lastRtHeight = h;
             }
             m_textureRectTransform.hasChanged = false;
         }
@@ -230,23 +245,39 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    /// <summary>
+    /// Caches the electrode Site list + a name lookup. Built lazily on first use (electrodes are
+    /// loaded asynchronously after Awake, and playback - which drives recolouring - only starts
+    /// once a subject is loaded). The scene is reloaded per subject, so the cache lives one
+    /// session and does not need invalidation.
+    /// </summary>
+    private void EnsureSiteCache()
+    {
+        if (m_cachedSites != null) return;
+        GameObject electrodes = GameObject.Find("Electrodes");
+        if (electrodes == null) return;
+        m_cachedSites = electrodes.GetComponentsInChildren<Site>();
+        m_siteByName = new Dictionary<string, Site>();
+        foreach (Site s in m_cachedSites)
+        {
+            string key = s.gameObject.name.ToUpper();
+            if (!m_siteByName.ContainsKey(key)) m_siteByName[key] = s;
+        }
+    }
+
     private void ChangeElectrodesColor(string Name, Color NewColor)
     {
-        Site[] Electrodes = GameObject.Find("Electrodes").gameObject.GetComponentsInChildren<Site>();
+        EnsureSiteCache();
+        if (m_cachedSites == null) return;
+
         if (Name == "")
         {
-            foreach (Site electrode in Electrodes)
-            {
+            foreach (Site electrode in m_cachedSites)
                 electrode.Color = NewColor;
-            }
         }
-        else
+        else if (m_siteByName.TryGetValue(Name.ToUpper(), out Site electrode) && electrode != null)
         {
-            Site Electrode = Array.Find(Electrodes, x => x.gameObject.name.ToUpper() == Name);
-            if (Electrode != null)
-            {
-                Electrode.Color = NewColor;
-            }
+            electrode.Color = NewColor;
         }
     }
 

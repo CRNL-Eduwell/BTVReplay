@@ -258,11 +258,14 @@ public class SubjectLoaderService : MonoBehaviour
     {
         //load video
         BtvProgram container = EegFileService.ReturnFirstValidContainer();
+        if (container == null)
+            UnityEngine.Debug.LogWarning("c_loadVideo: no valid EEG container loaded; the video will use its own duration instead of an EEG-based one.");
+
         LoaderMessage message = new LoaderMessage
         {
             Task = LoaderMessage.LoaderTask.LoadVideo,
             VideoPath = videoPath,
-            totalFileDuration = container.TotalDurationInMilliseconds
+            totalFileDuration = container != null ? container.TotalDurationInMilliseconds : -1
         };
         Messenger.Default.Send(message, MessageContext.LoaderMessage);
 

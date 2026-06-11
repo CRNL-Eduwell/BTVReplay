@@ -1,9 +1,5 @@
-﻿using System;
+using System;
 using System.IO;
-using System.Net;
-using System.Net.Mail;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,114 +37,77 @@ namespace Tools.Unity
             {
                 if (string.IsNullOrEmpty(m_DescriptionInputField.text))
                 {
-                    ApplicationState.displayConfirmation("Empty description", "The description field is empty; we might not be able to help you properly.\nDo you still want to send the bug report without any description ?",
+                    ApplicationState.displayConfirmation("Empty description", "The description field is empty; we might not be able to help you properly.\nDo you still want to copy the bug report without any description ?",
                         () =>
                         {
-                            SendMail();
+                            CopyReportToClipboard();
                             Destroy(gameObject);
                         },
                         () => { });
                 }
                 else
                 {
-                    SendMail();
+                    CopyReportToClipboard();
                     Destroy(gameObject);
                 }
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
-                if (e is SmtpException)
-                {
-                    ApplicationState.displayMessage("The report could not be sent", "NOK", "Please check your internet connection and try again.");
-                }
-                else
-                {
-                    ApplicationState.displayMessage(e.Source, "NOK", e.Message);
-                }
+                ApplicationState.displayMessage(e.Source, "NOK", e.Message);
                 Destroy(gameObject);
             }
         }
 
-        private void SendMail()
+        private void CopyReportToClipboard()
         {
-            using (SmtpClient smtpServer = new SmtpClient("smtp-mail.outlook.com")
+            StringBuilder bodyBuilder = new StringBuilder();
+            bodyBuilder.AppendLine("BUGREPORT " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+            bodyBuilder.AppendFormat
+            (
+                "{0} {1} {2} {3}\n{4}, {5}, {6}x {7}\n{8}x{9} {10}dpi FullScreen {11}, {12}, {13} vmem: {14} Max Texture: {15}\n",
+                SystemInfo.deviceModel,
+                SystemInfo.deviceName,
+                SystemInfo.deviceType,
+                SystemInfo.deviceUniqueIdentifier,
+
+                SystemInfo.operatingSystem,
+                SystemInfo.systemMemorySize,
+                SystemInfo.processorCount,
+                SystemInfo.processorType,
+
+                Screen.currentResolution.width,
+                Screen.currentResolution.height,
+                Screen.dpi,
+                Screen.fullScreen,
+                SystemInfo.graphicsDeviceName,
+                SystemInfo.graphicsDeviceVendor,
+                SystemInfo.graphicsMemorySize,
+                SystemInfo.maxTextureSize
+            );
+            bodyBuilder.AppendLine(" ");
+            bodyBuilder.AppendLine(m_NameInputField.text);
+            bodyBuilder.AppendLine(m_EmailInputField.text);
+            bodyBuilder.AppendLine(" ");
+            bodyBuilder.AppendLine(m_DescriptionInputField.text);
+            bodyBuilder.AppendLine(" ");
+            bodyBuilder.AppendLine("Log file: " + GetLogFilePath());
+
+            GUIUtility.systemCopyBuffer = bodyBuilder.ToString();
+
+            ApplicationState.displayMessage("Bug report copied to clipboard.", "INFO", "The report has been copied to your clipboard. Paste it into an email or an issue, and attach the log file if possible:\n" + GetLogFilePath());
+        }
+
+        private static string GetLogFilePath()
+        {
+            switch (Application.platform)
             {
-                Port = 587,
-                Credentials = new NetworkCredential("btvreplayhelp@outlook.fr", "***REMOVED***") as ICredentialsByHost,
-                EnableSsl = true
-            })
-            {
-                ServicePointManager.ServerCertificateValidationCallback = delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
-                using (MailMessage mail = new MailMessage())
-                {
-                    mail.From = new MailAddress("btvreplayhelp@outlook.fr", "Bug Reporter");
-                    mail.To.Add("btvreplayhelp@outlook.fr");
-                    mail.Subject = "BUGREPORT " + DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-
-                    StringBuilder bodyBuilder = new StringBuilder();
-                    bodyBuilder.AppendFormat
-                    (
-                        "{0} {1} {2} {3}\n{4}, {5}, {6}x {7}\n{8}x{9} {10}dpi FullScreen {11}, {12}, {13} vmem: {14} Max Texture: {15}\n",
-                        SystemInfo.deviceModel,
-                        SystemInfo.deviceName,
-                        SystemInfo.deviceType,
-                        SystemInfo.deviceUniqueIdentifier,
-
-                        SystemInfo.operatingSystem,
-                        SystemInfo.systemMemorySize,
-                        SystemInfo.processorCount,
-                        SystemInfo.processorType,
-
-                        Screen.currentResolution.width,
-                        Screen.currentResolution.height,
-                        Screen.dpi,
-                        Screen.fullScreen,
-                        SystemInfo.graphicsDeviceName,
-                        SystemInfo.graphicsDeviceVendor,
-                        SystemInfo.graphicsMemorySize,
-                        SystemInfo.maxTextureSize
-                    );
-                    bodyBuilder.AppendLine(" ");
-                    bodyBuilder.AppendLine(m_NameInputField.text);
-                    bodyBuilder.AppendLine(m_EmailInputField.text);
-                    bodyBuilder.AppendLine(" ");
-                    bodyBuilder.AppendLine(m_DescriptionInputField.text);
-                    mail.Body = bodyBuilder.ToString();
-
-                    string logFile = "";
-                    switch (Application.platform)
-                    {
-                        case RuntimePlatform.OSXPlayer:
-                            logFile = Path.Combine("~", "Library", "Logs", Application.companyName, Application.productName, "Player.log");
-                            break;
-                        case RuntimePlatform.WindowsPlayer:
-                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
-                            break;
-                        case RuntimePlatform.LinuxPlayer:
-                            logFile = Path.Combine("~", ".config", "unity3d", Application.companyName, Application.productName, "Player.log");
-                            break;
-                        default:
-                            logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
-                            break;
-                    }
-                    if (File.Exists(logFile))
-                    {
-                        string copiedLogFile = Path.Combine(Application.dataPath, "error_log.txt");
-                        File.Copy(logFile, copiedLogFile, true);
-                        using (Attachment log = new Attachment(copiedLogFile))
-                        {
-                            mail.Attachments.Add(log);
-                            smtpServer.Send(mail);
-                        }
-                    }
-                    else
-                    {
-                        smtpServer.Send(mail);
-                    }
-
-                    ApplicationState.displayMessage("Bug report successfully sent.", "INFO", "The issue will be adressed as soon as possible. If you've entered your contact information, we may contact you for further information concerning the bug you encountered.");
-                }
+                case RuntimePlatform.OSXPlayer:
+                    return Path.Combine("~", "Library", "Logs", Application.companyName, Application.productName, "Player.log");
+                case RuntimePlatform.LinuxPlayer:
+                    return Path.Combine("~", ".config", "unity3d", Application.companyName, Application.productName, "Player.log");
+                default:
+                    return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log");
             }
         }
     }
