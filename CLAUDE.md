@@ -60,6 +60,15 @@ correlations, all synchronized to a video clock.
 - Many GameObject lookups are by scene-object name string (`GameObject.Find`) — renaming
   scene objects breaks runtime behavior.
 
+## Git & GitHub rules
+
+- **No Co-Authored-By** in commit messages.
+- **PR/branch target**: work happens on feature branches off `develop`; PRs target `develop`.
+  `master` is the release branch, only updated by merging `develop` (historical flow of this
+  repo, kept as-is).
+- **Commit style**: `type: short description` (e.g. `feat:`, `fix:`, `docs:`, `chore:`,
+  `refactor:`, `build:`, `perf:`).
+
 ## Current modernization effort
 
 Full review with file:line findings: `Docs/code-review-2026-06.md`.
