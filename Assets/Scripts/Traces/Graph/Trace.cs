@@ -85,16 +85,18 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     void OnDestroy()
     {
         if (m_initDone)
-        {
             graphLabel.ElectrodeButton.onClick.RemoveAllListeners();
-            
-            Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
-            Messenger.Default.Unregister(this, MessageContext.UiToTrace);
-            Messenger.Default.Unregister(this, MessageContext.UiToVideo);
-            Messenger.Default.Unregister(this, MessageContext.EventsToTraceMessage);
-            Messenger.Default.Unregister(this, MessageContext.BrainWardenToTraceMessage);
-            Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
-        }
+
+        // Unregister unconditionally: Awake always registers these, so they must always be
+        // released even if no subject was loaded (m_initDone == false), or the Messenger keeps
+        // invoking handlers on a destroyed object. MontageMessage was previously never released.
+        Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
+        Messenger.Default.Unregister(this, MessageContext.UiToTrace);
+        Messenger.Default.Unregister(this, MessageContext.UiToVideo);
+        Messenger.Default.Unregister(this, MessageContext.EventsToTraceMessage);
+        Messenger.Default.Unregister(this, MessageContext.BrainWardenToTraceMessage);
+        Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
+        Messenger.Default.Unregister(this, MessageContext.MontageMessage);
     }
 
     private void OnGUI()

@@ -104,7 +104,9 @@ public class Site : MonoBehaviour
         set
         {
             m_Color = value;
-            m_MeshRenderer.materials[0].color = m_Color;
+            // Use the cached instanced material: m_MeshRenderer.materials[0] allocated a new
+            // array and instantiated materials on every call (this runs per electrode per tick).
+            if (m_Material != null) m_Material.color = m_Color;
         }
     }
     #endregion
@@ -113,6 +115,7 @@ public class Site : MonoBehaviour
     private AnatomicalSite m_Plot = null; //Reference to the corresponding data element , either a Eeg_Plot or Intra_Plot
     private bool m_IsFrozen = false;
     private MeshRenderer m_MeshRenderer = null;
+    private Material m_Material = null;
     private Color m_Color = Color.white;
     private float m_Gain = 1;
 
@@ -130,6 +133,7 @@ public class Site : MonoBehaviour
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
 
         m_MeshRenderer = gameObject.GetComponent<MeshRenderer>();
+        m_Material = m_MeshRenderer.material; // instanced once; reused by the Color setter
         UpdateElectrodeID(m_MasterTraceOption.FileHandle);
         IsFrozen = false;
     }
@@ -168,6 +172,18 @@ public class Site : MonoBehaviour
         Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
     }
 
+    /// <summary>
+    /// Re-subscribe when a site is re-activated after OnDisable (Messenger.Register is
+    /// idempotent, so this is safe alongside the registration in Init). Guarded on m_Plot so
+    /// the pre-Init OnEnable fired during Instantiate is a no-op.
+    /// </summary>
+    private void OnEnable()
+    {
+        if (m_Plot == null) return;
+        Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
+        Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
+    }
+
     private void OnDestroy()
     {
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
@@ -187,6 +203,7 @@ public class Site : MonoBehaviour
 
     private void UpdateSize(int milliSecToLook)
     {
+        if (m_Channel == null || m_Frequency == null) return; // no matching EEG channel (e.g. re-enabled invalid site)
         if (!IsFrozen)
         {
             int MostRecentSample = m_Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
