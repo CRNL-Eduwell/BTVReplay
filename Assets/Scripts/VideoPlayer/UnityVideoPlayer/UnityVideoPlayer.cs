@@ -141,8 +141,10 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
         // Skip the first 100 frames.
         m_VideoPlayer.frame = 0;
         m_VideoPlayer.EnableAudioTrack(0, true);
-        // Restart from beginning when done.
-        m_VideoPlayer.isLooping = true;
+        // Do NOT loop: CustomVideoPlayer stops playback once ClockTime passes TotalVideoTime.
+        // With looping on, the clock silently wraps to 0 and that stop never fires, desyncing
+        // the EEG/video. Let the clock reach the end so the stop logic runs.
+        m_VideoPlayer.isLooping = false;
         m_VideoPlayer.waitForFirstFrame = true;
 
         m_VideoPlayer.Prepare();

@@ -22,25 +22,30 @@ public class TimeUI : MonoBehaviour
             SecField.text = s.ToString();
         }
     }
+    // Safe parse: the fields are user-editable, so empty/non-numeric input must yield 0 rather
+    // than throwing FormatException (which callers like RecordVideoWindow did not handle).
     public int Hour
     {
         get
         {
-            return Convert.ToInt32(HourField.text);
+            int.TryParse(HourField.text, out int value);
+            return value;
         }
     }
     public int Min
     {
         get
         {
-            return Convert.ToInt32(MinField.text);
+            int.TryParse(MinField.text, out int value);
+            return value;
         }
     }
     public int Sec
     {
         get
         {
-            return Convert.ToInt32(SecField.text);
+            int.TryParse(SecField.text, out int value);
+            return value;
         }
     }
 

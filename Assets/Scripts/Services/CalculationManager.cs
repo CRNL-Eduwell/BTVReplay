@@ -69,8 +69,10 @@ public class CalculationManager : MonoBehaviour
             case TaskState.Error:
                 {
                     yield return Ninja.JumpToUnity;
-                    //ApplicationState.displayMessage("Error Processing Correlations", "NOK", SignalprocessingTask.Exception.Message.ToString());
                     UnityEngine.Debug.LogError("Error while processing TF");
+                    if (SignalprocessingTask.Exception != null) UnityEngine.Debug.LogException(SignalprocessingTask.Exception);
+                    ApplicationState.displayMessage("Time-frequency computation failed", "NOK",
+                        SignalprocessingTask.Exception != null ? SignalprocessingTask.Exception.Message : "Unknown error (see log).");
                     yield return Ninja.JumpBack;
                     break;
                 }
@@ -136,8 +138,10 @@ public class CalculationManager : MonoBehaviour
             case TaskState.Error:
                 {
                     yield return Ninja.JumpToUnity;
-                    //ApplicationState.displayMessage("Error Processing Correlations", "NOK", SignalprocessingTask.Exception.Message.ToString());
                     UnityEngine.Debug.LogError("Error while processing TF Normalization");
+                    if (SignalprocessingTask.Exception != null) UnityEngine.Debug.LogException(SignalprocessingTask.Exception);
+                    ApplicationState.displayMessage("Time-frequency normalization failed", "NOK",
+                        SignalprocessingTask.Exception != null ? SignalprocessingTask.Exception.Message : "Unknown error (see log).");
                     yield return Ninja.JumpBack;
                     break;
                 }
