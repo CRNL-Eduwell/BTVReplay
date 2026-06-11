@@ -60,10 +60,20 @@ namespace BTV.Services.DatabaseService
                 return;
             }
 
-            ISubjectsContext fileContext = SubjectsFactory.GetSubjectsContext(file.FullName);
-            m_Subjects = new ObservableCollection<Subject>(fileContext.Subjects);
-            Subjects = new ReadOnlyObservableCollection<Subject>(m_Subjects);
-            FilePath = fileContext.FilePath;
+            try
+            {
+                ISubjectsContext fileContext = SubjectsFactory.GetSubjectsContext(file.FullName);
+                m_Subjects = new ObservableCollection<Subject>(fileContext.Subjects);
+                Subjects = new ReadOnlyObservableCollection<Subject>(m_Subjects);
+                FilePath = fileContext.FilePath;
+            }
+            catch (Exception e)
+            {
+                // Leave the repository unloaded (Subjects == null): a failed load must never
+                // be mistaken for an empty database, or a later Save would wipe the file.
+                Debug.LogError("Failed to load subject database " + FilePath + " - the file was left untouched.");
+                Debug.LogException(e);
+            }
         }
 
         public SubjectRepository(string path = "", List<Subject> subjects = null)
@@ -106,26 +116,46 @@ namespace BTV.Services.DatabaseService
             }
         }
 
-        public void Save(string path = "")
+        public bool Save(string path = "")
         {
             if (string.IsNullOrEmpty(path)) path = FilePath;
 
-            string backupPath = path.Replace(".dbtv2", "BU.dbtv2");
-            if (File.Exists(path) && File.Exists(backupPath))
+            if (m_Subjects == null)
             {
-                File.Copy(path, backupPath, true);
-                SubjectsFactory.SaveSubjects(path, m_Subjects.ToList());
+                Debug.LogError("SubjectRepository.Save: repository was never loaded, refusing to overwrite " + path);
+                return false;
             }
-            else
+            if (!path.EndsWith(".dbtv2"))
             {
-                File.Create(path).Dispose();
-                SubjectsFactory.SaveSubjects(path, m_Subjects.ToList());
-                //==
-                File.Create(backupPath).Dispose();
-                SubjectsFactory.SaveSubjects(backupPath, m_Subjects.ToList());
+                Debug.LogError("SubjectRepository.Save: only .dbtv2 databases can be saved => " + path);
+                return false;
             }
 
-            if (!string.IsNullOrEmpty(path)) FilePath = path;
+            // Preserve the current on-disk version as the backup *before* writing the new
+            // data, so the backup always holds the previous state, never the new one.
+            string backupPath = path.Substring(0, path.Length - ".dbtv2".Length) + "BU.dbtv2";
+            try
+            {
+                if (File.Exists(path)) File.Copy(path, backupPath, true);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("SubjectRepository.Save: could not write backup " + backupPath + ", aborting save to protect the current database.");
+                Debug.LogException(e);
+                return false;
+            }
+
+            if (!SubjectsFactory.SaveSubjects(path, m_Subjects.ToList())) return false;
+
+            if (!File.Exists(backupPath))
+            {
+                // Brand-new database: seed the backup with the freshly saved file.
+                try { File.Copy(path, backupPath, true); }
+                catch (Exception e) { Debug.LogException(e); }
+            }
+
+            FilePath = path;
+            return true;
         }
 
         #region operators

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BrainTV.Tools.NumberExtensions;
+using System;
+using System.Globalization;
 using System.IO;
 
 namespace Assets.Scripts.Data.Files
@@ -13,12 +15,11 @@ namespace Assets.Scripts.Data.Files
                 {
                     for (int j = 0; j < Data[i].Length; j++)
                     {
-                        writter.Write(Data[i][j] + ";");
+                        writter.Write(Data[i][j].ToString(CultureInfo.InvariantCulture) + ";");
                     }
                     writter.Write("\n");
                 }
             }
-            //writter.Close();
         }
 
         public static float[][] LoadFloatDataHorizontally(string filePath)
@@ -35,7 +36,10 @@ namespace Assets.Scripts.Data.Files
                     Data[i] = new float[RawElement.Length];
                     for (int j = 0; j < Data[i].Length; j++)
                     {
-                        Data[i][j] = float.Parse(RawElement[j]);
+                        // Invariant first (current write format), multi-culture fallback for
+                        // files written by older versions with the machine's locale.
+                        if (!float.TryParse(RawElement[j], NumberStyles.Float, CultureInfo.InvariantCulture, out Data[i][j]))
+                            RawElement[j].TryParseFloat(out Data[i][j]);
                     }
                 }
                 return Data;

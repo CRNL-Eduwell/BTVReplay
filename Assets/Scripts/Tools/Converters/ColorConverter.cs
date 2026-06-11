@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Json converter capable of Handling UnityEngine.Color struct
 /// </summary>
-class ColorConverter : JsonConverter
+public class ColorConverter : JsonConverter
 {
     public override bool CanConvert(Type objectType)
     {
@@ -35,13 +35,16 @@ class ColorConverter : JsonConverter
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
         string[] splitedString = ((string)reader.Value).Split(new char[] { '(', ')' }, StringSplitOptions.None);
+        if (splitedString.Length < 2) return Color.white;
+
         string[] splitedColors = splitedString[1].Split(new char[] { ',' }, StringSplitOptions.None);
+        if (splitedColors.Length != 4) return Color.white;
 
         NumberExtensions.TryParseFloat(splitedColors[0], out float r);
         NumberExtensions.TryParseFloat(splitedColors[1], out float g);
         NumberExtensions.TryParseFloat(splitedColors[2], out float b);
         NumberExtensions.TryParseFloat(splitedColors[3], out float a);
 
-        return splitedColors.Length == 4 ? new Color(r, g, b, a) : new Color(1, 1, 1, 1);
+        return new Color(r, g, b, a);
     }
 }
