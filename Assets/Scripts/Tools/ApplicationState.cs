@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
-using CielaSpike;
 using BTV.UI.Module3D;
 using BTV.Services.EventsService;
 using BTV.Services.EegFileService;
@@ -47,10 +45,8 @@ public static class ApplicationState
         CodeMatchingService.Reset();
     }
 
-    // If in coroutine, need to be as such, otherwise it trigger error : "StartCoroutine_Auto_Internal can only be called from the main thread"
-    // yield return Ninja.JumpToUnity;
-    // ApplicationState.displayMessage(string HeaderMessage, string TypeMessage, string DetailledMessage);
-    // yield return Ninja.JumpBack;
+    // Touches the UI, so call it on the main thread (async flows: after the await, never inside
+    // a Task.Run worker).
     public static void displayMessage(string HeaderMessage, string TypeMessage, string DetailledMessage)
     {
         if (messageWindow == null)
@@ -60,18 +56,9 @@ public static class ApplicationState
 
     public static void displayConfirmation(string HeaderMessage, string DetailledMessage, UnityAction yesAction, UnityAction cancelAction)
     {
-        if (messageWindow == null || coroutineManager == null)
+        if (messageWindow == null)
             init();
-        coroutineManager.StartCoroutine(c_displayConfirmation(HeaderMessage, DetailledMessage, yesAction, cancelAction));
-    }
-
-    static IEnumerator c_displayConfirmation(string HeaderMessage, string DetailledMessage, UnityAction yesAction, UnityAction cancelAction)
-    {
-        yield return Ninja.JumpToUnity;
         messageWindow.displayConfirmation(HeaderMessage, DetailledMessage, yesAction, cancelAction);
-        yield return Ninja.JumpBack;
-
-        yield return null;
     }
 
     public static InputFieldWindow SpawnFrequencyChoiceWindow()

@@ -1,23 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using UnityEngine;
-using CielaSpike;
 
+/// <summary>
+/// Scene-wired component (the "ringSelect" object carries it; the scene references it by GUID,
+/// so do not delete the script). Its ThreadNinja-based StartCoroutineAsync helpers were never
+/// called anywhere and were removed along with the library.
+/// </summary>
 public class CoroutineManager : MonoBehaviour
 {
-    List<Coroutine> m_coroutines = new List<Coroutine>();
-    public ReadOnlyCollection<Coroutine> Coroutines { get { return new ReadOnlyCollection<Coroutine>(m_coroutines); } }
-
-    public Coroutine Add(IEnumerator coroutine)
-    {
-        Coroutine l_coroutine = this.StartCoroutineAsync(coroutine);
-        m_coroutines.Add(l_coroutine);
-        return l_coroutine;
-    }
-    public void StopCoroutineAsync(Coroutine coroutine)
-    {
-        m_coroutines.Remove(coroutine);
-        this.StopCoroutine(coroutine);
-    }
 }

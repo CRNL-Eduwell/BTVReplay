@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Collections; //IEnumerator
+using System.Threading.Tasks;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +8,6 @@ using UnityEngine.SceneManagement;
 
 using SFB;
 using BTV.Data;
-using CielaSpike;
 using BTV.Services.EegFileService;
 using System.Linq;
 using System.Collections.Generic;
@@ -164,26 +164,33 @@ public class SubjectLoaderService : MonoBehaviour
         loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, GameObject.Find("CircleWindow").transform) as GameObject).GetComponent<LoadingCircle>();
         loadingCircle.transform.localPosition = new Vector3(0, 0, 0);
 
-        yield return Ninja.JumpToUnity;
         loadingCircle.Set(0, "Finding files");
 
         for (int i = 0; i < eegfiles.Count; i++)
         {
             loadingCircle.Set(0.1f + ((0.9f / eegfiles.Count) * i), "Loading File " + (i+1));
-            yield return Ninja.JumpBack;
-            yield return Process(eegfiles[i], i);
-            yield return Ninja.JumpToUnity;
+            Task loadTask = LoadFile(eegfiles[i], i);
+            if (loadTask != null)
+            {
+                yield return new WaitUntil(() => loadTask.IsCompleted);
+                if (loadTask.IsFaulted)
+                {
+                    // A failed file must not abort the others; surface it and keep loading.
+                    UnityEngine.Debug.LogError("Could not load EEG file " + (i + 1) + " (" + eegfiles[i].Key + ").");
+                    UnityEngine.Debug.LogException(loadTask.Exception.GetBaseException());
+                }
+            }
         }
         loadingCircle.Set(1f, "Files have been loaded");
     }
 
-    private YieldInstruction Process(KeyValuePair<string, IEegFileInfo> kvp, int FileID)
+    private Task LoadFile(KeyValuePair<string, IEegFileInfo> kvp, int FileID)
     {
         if (!kvp.Equals(default(KeyValuePair<string, IEegFileInfo>)))
         {
-            // I give my callback to the process
-            // Async needed for another thread and not freezing/laging UI
-            return this.StartCoroutineAsync(EegFileService.c_Load(kvp.Value, FileID, kvp.Key));
+            // The native read runs on a worker so the UI does not freeze; the montage slot is
+            // assigned back on the main thread inside LoadAsync.
+            return EegFileService.LoadAsync(kvp.Value, FileID, kvp.Key);
         }
 
         return null;
