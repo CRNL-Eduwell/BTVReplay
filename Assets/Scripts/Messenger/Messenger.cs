@@ -1,189 +1,135 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using System;
+using UnityEngine;
 
-//https://gist.github.com/sachintha81/7b56aa5704409e055b8bbd33a27c9482
-
+/// <summary>
+/// Application-wide message bus. A handler is registered per (recipient, context) and invoked
+/// when a message is sent on that context. Production code goes through <see cref="Default"/>;
+/// tests create isolated instances.
+///
+/// Contract (each point was a silent failure mode of the previous implementation):
+/// - one handler per (recipient, context): a duplicate registration is rejected with an error
+///   in the console instead of being dropped silently,
+/// - a throwing handler is logged and skipped; the remaining recipients still get the message,
+/// - recipients receive messages in registration order (was: dictionary enumeration order),
+/// - Send allocates nothing (was: a LINQ scan of every subscription on every call, including
+///   the per-frame video time tick).
+/// </summary>
 public class Messenger
 {
-    private static readonly object CreationLock = new object();
-    private static readonly ConcurrentDictionary<MessengerKey, object> Dictionary = new ConcurrentDictionary<MessengerKey, object>();
+    public static Messenger Default { get; } = new Messenger();
 
-    #region Default property
+    // One copy-on-write subscriber array per MessageContext value. Send reads the current
+    // snapshot lock-free, so it is safe from any thread and re-entrant: a handler that
+    // registers or unregisters during dispatch only affects the NEXT Send. Writers swap the
+    // array under the lock.
+    private readonly Channel[] m_Channels;
+    private readonly object m_WriteLock = new object();
 
-    private static Messenger _instance;
+    public Messenger()
+    {
+        int contextCount = Enum.GetValues(typeof(MessageContext)).Length;
+        m_Channels = new Channel[contextCount];
+        for (int i = 0; i < contextCount; i++)
+            m_Channels[i] = new Channel();
+    }
 
     /// <summary>
-    /// Gets the single instance of the Messenger.
+    /// Registers a handler for messages of type T sent on the given context. One handler per
+    /// (recipient, context): a duplicate registration is ignored and logged as an error.
     /// </summary>
-    public static Messenger Default
+    public void Register<T>(object recipient, Action<T> action, MessageContext context)
     {
-        get
+        if (recipient == null || action == null)
         {
-            if (_instance == null)
+            Debug.LogError("Messenger: Register called with a null " + (recipient == null ? "recipient" : "handler") + " on context " + context + ", ignored.");
+            return;
+        }
+
+        lock (m_WriteLock)
+        {
+            Channel channel = m_Channels[(int)context];
+            Subscription[] items = channel.Items;
+            for (int i = 0; i < items.Length; i++)
             {
-                lock (CreationLock)
+                if (Equals(items[i].Recipient, recipient))
                 {
-                    if (_instance == null)
-                    {
-                        _instance = new Messenger();
-                    }
+                    Debug.LogError("Messenger: " + recipient.GetType().Name + " is already registered on context " + context + " - duplicate handler ignored. Unregister first if re-registering is intended.");
+                    return;
                 }
             }
 
-            return _instance;
+            Subscription[] updated = new Subscription[items.Length + 1];
+            Array.Copy(items, updated, items.Length);
+            updated[items.Length] = new Subscription(recipient, action);
+            channel.Items = updated;
         }
     }
 
-    #endregion
-
     /// <summary>
-    /// Initializes a new instance of the Messenger class.
+    /// Removes the recipient's handler from the given context. No-ops if it was not registered.
     /// </summary>
-    private Messenger()
+    public void Unregister(object recipient, MessageContext context)
     {
-    }
-
-    /// <summary>
-    /// Registers a recipient for a type of message T. The action parameter will be executed
-    /// when a corresponding message is sent.
-    /// </summary>
-    /// <typeparam name=""T""></typeparam>
-    /// <param name=""recipient""></param>
-    /// <param name=""action""></param>
-    public void Register<T>(object recipient, Action<T> action)
-    {
-        Register(recipient, action, null);
-    }
-
-    /// <summary>
-    /// Registers a recipient for a type of message T and a matching context. The action parameter will be executed
-    /// when a corresponding message is sent.
-    /// </summary>
-    /// <typeparam name=""T""></typeparam>
-    /// <param name=""recipient""></param>
-    /// <param name=""action""></param>
-    /// <param name=""context""></param>
-    public void Register<T>(object recipient, Action<T> action, object context)
-    {
-        var key = new MessengerKey(recipient, context);
-        Dictionary.TryAdd(key, action);
-    }
-
-    /// <summary>
-    /// Unregisters a messenger recipient completely. After this method is executed, the recipient will
-    /// no longer receive any messages.
-    /// </summary>
-    /// <param name=""recipient""></param>
-    public void Unregister(object recipient)
-    {
-        Unregister(recipient, null);
-    }
-
-    /// <summary>
-    /// Unregisters a messenger recipient with a matching context completely. After this method is executed, the recipient will
-    /// no longer receive any messages.
-    /// </summary>
-    /// <param name=""recipient""></param>
-    /// <param name=""context""></param>
-    public void Unregister(object recipient, object context)
-    {
-        object action;
-        var key = new MessengerKey(recipient, context);
-        Dictionary.TryRemove(key, out action);
-    }
-
-    /// <summary>
-    /// Sends a message to registered recipients. The message will reach all recipients that are
-    /// registered for this message type.
-    /// </summary>
-    /// <typeparam name=""T""></typeparam>
-    /// <param name=""message""></param>
-    public void Send<T>(T message)
-    {
-        Send(message, null);
-    }
-
-    /// <summary>
-    /// Sends a message to registered recipients. The message will reach all recipients that are
-    /// registered for this message type and matching context.
-    /// </summary>
-    /// <typeparam name=""T""></typeparam>
-    /// <param name=""message""></param>
-    /// <param name=""context""></param>
-    public void Send<T>(T message, object context)
-    {
-        IEnumerable<KeyValuePair<MessengerKey, object>> result;
-
-        if (context == null)
+        lock (m_WriteLock)
         {
-            // Get all recipients where the context is null.
-            result = from r in Dictionary where r.Key.Context == null select r;
-        }
-        else
-        {
-            // Get all recipients where the context is matching.
-            result = from r in Dictionary where r.Key.Context != null && r.Key.Context.Equals(context) select r;
-        }
-
-        foreach (var action in result.Select(x => x.Value).OfType<Action<T>>())
-        {
-            // Send the message to all recipients.
-            action(message);
+            Channel channel = m_Channels[(int)context];
+            Subscription[] items = channel.Items;
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (Equals(items[i].Recipient, recipient))
+                {
+                    Subscription[] updated = new Subscription[items.Length - 1];
+                    Array.Copy(items, 0, updated, 0, i);
+                    Array.Copy(items, i + 1, updated, i, items.Length - i - 1);
+                    channel.Items = updated;
+                    return;
+                }
+            }
         }
     }
 
-    protected class MessengerKey
+    /// <summary>
+    /// Sends a message to every handler registered on the context, in registration order. A
+    /// throwing handler is logged and skipped without aborting dispatch to the others.
+    /// </summary>
+    public void Send<T>(T message, MessageContext context)
     {
-        public object Recipient { get; private set; }
-        public object Context { get; private set; }
+        Subscription[] items = m_Channels[(int)context].Items;
+        for (int i = 0; i < items.Length; i++)
+        {
+            if (items[i].Handler is Action<T> handler)
+            {
+                try
+                {
+                    handler(message);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError("Messenger: handler of " + items[i].Recipient.GetType().Name + " threw on context " + context + " - dispatch to the remaining recipients continues.");
+                    Debug.LogException(ex);
+                }
+            }
+            else
+            {
+                Debug.LogError("Messenger: " + items[i].Recipient.GetType().Name + " is registered on context " + context + " for a different message type than the " + typeof(T).Name + " being sent - handler skipped.");
+            }
+        }
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the MessengerKey class.
-        /// </summary>
-        /// <param name=""recipient""></param>
-        /// <param name=""context""></param>
-        public MessengerKey(object recipient, object context)
+    private sealed class Channel
+    {
+        public volatile Subscription[] Items = Array.Empty<Subscription>();
+    }
+
+    private readonly struct Subscription
+    {
+        public readonly object Recipient;
+        public readonly object Handler;
+
+        public Subscription(object recipient, object handler)
         {
             Recipient = recipient;
-            Context = context;
-        }
-
-        /// <summary>
-        /// Determines whether the specified MessengerKey is equal to the current MessengerKey.
-        /// </summary>
-        /// <param name=""other""></param>
-        /// <returns></returns>
-        protected bool Equals(MessengerKey other)
-        {
-            return Equals(Recipient, other.Recipient) && Equals(Context, other.Context);
-        }
-
-        /// <summary>
-        /// Determines whether the specified MessengerKey is equal to the current MessengerKey.
-        /// </summary>
-        /// <param name=""obj""></param>
-        /// <returns></returns>
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-
-            return Equals((MessengerKey)obj);
-        }
-
-        /// <summary>
-        /// Serves as a hash function for a particular type. 
-        /// </summary>
-        /// <returns></returns>
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return ((Recipient != null ? Recipient.GetHashCode() : 0) * 397) ^ (Context != null ? Context.GetHashCode() : 0);
-            }
+            Handler = handler;
         }
     }
 }
