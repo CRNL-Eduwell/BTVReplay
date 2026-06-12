@@ -1,101 +1,22 @@
-﻿using UnityEngine;
-using UnityEngine.EventSystems;
-using System.Collections.Generic;
+using UnityEngine;
 
 namespace BTV.UI.PatientBaseManager
 {
-    public class MainMenu : MonoBehaviour
+    /// <summary>
+    /// Menu bar of the patient base manager window. All behaviour lives in <see cref="MenuBar"/>.
+    /// </summary>
+    public class MainMenu : MenuBar
     {
-        public FileMenu FileMenu { get { return m_FileMenu; } }
-        public EditMenu EditMenu { get { return m_EditMenu; } }
-
         [SerializeField] private FileMenu m_FileMenu = null;
         [SerializeField] private EditMenu m_EditMenu = null;
         [SerializeField] private OptionMenu m_Option = null;
 
-        private bool IsOneMenuOpen
+        protected override Menu[] Menus
         {
             get
             {
-                return m_FileMenu.IsOpen || m_EditMenu.IsOpen || m_Option.IsOpen;
+                return new Menu[] { m_FileMenu, m_EditMenu, m_Option };
             }
-        }
-
-        private void Awake()
-        {
-            m_FileMenu.OnChangeOpenState.AddListener((isOpen) =>
-            {
-                if (isOpen)
-                    Set(m_FileMenu);
-            });
-            m_FileMenu.OnHover.AddListener((isHovered) =>
-            {
-                if (isHovered && IsOneMenuOpen)
-                    m_FileMenu.Open();
-            });
-            m_EditMenu.OnChangeOpenState.AddListener((isOpen) =>
-            {
-                if (isOpen)
-                    Set(m_EditMenu);
-            });
-            m_EditMenu.OnHover.AddListener((isHovered) =>
-            {
-                if (isHovered && IsOneMenuOpen)
-                    m_EditMenu.Open();
-            });
-            m_Option.OnChangeOpenState.AddListener((isOpen) =>
-            {
-                if (isOpen)
-                    Set(m_Option);
-            });
-            m_Option.OnHover.AddListener((isHovered) =>
-            {
-                if (isHovered && IsOneMenuOpen)
-                    m_Option.Open();
-            });
-        }
-
-        private void OnDestroy()
-        {
-            m_FileMenu.OnChangeOpenState.RemoveAllListeners();
-            m_FileMenu.OnHover.RemoveAllListeners();
-            m_EditMenu.OnChangeOpenState.RemoveAllListeners();
-            m_EditMenu.OnHover.RemoveAllListeners();
-            m_Option.OnChangeOpenState.RemoveAllListeners();
-            m_Option.OnHover.RemoveAllListeners();
-        }
-
-        private void Update()
-        {
-            if (Input.GetMouseButtonUp(0))
-            {
-                PointerEventData pointer = new PointerEventData(EventSystem.current);
-                // convert to a 2D position
-                pointer.position = Input.mousePosition;
-                List<RaycastResult> raycastResults = new List<RaycastResult>();
-                EventSystem.current.RaycastAll(pointer, raycastResults);
-                if (raycastResults.Count > 0)
-                {
-                    if (raycastResults[0].gameObject.layer != 23) //if it's not a menu ui element
-                    {
-                        CloseAll();
-                    }
-                }
-            }
-        }
-
-        public void CloseAll()
-        {
-            m_FileMenu.Close();
-            m_EditMenu.Close();
-            m_Option.Close();
-        }
-
-        private void Set(Menu menu)
-        {
-            if (menu != m_FileMenu) m_FileMenu.Close();
-            if (menu != m_EditMenu) m_EditMenu.Close();
-            if (menu != m_Option) m_Option.Close();
         }
     }
 }

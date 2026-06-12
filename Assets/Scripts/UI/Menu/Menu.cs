@@ -2,14 +2,17 @@
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-namespace BTV.UI.MainWindow
+namespace BTV.UI
 {
     /// <summary>
-    /// Base class for a menu 
-    /// 
+    /// Base class for a menu
+    ///
     /// From HiBoP Menu class
-    /// 
-    /// Note : The Function SwapOpenState must be added manualy to the 
+    ///
+    /// Shared by the main-window and patient-base-manager menu bars (used to exist as two
+    /// byte-identical copies, one per namespace).
+    ///
+    /// Note : The Function SwapOpenState must be added manualy to the
     /// on click event of the button of the menu gameboject
     /// </summary>
     public class Menu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
