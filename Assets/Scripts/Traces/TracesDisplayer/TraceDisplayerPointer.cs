@@ -40,11 +40,11 @@ public class TraceDisplayerPointer : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case TraceDisplayerPointerMessage.Task.ShowAndUpdate:
                 m_TimeSinceAppear = 0.0f;
                 UpdatePointerInformation(message);
                 break;
-            case 1:
+            case TraceDisplayerPointerMessage.Task.Hide:
                 m_RootImageObject.SetActive(message.ShowPointer);
                 break;
             default:

@@ -300,7 +300,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case BrainWardenToTraceMessage.Task.PlotClicked:
                 PlotWasClicked(message.ClickedElectrode);
                 break;
             default:

@@ -28,10 +28,10 @@ public class ElecPointer : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case BrainWardenToElectrodePointerMessage.Task.ShowAndUpdate:
                 UpdatePointerInformation(message);
                 break;
-            case 1:
+            case BrainWardenToElectrodePointerMessage.Task.Hide:
                 m_RootImageObject.SetActive(message.ShowPointer);
                 break;
             default:

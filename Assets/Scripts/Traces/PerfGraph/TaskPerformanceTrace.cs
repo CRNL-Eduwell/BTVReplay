@@ -122,7 +122,7 @@ public class TaskPerformanceTrace : MonoBehaviour
                     {
                         ReactionTimePointerMessage message = new ReactionTimePointerMessage
                         {
-                            TaskToExecute = 0,
+                            TaskToExecute = ReactionTimePointerMessage.Task.ShowAndUpdate,
                             PointerPosition = new Vector3(worldClick.x, worldClick.y, 0),
                             ShowPointer = true,
                             Code = m_Triggers[id].Trigger.MainEnventCode.ToString(),
@@ -135,7 +135,7 @@ public class TaskPerformanceTrace : MonoBehaviour
                     {
                         ReactionTimePointerMessage message = new ReactionTimePointerMessage
                         {
-                            TaskToExecute = 1,
+                            TaskToExecute = ReactionTimePointerMessage.Task.Hide,
                             ShowPointer = false
                         };
                         Messenger.Default.Send(message, MessageContext.ReactionTimePointerMessage);
