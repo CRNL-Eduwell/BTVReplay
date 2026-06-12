@@ -100,13 +100,23 @@ namespace BTV.Services.VideoService
         // Each method gathers what it needs on the main thread, runs the blocking work (VLC
         // process, file IO, DSP) inside Task.Run, and publishes results to the static fields
         // after the await - i.e. back on the Unity main thread.
+
+        // Reads the user preferences, so call it on the main thread. Without this check,
+        // Process.Start fails with an unhelpful "Cannot find the specified file".
+        private static string ResolveVlcPathOrThrow()
+        {
+            string vlcPath = m_VlcPath;
+            if (string.IsNullOrEmpty(vlcPath) || !System.IO.File.Exists(vlcPath))
+                throw new FileNotFoundException("VLC was not found at \"" + vlcPath + "\". Install VLC or set its installation folder in the user preferences.");
+            return vlcPath;
+        }
         public static async Task ExtractAudioAsync(string AudioFilePath, string VideoFilePath)
         {
             FileInfo audioFileInfo = new FileInfo(AudioFilePath);
             if (audioFileInfo.Exists)
                 return;
 
-            string vlcPath = m_VlcPath; // reads the user preferences: resolve on the main thread
+            string vlcPath = ResolveVlcPathOrThrow();
             await Task.Run(() =>
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -127,7 +137,7 @@ namespace BTV.Services.VideoService
         public static async Task RecordVideoSnippetAsync(string OutputVideoPath, string durationInSeconds)
         {
             BtvLog.Log("Record " + OutputVideoPath + " et duree " + durationInSeconds);
-            string vlcPath = m_VlcPath; // reads the user preferences: resolve on the main thread
+            string vlcPath = ResolveVlcPathOrThrow();
             await Task.Run(() =>
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo();
