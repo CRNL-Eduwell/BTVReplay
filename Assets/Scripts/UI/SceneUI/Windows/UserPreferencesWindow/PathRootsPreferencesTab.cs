@@ -15,6 +15,7 @@ public class PathRootsPreferencesTab : MonoBehaviour
     private const float RowSpacing = 6f;
 
     private RectTransform m_RowTemplate = null;
+    private RectTransform m_HeaderRow = null;
     private readonly List<(InputField name, FolderSelector folder)> m_Rows = new List<(InputField, FolderSelector)>();
 
     /// <summary>
@@ -73,6 +74,44 @@ public class PathRootsPreferencesTab : MonoBehaviour
         DestroyImmediate(label.gameObject);
 
         m_RowTemplate.gameObject.SetActive(false);
+
+        m_HeaderRow = BuildHeaderRow();
+    }
+
+    // A static "Name | Folder" header above the rows: both row columns are editable fields,
+    // and without the header the name box reads as a misplaced label.
+    private RectTransform BuildHeaderRow()
+    {
+        RectTransform header = Instantiate(m_RowTemplate, m_RowTemplate.parent);
+        header.name = "Header";
+        header.gameObject.SetActive(true);
+        header.anchoredPosition = m_RowTemplate.anchoredPosition;
+
+        ConvertToLabel(header.GetChild(0).gameObject, "Name");
+
+        GameObject folderSlot = header.GetChild(1).gameObject;
+        FolderSelector selector = folderSlot.GetComponent<FolderSelector>();
+        Button browse = selector.GetComponentInChildren<Button>(true);
+        InputField folderField = selector.GetComponentInChildren<InputField>(true);
+        DestroyImmediate(selector);
+        if (browse != null) DestroyImmediate(browse.gameObject);
+        ConvertToLabel(folderField.gameObject, "Folder");
+
+        return header;
+    }
+
+    // Strips the editing behaviour and background off an input field, leaving its text as a
+    // plain label in the same spot.
+    private static void ConvertToLabel(GameObject inputFieldObject, string text)
+    {
+        InputField field = inputFieldObject.GetComponent<InputField>();
+        Text textComponent = field.textComponent;
+        Graphic placeholder = field.placeholder;
+        DestroyImmediate(field);
+        if (placeholder != null) DestroyImmediate(placeholder.gameObject);
+        Image background = inputFieldObject.GetComponent<Image>();
+        if (background != null) DestroyImmediate(background);
+        if (textComponent != null) textComponent.text = text;
     }
 
     /// <summary>
@@ -88,7 +127,8 @@ public class PathRootsPreferencesTab : MonoBehaviour
         {
             RectTransform row = Instantiate(m_RowTemplate, m_RowTemplate.parent);
             row.gameObject.SetActive(true);
-            row.anchoredPosition = m_RowTemplate.anchoredPosition + new Vector2(0, -(m_RowTemplate.rect.height + RowSpacing) * i);
+            // Slot 0 is the static header row; data rows start below it.
+            row.anchoredPosition = m_RowTemplate.anchoredPosition + new Vector2(0, -(m_RowTemplate.rect.height + RowSpacing) * (i + 1));
 
             InputField nameField = row.GetChild(0).GetComponent<InputField>();
             FolderSelector folderSelector = row.GetComponentInChildren<FolderSelector>(true);
