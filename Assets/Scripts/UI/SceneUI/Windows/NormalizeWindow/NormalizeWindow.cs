@@ -78,7 +78,7 @@ public class NormalizeWindow : MonoBehaviour
 
         TraceDisplayerNormalize message = new TraceDisplayerNormalize
         {
-            TaskToExecute = 1,
+            TaskToExecute = TraceDisplayerNormalize.Task.Normalize,
             BeginTimeBaseline = _BeginTime.TimeInSeconds,
             EndTimeBaseline = _EndTime.TimeInSeconds
         };

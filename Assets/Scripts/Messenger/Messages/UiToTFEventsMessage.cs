@@ -1,7 +1,15 @@
 class UiToTFEventsMessage
 {
-    // 0 : Toggle Curso slave
-    public int TaskToExecute
+    public enum Task
+    {
+        ToggleCursorSlave = 0,
+        UpdateAlpha = 1,
+        UpdateFrequencyBand = 2,
+        UpdateTfWindow = 3,
+        UpdateAmplitude = 4,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

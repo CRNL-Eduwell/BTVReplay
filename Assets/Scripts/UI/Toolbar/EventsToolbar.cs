@@ -44,7 +44,7 @@ namespace BTV.UI.Module3D
             {
                 EventsModificationMessage hackMessage = new EventsModificationMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = EventsModificationMessage.Task.AddEvent,
                     Event = _event
                 };
                 Messenger.Default.Send(hackMessage, MessageContext.EventsModificationMessage);
@@ -55,7 +55,7 @@ namespace BTV.UI.Module3D
         {
             UiToEventsMessage message = new UiToEventsMessage
             {
-                TaskToExecute = 0,
+                TaskToExecute = UiToEventsMessage.Task.LoadEventsFile,
                 FilePathToLoad = filePath
             };
             Messenger.Default.Send(message, MessageContext.UiToEvents);
@@ -65,7 +65,7 @@ namespace BTV.UI.Module3D
         {
             UiToEventsMessage message = new UiToEventsMessage
             {
-                TaskToExecute = 1,
+                TaskToExecute = UiToEventsMessage.Task.SaveEventsFile,
                 FilePathToSave = filePath
             };
             Messenger.Default.Send(message, MessageContext.UiToEvents);
@@ -75,7 +75,7 @@ namespace BTV.UI.Module3D
         {
             UiToEventsMessage message = new UiToEventsMessage
             {
-                TaskToExecute = 2,
+                TaskToExecute = UiToEventsMessage.Task.ToggleAddEvents,
                 IsAddEventsOn = isAddOn
             };
             Messenger.Default.Send(message, MessageContext.UiToEvents);
@@ -85,7 +85,7 @@ namespace BTV.UI.Module3D
         {
             UiToEventsMessage message = new UiToEventsMessage
             {
-                TaskToExecute = 3,
+                TaskToExecute = UiToEventsMessage.Task.ToggleShowEvents,
                 IsShowEventsOn = isShowOn
             };
             Messenger.Default.Send(message, MessageContext.UiToEvents);
@@ -95,7 +95,7 @@ namespace BTV.UI.Module3D
         {
             UiToEventsMessage message = new UiToEventsMessage
             {
-                TaskToExecute = 4
+                TaskToExecute = UiToEventsMessage.Task.DeleteSelectedEvents
             };
             Messenger.Default.Send(message, MessageContext.UiToEvents);
         }
@@ -104,7 +104,7 @@ namespace BTV.UI.Module3D
         {
             UiToEventsMessage message = new UiToEventsMessage
             {
-                TaskToExecute = 5,
+                TaskToExecute = UiToEventsMessage.Task.LoadCodeMatchingFile,
                 FilePathToLoad = filePath
             };
             Messenger.Default.Send(message, MessageContext.UiToEvents);

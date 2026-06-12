@@ -7,13 +7,17 @@ using System.Threading.Tasks;
 
 class EventsModificationMessage
 {
-    // 0 : Add Event
-    // 1 : Modify Event
-    // 2 : Delete Event
-    // 3 : Edit Event
-    // 4 : Calculate Plot Correlation
-    // 5 : Calculate All Plots Correlation
-    public int TaskToExecute
+    public enum Task
+    {
+        AddEvent = 0,
+        ModifyEvent = 1,
+        DeleteEvent = 2,
+        EditEvent = 3,
+        ComputeCorrelation = 4,
+        ComputeCorrelation2D = 5,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

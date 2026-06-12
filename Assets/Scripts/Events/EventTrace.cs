@@ -30,7 +30,7 @@ public class EventTrace : MonoBehaviour, IPointerClickHandler
                 {
                     EventsToTraceMessage message = new EventsToTraceMessage
                     {
-                        TaskToExecute = 5,
+                        TaskToExecute = EventsToTraceMessage.Task.DisplayEvent,
                         Event = EventOfInterest,
                         ParentWindowIndex = ParentWindowIndex
                     };

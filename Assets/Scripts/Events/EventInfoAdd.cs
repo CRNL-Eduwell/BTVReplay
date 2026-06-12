@@ -75,7 +75,7 @@ public class EventInfoAdd : MonoBehaviour
 
         EventsModificationMessage message = new EventsModificationMessage
         {
-            TaskToExecute = 0,
+            TaskToExecute = EventsModificationMessage.Task.AddEvent,
             Event = m_Event
         };
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);

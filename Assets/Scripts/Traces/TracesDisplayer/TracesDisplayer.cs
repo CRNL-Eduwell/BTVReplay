@@ -251,12 +251,12 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case TraceDisplayerNormalize.Task.Reset:
                 {
                     BtvLog.Log("Reseting Data");
                     break;
                 }
-            case 1:
+            case TraceDisplayerNormalize.Task.Normalize:
                 {
                     BtvLog.Log("Normalizing Data");
                     if (message.EndTimeBaseline * FileHandle.Frequency.RawValue > Channel.NumberOfSample)
@@ -299,7 +299,6 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         {
             ShowWindowMessage mess = new ShowWindowMessage
             {
-                TaskToExecute = 0,
                 WindowName = "NormalizeWindow"
             };
 

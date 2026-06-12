@@ -42,7 +42,7 @@ namespace BTV.UI.Module3D.Tools
         {
             UiToTaskPerformanceMessage message = new UiToTaskPerformanceMessage
             {
-                TaskToExecute = 0,
+                TaskToExecute = UiToTaskPerformanceMessage.Task.ProcessProtocol,
                 NewProtocol = ProtocolService.ProtocolFiles[m_Protocols.value]
             };
             Messenger.Default.Send(message, MessageContext.UiToTaskPerformanceMessage);

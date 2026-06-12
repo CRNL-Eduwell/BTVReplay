@@ -44,7 +44,6 @@ namespace BTV.UI.Module3D.Tools
         {
             ShowWindowMessage message = new ShowWindowMessage
             {
-                TaskToExecute = 0,
                 WindowName = "MontageWindow"
             };
             Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
@@ -69,7 +68,6 @@ namespace BTV.UI.Module3D.Tools
             {
                 ShowWindowMessage message = new ShowWindowMessage
                 {
-                    TaskToExecute = 0,
                     WindowName = "MontageWindow"
                 };
                 Messenger.Default.Send(message, MessageContext.ShowWindowMessage);

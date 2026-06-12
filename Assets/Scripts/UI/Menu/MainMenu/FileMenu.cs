@@ -96,7 +96,6 @@ namespace BTV.UI.MainWindow
         {
             ShowWindowMessage message = new ShowWindowMessage
             {
-                TaskToExecute = 0,
                 WindowName = "SubjectDatabase"
             };
             Messenger.Default.Send(message, MessageContext.ShowWindowMessage);

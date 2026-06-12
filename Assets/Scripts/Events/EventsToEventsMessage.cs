@@ -5,8 +5,12 @@ using UnityEngine;
 
 class EventsToEventsMessage
 {
-    // 0 : move cursor
-    public int TaskToExecute { get; set; }
+    public enum Task
+    {
+        MoveCursor = 0,
+    }
+
+    public Task TaskToExecute { get; set; }
     public float XPositionPercentage { get; set; }
     public float YPositionPercentage { get; set; }
     public BtvEvent BTVEvent { get; set; }
