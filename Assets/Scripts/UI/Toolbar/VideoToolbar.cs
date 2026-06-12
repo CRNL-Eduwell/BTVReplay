@@ -40,7 +40,7 @@ namespace BTV.UI.Module3D
         {
             base.AddListeners();
 
-            m_Gain.gainAudioHasChanged += UpdateAudioTraceGain;
+            m_Gain.gainHasChanged += UpdateAudioTraceGain;
             m_Offset.offsetVideoHasChanged += UpdateAudioTraceOffset;
             m_AudioTrace.ToggleTraceAudio += ToggleAudioTrace;
             m_AudioTrace.UpdateAudioFileID += UpdateAudioTraceFile;
