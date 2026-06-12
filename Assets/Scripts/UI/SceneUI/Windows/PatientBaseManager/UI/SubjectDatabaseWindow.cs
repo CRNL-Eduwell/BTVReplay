@@ -215,20 +215,20 @@ public class SubjectDatabaseWindow : MonoBehaviour
         SubjectRepository[] SelectedElements = _DatabaseList.ObjectsSelected;
         if (SelectedElements.Length > 0)
         {
-            FileInfo fileinfo = new FileInfo(SelectedElements[0].FilePath);
-            string name = fileinfo.Name.Replace(".dbtv2", "");
-
             InputFieldWindow window = ApplicationState.SpawnFrequencyChoiceWindow();
             window.Initialize("Database Name", "Choose a new name for your Database",
                 () =>
                 {
-                    DatabaseService.UpdateDatabaseName(SelectedElements[0], name, window.StringValue);
+                    if (!DatabaseService.UpdateDatabaseName(SelectedElements[0], window.StringValue))
+                    {
+                        ApplicationState.displayMessage("Database was not renamed", "INFO", "The name is invalid, already used, or the files could not be renamed");
+                    }
                     window.Close();
                 }, () =>
                 {
                     window.Close();
                 });
-            window.StringValue = name;
+            window.StringValue = SelectedElements[0].ShortName;
         }
     }
 
@@ -253,8 +253,12 @@ public class SubjectDatabaseWindow : MonoBehaviour
                 window.Initialize("Subject Name", "Choose a new name for your Subject",
                     () =>
                     {
-                        DatabaseService.EditSubjectName(SelectedDB[0], SelectedSubjects[0], window.StringValue);
-                        _SubjectWidget.Subject.PatientName = window.StringValue;
+                        // The rename raises CollectionChanged(Replace), which re-keys the list
+                        // and re-syncs the widget through OnSubjectSelectionChanged.
+                        if (!DatabaseService.EditSubjectName(SelectedDB[0], SelectedSubjects[0], window.StringValue))
+                        {
+                            ApplicationState.displayMessage("Subject was not renamed", "INFO", "The name is empty or already used in this database");
+                        }
                         window.Close();
                     }, () =>
                     {
@@ -287,6 +291,11 @@ public class SubjectDatabaseWindow : MonoBehaviour
         }
     }
 
+    private SubjectRepository FindOpenDatabase(string shortName)
+    {
+        return _DatabaseList.Objects.FirstOrDefault(x => x.ShortName == shortName);
+    }
+
     private void MoveSubjectsToDatabase(string database)
     {
         SubjectRepository[] SelectedDB = _DatabaseList.ObjectsSelected;
@@ -295,7 +304,13 @@ public class SubjectDatabaseWindow : MonoBehaviour
             Subject[] SelectedSubjects = _SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                SubjectRepository destinationDb = _DatabaseList.Objects.First(x => x.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv2", "") == database);
+                SubjectRepository destinationDb = FindOpenDatabase(database);
+                if (destinationDb == null)
+                {
+                    Debug.LogError("MoveSubjectsToDatabase : no open database named " + database);
+                    return;
+                }
+                if (ReferenceEquals(destinationDb, SelectedDB[0])) return; // moving onto itself is a no-op
                 foreach (var subject in SelectedSubjects)
                 {
                     bool added = DatabaseService.AddSubjectToDatabase(destinationDb, subject);
@@ -320,10 +335,17 @@ public class SubjectDatabaseWindow : MonoBehaviour
             Subject[] SelectedSubjects = _SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                SubjectRepository destinationDb = _DatabaseList.Objects.First(x => x.FilePath.Split(new string[] { "\\", "/" }, System.StringSplitOptions.None).Last().Replace(".dbtv2", "") == database);
+                SubjectRepository destinationDb = FindOpenDatabase(database);
+                if (destinationDb == null)
+                {
+                    Debug.LogError("CopySubjectsToDatabase : no open database named " + database);
+                    return;
+                }
                 foreach (var subject in SelectedSubjects)
                 {
-                    bool added = DatabaseService.AddSubjectToDatabase(destinationDb, subject);
+                    // Deep-copy: inserting the same instance in two databases means a later
+                    // rename or edit in one silently changes the other.
+                    bool added = DatabaseService.AddSubjectToDatabase(destinationDb, new Subject(subject));
                     if (!added)
                     {
                         ApplicationState.displayMessage("Patient was not copied", "INFO", "Patient already exists in destination database");
@@ -364,6 +386,12 @@ public class SubjectDatabaseWindow : MonoBehaviour
 
     private void UpdateSubjectCollection(object sender, NotifyCollectionChangedEventArgs e)
     {
+        // Every open database reports here (we subscribe to each of them), but the list on
+        // screen only shows the selected database. Reacting to another database's change
+        // used to push its subjects into the displayed list and desync the selection state.
+        if (m_LastSelectedRepository == null || !ReferenceEquals(sender, m_LastSelectedRepository.Subjects))
+            return;
+
         switch (e.Action)
         {
             case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
@@ -411,7 +439,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
     {
         if (m_LastSelectedRepository != null && _SubjectWidget.Subject != null)
         {
-            int repoIndex = DatabaseService.Databases.IndexOf(m_LastSelectedRepository);
+            SubjectRepository repository = m_LastSelectedRepository;
             Subject updated = new Subject(_SubjectWidget.Subject);
             Subject outdated = new Subject(_SubjectWidget.MemorySubject);
             if (updated != outdated)
@@ -419,8 +447,14 @@ public class SubjectDatabaseWindow : MonoBehaviour
                 ApplicationState.displayConfirmation("Keep Modifications ?", "There seems to have been some modifications, do you want to save them ?",
                     () =>
                     {
-                        DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
-                        DatabaseService.Databases[repoIndex].Save();
+                        // Resolve the index when the user answers: the database list may
+                        // have changed (or the database been closed) while the dialog was open.
+                        int repoIndex = DatabaseService.Databases.IndexOf(repository);
+                        if (repoIndex != -1)
+                        {
+                            DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
+                            DatabaseService.Databases[repoIndex].Save();
+                        }
                     },
                     () => { });
             }
@@ -439,18 +473,33 @@ public class SubjectDatabaseWindow : MonoBehaviour
 
     private void LoadSelectedSubject()
     {
+        if (_SubjectWidget.Subject == null)
+        {
+            ApplicationState.displayMessage("Can not load Subject", "NOK", "Please select a subject first");
+            return;
+        }
         Subject updated = new Subject(_SubjectWidget.Subject);
         Subject outdated = new Subject(_SubjectWidget.MemorySubject);
-        string experimentlabel = updated.Experiments[_SubjectWidget.ExperimentIndex].Label;
+        if (updated.Experiments.Count == 0)
+        {
+            ApplicationState.displayMessage("Can not load Subject", "NOK", "This subject has no experiment to load");
+            return;
+        }
+        int experimentIndex = Mathf.Clamp(_SubjectWidget.ExperimentIndex, 0, updated.Experiments.Count - 1);
+        string experimentlabel = updated.Experiments[experimentIndex].Label;
         if (updated != outdated)
         {
+            SubjectRepository repository = m_LastSelectedRepository;
             ApplicationState.displayConfirmation("Keep Modifications ?", "There seems to have been some modifications, do you want to save them ?",
             () =>
             {
                 m_dbSwitch = true;
-                int repoIndex = DatabaseService.Databases.IndexOf(m_LastSelectedRepository);
-                DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
-                DatabaseService.Databases[repoIndex].Save();
+                int repoIndex = DatabaseService.Databases.IndexOf(repository);
+                if (repoIndex != -1)
+                {
+                    DatabaseService.UpdateSubjectFromDatabase(repoIndex, outdated, updated);
+                    DatabaseService.Databases[repoIndex].Save();
+                }
                 m_dbSwitch = false;
                 LoadSubject(updated, experimentlabel);
             },

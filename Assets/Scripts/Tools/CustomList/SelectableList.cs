@@ -141,8 +141,11 @@ namespace Tools.Unity.Lists
         {
             if (base.Replace(obj, old))
             {
+                // Carry the selection state over so replacing an element (e.g. a rename
+                // going through CollectionChanged.Replace) does not deselect it.
+                m_SelectedStateByObject.TryGetValue(old, out bool wasSelected);
                 m_SelectedStateByObject.Remove(old);
-                m_SelectedStateByObject.Add(obj, false);
+                m_SelectedStateByObject[obj] = wasSelected;
                 OnSelectionChanged();
                 return true;
             }
@@ -253,7 +256,8 @@ namespace Tools.Unity.Lists
                 SelectableItem<T> selectableItem = item as SelectableItem<T>;
                 selectableItem.Object = objectToUpdate;
                 selectableItem.OnChangeSelected.RemoveAllListeners();
-                selectableItem.ChangeSelectionValue(m_SelectedStateByObject[objectToUpdate]);
+                m_SelectedStateByObject.TryGetValue(objectToUpdate, out bool isSelected);
+                selectableItem.ChangeSelectionValue(isSelected);
                 selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                 OnUpdateObject.Invoke(objectToUpdate);
                 return true;
@@ -273,7 +277,10 @@ namespace Tools.Unity.Lists
                 T obj = m_DisplayedObjects[i];
                 item.Object = obj;
                 item.OnChangeSelected.RemoveAllListeners();
-                item.ChangeSelectionValue(m_SelectedStateByObject[obj]);
+                // TryGetValue: a desynced selection dictionary must not crash the whole
+                // refresh (historically a KeyNotFoundException here broke the DB manager).
+                m_SelectedStateByObject.TryGetValue(obj, out bool isSelected);
+                item.ChangeSelectionValue(isSelected);
                 item.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
             }
         }
@@ -312,7 +319,8 @@ namespace Tools.Unity.Lists
             base.SetItem(item, obj);
             SelectableItem<T> selectableItem = item as SelectableItem<T>;
             selectableItem.OnChangeSelected.RemoveAllListeners();
-            selectableItem.ChangeSelectionValue(m_SelectedStateByObject[obj]);
+            m_SelectedStateByObject.TryGetValue(obj, out bool isSelected);
+            selectableItem.ChangeSelectionValue(isSelected);
             selectableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
         }
         /// <summary>

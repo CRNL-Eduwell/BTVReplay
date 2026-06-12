@@ -43,7 +43,11 @@ public class DbSubMenu : MonoBehaviour
             SubjectRepository item = sender as SubjectRepository;
             if (m_ChildElements.ContainsKey(item))
             {
-                m_ChildElements[item].transform.GetChild(0).GetComponent<Text>().text = item.ShortName;
+                GameObject itemObject = m_ChildElements[item];
+                // ItemClicked sends Button.name: keep it in sync or copy/move to a renamed
+                // database keeps targeting the old name and fails.
+                itemObject.name = item.ShortName;
+                itemObject.transform.GetChild(0).GetComponent<Text>().text = item.ShortName;
             }
         }
     }
