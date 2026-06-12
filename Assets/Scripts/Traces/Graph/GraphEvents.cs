@@ -27,6 +27,12 @@ public class GraphEvents : MonoBehaviour
     private List<GameObject> m_EventsAdded = new List<GameObject>();
     private bool m_DisplayEvents = true;
 
+    // Reused every tick by UpdateEventsOnTrace so the per-frame event-window query allocates nothing.
+    private readonly List<int> m_IdOverFlow = new List<int>();
+    private readonly List<int> m_IdRightEnter = new List<int>();
+    private readonly List<int> m_IdInside = new List<int>();
+    private readonly List<int> m_IdLeftEnter = new List<int>();
+
     public void init(Trace parentWin)
     {
         m_parent = parentWin;
@@ -86,11 +92,12 @@ public class GraphEvents : MonoBehaviour
             HideActiveEvents();
             if (DisplayEvents)
             {
-                //We get all relevant events
-                List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right);
-                List<int> idRightEnter = EventsService.GetEventIdsEnteringWindow(left, right);
-                List<int> idInside = EventsService.GetEventIdsInsideWindow(left, right);
-                List<int> idLeftEnter = EventsService.GetEventIdsExitingWindow(left, right);
+                //We get all relevant events in a single allocation-free pass over reused buffers
+                EventsService.CollectEventIdsForWindow(left, right, m_IdOverFlow, m_IdRightEnter, m_IdInside, m_IdLeftEnter);
+                List<int> idOverFlow = m_IdOverFlow;
+                List<int> idRightEnter = m_IdRightEnter;
+                List<int> idInside = m_IdInside;
+                List<int> idLeftEnter = m_IdLeftEnter;
 
                 //Then we display
                 float sizeV = m_parentRectTransform.rect.height - 10;
