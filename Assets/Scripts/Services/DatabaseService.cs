@@ -39,18 +39,56 @@ namespace BTV.Services.DatabaseService
             }
 
             BtvLog.Log("OpenDatabase => " + filePath);
-            Databases.Add(new SubjectRepository(filePath));
+            SubjectRepository repository = new SubjectRepository(filePath);
+            if (repository.Subjects == null)
+            {
+                // Load failed (the repository already logged why). Don't add it: every
+                // consumer assumes Subjects is usable, and a failed load must never be
+                // mistaken for an empty database.
+                return;
+            }
+            // Compare against the post-load path so re-opening a migrated .txt is caught too.
+            if (Databases.Any(db => db.FilePath == repository.FilePath))
+            {
+                Debug.LogWarning("OpenDatabase : " + repository.FilePath + " is already open");
+                return;
+            }
+            Databases.Add(repository);
         }
 
-        public static void UpdateDatabaseName(SubjectRepository element, string oldName, string newName)
+        public static bool UpdateDatabaseName(SubjectRepository element, string newName)
         {
-            if (Databases.Contains(element))
+            if (!Databases.Contains(element)) return false;
+            if (string.IsNullOrWhiteSpace(newName) || newName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return false;
+
+            int index = Databases.IndexOf(element);
+            string oldPath = Databases[index].FilePath;
+            if (!oldPath.EndsWith(".dbtv2")) return false;
+            if (Databases[index].ShortName == newName) return true;
+            if (Databases.Any(db => db.ShortName == newName)) return false;
+
+            string newPath = Path.Combine(Path.GetDirectoryName(oldPath), newName + ".dbtv2");
+            if (File.Exists(newPath)) return false; // never clobber another base on disk
+
+            // Rename the on-disk files too, otherwise the old base survives and reloads stale
+            // data later. Backup first: if the main move fails we only lose the backup copy.
+            try
             {
-                BtvLog.Log("Update DB Name, contains element");
-                int index = Databases.IndexOf(element);
-                string filePath = Databases[index].FilePath;
-                Databases[index].FilePath = filePath.Replace(oldName + ".dbtv2", newName + ".dbtv2");
+                string oldBackup = oldPath.Substring(0, oldPath.Length - ".dbtv2".Length) + "BU.dbtv2";
+                string newBackup = newPath.Substring(0, newPath.Length - ".dbtv2".Length) + "BU.dbtv2";
+                if (File.Exists(oldBackup) && !File.Exists(newBackup)) File.Move(oldBackup, newBackup);
+                if (File.Exists(oldPath)) File.Move(oldPath, newPath);
             }
+            catch (System.Exception e)
+            {
+                Debug.LogError("UpdateDatabaseName : could not rename " + oldPath + " to " + newPath);
+                Debug.LogException(e);
+                return false;
+            }
+
+            BtvLog.Log("Update DB Name, contains element");
+            Databases[index].FilePath = newPath;
+            return true;
         }
 
         public static void DeleteDatabase(SubjectRepository element)
@@ -63,18 +101,23 @@ namespace BTV.Services.DatabaseService
             }
         }
 
-        public static void EditSubjectName(SubjectRepository element, Subject subject, string newName)
+        public static bool EditSubjectName(SubjectRepository element, Subject subject, string newName)
         {
-            if (Databases.Contains(element))
-            {
-                int index = Databases.IndexOf(element);
-                if (Databases[index].Subjects.Contains(subject))
-                {
-                    BtvLog.Log("Update Subject Name, contains element");
-                    int subIndex = Databases[index].Subjects.IndexOf(subject);
-                    Databases[index].Subjects[subIndex].PatientName = newName;
-                }
-            }
+            if (string.IsNullOrWhiteSpace(newName)) return false;
+            if (!Databases.Contains(element)) return false;
+
+            int index = Databases.IndexOf(element);
+            if (!Databases[index].Subjects.Contains(subject)) return false;
+            if (Databases[index].Subjects.Any(s => s.PatientName == newName && !ReferenceEquals(s, subject))) return false;
+
+            BtvLog.Log("Update Subject Name, contains element");
+            // Replace instead of renaming in place: Subject instances are dictionary keys in
+            // the UI lists and their hash depends on PatientName — mutating it strands the
+            // entry and the next list refresh throws KeyNotFoundException. Going through
+            // Update also raises CollectionChanged(Replace) so the lists re-key properly.
+            Subject renamed = new Subject(subject) { PatientName = newName };
+            Databases[index].Update(subject, renamed);
+            return true;
         }
 
         public static void AddSubjectToDatabase(SubjectRepository element)

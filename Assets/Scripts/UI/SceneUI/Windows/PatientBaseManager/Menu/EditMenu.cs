@@ -49,6 +49,13 @@ namespace BTV.UI.PatientBaseManager
             m_CopySubjectsSubMenu.ItemClicked.AddListener(CopySubjectsToDatabase);
 
             DatabaseService.Databases.CollectionChanged += UpdateDatabaseCollection;
+            // Seed the destination submenus with the databases that were already open before
+            // this menu existed (the manager window can be closed and reopened).
+            foreach (var item in DatabaseService.Databases)
+            {
+                m_MoveSubjectsSubMenu.AddSubMenuItem(item);
+                m_CopySubjectsSubMenu.AddSubMenuItem(item);
+            }
         }
 
         private void OnDestroy()
