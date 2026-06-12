@@ -1,7 +1,6 @@
-﻿using System.Collections;
+﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
-using CielaSpike;
 using BTV.Services.VideoService;
 using System.IO;
 
@@ -26,7 +25,7 @@ namespace BTV.UI.Module3D.Tools
             {
                 if (!VideoService.FilteredAudioFileExist)
                 {
-                    StartCoroutine(c_LaunchAudioFiltering("300:100:1300", 64));
+                    LaunchAudioFiltering("300:100:1300", 64);
                 }
                 else
                 {
@@ -50,24 +49,22 @@ namespace BTV.UI.Module3D.Tools
                 UnityEngine.Debug.LogError(ioExp.Message);
             }
 
-            StartCoroutine(c_LaunchAudioFiltering("300:100:1300", 64));
+            LaunchAudioFiltering("300:100:1300", 64);
         }
 
-        private IEnumerator c_LaunchAudioFiltering(string FrequencyBands, int FinalFrequency)
+        private async void LaunchAudioFiltering(string FrequencyBands, int FinalFrequency)
         {
-            yield return this.StartCoroutineAsync(VideoService.c_LoadRawAudioFromFile(VideoService.AudioFromVideoPath));
-            yield return this.StartCoroutineAsync(VideoService.c_FilterAudioFromVideo(FrequencyBands, FinalFrequency), out Task AudioFilteringTask);
-            switch (AudioFilteringTask.State)
+            try
             {
-                case TaskState.Done:
-                    yield return Ninja.JumpToUnity;
-                    ApplicationState.displayMessage("Audio Filtering", "OK", "Audio has been correctly filtered.");
-                    yield return Ninja.JumpBack;
-                    break;
-                case TaskState.Error:
-                    //Display Error Window
-                    UnityEngine.Debug.LogError("Error Filtering audio");
-                    break;
+                await VideoService.LoadRawAudioFromFileAsync(VideoService.AudioFromVideoPath);
+                await VideoService.FilterAudioFromVideoAsync(FrequencyBands, FinalFrequency);
+                ApplicationState.displayMessage("Audio Filtering", "OK", "Audio has been correctly filtered.");
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogError("Error Filtering audio");
+                UnityEngine.Debug.LogException(ex);
+                ApplicationState.displayMessage("Audio Filtering", "NOK", ex.Message);
             }
         }
     }
