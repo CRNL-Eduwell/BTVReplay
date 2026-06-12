@@ -38,8 +38,9 @@ correlations, all synchronized to a video clock.
   components), windows spawned by name via `Tools/WindowsManager.cs`, dock/drag system in
   `Assets/Scripts/Tools/Window/`. Parts vendored from HiBoP (virtualized list, handlers).
 - `Assets/Plugins/` — per-platform natives: in-house `EEGFormat`, `BTVReplayLibraryC++`,
-  `AudioFormat`, `Framework` + FFTW3. NOTE: `x86_64/MacOS` actually contains **arm64** in-house
-  libs (folder name is wrong).
+  `AudioFormat`, `Framework` (+ FFTW3/MSVC runtime on Windows). Layout is honest:
+  `Windows-x86_64/`, `Linux-x86_64/`, `macOS-arm64/` (no Intel-Mac libs exist), `Managed/`
+  (Json.NET). Each native's .meta enables only its own platform + matching editor OS.
 - `Assets/Config/` — atlases, MNI meshes, sounds, `.prov` protocols, and test patient bases in
   `PatientBase/` (contain machine-absolute paths; treat as fixtures, never real patient data).
 - `Assets/Scripts/Editor/BTVReplayBuilderWindow.cs` — build menu (Win/Linux/macOS-arm64);

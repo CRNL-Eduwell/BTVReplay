@@ -104,7 +104,10 @@ public class BTVReplayBuilder : MonoBehaviour
                 break;
             case BuildTarget.StandaloneLinux64:
                 {
-                    DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/Linux");
+                    // Belt-and-braces copy of the Linux natives into the build's plugin folder
+                    // (the destination layout is Unity's, do not rename it). The source follows
+                    // the per-platform Assets/Plugins layout.
+                    DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/Linux-x86_64");
                     DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "BTVReplay_Data/Plugins/x86_64");
                     pluginsDirectory.CopyFilesRecursively(newPluginsDirectory);
                     foreach (var metaFile in newPluginsDirectory.GetFiles("*.meta"))
