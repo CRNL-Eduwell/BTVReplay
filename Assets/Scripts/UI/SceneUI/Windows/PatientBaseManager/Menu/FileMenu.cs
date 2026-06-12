@@ -46,7 +46,7 @@ namespace BTV.UI.PatientBaseManager
             {
                 FileMenuMessage message = new FileMenuMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = FileMenuMessage.Task.NewDatabase,
                     FilePath = str
                 };
                 Messenger.Default.Send(message, MessageContext.FileMenuMessage);
@@ -55,7 +55,7 @@ namespace BTV.UI.PatientBaseManager
             string filePath = FileBrowser.GetSavedFileName(extensionList, "Save Database To", DatabaseService.DefaultPath);
             FileMenuMessage message = new FileMenuMessage
             {
-                TaskToExecute = 0,
+                TaskToExecute = FileMenuMessage.Task.NewDatabase,
                 FilePath = filePath
             };
             Messenger.Default.Send(message, MessageContext.FileMenuMessage);
@@ -70,7 +70,7 @@ namespace BTV.UI.PatientBaseManager
             {
                 FileMenuMessage message = new FileMenuMessage
                 {
-                    TaskToExecute = 1,
+                    TaskToExecute = FileMenuMessage.Task.OpenDatabase,
                     FilePath = str
                 };
                 Messenger.Default.Send(message, MessageContext.FileMenuMessage);
@@ -79,7 +79,7 @@ namespace BTV.UI.PatientBaseManager
             string filePath = FileBrowser.GetExistingFileName(new string[] { "txt", "dbtv", "dbtv2" }, "Select a BrainTV Database File", DatabaseService.DefaultPath);
             FileMenuMessage message = new FileMenuMessage
             {
-                TaskToExecute = 1,
+                TaskToExecute = FileMenuMessage.Task.OpenDatabase,
                 FilePath = filePath
             };
             Messenger.Default.Send(message, MessageContext.FileMenuMessage);
@@ -91,7 +91,7 @@ namespace BTV.UI.PatientBaseManager
         {
             FileMenuMessage message = new FileMenuMessage
             {
-                TaskToExecute = 2
+                TaskToExecute = FileMenuMessage.Task.Save
             };
             Messenger.Default.Send(message, MessageContext.FileMenuMessage);
             Close();
@@ -101,7 +101,7 @@ namespace BTV.UI.PatientBaseManager
         {
             FileMenuMessage message = new FileMenuMessage
             {
-                TaskToExecute = 3
+                TaskToExecute = FileMenuMessage.Task.SaveAs
             };
             Messenger.Default.Send(message, MessageContext.FileMenuMessage);
             Close();
@@ -111,7 +111,7 @@ namespace BTV.UI.PatientBaseManager
         {
             FileMenuMessage message = new FileMenuMessage
             {
-                TaskToExecute = 4
+                TaskToExecute = FileMenuMessage.Task.Exit
             };
             Messenger.Default.Send(message, MessageContext.FileMenuMessage);
             Close();

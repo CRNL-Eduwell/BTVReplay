@@ -70,7 +70,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 0
+                TaskToExecute = EditMenuMessage.Task.RenameDatabase
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
@@ -80,7 +80,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 1
+                TaskToExecute = EditMenuMessage.Task.CloseDatabase
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
@@ -90,7 +90,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 2
+                TaskToExecute = EditMenuMessage.Task.RenameSubject
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
@@ -100,7 +100,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 3
+                TaskToExecute = EditMenuMessage.Task.AddSubject
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
@@ -110,7 +110,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 4
+                TaskToExecute = EditMenuMessage.Task.DeleteSubject
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
@@ -120,7 +120,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 5,
+                TaskToExecute = EditMenuMessage.Task.MoveSubjects,
                 DestinationDatabase = databaseName
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
@@ -132,7 +132,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 6,
+                TaskToExecute = EditMenuMessage.Task.CopySubjects,
                 DestinationDatabase = databaseName
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
