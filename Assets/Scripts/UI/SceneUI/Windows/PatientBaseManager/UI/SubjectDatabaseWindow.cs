@@ -95,17 +95,17 @@ public class SubjectDatabaseWindow : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case FileMenuMessage.Task.NewDatabase:
                 {
                     DatabaseService.CreateNewDatabase(message.FilePath);
                     break;
                 }
-            case 1:
+            case FileMenuMessage.Task.OpenDatabase:
                 {
                     DatabaseService.OpenDatabase(message.FilePath);
                     break;
                 }
-            case 2:
+            case FileMenuMessage.Task.Save:
                 {
                     SubjectRepository[] SelectedElements = _DatabaseList.ObjectsSelected;
                     foreach (var element in SelectedElements)
@@ -114,7 +114,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
                     }
                     break;
                 }
-            case 3:
+            case FileMenuMessage.Task.SaveAs:
                 {
                     SubjectRepository[] SelectedElements = _DatabaseList.ObjectsSelected;
                     if (SelectedElements.Length > 0)
@@ -139,7 +139,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
                     }
                     break;
                 }
-            case 4:
+            case FileMenuMessage.Task.Exit:
                 {
                     Destroy(gameObject);
                     break;
@@ -151,37 +151,37 @@ public class SubjectDatabaseWindow : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case EditMenuMessage.Task.RenameDatabase:
                 {
                     RenameDatabase();
                     break;
                 }
-            case 1:
+            case EditMenuMessage.Task.CloseDatabase:
                 {
                     CloseDatabase();
                     break;
                 }
-            case 2:
+            case EditMenuMessage.Task.RenameSubject:
                 {
                     RenameSubject();
                     break;
                 }
-            case 3:
+            case EditMenuMessage.Task.AddSubject:
                 {
                     AddSubjectToDatabase();
                     break;
                 }
-            case 4:
+            case EditMenuMessage.Task.DeleteSubject:
                 {
                     RemoveSubjectFromDatabase();
                     break;
                 }
-            case 5:
+            case EditMenuMessage.Task.MoveSubjects:
                 {
                     MoveSubjectsToDatabase(message.DestinationDatabase);
                     break;
                 }
-            case 6:
+            case EditMenuMessage.Task.CopySubjects:
                 {
                     CopySubjectsToDatabase(message.DestinationDatabase);
                     break;

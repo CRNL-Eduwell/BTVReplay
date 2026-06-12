@@ -2,14 +2,18 @@
 
 class EditMenuMessage
 {
-    // 0 : RenameDatabase
-    // 1 : CloseDatabase
-    // 2 : RenameSubject
-    // 3 : AddSubject
-    // 4 : DeleteSubject
-    // 5 : MoveSubjects
-    // 6 : CopySubjects
-    public int TaskToExecute
+    public enum Task
+    {
+        RenameDatabase = 0,
+        CloseDatabase = 1,
+        RenameSubject = 2,
+        AddSubject = 3,
+        DeleteSubject = 4,
+        MoveSubjects = 5,
+        CopySubjects = 6,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;
