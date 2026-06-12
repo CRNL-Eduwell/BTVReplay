@@ -94,7 +94,7 @@ namespace BTV.UI.Module3D.Tools
         private void UpdateColorFromSliders()
         {
             m_PreviewColor.color = GetColorFromSliders();
-            UpdateColor(m_PreviewColor.color);
+            UpdateColor?.Invoke(m_PreviewColor.color);
         }
 
         private void UpdateSlidersColor(Color NewColor)
@@ -104,7 +104,7 @@ namespace BTV.UI.Module3D.Tools
             m_BlueSlider.ColorValue = NewColor.b;
             m_AlphaSlider.ColorValue = NewColor.a;
 
-            UpdateColor(NewColor);
+            UpdateColor?.Invoke(NewColor);
         }
 
         private Color GetColorFromPickerClick(int pixelID)

@@ -44,7 +44,7 @@ namespace BTV.UI.Module3D.Tools
             {
                 m_Offset += 1;
                 m_Label.text = "Offset : " + (m_Offset * 10) + "%";
-                offsetHasChanged(m_Offset);
+                offsetHasChanged?.Invoke(m_Offset);
             }
         }
 
@@ -54,7 +54,7 @@ namespace BTV.UI.Module3D.Tools
             {
                 m_Offset -= 1;
                 m_Label.text = "Offset : " + (m_Offset * 10) + "%";
-                offsetHasChanged(m_Offset);
+                offsetHasChanged?.Invoke(m_Offset);
             }
         }
     }

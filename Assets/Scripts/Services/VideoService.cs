@@ -215,7 +215,7 @@ namespace BTV.Services.VideoService
             });
 
             m_ProcessedAudio = processedAudio;
-            AudioDataLoaded.Invoke();
+            AudioDataLoaded?.Invoke();
             FilteredDataLoaded = true;
         }
 
@@ -228,7 +228,7 @@ namespace BTV.Services.VideoService
             });
 
             m_ProcessedAudio = processedAudio;
-            AudioDataLoaded.Invoke();
+            AudioDataLoaded?.Invoke();
             FilteredDataLoaded = true;
         }
         #endregion

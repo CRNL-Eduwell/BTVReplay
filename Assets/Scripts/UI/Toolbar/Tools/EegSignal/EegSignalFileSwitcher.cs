@@ -48,7 +48,7 @@ namespace BTV.UI.Module3D.Tools
                 {
                     SetFileLabels();
                     SetFileInteractability();
-                    m_FileDropDown.onValueChanged.AddListener((id) => { UpdateEegFileID(id); });
+                    m_FileDropDown.onValueChanged.AddListener((id) => { UpdateEegFileID?.Invoke(id); });
                 }
             }
         }

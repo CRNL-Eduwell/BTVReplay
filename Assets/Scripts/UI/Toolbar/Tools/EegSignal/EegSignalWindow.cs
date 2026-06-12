@@ -25,7 +25,7 @@ namespace BTV.UI.Module3D.Tools
 
         public override void Initialize()
         {
-            m_ShowTimeGrid.onValueChanged.AddListener((isOn)=> { gridToggled(isOn); });
+            m_ShowTimeGrid.onValueChanged.AddListener((isOn)=> { gridToggled?.Invoke(isOn); });
             m_WindowSize.onEndEdit.AddListener(UpdateTimePeriod);
         }
 
@@ -57,7 +57,7 @@ namespace BTV.UI.Module3D.Tools
                 return;
             }
             m_WindowSizeMemory = time;
-            timeHasChanged(time);
+            timeHasChanged?.Invoke(time);
         }
     }
 }

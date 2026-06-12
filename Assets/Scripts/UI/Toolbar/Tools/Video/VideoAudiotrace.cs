@@ -30,7 +30,7 @@ namespace BTV.UI.Module3D.Tools
         {
             m_FileDropDown.options.Clear();
             VideoService.AudioDataLoaded += LoadDropDownData;
-            m_ShowTrace.onValueChanged.AddListener((bool isChecked) => { ToggleTraceAudio(isChecked); });
+            m_ShowTrace.onValueChanged.AddListener((bool isChecked) => { ToggleTraceAudio?.Invoke(isChecked); });
         }
 
         private void OnDestroy()
@@ -48,7 +48,7 @@ namespace BTV.UI.Module3D.Tools
                 string Label = "SM " + m_WindowSmoothinginMs[i];
                 m_FileDropDown.options.Add(new Dropdown.OptionData(Label));
             }
-            m_FileDropDown.onValueChanged.AddListener((value) => UpdateAudioFileID(value));
+            m_FileDropDown.onValueChanged.AddListener((value) => UpdateAudioFileID?.Invoke(value));
 
             m_ShowTrace.isOn = true;
             m_FileDropDown.captionText.text = m_FileDropDown.options[m_FileDropDown.value].text;

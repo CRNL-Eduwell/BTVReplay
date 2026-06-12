@@ -51,7 +51,7 @@ namespace BTV.UI.Module3D.Tools
             {
                 memoryScrollBar = currentValueScrollBar;
                 m_Inputfield.text = currentValueScrollBar.ToString();
-                sliderColorChange();
+                sliderColorChange?.Invoke();
             }
         }
 
@@ -63,7 +63,7 @@ namespace BTV.UI.Module3D.Tools
             {
                 memoryInputField = currentValueInputField;
                 m_Scrollbar.value = ((float)currentValueInputField / 255);
-                sliderColorChange();
+                sliderColorChange?.Invoke();
             }
         }
 
