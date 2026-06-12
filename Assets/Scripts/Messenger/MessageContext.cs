@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-enum MessageContext
+// Public because the Messenger API takes it as a parameter type (it used to be passed as a
+// boxed object, which allocated on every Register/Send/Unregister call).
+public enum MessageContext
 {
     LoaderToBrain,
     UiToBrain,
