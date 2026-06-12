@@ -32,7 +32,7 @@ namespace BTV.UI.Module3D.Tools
                 return;
             }
             m_WindowSizeMemory = time;
-            UpdateTime(time);
+            UpdateTime?.Invoke(time);
         }
     }
 }
