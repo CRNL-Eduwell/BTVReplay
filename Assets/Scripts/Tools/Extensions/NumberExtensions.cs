@@ -1,32 +1,26 @@
 ﻿using System;
+using System.Globalization;
 
 namespace BrainTV.Tools.NumberExtensions
 {
     public static class NumberExtensions
     {
+        // Invariant first, so the same file parses identically on every machine (everything
+        // the app writes is invariant). The fr-FR fallback covers legacy files and
+        // comma-decimal user input ("1,5"). It must stay AFTER invariant: when CurrentCulture
+        // came first, the result depended on the machine's locale.
+        private static readonly CultureInfo[] s_ParseCultures = new CultureInfo[]
+        {
+            CultureInfo.InvariantCulture,
+            CultureInfo.CreateSpecificCulture("fr-FR"),
+        };
+
         public static bool TryParseFloat(this string text, out float result)
         {
-            System.Globalization.CultureInfo[] cultures = new System.Globalization.CultureInfo[]
+            foreach (CultureInfo culture in s_ParseCultures)
             {
-                System.Globalization.CultureInfo.CurrentCulture,
-                System.Globalization.CultureInfo.CreateSpecificCulture("fr-FR"),
-                System.Globalization.CultureInfo.CreateSpecificCulture("en-GB"),
-                System.Globalization.CultureInfo.CreateSpecificCulture("en-US"),
-                System.Globalization.CultureInfo.InvariantCulture
-            };
-            foreach (var culture in cultures)
-            {
-                try
-                {
-                    if (float.TryParse(text, System.Globalization.NumberStyles.Float, culture, out result))
-                    {
-                        return true;
-                    }
-                }
-                catch
-                {
-                    continue;
-                }
+                if (float.TryParse(text, NumberStyles.Float, culture, out result))
+                    return true;
             }
             result = 0;
             return false;
@@ -34,23 +28,7 @@ namespace BrainTV.Tools.NumberExtensions
 
         public static bool TryParseInt(this string value, out int result)
         {
-            try
-            {
-                if (Int32.TryParse(value, out result))
-                {
-                    return true;
-                }
-            }
-            catch (FormatException)
-            {
-                BtvLog.Log("Unable to convert " + value);
-            }
-            catch (OverflowException)
-            {
-                Console.WriteLine(value + "is out of range of the Int32 type.");
-            }
-            result = 0;
-            return false;
+            return Int32.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
         }
     }
 }
