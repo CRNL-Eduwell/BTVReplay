@@ -7,9 +7,13 @@ using UnityEngine;
 
 class BrainWardenToElectrodePointerMessage
 {
-    // 0 : Show and Update Pointer
-    // 1 : Hide
-    public int TaskToExecute
+    public enum Task
+    {
+        ShowAndUpdate = 0,
+        Hide = 1,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

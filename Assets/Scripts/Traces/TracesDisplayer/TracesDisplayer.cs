@@ -136,7 +136,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
             {
                 TraceDisplayerPointerMessage message = new TraceDisplayerPointerMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = TraceDisplayerPointerMessage.Task.ShowAndUpdate,
                     PointerPosition = new Vector3(worldClick.x, worldClick.y, 0),
                     ShowPointer = true,
                     Code = eventsIndexes[0].Code.ToString(),

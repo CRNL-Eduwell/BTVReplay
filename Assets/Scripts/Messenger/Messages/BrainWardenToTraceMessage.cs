@@ -2,8 +2,12 @@
 
 class BrainWardenToTraceMessage
 {
-    // 0 : Plot clicked
-    public int TaskToExecute
+    public enum Task
+    {
+        PlotClicked = 0,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;
