@@ -6,10 +6,15 @@ using System.Threading.Tasks;
 
 class UiToBrainMessage
 {
-    // 0 : CHange Brain Referential => mni to pat to just electrodes
-    // 1 : Change what part of the brain is shown
-    // 2 : Update Electrodes Gain
-    public int TaskToExecute
+    // ChangeReferential cycles mni -> pat -> just electrodes.
+    public enum Task
+    {
+        ChangeReferential = 0,
+        ChangeMeshDisplay = 1,
+        UpdateGain = 2,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

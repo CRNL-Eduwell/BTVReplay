@@ -136,16 +136,16 @@ public class Brain : MonoBehaviour
         BtvLog.Log("Brain Message, yata");
         switch (message.TaskToExecute)
         {
-            case 0:
+            case UiToBrainMessage.Task.ChangeReferential:
                 BtvLog.Log("Update Brain Model");
                 m_BrainReferentialID = message.ModelId;
                 UpdateBrainModel(message.ModelId);
                 break;
-            case 1:
+            case UiToBrainMessage.Task.ChangeMeshDisplay:
                 BtvLog.Log("Update Brain Visu");
                 UpdateDisplayedMeshes(message.MeshesToDisplay);
                 break;
-            case 2:
+            case UiToBrainMessage.Task.UpdateGain:
                 //manage by each site individually
                 break;
             default:

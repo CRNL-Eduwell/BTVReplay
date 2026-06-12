@@ -51,7 +51,7 @@ namespace BTV.UI.Module3D
             BtvLog.Log("Update audio trace gain");
             UiToVideoMessage message = new UiToVideoMessage
             {
-                TaskToExecute = 0,
+                TaskToExecute = UiToVideoMessage.Task.UpdateGain,
                 Gain = NewGain
             };
             Messenger.Default.Send(message, MessageContext.UiToVideo);
@@ -62,7 +62,7 @@ namespace BTV.UI.Module3D
             BtvLog.Log("Update audio trace offset");
             UiToVideoMessage message = new UiToVideoMessage
             {
-                TaskToExecute = 1,
+                TaskToExecute = UiToVideoMessage.Task.UpdateOffset,
                 Offset = NewOffset
             };
             Messenger.Default.Send(message, MessageContext.UiToVideo);
@@ -73,7 +73,7 @@ namespace BTV.UI.Module3D
             BtvLog.Log("Toggle Audio Trace");
             UiToVideoMessage message = new UiToVideoMessage
             {
-                TaskToExecute = 2,
+                TaskToExecute = UiToVideoMessage.Task.ToggleAudioTrace,
                 IsTraceOn = IsOn
             };
             Messenger.Default.Send(message, MessageContext.UiToVideo);
@@ -84,7 +84,7 @@ namespace BTV.UI.Module3D
             BtvLog.Log("Update Audio Trace File");
             UiToVideoMessage message = new UiToVideoMessage
             {
-                TaskToExecute = 3,
+                TaskToExecute = UiToVideoMessage.Task.UpdateAudioFile,
                 TraceID = NewIdSm
             };
             Messenger.Default.Send(message, MessageContext.UiToVideo);

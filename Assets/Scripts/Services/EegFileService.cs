@@ -29,7 +29,7 @@ namespace BTV.Services.EegFileService
                 m_SelectedMontageID = value;
                 MontageMessage message = new MontageMessage
                 {
-                    TaskToExecute = 1,
+                    TaskToExecute = MontageMessage.Task.SelectMontage,
                     SelectedMontageID = value
                 };
                 Messenger.Default.Send(message, MessageContext.MontageMessage);
@@ -43,7 +43,7 @@ namespace BTV.Services.EegFileService
             Montages = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
             MontageMessage message = new MontageMessage
             {
-                TaskToExecute = 0,
+                TaskToExecute = MontageMessage.Task.UpdateMontageList,
                 SelectedMontageID = 0
             };
             Messenger.Default.Send(message, MessageContext.MontageMessage);
@@ -144,7 +144,7 @@ namespace BTV.Services.EegFileService
                 Montages.Add(new BtvMontage(name, eegFiles, montageDescription));
                 MontageMessage message = new MontageMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = MontageMessage.Task.UpdateMontageList,
                     SelectedMontageID = Montages.Count - 1
                 };
                 Messenger.Default.Send(message, MessageContext.MontageMessage);
@@ -158,7 +158,7 @@ namespace BTV.Services.EegFileService
                 Montages.Remove(CurrentMontage);
                 MontageMessage message = new MontageMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = MontageMessage.Task.UpdateMontageList,
                     SelectedMontageID = 0
                 };
                 Messenger.Default.Send(message, MessageContext.MontageMessage);
@@ -184,7 +184,7 @@ namespace BTV.Services.EegFileService
                 montage.Load(name, eegFiles, montageDescription);
                 MontageMessage message = new MontageMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = MontageMessage.Task.UpdateMontageList,
                     SelectedMontageID = Montages.IndexOf(montage)
                 };
                 Messenger.Default.Send(message, MessageContext.MontageMessage);

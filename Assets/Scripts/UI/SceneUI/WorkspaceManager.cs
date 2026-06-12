@@ -62,13 +62,13 @@ public class WorkspaceManager : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case UiToLayoutsMessage.Task.Load:
                 {
                     BtvLog.Log("Should Load a layout from : " + message.Path);
                     LoadLayout(message.Path);
                     break;
                 }
-            case 1:
+            case UiToLayoutsMessage.Task.Save:
                 {
                     BtvLog.Log("Should save layout at : " + message.Path);
                     SaveLayout(message.Path);
