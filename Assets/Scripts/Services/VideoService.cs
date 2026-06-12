@@ -72,7 +72,7 @@ namespace BTV.Services.VideoService
             get
             {
                 string vlcPath = m_VlcPath;
-                return !string.IsNullOrEmpty(vlcPath) && File.Exists(vlcPath);
+                return !string.IsNullOrEmpty(vlcPath) && System.IO.File.Exists(vlcPath);
             }
         }
         public static string VlcMissingMessage
