@@ -1,6 +1,7 @@
 using SFB;
 using System.IO;
 using System.Linq;
+using System.Collections;
 using System.Collections.Specialized;
 using BTV.UI;
 using BTV.Services.DatabaseService;
@@ -36,6 +37,8 @@ public class SubjectDatabaseWindow : MonoBehaviour
         ((ISelectionCountable)_DatabaseList).OnSelectionChanged.AddListener(UpdateShownDatabase);
         ((ISelectionCountable)_SubjectList).OnSelectionChanged.AddListener(OnSubjectSelectionChanged);
         _LoadSubject.onClick.AddListener(LoadSelectedSubject);
+
+        StartCoroutine(InitDisplayWhenRendered());
     }
 
     private void OnDestroy()
@@ -56,8 +59,12 @@ public class SubjectDatabaseWindow : MonoBehaviour
         _CloseWindow.onClick.RemoveAllListeners();
     }
 
-    private void Update()
+    // Init once the grid has a valid (non-zero) rect, then stop. Replaces a per-frame
+    // InitDone poll in Update() that kept running for the whole lifetime of the window.
+    private IEnumerator InitDisplayWhenRendered()
     {
+        yield return new WaitUntil(() =>
+            _ResizableGrid.RectTransform.rect.width > 0 && _ResizableGrid.RectTransform.rect.height > 0);
         if (_ResizableGrid.InitDone == false)
             InitDisplay();
     }

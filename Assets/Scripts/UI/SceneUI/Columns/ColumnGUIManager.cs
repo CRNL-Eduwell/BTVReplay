@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using System.Collections;
+using UnityEngine;
 
 public class ColumnGUIManager : MonoBehaviour
 {
@@ -35,23 +36,44 @@ public class ColumnGUIManager : MonoBehaviour
     private GameObject m_MinimizedGameObject = null;
 
     private RectTransform m_RectTransform = null;
+    private bool m_RefreshPending = false;
     private const float MINIMIZED_THRESHOLD = 100.0f;
     #endregion
 
     #region Private Methods
     private void Start()
     {
-        m_RectTransform = GetComponent<RectTransform>();
+        RefreshMinimizedState();
     }
 
-    private void Update()
+    // Unity raises this whenever this RectTransform's dimensions change, replacing the
+    // per-frame rect.hasChanged poll that used to live in Update(). The callback fires
+    // *inside* the UGUI layout rebuild loop, where toggling a UI GameObject active is
+    // illegal ("remove from rebuild list while inside a rebuild loop"), so the SetActive
+    // is coalesced and deferred to the next frame, outside the rebuild.
+    private void OnRectTransformDimensionsChange()
     {
-        if (m_RectTransform.hasChanged)
+        if (!m_RefreshPending && isActiveAndEnabled)
         {
-            BtvLog.Log("Recttransform changed minimed column");
-            m_MinimizedGameObject.SetActive(IsMinimized);
-            m_RectTransform.hasChanged = false;
+            m_RefreshPending = true;
+            StartCoroutine(RefreshAfterRebuild());
         }
+    }
+
+    private IEnumerator RefreshAfterRebuild()
+    {
+        yield return null;
+        m_RefreshPending = false;
+        RefreshMinimizedState();
+    }
+
+    private void RefreshMinimizedState()
+    {
+        if (m_MinimizedGameObject == null)
+            return;
+        bool minimized = IsMinimized;
+        if (m_MinimizedGameObject.activeSelf != minimized)
+            m_MinimizedGameObject.SetActive(minimized);
     }
     #endregion
 }
