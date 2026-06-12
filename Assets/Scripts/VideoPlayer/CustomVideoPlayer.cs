@@ -44,7 +44,6 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private bool m_ListenerLock = false;
     private long m_CurrentTime = 0;
-    private long m_BeforeVideoTime = 0;
     private bool m_WaitToSync = false;
     private bool m_VideoWasPlaying = false;
     #endregion
@@ -84,24 +83,10 @@ public class CustomVideoPlayer : MonoBehaviour
             {
                 VideoInterface.Update();
 
-                if (m_WaitToSync)
-                {
-                    if (VideoInterface.ClockTime != m_BeforeVideoTime)
-                    {
-                        m_WaitToSync = false;
-                        _BufferingImage.Hide();
-                        if (m_VideoWasPlaying)
-                        {
-                            m_VideoWasPlaying = false;
-                            VideoInterface.Play();
-                        }
-                        m_CurrentTime = VideoInterface.ClockTime;
-                    }
-                }
-                else
-                {
+                // While a seek is in flight, m_CurrentTime stays frozen on the requested
+                // target; OnSeekCompleted re-syncs it when the player reports the seek landed.
+                if (!m_WaitToSync)
                     m_CurrentTime = VideoInterface.ClockTime;
-                }
 
                 if (m_LoopMode && VideoInterface.IsPlaying)
                     if (_LoopScrollbar.value >= 1)
@@ -166,6 +151,7 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void AddListeners()
     {
+        VideoInterface.SeekCompleted += OnSeekCompleted;
         _Play.onClick.AddListener(TogglePlay);
         _Stop.onClick.AddListener(Stop);
         _GoBkwd10.onClick.AddListener(() => VideoInterface.MoveTime(-10));
@@ -181,7 +167,12 @@ public class CustomVideoPlayer : MonoBehaviour
         onEndScrollbarEditTriggerEntry.eventID = EventTriggerType.PointerUp;
         onEndScrollbarEditTriggerEntry.callback.AddListener((eventData) =>
         {
-            VideoInterface.SetTime(m_CurrentTime);
+            // Released exactly where the video already is: no seek will be issued, so finish
+            // the armed sync flow explicitly (the old clock-moved heuristic hung here forever).
+            if (m_CurrentTime == VideoInterface.ClockTime)
+                OnSeekCompleted();
+            else
+                VideoInterface.SetTime(m_CurrentTime);
         });
         scrollBarTrigger.triggers.Add(onEndScrollbarEditTriggerEntry);
 
@@ -190,6 +181,7 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void RemoveListeners()
     {
+        VideoInterface.SeekCompleted -= OnSeekCompleted;
         _Play.onClick.RemoveAllListeners();
         _Stop.onClick.RemoveAllListeners();
         _GoBkwd10.onClick.RemoveAllListeners();
@@ -312,22 +304,39 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         if (time == VideoInterface.ClockTime) return;
 
-        m_BeforeVideoTime = VideoInterface.ClockTime;
         m_CurrentTime = time;
-        if (updateVideoTime)
-        {
-            VideoInterface.SetTime(time);
-            if (!(VideoInterface is GhostVideoPlayer))
-                _BufferingImage.Show();
-        }
-        m_WaitToSync = true;
-        if (!(VideoInterface is GhostVideoPlayer))
-            _BufferingImage.Show();
         if (VideoInterface.IsPlaying)
         {
             m_VideoWasPlaying = true;
             VideoInterface.Pause();
         }
+
+        // Arm the sync state BEFORE issuing the seek: the ghost player completes its seek
+        // synchronously, so OnSeekCompleted may run inside the SetTime call below.
+        m_WaitToSync = true;
+        if (!(VideoInterface is GhostVideoPlayer))
+            _BufferingImage.Show();
+        if (updateVideoTime)
+            VideoInterface.SetTime(time);
+    }
+
+    /// <summary>
+    /// The player reported that the last seek landed: the displayed frame now matches the
+    /// requested time. Replaces the old heuristic that polled for "the clock moved", which
+    /// hung forever when a seek landed on the same frame-quantized time.
+    /// </summary>
+    private void OnSeekCompleted()
+    {
+        if (!m_WaitToSync) return;
+
+        m_WaitToSync = false;
+        _BufferingImage.Hide();
+        if (m_VideoWasPlaying)
+        {
+            m_VideoWasPlaying = false;
+            VideoInterface.Play();
+        }
+        m_CurrentTime = VideoInterface.ClockTime;
     }
     public void ToggleLoopMode()
     {

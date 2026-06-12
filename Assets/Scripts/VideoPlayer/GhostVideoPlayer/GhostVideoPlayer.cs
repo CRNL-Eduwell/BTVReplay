@@ -13,6 +13,8 @@ using UnityEngine.UI;
 /// </summary>
 public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 {
+    public event System.Action SeekCompleted;
+
     public bool IsPrepared { get; private set; } = false;
     /// <summary>
     /// Exact Time of the video
@@ -143,12 +145,14 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public void MoveTime(long secondsToAdd)
     {
-        ClockTime += (secondsToAdd * 1000);
+        SetTime(ClockTime + (secondsToAdd * 1000));
     }
 
     public void SetTime(long timeMilliSec)
     {
+        // The ghost clock seeks instantly, so the completion fires synchronously.
         ClockTime = timeMilliSec;
+        SeekCompleted?.Invoke();
     }
 
     public void SetVolume(float volume) { }

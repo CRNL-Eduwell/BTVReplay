@@ -1,10 +1,13 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 
 public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
 {
+    public event Action SeekCompleted;
+
     public bool IsPrepared { get { return m_VideoPlayer != null ? m_VideoPlayer.isPrepared : false; } }
     /// <summary>
     /// Same as time, see if both are usefull ????
@@ -15,9 +18,9 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public long VideoTime { get { return ClockTime - m_OffsetVideoMilliSec; } }
 
-    //! Ugly ass patch due to Unity update making length = 0 sometimes when
-    // dragging scrollbar , TODO correct me
-    //public long TotalVideoTime { get { return (long)(m_VideoPlayer.length * 1000); } }
+    // Deliberately cached at prepareCompleted instead of reading m_VideoPlayer.length live:
+    // length could read 0 mid-seek while dragging the scrollbar (historical Unity issue), and
+    // every module divides by this value.
     public long TotalVideoTime { get; set; }
 
     public bool IsPlaying { get { return m_VideoPlayer.isPlaying && !m_VideoPlayer.isPaused; } }
@@ -54,7 +57,13 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
 
         m_VideoPlayer = gameObject.AddComponent<VideoPlayer>();
         m_VideoPlayer.prepareCompleted += M_VideoPlayer_prepareCompleted;
+        m_VideoPlayer.seekCompleted += M_VideoPlayer_seekCompleted;
         m_parentRectTransform = transform.parent.GetComponent<RectTransform>();
+    }
+
+    private void M_VideoPlayer_seekCompleted(VideoPlayer source)
+    {
+        SeekCompleted?.Invoke();
     }
 
     private void M_VideoPlayer_prepareCompleted(VideoPlayer source)
@@ -72,7 +81,6 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
 
         Play();
 
-        //! Ugly ass patch , TODO correct me
         TotalVideoTime = (long)(m_VideoPlayer.length * 1000);
     }
 
@@ -118,12 +126,19 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public void MoveTime(long secondsToAdd)
     {
-        m_VideoPlayer.time += secondsToAdd;
+        SetTime((long)(m_VideoPlayer.time * 1000) + (secondsToAdd * 1000));
     }
 
     public void SetTime(long timeMilliSec)
     {
-        m_VideoPlayer.time = ((double)timeMilliSec / 1000);
+        double seconds = Math.Max(0, (double)timeMilliSec / 1000);
+        // Seek by frame, not by time: setting .time lands on a codec/keyframe-dependent
+        // position, while setting .frame is exact - the displayed frame then matches the
+        // requested time deterministically.
+        if (m_VideoPlayer.isPrepared && m_VideoPlayer.frameRate > 0)
+            m_VideoPlayer.frame = (long)Math.Round(seconds * m_VideoPlayer.frameRate);
+        else
+            m_VideoPlayer.time = seconds;
     }
 
     public void SetVolume(float volume)
@@ -153,7 +168,17 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
             yield return null;
     }
 
-    public void Cleanup() { }
+    public void Cleanup()
+    {
+        if (m_VideoPlayer != null)
+        {
+            m_VideoPlayer.prepareCompleted -= M_VideoPlayer_prepareCompleted;
+            m_VideoPlayer.seekCompleted -= M_VideoPlayer_seekCompleted;
+            // Destroying this wrapper does not destroy the engine component it added, so a
+            // video re-load would stack VideoPlayer components on the GameObject.
+            Destroy(m_VideoPlayer);
+        }
+    }
 
     public void SetVideoOffset(float newOffset) { }
 
