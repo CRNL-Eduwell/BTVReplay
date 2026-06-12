@@ -67,4 +67,16 @@ public class DbSubMenu : MonoBehaviour
             Destroy(itemObject);
         }
     }
+
+    private void OnDestroy()
+    {
+        // SubjectRepository instances live in the static DatabaseService and outlive this menu.
+        // Without dropping our PropertyChanged subscriptions here, a later rename fires into this
+        // destroyed object and throws MissingReferenceException (it touches destroyed child UI).
+        foreach (SubjectRepository item in m_ChildElements.Keys)
+        {
+            item.PropertyChanged -= DatabaseInformationUpdated;
+        }
+        m_ChildElements.Clear();
+    }
 }
