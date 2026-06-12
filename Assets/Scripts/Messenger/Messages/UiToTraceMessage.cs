@@ -2,15 +2,19 @@
 
 class UiToTraceMessage
 {
-    // 0 : Update Gain
-    // 1 : Update Offset
-    // 2 : Update Grid Toggle
-    // 3 : Update Window Size
-    // 4 : Toggle Sonification
-    // 5 : Update Sonification Sound
-    // 6 : Update Color Picker
-    // 7 : Update File Switcher
-    public int TaskToExecute
+    public enum Task
+    {
+        UpdateGain = 0,
+        UpdateOffset = 1,
+        ToggleGrid = 2,
+        UpdateWindowSize = 3,
+        ToggleSonification = 4,
+        UpdateSonificationSound = 5,
+        UpdateColor = 6,
+        UpdateFile = 7,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

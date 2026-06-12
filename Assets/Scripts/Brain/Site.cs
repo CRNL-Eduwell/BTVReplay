@@ -192,7 +192,7 @@ public class Site : MonoBehaviour
 
     private void OnBrainParametersMessage(UiToBrainMessage message)
     {
-        if (message.TaskToExecute == 2) //=> gain update
+        if (message.TaskToExecute == UiToBrainMessage.Task.UpdateGain) //=> gain update
             m_Gain = message.Gain;
     }
 

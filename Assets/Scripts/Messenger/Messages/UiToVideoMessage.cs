@@ -2,11 +2,15 @@
 
 class UiToVideoMessage
 {
-    // 0 : Update Gain
-    // 1 : Update Offset
-    // 2 : Toggle Audio Trace
-    // 3 : Update Trace AudioFile
-    public int TaskToExecute
+    public enum Task
+    {
+        UpdateGain = 0,
+        UpdateOffset = 1,
+        ToggleAudioTrace = 2,
+        UpdateAudioFile = 3,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

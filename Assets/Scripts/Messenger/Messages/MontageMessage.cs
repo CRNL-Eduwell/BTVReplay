@@ -2,9 +2,13 @@
 
 class MontageMessage
 {
-    // 0 : Update number of montage
-    // 1 : Update selected montage
-    public int TaskToExecute
+    public enum Task
+    {
+        UpdateMontageList = 0,
+        SelectMontage = 1,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

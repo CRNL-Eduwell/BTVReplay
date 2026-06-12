@@ -195,37 +195,37 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
         switch (message.TaskToExecute)
         {
-            case 0:
+            case UiToTraceMessage.Task.UpdateGain:
                 BtvLog.Log("Update Trace Gain");
                 m_TraceOption.Gain = message.Gain;
                 graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
                 break;
-            case 1:
+            case UiToTraceMessage.Task.UpdateOffset:
                 BtvLog.Log("Update Trace Offset");
                 m_TraceOption.Offset = message.Offset;
                 break;
-            case 2:
+            case UiToTraceMessage.Task.ToggleGrid:
                 BtvLog.Log("Toggle Grid");
                 graphGrid.IsOn = message.IsGridOn;
                 break;
-            case 3:
+            case UiToTraceMessage.Task.UpdateWindowSize:
                 BtvLog.Log("Update WIndow Period");
                 UpdateTimeResolution(message.TimeWindow);
                 break;
-            case 4:
+            case UiToTraceMessage.Task.ToggleSonification:
                 BtvLog.Log("Toggle Sonification");
                 graphSonif.Toggle(message.IsSonificationOn);
                 break;
-            case 5:
+            case UiToTraceMessage.Task.UpdateSonificationSound:
                 BtvLog.Log("Update Sonification Sound");
                 graphSonif.ChangeAudioClip(message.NewSonificationId);
                 break;
-            case 6:
+            case UiToTraceMessage.Task.UpdateColor:
                 BtvLog.Log("Update ColorPicker");
                 graphLabel.Color = message.Color;
                 m_TraceOption.Color = message.Color;
                 break;
-            case 7:
+            case UiToTraceMessage.Task.UpdateFile:
                 BtvLog.Log("Update File Switcher");
                 m_TraceOption.FileHandle = EegFileService.ChangeContainerHandle(m_TraceOption.FileHandle, message.FileID);
                 graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
@@ -242,19 +242,19 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case UiToVideoMessage.Task.UpdateGain:
                 BtvLog.Log("Update Trace Gain");
                 m_AudioOption.Gain = message.Gain;
                 break;
-            case 1:
+            case UiToVideoMessage.Task.UpdateOffset:
                 BtvLog.Log("Update Trace Offset");
                 m_AudioOption.OffsetInMilliSeconds = message.Offset;
                 break;
-            case 2:
+            case UiToVideoMessage.Task.ToggleAudioTrace:
                 BtvLog.Log("Toggle Audio Trace");
                 audioSignal.Show(message.IsTraceOn);
                 break;
-            case 3:
+            case UiToVideoMessage.Task.UpdateAudioFile:
                 BtvLog.Log("Update Trace Audio File");
                 m_AudioOption.FileID = message.TraceID;
                 break;
@@ -327,7 +327,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OnMontageMessage(MontageMessage message)
     {
-        if (message.TaskToExecute == 1)
+        if (message.TaskToExecute == MontageMessage.Task.SelectMontage)
         {
             m_TraceOption.FileHandle = EegFileService.ReturnFirstValidContainer(); // FIXME : keep ID of selected file
             graphLabel.Electrode = m_TraceOption.ElectrodeLabel;

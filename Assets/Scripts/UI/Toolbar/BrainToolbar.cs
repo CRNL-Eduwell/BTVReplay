@@ -36,7 +36,7 @@ namespace BTV.UI.Module3D
                 BtvLog.Log("change brain");
                 UiToBrainMessage message = new UiToBrainMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = UiToBrainMessage.Task.ChangeReferential,
                     ModelId = BrainId
                 };
                 Messenger.Default.Send(message, MessageContext.UiToBrain);
@@ -46,7 +46,7 @@ namespace BTV.UI.Module3D
                  BtvLog.Log("change visu");
                  UiToBrainMessage message = new UiToBrainMessage
                  {
-                     TaskToExecute = 1,
+                     TaskToExecute = UiToBrainMessage.Task.ChangeMeshDisplay,
                      MeshesToDisplay = VisuID
                  };
                  Messenger.Default.Send(message, MessageContext.UiToBrain);
@@ -56,7 +56,7 @@ namespace BTV.UI.Module3D
                 BtvLog.Log("update gain");
                 UiToBrainMessage message = new UiToBrainMessage
                 {
-                    TaskToExecute = 2,
+                    TaskToExecute = UiToBrainMessage.Task.UpdateGain,
                     Gain = NewGain
                 };
                 Messenger.Default.Send(message, MessageContext.UiToBrain);

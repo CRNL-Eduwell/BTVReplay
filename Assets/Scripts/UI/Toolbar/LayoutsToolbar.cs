@@ -27,7 +27,7 @@ namespace BTV.UI.Module3D
         {
             UiToLayoutsMessage message = new UiToLayoutsMessage
             {
-                TaskToExecute = 0,
+                TaskToExecute = UiToLayoutsMessage.Task.Load,
                 Path = filePath
             };
             Messenger.Default.Send(message, MessageContext.UiToLayouts);
@@ -37,7 +37,7 @@ namespace BTV.UI.Module3D
         {
             UiToLayoutsMessage message = new UiToLayoutsMessage
             {
-                TaskToExecute = 1,
+                TaskToExecute = UiToLayoutsMessage.Task.Save,
                 Path = filePath
             };
             Messenger.Default.Send(message, MessageContext.UiToLayouts);
