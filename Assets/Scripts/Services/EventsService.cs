@@ -77,6 +77,7 @@ namespace BTV.Services.EventsService
         public static void UpdateEvent(BtvEvent ModifiedEvent, BtvEvent OriginalEvent)
         {
             bool UpdateDuration = ModifiedEvent.Duration != OriginalEvent.Duration;
+            bool UpdateSite = ModifiedEvent.SiteOfInterest != OriginalEvent.SiteOfInterest;
             bool UpdateElectrodeDefault = ModifiedEvent.SiteOfInterest == "";
             int Id = GetEventId(OriginalEvent);
             if (Id != -1)
@@ -88,11 +89,33 @@ namespace BTV.Services.EventsService
                     Events[Id].Correlation2D = null;
                 }
 
+                // The 1D correlation is computed against the site of interest: changing the site
+                // makes it stale, and the brain would keep displaying the previous electrode's
+                // correlations. The 2D matrix is all-pairs and does not depend on the event site.
+                if (UpdateSite)
+                {
+                    Events[Id].Correlation = null;
+                }
+
                 if (UpdateElectrodeDefault)
                 {
                     Events[Id].SiteOfInterest = TracesService.ElectrodeName(0);
                     Events[Id].SecondSiteOfInterest = TracesService.ElectrodeName(1);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Drops every stored 1D correlation. Called when the user navigates to another
+        /// electrode: the brain coloring would otherwise keep displaying correlations computed
+        /// against a site the user is no longer inspecting. The 2D matrices stay - their
+        /// displayed row follows the selected electrode by design.
+        /// </summary>
+        public static void ClearCorrelations()
+        {
+            for (int i = 0; i < Events.Count; i++)
+            {
+                Events[i].Correlation = null;
             }
         }
 

@@ -382,6 +382,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     public void UpdateElectrodeById(int newId)
     {
+        // The TraceOption.ElectrodeID setter dismisses the 1D correlation coloring on change.
         m_TraceOption.ElectrodeID = newId;
         m_TraceOption.Offset = m_TraceOption.Offset; //update offset, see for autoupdate somewhere ???
         graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
