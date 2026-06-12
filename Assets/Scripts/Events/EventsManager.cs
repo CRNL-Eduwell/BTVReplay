@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using BTV.Data;
 using BTV.Services.CalculationService;
 using BTV.Services.EventsService;
 using BTV.Services.CodeMatchingService;
 using BTV.UI;
-using CielaSpike;
 using UnityEngine;
 
 /// <summary>
@@ -174,13 +173,13 @@ public class EventsManager : MonoBehaviour
             case EventsModificationMessage.Task.ComputeCorrelation:
                 {
                     BtvLog.Log("Correlation 1D");
-                    StartCoroutine(ProcessCorrelation(message.Event));
+                    ProcessCorrelation(message.Event);
                     break;
                 }
             case EventsModificationMessage.Task.ComputeCorrelation2D:
                 {
                     BtvLog.Log("Correlation 2D");
-                    StartCoroutine(Process2dCorrelation(message.Event));
+                    Process2dCorrelation(message.Event);
                     break;
                 }
         }
@@ -388,121 +387,165 @@ public class EventsManager : MonoBehaviour
         }
     }
 
-    private IEnumerator ProcessCorrelation(BtvEvent currentEvent)
+    private async void ProcessCorrelation(BtvEvent currentEvent)
     {
-        yield return Ninja.JumpBack;
-        this.StartCoroutineAsync(c_Correlation(currentEvent));
-        yield return Ninja.JumpToUnity;
+        try
+        {
+            int eventIndex = EventsService.GetEventId(currentEvent);
+            if (eventIndex < 0)
+            {
+                UnityEngine.Debug.LogWarning("ProcessCorrelation: event not found in EventsService, nothing computed.");
+                return;
+            }
+
+            // Gather everything on the main thread; the worker only reads what was gathered.
+            BtvEvent eventToProcess = EventsService.Events[eventIndex];
+            int samplingFrequency = TracesService.SamplingFrequency(0);
+            int electrodeCount = TracesService.ElectrodeCount(0);
+            int beginTimeSample = (int)(eventToProcess.TimeInSeconds * samplingFrequency);
+            int durationInSample = (eventToProcess.Duration / 1000) * samplingFrequency;
+            int[] sizes = { beginTimeSample, durationInSample };
+
+            int indexBaseline = TracesService.GetOptionsFor(0).FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.SiteOfInterest);
+            float[] baseline = null;
+            if (indexBaseline != -1)
+                baseline = TracesService.ChannelData(0, indexBaseline);
+            else if (currentEvent.SiteOfInterest.StartsWith("AUD")) //Run Correlation against Audio trace
+                baseline = TracesService.AudioChannelData();
+
+            float[] correlation;
+            if (baseline == null)
+            {
+                // Unknown site of interest: keep the historical result, an all-zero correlation.
+                correlation = new float[electrodeCount];
+            }
+            else
+            {
+                float[][] channels = new float[electrodeCount][];
+                for (int i = 0; i < electrodeCount; i++)
+                    channels[i] = TracesService.ChannelData(0, i);
+
+                // -1 when correlating against audio: every channel is processed.
+                int channelToSkip = indexBaseline;
+                correlation = await Task.Run(() => ComputeCorrelation(baseline, channels, sizes, channelToSkip));
+            }
+
+            if (this == null) return; // scene was reloaded during the computation: drop the result
+
+            // Publish on the main thread, re-resolving the event: it may have been deleted while
+            // the computation was running. The old code wrote into the event from the worker
+            // thread while BrainWarden was reading it on every video tick.
+            int targetIndex = EventsService.GetEventId(currentEvent);
+            if (targetIndex < 0)
+            {
+                BtvLog.Log("ProcessCorrelation: event removed during computation, result discarded.");
+                return;
+            }
+            EventsService.Events[targetIndex].Correlation = correlation;
+            EventsService.Events[targetIndex].Correlation2D = null;
+        }
+        catch (Exception ex)
+        {
+            UnityEngine.Debug.LogError("Error processing correlations");
+            UnityEngine.Debug.LogException(ex);
+            ApplicationState.displayMessage("Error Processing Correlations", "NOK", ex.Message);
+        }
     }
 
-    private IEnumerator c_Correlation(BtvEvent currentEvent)
+    private static float[] ComputeCorrelation(float[] baseline, float[][] channels, int[] sizes, int channelToSkip)
     {
-        int samplingFrequency = TracesService.SamplingFrequency(0);
-        int electrodeCount = TracesService.ElectrodeCount(0);
-        int eventIndex = EventsService.GetEventId(currentEvent);
-
-        EventsService.Events[eventIndex].Correlation = new float[electrodeCount];
-        EventsService.Events[eventIndex].Correlation2D = null;
-
-        int beginTimeSample = (int)(EventsService.Events[eventIndex].TimeInSeconds * samplingFrequency);
-        int durationInSample = (EventsService.Events[eventIndex].Duration / 1000) * samplingFrequency;
-
-        int indexBaseline = TracesService.GetOptionsFor(0).FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.SiteOfInterest);
-        if (indexBaseline != -1)
+        float[] correlation = new float[channels.Length];
+        for (int i = 0; i < channels.Length; i++)
         {
+            if (i == channelToSkip)
+                continue;
+
+            correlation[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channels[i], sizes);
+        }
+        return correlation;
+    }
+
+    private async void Process2dCorrelation(BtvEvent currentEvent)
+    {
+        try
+        {
+            int eventIndex = EventsService.GetEventId(currentEvent);
+            if (eventIndex < 0)
+            {
+                UnityEngine.Debug.LogWarning("Process2dCorrelation: event not found in EventsService, nothing computed.");
+                return;
+            }
+
+            BtvProgram container1 = TracesService.GetOptionsFor(0).FileHandle;
+            BtvProgram container2 = TracesService.GetOptionsFor(1).FileHandle;
+
+            bool sameDescription = container1.Description == container2.Description;
+            bool sameElectrodeCount = container1.NumberOfElectrodes == container2.NumberOfElectrodes;
+            bool sameSamplingFrequency = container1.Frequency.Value == container2.Frequency.Value;
+
+            if (!sameDescription && !sameElectrodeCount) throw new ArgumentException("Process2dCorrelation : Number of electrode is not the same in the two files used");
+            if (!sameDescription && !sameSamplingFrequency) throw new ArgumentException("Process2dCorrelation : Sampling Frequency is different beetween the two files used");
+
+            int samplingFrequency = container2.Frequency.Value;
+            int electrodeCount = container2.NumberOfElectrodes;
+
+            BtvEvent eventToProcess = EventsService.Events[eventIndex];
+            int beginTimeSample = (int)(eventToProcess.TimeInSeconds * samplingFrequency);
+            int durationInSample = (eventToProcess.Duration / 1000) * samplingFrequency;
             int[] sizes = { beginTimeSample, durationInSample };
-            float[] baseline = TracesService.ChannelData(0, indexBaseline);
+
+            float[][] channels1 = new float[electrodeCount][];
+            float[][] channels2 = new float[electrodeCount][];
             for (int i = 0; i < electrodeCount; i++)
             {
-                if (i == indexBaseline)
-                    continue;
-
-                float[] channel = TracesService.ChannelData(0, i);
-                EventsService.Events[eventIndex].Correlation[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
+                channels1[i] = container1.Channels[i].Data;
+                channels2[i] = container2.Channels[i].Data;
             }
-        }
-        else
-        {
-            //Run Correlation against Audio trace
-            if (currentEvent.SiteOfInterest.StartsWith("AUD"))
+
+            float[][] correlation2d = await Task.Run(() => ComputeCorrelation2d(channels1, channels2, sizes));
+
+            if (this == null) return; // scene was reloaded during the computation: drop the result
+
+            int targetIndex = EventsService.GetEventId(currentEvent);
+            if (targetIndex < 0)
             {
-                int[] sizes = { beginTimeSample, durationInSample };
-                float[] baseline = TracesService.AudioChannelData();
+                BtvLog.Log("Process2dCorrelation: event removed during computation, result discarded.");
+                return;
+            }
+            EventsService.Events[targetIndex].Correlation = null;
+            EventsService.Events[targetIndex].Correlation2D = correlation2d;
 
-                for (int i = 0; i < electrodeCount; i++)
-                {
-                    float[] channel = TracesService.ChannelData(0, i);
-                    EventsService.Events[eventIndex].Correlation[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
-                }
+            bool sameFile = container1 == container2;
+            if (!sameFile)
+            {
+                string message = "Correlations have been processed" + "\nJust a reminder, you correlated data from two different files";
+                ApplicationState.displayMessage("Correlations Processing succeeded", "OK", message);
             }
         }
-        yield return null;
-    }
-
-    private IEnumerator Process2dCorrelation(BtvEvent currentEvent)
-    {
-        yield return this.StartCoroutineAsync(c_Correlation2d(currentEvent), out Task AudioFilteringTask);
-        switch (AudioFilteringTask.State)
+        catch (Exception ex)
         {
-            case TaskState.Done:
-                {
-                    bool sameFile = TracesService.GetOptionsFor(0).FileHandle == TracesService.GetOptionsFor(1).FileHandle;
-                    if (sameFile) break;
-
-                    yield return Ninja.JumpToUnity;
-                    string message = "Correlations have been processed" + "\nJust a reminder, you correlated data from two different files";
-                    ApplicationState.displayMessage("Correlations Processing succeeded", "OK", message);
-                    yield return Ninja.JumpBack;
-                    break;
-                }
-            case TaskState.Error:
-                {
-                    yield return Ninja.JumpToUnity;
-                    ApplicationState.displayMessage("Error Processing Correlations", "NOK", AudioFilteringTask.Exception.Message.ToString());
-                    yield return Ninja.JumpBack;
-                    break;
-                }
+            UnityEngine.Debug.LogError("Error processing 2D correlations");
+            UnityEngine.Debug.LogException(ex);
+            ApplicationState.displayMessage("Error Processing Correlations", "NOK", ex.Message);
         }
     }
 
-    private IEnumerator c_Correlation2d(BtvEvent currentEvent)
+    private static float[][] ComputeCorrelation2d(float[][] channels1, float[][] channels2, int[] sizes)
     {
-        int eventIndex = EventsService.GetEventId(currentEvent);
-
-        BtvProgram container1 = TracesService.GetOptionsFor(0).FileHandle;
-        BtvProgram container2 = TracesService.GetOptionsFor(1).FileHandle;
-
-        bool sameDescription = container1.Description == container2.Description;
-        bool sameElectrodeCount = container1.NumberOfElectrodes == container2.NumberOfElectrodes;
-        bool sameSamplingFrequency = container1.Frequency.Value == container2.Frequency.Value;
-
-        if (!sameDescription && !sameElectrodeCount) throw new ArgumentException("c_Correlation2d : Number of electrode is not the same in the two files used");
-        if (!sameDescription && !sameSamplingFrequency) throw new ArgumentException("c_Correlation2d : Sampling Frequency is different beetween the two files used");
-
-        int samplingFrequency = container2.Frequency.Value;
-        int electrodeCount = container2.NumberOfElectrodes;
-
-        EventsService.Events[eventIndex].Correlation = null;
-        EventsService.Events[eventIndex].Correlation2D = new float[electrodeCount][];
+        int electrodeCount = channels1.Length;
+        float[][] correlation2d = new float[electrodeCount][];
         for (int i = 0; i < electrodeCount; i++)
-            EventsService.Events[eventIndex].Correlation2D[i] = new float[electrodeCount];
+            correlation2d[i] = new float[electrodeCount];
 
-        int beginTimeSample = (int)(EventsService.Events[eventIndex].TimeInSeconds * samplingFrequency);
-        int durationInSample = (EventsService.Events[eventIndex].Duration / 1000) * samplingFrequency;
-
-        int[] sizes = { beginTimeSample, durationInSample };
         for (int i = 0; i < electrodeCount; i++)
         {
             for (int j = 0; j < electrodeCount; j++)
             {
                 if (i == j)
                     continue;
-                float[] baseline = container1.Channels[i].Data;
-                float[] channel = container2.Channels[j].Data;
-                EventsService.Events[eventIndex].Correlation2D[i][j] = CalculationService.PearsonCorrelationCoefficients(baseline, channel, sizes);
+                correlation2d[i][j] = CalculationService.PearsonCorrelationCoefficients(channels1[i], channels2[j], sizes);
             }
         }
-
-        yield return null;
+        return correlation2d;
     }
 }
