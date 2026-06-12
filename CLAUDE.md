@@ -55,8 +55,10 @@ correlations, all synchronized to a video clock.
   `Data/EegFileInfo/` **break existing .dbtv2 files** (they embed `Assembly-CSharp` type names).
 - Number parsing/writing is culture-sensitive in places (fr locale bugs historically);
   target `CultureInfo.InvariantCulture` for all new persistence code.
-- Threading: ThreadNinja background coroutines mutate static service state off the main
-  thread in several places; don't add new cross-thread mutation, marshal results back instead.
+- Threading: background work uses async/await — gather inputs on the main thread, compute in
+  `Task.Run` returning a result, publish after the `await` (the continuation resumes on the
+  Unity main thread). Never mutate service/static state from inside a `Task.Run` worker;
+  report progress via `IProgress` (see `LoadingManager.Load`).
 - Messenger: one handler per (recipient, context) — a duplicate registration is rejected and
   logged as an error; always pair Register/Unregister with the **same** context.
 - Many GameObject lookups are by scene-object name string (`GameObject.Find`) — renaming

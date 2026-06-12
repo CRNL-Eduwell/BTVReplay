@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections;
+using System;
+using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Events;
-using CielaSpike;
 
 public class LoadingManager : MonoBehaviour
 {
@@ -34,33 +32,36 @@ public class LoadingManager : MonoBehaviour
         LoadingCircle loadingCircle = loadingCircleGameObject.GetComponent<LoadingCircle>();
         return loadingCircle;
     }
-    public static void Load(IEnumerator action, GenericEvent<float, string> onChangeProgress, Action<TaskState> callBack = null)
-    {
-        m_Instance.StartCoroutine(c_Load(action, onChangeProgress, callBack));
-    }
-    public static IEnumerator c_Load(IEnumerator action, GenericEvent<float, string> onChangeProgress, Action<TaskState> callBack = null)
+
+    /// <summary>
+    /// Shows a loading circle while the task runs and reports its failure to the user. The
+    /// IProgress handed to the action marshals progress reports back to the main thread, so the
+    /// action may Report() from inside a Task.Run worker.
+    /// </summary>
+    public static async void Load(Func<IProgress<(float progress, string message)>, Task> action)
     {
         LoadingCircle loadingCircle = Open();
-        UnityAction<float, string> progressHandler = (progress, message) => loadingCircle.Set(progress, message);
-        onChangeProgress.AddListener(progressHandler);
-        yield return m_Instance.StartCoroutineAsync(action, out Task task);
-        switch (task.State)
+        // Progress posts its reports asynchronously, so a late report can arrive after the
+        // circle was closed and destroyed - hence the null check (Unity fake-null).
+        Progress<(float progress, string message)> progress = new Progress<(float progress, string message)>(report =>
         {
-            case TaskState.Done:
-                yield return new WaitForSeconds(0.2f);
-                break;
-            case TaskState.Error:
-                Debug.LogError("LoadingManager: a background loading task failed.");
-                if (task.Exception != null)
-                {
-                    Debug.LogException(task.Exception);
-                    ApplicationState.displayMessage("Loading failed", "NOK", task.Exception.Message);
-                }
-                break;
+            if (loadingCircle != null) loadingCircle.Set(report.progress, report.message);
+        });
+        try
+        {
+            await action(progress);
+            await Task.Delay(200); // let the user see the finished state, like the old WaitForSeconds did
         }
-        onChangeProgress.RemoveListener(progressHandler);
-        loadingCircle.Close();
-        if (callBack != null) callBack.Invoke(task.State);
+        catch (Exception ex)
+        {
+            Debug.LogError("LoadingManager: a background loading task failed.");
+            Debug.LogException(ex);
+            ApplicationState.displayMessage("Loading failed", "NOK", ex.Message);
+        }
+        finally
+        {
+            loadingCircle.Close();
+        }
     }
     #endregion
 }
