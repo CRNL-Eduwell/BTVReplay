@@ -100,7 +100,7 @@ public class EventInfoDisplay : MonoBehaviour
 
         EventsModificationMessage message = new EventsModificationMessage
         {
-            TaskToExecute = 1,
+            TaskToExecute = EventsModificationMessage.Task.ModifyEvent,
             Event = modifyEvent,
             EventMemory = m_Event
         };
@@ -113,7 +113,7 @@ public class EventInfoDisplay : MonoBehaviour
     {
         EventsModificationMessage message = new EventsModificationMessage
         {
-            TaskToExecute = 3,
+            TaskToExecute = EventsModificationMessage.Task.EditEvent,
             Event = m_Event,
             ParentWindowIndex = gameObject.GetComponentInParent<Trace>().TraceId
         };
@@ -125,7 +125,7 @@ public class EventInfoDisplay : MonoBehaviour
     {
         EventsModificationMessage message = new EventsModificationMessage
         {
-            TaskToExecute = 4,
+            TaskToExecute = EventsModificationMessage.Task.ComputeCorrelation,
             Event = m_Event
         };
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);
@@ -135,7 +135,7 @@ public class EventInfoDisplay : MonoBehaviour
     {
         EventsModificationMessage message = new EventsModificationMessage
         {
-            TaskToExecute = 5,
+            TaskToExecute = EventsModificationMessage.Task.ComputeCorrelation2D,
             Event = m_Event
         };
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);

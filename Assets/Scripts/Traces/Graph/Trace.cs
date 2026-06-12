@@ -265,13 +265,13 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         switch (message.TaskToExecute)
         {
-            case 0: //add toggle
+            case EventsToTraceMessage.Task.ToggleAddEvents:
                 m_AddEvents = message.IsAddEventsOn;
                 break;
-            case 1://show toggle
+            case EventsToTraceMessage.Task.ToggleShowEvents:
                 graphEvent.DisplayEvents = message.IsShowEventsOn;
                 break;
-            case 2://Edit Events
+            case EventsToTraceMessage.Task.EditEvent:
                 if (message.ParentWindowIndex == traceID)
                 {
                     bool ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
@@ -279,13 +279,13 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                         OpenEventModify(message.Event);
                 }
                 break;
-            case 3://Add Event
+            case EventsToTraceMessage.Task.AddEventToTrace:
                 graphEvent.AddEventToTrace(message.Event, message.EventIndex);
                 break;
-            case 4://Delete Event
+            case EventsToTraceMessage.Task.RemoveEventFromTrace:
                 graphEvent.DeleteEventFromTrace(message.EventIndex);
                 break;
-            case 5:
+            case EventsToTraceMessage.Task.DisplayEvent:
                 if (message.ParentWindowIndex == traceID)
                 {
                     bool ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);

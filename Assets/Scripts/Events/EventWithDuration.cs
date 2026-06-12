@@ -217,30 +217,30 @@ public class EventWithDuration : EventTrace
 
     private void OnUiToTFEventsMessage(UiToTFEventsMessage message)
     {
-        if (message.TaskToExecute == 0)
+        if (message.TaskToExecute == UiToTFEventsMessage.Task.ToggleCursorSlave)
         {
             m_Cursor.IsSlaved = message.IsSlaved;
         }
-        else if (message.TaskToExecute == 1)
+        else if (message.TaskToExecute == UiToTFEventsMessage.Task.UpdateAlpha)
         {
             if (message.ParentWindowIndex != ParentWindowIndex) return;
 
             m_TfTraceOption.Alpha = message.Alpha;
         }
-        else if (message.TaskToExecute == 2)
+        else if (message.TaskToExecute == UiToTFEventsMessage.Task.UpdateFrequencyBand)
         {
             if (message.ParentWindowIndex != ParentWindowIndex) return;
 
             m_TfTraceOption.LowFrequency = message.LowFrequency;
             m_TfTraceOption.HighFrequency = message.HighFrequency;
         }
-        else if (message.TaskToExecute == 3)
+        else if (message.TaskToExecute == UiToTFEventsMessage.Task.UpdateTfWindow)
         {
             if (message.ParentWindowIndex != ParentWindowIndex) return;
 
             m_TfTraceOption.WindowInMilliseconds = message.WindowInMs;
         }
-        else if (message.TaskToExecute == 4)
+        else if (message.TaskToExecute == UiToTFEventsMessage.Task.UpdateAmplitude)
         {
             if (message.ParentWindowIndex != ParentWindowIndex) return;
 

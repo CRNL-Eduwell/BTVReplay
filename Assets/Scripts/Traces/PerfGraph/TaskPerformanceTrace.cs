@@ -150,12 +150,12 @@ public class TaskPerformanceTrace : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case UiToTaskPerformanceMessage.Task.ProcessProtocol:
                 ClearTrace();
                 UpdateEventsForProtocol(message.NewProtocol);
                 UpdateScales();
                 break;
-            case 1:
+            case UiToTaskPerformanceMessage.Task.UpdateTimeWindow:
                 UpdateTimeResolution(message.TimeWindow);
                 UpdateScales();
                 break;
@@ -166,11 +166,11 @@ public class TaskPerformanceTrace : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case EventsToTaskPerformanceMessage.Task.ResetAll:
                 BtvLog.Log("Task deactivated, events have been reseted");
                 ClearTrace();
                 break;
-            case 1:
+            case EventsToTaskPerformanceMessage.Task.MarkOutOfDate:
                 BtvLog.Log("Task not up to date, events have been modifyed (add, delete, update)");
                 if(m_HasDataToDisplay)
                     m_InfoDisplay.SetActive(true);

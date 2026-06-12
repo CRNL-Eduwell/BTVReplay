@@ -2,9 +2,13 @@
 
 class UiToTaskPerformanceMessage
 {
-    // 0 : Update Event Processing for given protocol
-    // 1 : Update Window Size
-    public int TaskToExecute
+    public enum Task
+    {
+        ProcessProtocol = 0,
+        UpdateTimeWindow = 1,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

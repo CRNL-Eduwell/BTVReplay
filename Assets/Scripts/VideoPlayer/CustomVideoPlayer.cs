@@ -269,7 +269,6 @@ public class CustomVideoPlayer : MonoBehaviour
     {
         ShowWindowMessage message = new ShowWindowMessage
         {
-            TaskToExecute = 0,
             WindowName = "VideoRecorder"
         };
         Messenger.Default.Send(message, MessageContext.ShowWindowMessage);

@@ -67,7 +67,7 @@ public class EventsManager : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case UiToEventsMessage.Task.LoadEventsFile:
                 {
                     BtvLog.Log("Load File");
                     ApplicationState.displayConfirmation("Loading Events", "Do you want to delete all previous events or add to them ?",
@@ -81,7 +81,7 @@ public class EventsManager : MonoBehaviour
                         });
                     break;
                 }
-            case 1:
+            case UiToEventsMessage.Task.SaveEventsFile:
                 {
                     BtvLog.Log("Save File");
                     FileInfo file = new FileInfo(message.FilePathToSave);
@@ -97,35 +97,35 @@ public class EventsManager : MonoBehaviour
                     }
                     break;
                 }
-            case 2:
+            case UiToEventsMessage.Task.ToggleAddEvents:
                 {
                     BtvLog.Log("Toggle Add Event");
                     EventsToTraceMessage EventsMessage = new EventsToTraceMessage
                     {
-                        TaskToExecute = 0,
+                        TaskToExecute = EventsToTraceMessage.Task.ToggleAddEvents,
                         IsAddEventsOn = message.IsAddEventsOn
                     };
                     Messenger.Default.Send(EventsMessage, MessageContext.EventsToTraceMessage);
                     break;
                 }
-            case 3:
+            case UiToEventsMessage.Task.ToggleShowEvents:
                 {
                     BtvLog.Log("Toggle Show Event");
                     EventsToTraceMessage EventsMessage = new EventsToTraceMessage
                     {
-                        TaskToExecute = 1,
+                        TaskToExecute = EventsToTraceMessage.Task.ToggleShowEvents,
                         IsShowEventsOn = message.IsShowEventsOn
                     };
                     Messenger.Default.Send(EventsMessage, MessageContext.EventsToTraceMessage);
                     break;
                 }
-            case 4:
+            case UiToEventsMessage.Task.DeleteSelectedEvents:
                 {
                     BtvLog.Log("Delete Selected Notes");
                     ApplicationState.displayConfirmation("Deleting Notes", "You are going to delete " + ((ISelectionCountable)m_EventsList).NumberOfItemSelected + " Notes, are you sure ? ", () => { DeleteSelectedEvents(); }, () => { });
                     break;
                 }
-            case 5:
+            case UiToEventsMessage.Task.LoadCodeMatchingFile:
                 {
                     BtvLog.Log("Load CodeMatching file");
                     CodeMatchingService.Load(message.FilePathToLoad);
@@ -140,44 +140,44 @@ public class EventsManager : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case EventsModificationMessage.Task.AddEvent:
                 {
                     BtvLog.Log("Add Event");
                     AddEvent(message.Event);
                     break;
                 }
-            case 1:
+            case EventsModificationMessage.Task.ModifyEvent:
                 {
                     BtvLog.Log("Modify Event");
                     UpdateEvent(message.Event, message.EventMemory);
                     break;
                 }
-            case 2:
+            case EventsModificationMessage.Task.DeleteEvent:
                 {
                     BtvLog.Log("Delete Event");
                     DeleteEvent(message.Event);
                     break;
                 }
-            case 3:
+            case EventsModificationMessage.Task.EditEvent:
                 {
                     BtvLog.Log("Edit Event");
                     //Events to trace with parent gameobject (or mouse position) and event
                     EventsToTraceMessage messageToTrace = new EventsToTraceMessage
                     {
-                        TaskToExecute = 2,
+                        TaskToExecute = EventsToTraceMessage.Task.EditEvent,
                         Event = message.Event,
                         ParentWindowIndex = message.ParentWindowIndex
                     };
                     Messenger.Default.Send(messageToTrace, MessageContext.EventsToTraceMessage);
                     break;
                 }
-            case 4:
+            case EventsModificationMessage.Task.ComputeCorrelation:
                 {
                     BtvLog.Log("Correlation 1D");
                     StartCoroutine(ProcessCorrelation(message.Event));
                     break;
                 }
-            case 5:
+            case EventsModificationMessage.Task.ComputeCorrelation2D:
                 {
                     BtvLog.Log("Correlation 2D");
                     StartCoroutine(Process2dCorrelation(message.Event));
@@ -278,7 +278,7 @@ public class EventsManager : MonoBehaviour
                 {
                     EventsToTraceMessage message = new EventsToTraceMessage
                     {
-                        TaskToExecute = 3,
+                        TaskToExecute = EventsToTraceMessage.Task.AddEventToTrace,
                         Event = EventsService.Events[i],
                         EventIndex = i
                     };
@@ -287,7 +287,7 @@ public class EventsManager : MonoBehaviour
 
                 EventsToTaskPerformanceMessage resetMessage = new EventsToTaskPerformanceMessage
                 {
-                    TaskToExecute = 0
+                    TaskToExecute = EventsToTaskPerformanceMessage.Task.ResetAll
                 };
                 Messenger.Default.Send(resetMessage, MessageContext.EventsToTaskPerformanceMessage);
             }
@@ -322,7 +322,7 @@ public class EventsManager : MonoBehaviour
         //Send message to Add to traces
         EventsToTraceMessage message = new EventsToTraceMessage
         {
-            TaskToExecute = 3,
+            TaskToExecute = EventsToTraceMessage.Task.AddEventToTrace,
             EventIndex = id,
             Event = Event
         };
@@ -330,7 +330,7 @@ public class EventsManager : MonoBehaviour
         //Send message to task perf that an event was added
         EventsToTaskPerformanceMessage addedMessage = new EventsToTaskPerformanceMessage
         {
-            TaskToExecute = 1
+            TaskToExecute = EventsToTaskPerformanceMessage.Task.MarkOutOfDate
         };
         Messenger.Default.Send(addedMessage, MessageContext.EventsToTaskPerformanceMessage);
     }
@@ -342,7 +342,7 @@ public class EventsManager : MonoBehaviour
 
         EventsToTaskPerformanceMessage modifiedMessage = new EventsToTaskPerformanceMessage
         {
-            TaskToExecute = 1
+            TaskToExecute = EventsToTaskPerformanceMessage.Task.MarkOutOfDate
         };
         Messenger.Default.Send(modifiedMessage, MessageContext.EventsToTaskPerformanceMessage);
     }
@@ -364,14 +364,16 @@ public class EventsManager : MonoBehaviour
         //Send message to delete from traces
         EventsToTraceMessage message = new EventsToTraceMessage
         {
-            TaskToExecute = 4,
+            TaskToExecute = EventsToTraceMessage.Task.RemoveEventFromTrace,
             EventIndex = id
         };
         Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
 
         EventsToTaskPerformanceMessage deletedMessage = new EventsToTaskPerformanceMessage
         {
-            TaskToExecute = EventsService.Events.Count == 0 ? 0 : 1
+            TaskToExecute = EventsService.Events.Count == 0
+                ? EventsToTaskPerformanceMessage.Task.ResetAll
+                : EventsToTaskPerformanceMessage.Task.MarkOutOfDate
         };
         Messenger.Default.Send(deletedMessage, MessageContext.EventsToTaskPerformanceMessage);
     }

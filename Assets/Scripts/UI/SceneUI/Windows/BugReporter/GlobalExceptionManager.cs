@@ -29,7 +29,6 @@ namespace Tools.Unity
         {
             ShowWindowMessage message = new ShowWindowMessage
             {
-                TaskToExecute = 0,
                 WindowName = "BugReporterWindow"
             };
             Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
