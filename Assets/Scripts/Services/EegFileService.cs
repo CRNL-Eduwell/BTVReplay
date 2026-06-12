@@ -68,20 +68,6 @@ namespace BTV.Services.EegFileService
             Montages[0].SetEEGFile(eegFile, FileID);
         }
 
-        public static void Load(IEegFileInfo fileInfo, int FileID, string description)
-        {
-            if (FileID >= 6)
-                throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
-
-            BtvProgram eegFile = null;
-            if (fileInfo.Files.Length > 0 && System.IO.File.Exists(fileInfo.Files[0]))
-            {
-                IEegDataContainer container = new IEegDataContainer(fileInfo);
-                eegFile = new BtvProgram(container, description);
-            }
-            Montages[0].SetEEGFile(eegFile, FileID);
-        }
-
         public static int GetContainerSuffix(BtvProgram currentFile)
         {
             for (int i = 0; i < CurrentMontage.EegFiles.Length; i++)
