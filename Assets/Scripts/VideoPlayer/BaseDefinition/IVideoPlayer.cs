@@ -1,7 +1,15 @@
-﻿using UnityEngine.UI;
+﻿using System;
+using UnityEngine.UI;
 
 public interface IVideoPlayer
 {
+    /// <summary>
+    /// Raised when a SetTime/MoveTime seek has landed (possibly synchronously for players
+    /// that seek instantly). The UI uses it to know when the displayed frame matches the
+    /// requested time, instead of guessing from clock movement.
+    /// </summary>
+    event Action SeekCompleted;
+
     bool IsPrepared { get; }
     /// <summary>
     /// Exact Time of the video

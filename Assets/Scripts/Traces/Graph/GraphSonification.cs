@@ -11,11 +11,10 @@ public class GraphSonification : MonoBehaviour
     private List<AudioClip> m_clips = new List<AudioClip>();
     private bool m_currentState = false;
 
-    private void Awake()
-    {
-        _AudioSourceScript.Play();
-        _AudioSourceScript.Pause();
-    }
+    // No Play/Pause warm-up in Awake: the source has no clip yet at that point, and a clipless
+    // Play() pokes FMOD at scene start - on macOS this could surface a spurious "FMOD failed
+    // to switch back to normal output" error during audio-device negotiation. StartAudio()
+    // does the same warm-up once the clips are actually loaded.
 
     private void OnEnable()
     {
