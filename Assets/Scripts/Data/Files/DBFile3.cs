@@ -32,13 +32,18 @@ public class DBFile3 : ISubjectsContext
         {
             Subjects = JsonConvert.DeserializeObject<List<Subject>>(streamReader.ReadToEnd(), BtvJson.ReadSettings) ?? new List<Subject>();
         }
+        // Portable "${NAME}/..." paths only exist in the file; in memory everything is absolute.
+        SubjectPathPortability.ExpandTokens(Subjects);
     }
 
     public static bool Save(string FilePath, List<Subject> subjects)
     {
         try
         {
-            string json = JsonConvert.SerializeObject(subjects, Formatting.Indented, BtvJson.WriteSettings);
+            // Serialize a tokenized copy: paths under the configured roots become portable
+            // "${NAME}/..." entries on disk while the in-memory subjects stay absolute.
+            List<Subject> portableSubjects = SubjectPathPortability.TokenizedCopy(subjects);
+            string json = JsonConvert.SerializeObject(portableSubjects, Formatting.Indented, BtvJson.WriteSettings);
             BrainTV.Tools.AtomicFile.WriteAllText(FilePath, json);
             return true;
         }

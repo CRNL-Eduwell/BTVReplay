@@ -56,6 +56,11 @@ public class MicromedFileInfo : IEegFileInfo
         return new MicromedFileInfo(Trc);
     }
 
+    public void TransformPaths(Func<string, string> transform)
+    {
+        Trc = transform(Trc);
+    }
+
     public static bool operator ==(MicromedFileInfo a, MicromedFileInfo b)
     {
         if (ReferenceEquals(a, b))
