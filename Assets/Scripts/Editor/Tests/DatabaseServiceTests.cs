@@ -160,6 +160,26 @@ public class DatabaseServiceTests
 
     #region AddSubjectToDatabase
     [Test]
+    public void CopyThenRename_DoesNotAffectTheOtherDatabase()
+    {
+        // Regression: copy used to insert the same Subject instance into both databases and
+        // rename mutated it in place, so renaming the copy renamed the original too.
+        SubjectRepository source = CreateDatabase("source", "Patient");
+        SubjectRepository destination = CreateDatabase("destination");
+        Subject original = source.Subjects[0];
+
+        // CopySubjectsToDatabase copies with a deep copy, mirrored here.
+        Assert.IsTrue(DatabaseService.AddSubjectToDatabase(destination, new Subject(original)));
+
+        Assert.IsTrue(DatabaseService.EditSubjectName(destination, destination.Subjects[0], "Renamed"));
+        Assert.AreEqual("Patient", source.Subjects[0].PatientName, "renaming the copy must not rename the original");
+        Assert.AreEqual("Renamed", destination.Subjects[0].PatientName);
+
+        Assert.IsTrue(DatabaseService.EditSubjectName(source, source.Subjects[0], "Renamed2"));
+        Assert.AreEqual("Renamed", destination.Subjects[0].PatientName, "renaming the original must not rename the copy");
+    }
+
+    [Test]
     public void AddSubjectToDatabase_RefusesValueEqualDuplicate()
     {
         SubjectRepository db = CreateDatabase("base");
