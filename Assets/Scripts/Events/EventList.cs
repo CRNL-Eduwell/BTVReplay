@@ -44,6 +44,14 @@ public class EventList : Tools.Unity.Lists.SelectableList<BtvEvent>
 
     public void DeleteEvent(int ID)
     {
+        // The index comes from EventsService.Events; if the UI list drifted out of sync,
+        // skip instead of throwing and aborting the caller's delete flow halfway through.
+        if (ID < 0 || ID >= m_DisplayedObjects.Count)
+        {
+            Debug.LogWarning("EventList: delete index " + ID + " does not fit the displayed list (" + m_DisplayedObjects.Count + " events), nothing removed.");
+            return;
+        }
+
         //Delete from Ui List by ref
         Remove(m_DisplayedObjects[ID]);
     }

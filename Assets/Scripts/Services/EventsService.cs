@@ -59,13 +59,19 @@ namespace BTV.Services.EventsService
             }
         }
 
-        public static void AddEvent(BtvEvent Event)
+        /// <summary>
+        /// Adds a copy of the event and reports whether anything was actually added: an
+        /// Equals-duplicate is skipped and returns false, so callers must not propagate the add
+        /// to the UI lists / trace GameObjects (which are kept index-parallel with Events).
+        /// </summary>
+        public static bool AddEvent(BtvEvent Event)
         {
             BtvEvent EventToAdd = new BtvEvent(Event);
-            if (!Events.Contains(EventToAdd))
-            {
-                Events.Add(EventToAdd);
-            }
+            if (Events.Contains(EventToAdd))
+                return false;
+
+            Events.Add(EventToAdd);
+            return true;
         }
 
         public static void UpdateEvent(BtvEvent ModifiedEvent, BtvEvent OriginalEvent)

@@ -43,6 +43,15 @@ public class GraphEvents : MonoBehaviour
 
     public void AddEventToTrace(BtvEvent currentEvent, int id)
     {
+        if (id < 0 || id > m_EventsAdded.Count)
+        {
+            // The insert index comes from EventsService.Events; if it does not fit this trace's
+            // list the two are already out of sync - rebuild from the service instead of throwing.
+            Debug.LogWarning("GraphEvents: event insert index " + id + " does not fit the trace list (" + m_EventsAdded.Count + " events), rebuilding from EventsService.");
+            RebuildEventsFromService();
+            return;
+        }
+
         BtvLog.Log("Add event to trace");
         GameObject currentEventToAdd = null;
         if (currentEvent.Duration == 0)
@@ -78,6 +87,16 @@ public class GraphEvents : MonoBehaviour
 
     public void UpdateEventsOnTrace(int milliSecToLook)
     {
+        // m_EventsAdded must stay index-parallel with EventsService.Events. If any upstream
+        // add/delete/load path desynced them (an exception mid-add, a reset or an events-file
+        // reload that this trace never heard about), rebuild from the service instead of
+        // indexing out of range on every video tick.
+        if (m_EventsAdded.Count != EventsService.Events.Count)
+        {
+            Debug.LogWarning("GraphEvents: trace event objects out of sync with EventsService (" + m_EventsAdded.Count + " vs " + EventsService.Events.Count + "), rebuilding.");
+            RebuildEventsFromService();
+        }
+
         int EventCount = EventsService.Events.Count;
         if (EventCount > 0)
         {
@@ -159,6 +178,20 @@ public class GraphEvents : MonoBehaviour
                     if (tf != null) tf.UpdateTfMap(left, right);
                 }
             }
+        }
+    }
+
+    private void RebuildEventsFromService()
+    {
+        for (int i = 0; i < m_EventsAdded.Count; i++)
+        {
+            Destroy(m_EventsAdded[i]);
+        }
+        m_EventsAdded.Clear();
+
+        for (int i = 0; i < EventsService.Events.Count; i++)
+        {
+            AddEventToTrace(EventsService.Events[i], i);
         }
     }
 

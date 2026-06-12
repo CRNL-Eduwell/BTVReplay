@@ -33,15 +33,16 @@ public class EventsTexture : MonoBehaviour
 
     public void AddEvent(BtvEvent currentEvent)
     {
-        float perC = ((currentEvent.TimeInMilliSeconds / m_VideoPlayer.VideoInterface.TotalVideoTime));// * 1000);
-        int pixelID = (int)(perC * m_CurrentTexture.width);
+        if (m_VideoPlayer.VideoInterface.TotalVideoTime <= 0)
+            return;
+
+        int pixelID = PixelForTime(currentEvent.TimeInMilliSeconds);
 
         if (currentEvent.Duration > 0)
         {
             if (currentEvent.Duration > 1000)
             {
-                float perCDuration = ((currentEvent.TimeInMilliSeconds + currentEvent.Duration) / m_VideoPlayer.VideoInterface.TotalVideoTime);// * 1000;
-                int pixelIDDuration = (int)(perCDuration * m_CurrentTexture.width);
+                int pixelIDDuration = PixelForTime(currentEvent.TimeInMilliSeconds + currentEvent.Duration);
                 for (int i = 0; i < m_CurrentTexture.height / 2; i++)
                 {
                     for (int j = 0; j < pixelIDDuration - pixelID; j++)
@@ -61,6 +62,16 @@ public class EventsTexture : MonoBehaviour
         }
         m_CurrentTexture.SetPixels(m_TextureColorData);
         m_CurrentTexture.Apply();
+    }
+
+    // Events can sit outside the video timeline (an event past the end of the recording, or no
+    // video prepared yet): clamp to the texture bounds so painting the scrollbar can never throw.
+    // An exception here aborts the caller's add/delete flow halfway through and desyncs the
+    // event lists kept by the other modules.
+    private int PixelForTime(float timeInMilliSeconds)
+    {
+        float perC = timeInMilliSeconds / m_VideoPlayer.VideoInterface.TotalVideoTime;
+        return Mathf.Clamp((int)(perC * m_CurrentTexture.width), 0, m_CurrentTexture.width - 1);
     }
 
     public void RemoveAllEvents()
@@ -84,15 +95,16 @@ public class EventsTexture : MonoBehaviour
 
     public void RemoveEvent(BtvEvent currentEvent)
     {
-        float perC = (currentEvent.TimeInMilliSeconds / m_VideoPlayer.VideoInterface.TotalVideoTime);// * 1000);
-        int pixelID = (int)(perC * m_CurrentTexture.width);
+        if (m_VideoPlayer.VideoInterface.TotalVideoTime <= 0)
+            return;
+
+        int pixelID = PixelForTime(currentEvent.TimeInMilliSeconds);
 
         if (currentEvent.Duration > 0)
         {
             if (currentEvent.Duration > 1000)
             {
-                float perCDuration = ((currentEvent.TimeInMilliSeconds + currentEvent.Duration) / m_VideoPlayer.VideoInterface.TotalVideoTime);// * 1000;
-                int pixelIDDuration = (int)(perCDuration * m_CurrentTexture.width);
+                int pixelIDDuration = PixelForTime(currentEvent.TimeInMilliSeconds + currentEvent.Duration);
                 for (int i = 0; i < m_CurrentTexture.height / 2; i++)
                 {
                     for (int j = 0; j < pixelIDDuration - pixelID; j++)
