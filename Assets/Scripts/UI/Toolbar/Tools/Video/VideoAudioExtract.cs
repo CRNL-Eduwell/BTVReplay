@@ -1,7 +1,6 @@
-﻿using System.Collections;
+﻿using System;
 using System.IO;
 using BTV.Services.VideoService;
-using CielaSpike;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,7 +25,7 @@ namespace BTV.UI.Module3D.Tools
         {
             if (VideoService.VideoFileExist && !VideoService.AudioFileExist)
             {
-                StartCoroutine(c_LaunchAudioExtraction(VideoService.AudioFromVideoPath, VideoService.OriginalVideoPath));
+                LaunchAudioExtraction(VideoService.AudioFromVideoPath, VideoService.OriginalVideoPath);
             }
             else if (VideoService.VideoFileExist && VideoService.AudioFileExist)
             {
@@ -49,23 +48,21 @@ namespace BTV.UI.Module3D.Tools
                 UnityEngine.Debug.LogError(ioExp.Message);
             }
 
-            StartCoroutine(c_LaunchAudioExtraction(VideoService.AudioFromVideoPath, VideoService.OriginalVideoPath));
+            LaunchAudioExtraction(VideoService.AudioFromVideoPath, VideoService.OriginalVideoPath);
         }
 
-        private IEnumerator c_LaunchAudioExtraction(string AudioPath, string VideoPath)
+        private async void LaunchAudioExtraction(string AudioPath, string VideoPath)
         {
-            yield return this.StartCoroutineAsync(VideoService.c_ExtractAudio(AudioPath, VideoPath), out Task AudioExtractionTask);
-            switch (AudioExtractionTask.State)
+            try
             {
-                case TaskState.Done:
-                    yield return Ninja.JumpToUnity;
-                    ApplicationState.displayMessage("Audio Extraction", "OK", "Audio as been correctly extracted from video file.");
-                    yield return Ninja.JumpBack;
-                    break;
-                case TaskState.Error:
-                    //Display Error Window
-                    UnityEngine.Debug.LogError("Error extracting audio");
-                    break;
+                await VideoService.ExtractAudioAsync(AudioPath, VideoPath);
+                ApplicationState.displayMessage("Audio Extraction", "OK", "Audio as been correctly extracted from video file.");
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogError("Error extracting audio");
+                UnityEngine.Debug.LogException(ex);
+                ApplicationState.displayMessage("Audio Extraction", "NOK", ex.Message);
             }
         }
     }

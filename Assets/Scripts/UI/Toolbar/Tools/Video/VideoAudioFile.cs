@@ -1,6 +1,5 @@
-﻿using System.Collections;
+﻿using System;
 using BTV.Services.VideoService;
-using CielaSpike;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,7 +31,7 @@ namespace BTV.UI.Module3D.Tools
         {
             if (VideoService.FilteredAudioFileExist)
             {
-                StartCoroutine(c_StartLoadingFilteredAudio(VideoService.FilteredAudioPath));
+                StartLoadingFilteredAudio(VideoService.FilteredAudioPath);
             }
             else
             {
@@ -40,21 +39,17 @@ namespace BTV.UI.Module3D.Tools
             }
         }
 
-        private IEnumerator c_StartLoadingFilteredAudio(string FilteredAudioFilePath)
+        private async void StartLoadingFilteredAudio(string FilteredAudioFilePath)
         {
-            yield return this.StartCoroutineAsync(VideoService.c_LoadFilteredAudioFromFile(FilteredAudioFilePath), out Task LoadFilteredAudioTask);
-            switch (LoadFilteredAudioTask.State)
+            try
             {
-                case TaskState.Done:
-                    yield return Ninja.JumpToUnity;
-                    ApplicationState.displayMessage("Audio Loaded", "OK", "Audio has been correctly loaded.");
-                    yield return Ninja.JumpBack;
-                    break;
-                case TaskState.Error:
-                    yield return Ninja.JumpToUnity;
-                    ApplicationState.displayMessage("Audio has not been loaded", "NOK", "Error during the loading process.");
-                    yield return Ninja.JumpBack;
-                    break;
+                await VideoService.LoadFilteredAudioFromFileAsync(FilteredAudioFilePath);
+                ApplicationState.displayMessage("Audio Loaded", "OK", "Audio has been correctly loaded.");
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogException(ex);
+                ApplicationState.displayMessage("Audio has not been loaded", "NOK", "Error during the loading process.");
             }
         }
     }

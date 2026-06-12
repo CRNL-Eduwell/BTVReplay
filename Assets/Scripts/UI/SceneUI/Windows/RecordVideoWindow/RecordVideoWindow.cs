@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections;
-using BTV.Services.VideoService;
-using CielaSpike;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -62,7 +59,9 @@ public class RecordVideoWindow : MonoBehaviour
             };
             Messenger.Default.Send(messageToVideo, MessageContext.ModulesToVideoMessage);
 
-            StartCoroutine(m_VideoRecorder.c_LaunchVideoRecording(m_OutputVideoPath.text, durationInSeconds.ToString()));
+            // The recording runs on the (persistent) VideoRecorder, so closing this window no
+            // longer kills the completion dialog - the old StartCoroutine died with the window.
+            m_VideoRecorder.LaunchVideoRecording(m_OutputVideoPath.text, durationInSeconds.ToString());
             CloseWindow();
         }
     }

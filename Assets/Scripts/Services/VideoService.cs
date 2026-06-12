@@ -1,15 +1,13 @@
-﻿using System.Collections;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using BTV.Data;
 using Tools.CSharp.Audio;
 using Tools.CSharp.EEG;
 using BTV.Services.CalculationService;
 using Assets.Scripts.Data.Files;
-using System;
-using UnityEngine.Events;
-using CielaSpike;
 using UnityEngine;
 using System.Runtime.InteropServices;
 
@@ -99,99 +97,109 @@ namespace BTV.Services.VideoService
         }
 
         #region AudioProcessing
-        public static IEnumerator c_ExtractAudio(string AudioFilePath, string VideoFilePath)
+        // Each method gathers what it needs on the main thread, runs the blocking work (VLC
+        // process, file IO, DSP) inside Task.Run, and publishes results to the static fields
+        // after the await - i.e. back on the Unity main thread.
+        public static async Task ExtractAudioAsync(string AudioFilePath, string VideoFilePath)
         {
             FileInfo audioFileInfo = new FileInfo(AudioFilePath);
-            if (!audioFileInfo.Exists)
+            if (audioFileInfo.Exists)
+                return;
+
+            string vlcPath = m_VlcPath; // reads the user preferences: resolve on the main thread
+            await Task.Run(() =>
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.FileName = m_VlcPath;
+                startInfo.FileName = vlcPath;
                 //startInfo.Arguments = "-I dummy --sout \"#transcode{acodec=s16l,channels=2,samplerate=11025}:std{access=file,mux=wav,dst=" + AudioFilePath + "}\" " + "\"" + VideoFilePath + "\" vlc://quit";
                 startInfo.Arguments = "-I dummy --sout \"#transcode{acodec=s16l,samplerate=11025}:std{access=file,mux=wav,dst=" + AudioFilePath + "}\" " + "\"" + VideoFilePath + "\" vlc://quit";
 
-                Process process = new Process();
-                process.StartInfo = startInfo;
-                process.Start();
-                process.WaitForExit();
-                yield return null;
-            }
-            else
-            {
-                yield return null;
-            }
+                using (Process process = new Process())
+                {
+                    process.StartInfo = startInfo;
+                    process.Start();
+                    process.WaitForExit();
+                }
+            });
         }
 
-        public static IEnumerator c_RecordVideoSnippet(string OutputVideoPath, string durationInSeconds)
+        public static async Task RecordVideoSnippetAsync(string OutputVideoPath, string durationInSeconds)
         {
             BtvLog.Log("Record " + OutputVideoPath + " et duree " + durationInSeconds);
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.FileName = m_VlcPath;
-            startInfo.Arguments = "-I dummy screen:// --screen-fps 25 --sout \"#transcode{vcodec=h264,venc=x264, vb=1500,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + OutputVideoPath + "}\" --stop-time " + durationInSeconds+ " vlc://quit";
-
-            Process m_recordProcess = new Process();
-            m_recordProcess.StartInfo = startInfo;
-            m_recordProcess.Start();
-            m_recordProcess.WaitForExit();
-
-            yield return null;
-        }
-
-        public static IEnumerator c_LoadRawAudioFromFile(string RawAudioFromVideoPath)
-        {
-            m_RawAudioData = new AudioDataContainer(RawAudioFromVideoPath, AudioFile.AudioFileType.Wav);
-
-            yield return null;
-        }
-
-        public static IEnumerator c_FilterAudioFromVideo(string FrequencyBands, int DownsampFreq)
-        {
-            Frequency DownsampledFrequency = new Frequency(DownsampFreq);
-
-            float[] RawAudio = m_RawAudioData.ValuesByChannel.Values.ElementAt(0);
-            int FilteredLength = Mathf.CeilToInt((float)RawAudio.Length / m_RawAudioData.Frequency.Value * DownsampledFrequency.Value);
-            float[][] FilteredData = new float[6][];
-
-            //Process Hilbert Enveloppe from raw signal
-            FilteredData[0] = new float[FilteredLength];
-            CalculationService.CalculationService.ToHilbert(RawAudio, RawAudio.Length, m_RawAudioData.Frequency.Value, FilteredData[0], FilteredLength, DownsampledFrequency.Value, FrequencyBands);
-
-            //Convolve Hilbert Enveloppe according to different smoothing coefficient
-            int[] WindowSmoothinginMs = { 0, 250, 500, 1000, 2500, 5000 };
-            for (int i = 1; i < 6; i++)
+            string vlcPath = m_VlcPath; // reads the user preferences: resolve on the main thread
+            await Task.Run(() =>
             {
-                FilteredData[i] = new float[FilteredLength];
-                int NumberSample = DownsampledFrequency.ConvertToCeiledNumberOfSamples(WindowSmoothinginMs[i]);
-                CalculationService.CalculationService.Convolution(FilteredData[0], FilteredLength, FilteredData[i], NumberSample);
-            }
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.FileName = vlcPath;
+                startInfo.Arguments = "-I dummy screen:// --screen-fps 25 --sout \"#transcode{vcodec=h264,venc=x264, vb=1500,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + OutputVideoPath + "}\" --stop-time " + durationInSeconds + " vlc://quit";
 
-            //Save Data to prevent reprocessing each time
-            CsvFile.SaveFloatDataHorizontally(FilteredAudioPath, FilteredData);
-
-            //Load for use in traces and UI objects
-            AudioDataContainer container = new AudioDataContainer(FilteredAudioPath, AudioFile.AudioFileType.Processed);
-            m_ProcessedAudio = new BtvProgram(container);
-
-            yield return Ninja.JumpToUnity;
-            AudioDataLoaded.Invoke();
-            FilteredDataLoaded = true;
-            yield return Ninja.JumpBack;
-
-            yield return null;
+                using (Process recordProcess = new Process())
+                {
+                    recordProcess.StartInfo = startInfo;
+                    recordProcess.Start();
+                    recordProcess.WaitForExit();
+                }
+            });
         }
 
-        public static IEnumerator c_LoadFilteredAudioFromFile(string FilteredAudioFilePath)
+        public static async Task LoadRawAudioFromFileAsync(string RawAudioFromVideoPath)
         {
-            AudioDataContainer container = new AudioDataContainer(FilteredAudioFilePath, AudioFile.AudioFileType.Processed);
-            m_ProcessedAudio = new BtvProgram(container);
+            AudioDataContainer rawAudioData = await Task.Run(() => new AudioDataContainer(RawAudioFromVideoPath, AudioFile.AudioFileType.Wav));
+            m_RawAudioData = rawAudioData;
+        }
 
-            yield return Ninja.JumpToUnity;
+        public static async Task FilterAudioFromVideoAsync(string FrequencyBands, int DownsampFreq)
+        {
+            AudioDataContainer rawAudioData = m_RawAudioData;
+            string filteredAudioPath = FilteredAudioPath; // reads SubjectInfoService: resolve on the main thread
+
+            BtvProgram processedAudio = await Task.Run(() =>
+            {
+                Frequency DownsampledFrequency = new Frequency(DownsampFreq);
+
+                float[] RawAudio = rawAudioData.ValuesByChannel.Values.ElementAt(0);
+                int FilteredLength = Mathf.CeilToInt((float)RawAudio.Length / rawAudioData.Frequency.Value * DownsampledFrequency.Value);
+                float[][] FilteredData = new float[6][];
+
+                //Process Hilbert Enveloppe from raw signal
+                FilteredData[0] = new float[FilteredLength];
+                CalculationService.CalculationService.ToHilbert(RawAudio, RawAudio.Length, rawAudioData.Frequency.Value, FilteredData[0], FilteredLength, DownsampledFrequency.Value, FrequencyBands);
+
+                //Convolve Hilbert Enveloppe according to different smoothing coefficient
+                int[] WindowSmoothinginMs = { 0, 250, 500, 1000, 2500, 5000 };
+                for (int i = 1; i < 6; i++)
+                {
+                    FilteredData[i] = new float[FilteredLength];
+                    int NumberSample = DownsampledFrequency.ConvertToCeiledNumberOfSamples(WindowSmoothinginMs[i]);
+                    CalculationService.CalculationService.Convolution(FilteredData[0], FilteredLength, FilteredData[i], NumberSample);
+                }
+
+                //Save Data to prevent reprocessing each time
+                CsvFile.SaveFloatDataHorizontally(filteredAudioPath, FilteredData);
+
+                //Load for use in traces and UI objects
+                AudioDataContainer container = new AudioDataContainer(filteredAudioPath, AudioFile.AudioFileType.Processed);
+                return new BtvProgram(container);
+            });
+
+            m_ProcessedAudio = processedAudio;
             AudioDataLoaded.Invoke();
             FilteredDataLoaded = true;
-            yield return Ninja.JumpBack;
+        }
 
-            yield return null;
+        public static async Task LoadFilteredAudioFromFileAsync(string FilteredAudioFilePath)
+        {
+            BtvProgram processedAudio = await Task.Run(() =>
+            {
+                AudioDataContainer container = new AudioDataContainer(FilteredAudioFilePath, AudioFile.AudioFileType.Processed);
+                return new BtvProgram(container);
+            });
+
+            m_ProcessedAudio = processedAudio;
+            AudioDataLoaded.Invoke();
+            FilteredDataLoaded = true;
         }
         #endregion
 
