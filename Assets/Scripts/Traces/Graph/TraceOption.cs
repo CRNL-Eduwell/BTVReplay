@@ -1,4 +1,5 @@
 using BTV.Data;
+using BTV.Services.EventsService;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -53,6 +54,13 @@ public class TraceOption : ViewModelBase
         {
             if (value > -1 && value < FileHandle.NumberOfElectrodes)
             {
+                // Every electrode-change path funnels through this setter (trace scroll wheel,
+                // brain plot click, keyboard shortcut, toolbar). Navigating to another electrode
+                // dismisses the 1D correlation coloring on the brain: it was computed against a
+                // site the user is no longer inspecting.
+                if (m_currentElectrodeID != value)
+                    EventsService.ClearCorrelations();
+
                 m_currentElectrodeID = value;
                 RaisePropertyChanged();
             }

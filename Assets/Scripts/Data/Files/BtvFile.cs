@@ -106,19 +106,24 @@ namespace Assets.Scripts.Data.Files
                 {
                     foreach (BtvEvent eegEvent in Events)
                     {
+                        // Use local strings for the file sentinels instead of writing them back
+                        // into the live event - the old code mutated Comment/SiteOfInterest in
+                        // memory to "EMPTY_COMMENT"/"E_F_SITE", which then showed up in the UI.
+                        string comment = string.IsNullOrWhiteSpace(eegEvent.Comment) ? "EMPTY_COMMENT" : eegEvent.Comment;
+                        string firstSite = string.IsNullOrWhiteSpace(eegEvent.SiteOfInterest) ? "E_F_SITE" : eegEvent.SiteOfInterest;
+                        string secondSite = string.IsNullOrWhiteSpace(eegEvent.SecondSiteOfInterest) ? "E_S_SITE" : eegEvent.SecondSiteOfInterest;
+
                         string timeString = MilliSecondsToTimeString(eegEvent.TimeInMilliSeconds);
                         sw.Write(timeString.PadRight(18));
-                        if (string.IsNullOrWhiteSpace(eegEvent.Comment)) eegEvent.Comment = "EMPTY_COMMENT";
-                        sw.Write(eegEvent.Comment.PadRight(40));
+                        sw.Write(comment.PadRight(40));
                         sw.Write(eegEvent.Code.ToString().PadRight(10));
-                        // ====> TODO : MAKE  GOOD FIX FOR A NEW FILE
-                        //sw.Write(eegEvent.sample.ToString().PadRight(10));
+                        // Sample column: BtvEvent has no sample field and the value is discarded
+                        // on load, so a placeholder is written. (Proper fix needs the sampling
+                        // frequency to derive it from the timestamp - out of scope here.)
                         sw.Write("00000".PadRight(10));
                         sw.Write(eegEvent.Duration.ToString().PadRight(10));
-                        if (string.IsNullOrWhiteSpace(eegEvent.SiteOfInterest)) eegEvent.SiteOfInterest = "E_F_SITE";
-                        sw.Write(eegEvent.SiteOfInterest.PadRight(10));
-                        if (string.IsNullOrWhiteSpace(eegEvent.SecondSiteOfInterest)) eegEvent.SecondSiteOfInterest = "E_S_SITE";
-                        sw.WriteLine(eegEvent.SecondSiteOfInterest);
+                        sw.Write(firstSite.PadRight(10));
+                        sw.WriteLine(secondSite);
                     }
 
                     sw.Close();

@@ -43,7 +43,7 @@ namespace BrainTV.Tools.NumberExtensions
             }
             catch (FormatException)
             {
-                UnityEngine.Debug.Log("Unable to convert " + value);
+                BtvLog.Log("Unable to convert " + value);
             }
             catch (OverflowException)
             {

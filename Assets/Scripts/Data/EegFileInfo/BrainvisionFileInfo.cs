@@ -23,7 +23,7 @@ public class BrainvisionFileInfo : IEegFileInfo
         Header = bvheader;
     }
 
-    public List<ArgumentException> ChecKForErrors()
+    public List<ArgumentException> CheckForErrors()
     {
         List<ArgumentException> Errors = new List<ArgumentException>();
         if (string.IsNullOrEmpty(Header)) Errors.Add(new ArgumentException("Brainvision file path should not be a null string"));

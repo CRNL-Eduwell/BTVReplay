@@ -33,7 +33,7 @@ public class UserPreferencesFile : IUserPreferencesContext
         {
             using (StreamReader streamReader = new StreamReader(FilePath))
             {
-                UserPreferences = JsonConvert.DeserializeObject<UserPreferences>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                UserPreferences = JsonConvert.DeserializeObject<UserPreferences>(streamReader.ReadToEnd(), BtvJson.ReadSettings);
             }
 
             return 0;
@@ -53,7 +53,7 @@ public class UserPreferencesFile : IUserPreferencesContext
         {
             using (StreamWriter streamWriter = new StreamWriter(FilePath))
             {
-                string json = JsonConvert.SerializeObject(preferences, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
+                string json = JsonConvert.SerializeObject(preferences, Formatting.Indented, BtvJson.WriteSettings);
                 streamWriter.Write(json);
                 streamWriter.Close();
             }

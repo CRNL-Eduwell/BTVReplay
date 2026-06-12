@@ -2,11 +2,16 @@
 
 class FileMenuMessage
 {
-    // 0 : NewDB
-    // 1 : OpenDB
-    // 2 : Save
-    // 3 : SaveAs
-    public int TaskToExecute
+    public enum Task
+    {
+        NewDatabase = 0,
+        OpenDatabase = 1,
+        Save = 2,
+        SaveAs = 3,
+        Exit = 4,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

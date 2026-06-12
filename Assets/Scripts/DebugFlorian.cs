@@ -23,7 +23,6 @@ public class DebugFlorian : MonoBehaviour
     {
         ShowWindowMessage message = new ShowWindowMessage
         {
-            TaskToExecute = 0,
             WindowName = uiName
         };
         Messenger.Default.Send(message, MessageContext.ShowWindowMessage);

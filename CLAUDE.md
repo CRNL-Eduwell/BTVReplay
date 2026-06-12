@@ -22,9 +22,10 @@ correlations, all synchronized to a video clock.
   slots, montage generation), `EventsService`, `TracesService`, `AnatomicalDataService`,
   `CalculationManager` (FFT/STFT/correlation), `SubjectLoaderService` (load orchestrator),
   `SubjectRepository` (DB load/save + `*BU` backup). Reset via `ApplicationState.ResetAllServices()`.
-- `Assets/Scripts/Messenger/` — typed pub/sub singleton. Key = (recipient, MessageContext
-  enum); messages carry `TaskToExecute` int op-codes. Register in Awake/Start, Unregister in
-  OnDestroy (several known leaks — see review).
+- `Assets/Scripts/Messenger/` — typed pub/sub singleton. One handler per (recipient,
+  MessageContext enum); messages carry typed `TaskToExecute` enum op-codes. Register in
+  Awake/Start, Unregister in OnDestroy. Dispatch is registration-order, allocation-free,
+  per-handler exception-isolated; duplicate registrations are rejected with a console error.
 - `Assets/Scripts/Brain/` — runtime meshes from `.tri`/`.gii`, electrode spheres (`Site`),
   rendered by a dedicated camera at x=-10000 into a RenderTexture shown via `BrainWarden`.
 - `Assets/Scripts/Traces/` — LineRenderer-based EEG traces, full redraw on every video tick.
@@ -54,14 +55,23 @@ correlations, all synchronized to a video clock.
   `Data/EegFileInfo/` **break existing .dbtv2 files** (they embed `Assembly-CSharp` type names).
 - Number parsing/writing is culture-sensitive in places (fr locale bugs historically);
   target `CultureInfo.InvariantCulture` for all new persistence code.
-- Threading: ThreadNinja background coroutines mutate static service state off the main
-  thread in several places; don't add new cross-thread mutation, marshal results back instead.
-- Messenger: one handler per (recipient, context) — duplicates are silently dropped; always
-  pair Register/Unregister with the **same** context.
+- Threading: background work uses async/await — gather inputs on the main thread, compute in
+  `Task.Run` returning a result, publish after the `await` (the continuation resumes on the
+  Unity main thread). Never mutate service/static state from inside a `Task.Run` worker;
+  report progress via `IProgress` (see `LoadingManager.Load`).
+- Messenger: one handler per (recipient, context) — a duplicate registration is rejected and
+  logged as an error; always pair Register/Unregister with the **same** context.
 - Many GameObject lookups are by scene-object name string (`GameObject.Find`) — renaming
   scene objects breaks runtime behavior.
 - Never add `using UnityEditor;` to runtime scripts without an `#if UNITY_EDITOR` guard —
   it breaks standalone player builds (a whole batch of these was removed in phase 0).
+- **Logging**: use `BtvLog.Log(...)` for informational logs (it's `[Conditional]` — compiled
+  out of release builds, kept in editor/dev). Keep `Debug.LogWarning/LogError/LogException`
+  for things that must always be visible.
+- `EegSignal2`, `AudioSignal2`, `SignalDisp`, `DebugFlorian` look unused by a code-only search
+  but are **wired into the Trace prefabs / main scene** (verified by GUID). Do NOT delete them —
+  it would create missing-script references. Always GUID-check the scene + prefabs before
+  deleting a MonoBehaviour script.
 
 ## Git & GitHub rules
 

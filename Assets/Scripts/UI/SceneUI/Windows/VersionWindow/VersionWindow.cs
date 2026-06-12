@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Net;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class VersionWindow : MonoBehaviour
@@ -14,13 +13,20 @@ public class VersionWindow : MonoBehaviour
     [SerializeField] Button m_Submit = null;
     [SerializeField] Button m_Cancel = null;
 
+    private const string k_RepoUrl = "https://github.com/floriansipp/BTVReplay";
+    private const string k_LatestReleaseApi = "https://api.github.com/repos/floriansipp/BTVReplay/releases/latest";
+
     private void Start()
     {
         m_Close.onClick.AddListener(() => { Destroy(gameObject); });
         m_Submit.onClick.AddListener(() => { Destroy(gameObject); });
         m_Cancel.onClick.AddListener(() => { Destroy(gameObject); });
 
-        SetFields();
+        m_CurrentText.text = Application.version;
+        m_LatestText.text = "Checking...";
+        // Async via coroutine: the old synchronous WebClient.DownloadString froze the UI thread
+        // until GitHub responded (or timed out).
+        StartCoroutine(FetchLatestVersion());
     }
 
     private void OnDestroy()
@@ -28,28 +34,39 @@ public class VersionWindow : MonoBehaviour
         m_Close.onClick.RemoveAllListeners();
         m_Submit.onClick.RemoveAllListeners();
         m_Cancel.onClick.RemoveAllListeners();
+        m_GithubButton.onClick.RemoveAllListeners();
     }
 
-    private void SetFields()
+    private IEnumerator FetchLatestVersion()
     {
-        m_CurrentText.text = Application.version;
-        using (WebClient wc = new WebClient())
+        using (UnityWebRequest request = UnityWebRequest.Get(k_LatestReleaseApi))
         {
-            try
+            request.SetRequestHeader("User-Agent", "BTVReplay");
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
             {
-                wc.Headers.Add("User-Agent: Other");
-                string jsonString = wc.DownloadString("https://api.github.com/repos/floriansipp/BTVReplay/releases/latest");
-                var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionInfo>(jsonString);
-                m_LatestText.text = versionInfo.VersionNumber;
-                m_GithubButton.onClick.AddListener(() => Application.OpenURL(versionInfo.URL));
+                try
+                {
+                    var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionInfo>(request.downloadHandler.text);
+                    m_LatestText.text = versionInfo.VersionNumber;
+                    m_GithubButton.onClick.RemoveAllListeners();
+                    m_GithubButton.onClick.AddListener(() => Application.OpenURL(versionInfo.URL));
+                    yield break;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
-            catch (Exception e)
+            else
             {
-                Debug.LogException(e);
-                m_LatestText.text = "Unknown";
-                m_GithubButton.onClick.RemoveAllListeners();
-                m_GithubButton.onClick.AddListener(() => Application.OpenURL("https://github.com/floriansipp/BTVReplay"));
+                Debug.LogWarning("Version check failed: " + request.error);
             }
+
+            m_LatestText.text = "Unknown";
+            m_GithubButton.onClick.RemoveAllListeners();
+            m_GithubButton.onClick.AddListener(() => Application.OpenURL(k_RepoUrl));
         }
     }
 }

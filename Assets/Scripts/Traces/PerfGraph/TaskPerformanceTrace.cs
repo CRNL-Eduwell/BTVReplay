@@ -56,7 +56,7 @@ public class TaskPerformanceTrace : MonoBehaviour
 
     public void UpdateWindowState(int state)
     {
-        UnityEngine.Debug.Log("Updating Task performance Ui State");
+        BtvLog.Log("Updating Task performance Ui State");
         m_State = state;
         switch (m_State)
         {
@@ -122,7 +122,7 @@ public class TaskPerformanceTrace : MonoBehaviour
                     {
                         ReactionTimePointerMessage message = new ReactionTimePointerMessage
                         {
-                            TaskToExecute = 0,
+                            TaskToExecute = ReactionTimePointerMessage.Task.ShowAndUpdate,
                             PointerPosition = new Vector3(worldClick.x, worldClick.y, 0),
                             ShowPointer = true,
                             Code = m_Triggers[id].Trigger.MainEnventCode.ToString(),
@@ -135,7 +135,7 @@ public class TaskPerformanceTrace : MonoBehaviour
                     {
                         ReactionTimePointerMessage message = new ReactionTimePointerMessage
                         {
-                            TaskToExecute = 1,
+                            TaskToExecute = ReactionTimePointerMessage.Task.Hide,
                             ShowPointer = false
                         };
                         Messenger.Default.Send(message, MessageContext.ReactionTimePointerMessage);
@@ -150,12 +150,12 @@ public class TaskPerformanceTrace : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case UiToTaskPerformanceMessage.Task.ProcessProtocol:
                 ClearTrace();
                 UpdateEventsForProtocol(message.NewProtocol);
                 UpdateScales();
                 break;
-            case 1:
+            case UiToTaskPerformanceMessage.Task.UpdateTimeWindow:
                 UpdateTimeResolution(message.TimeWindow);
                 UpdateScales();
                 break;
@@ -166,12 +166,12 @@ public class TaskPerformanceTrace : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
-                UnityEngine.Debug.Log("Task deactivated, events have been reseted");
+            case EventsToTaskPerformanceMessage.Task.ResetAll:
+                BtvLog.Log("Task deactivated, events have been reseted");
                 ClearTrace();
                 break;
-            case 1:
-                UnityEngine.Debug.Log("Task not up to date, events have been modifyed (add, delete, update)");
+            case EventsToTaskPerformanceMessage.Task.MarkOutOfDate:
+                BtvLog.Log("Task not up to date, events have been modifyed (add, delete, update)");
                 if(m_HasDataToDisplay)
                     m_InfoDisplay.SetActive(true);
                 break;
@@ -212,7 +212,7 @@ public class TaskPerformanceTrace : MonoBehaviour
 
     private void UpdateEventsForProtocol(Protocol protocol)
     {
-        UnityEngine.Debug.Log("Update Protocol Events");
+        BtvLog.Log("Update Protocol Events");
         m_HasDataToDisplay = false;
         TaskPerformanceService.ProcessEventsForExperiment(protocol);
         UpdateEvents();
@@ -225,7 +225,7 @@ public class TaskPerformanceTrace : MonoBehaviour
     private void UpdateEvents()
     {
         int TriggerCount = TaskPerformanceService.ProcessedTriggers.Count;
-        UnityEngine.Debug.Log("Update Events " + TriggerCount);
+        BtvLog.Log("Update Events " + TriggerCount);
 
         for (int i = 0; i < TriggerCount; i++)
         {
@@ -242,7 +242,7 @@ public class TaskPerformanceTrace : MonoBehaviour
 
     private void UpdateProtocolPicturesAndCodes(Protocol protocol)
     {
-        UnityEngine.Debug.Log("Update Protocol Pics and code");
+        BtvLog.Log("Update Protocol Pics and code");
 
         for (int i = 0; i < protocol.Blocs.Count; i++)
         {
@@ -307,7 +307,7 @@ public class TaskPerformanceTrace : MonoBehaviour
 
                 if (barplot.Trigger.MainEventTimeInMilliSeconds <= right)
                 {
-                    //UnityEngine.Debug.Log("Trigger code " + barplot.Trigger.MainEnventCode);
+                    //BtvLog.Log("Trigger code " + barplot.Trigger.MainEnventCode);
                     barplot.gameObject.SetActive(true);
                     barplot.UpdatePosition(0, positionInsideRect, 5, -2);
 

@@ -130,7 +130,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         GameObject hitObject = hits.Length > 0 ? GameObject.Find(hits[0].collider.name) : null;
         BrainWardenToTraceMessage message = new BrainWardenToTraceMessage
         {
-            TaskToExecute = 0,
+            TaskToExecute = BrainWardenToTraceMessage.Task.PlotClicked,
             ClickedElectrode = hitObject
         };
         Messenger.Default.Send(message, MessageContext.BrainWardenToTraceMessage);
@@ -176,7 +176,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         {
             BrainWardenToElectrodePointerMessage message = new BrainWardenToElectrodePointerMessage
             {
-                TaskToExecute = 0,
+                TaskToExecute = BrainWardenToElectrodePointerMessage.Task.ShowAndUpdate,
                 PointerPosition = new Vector3(worldClick.x, worldClick.y, 0),
                 ShowPointer = true,
                 ElectrodeLabel = hit.collider.name
@@ -187,7 +187,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         {
             BrainWardenToElectrodePointerMessage message = new BrainWardenToElectrodePointerMessage
             {
-                TaskToExecute = 1,
+                TaskToExecute = BrainWardenToElectrodePointerMessage.Task.Hide,
                 ShowPointer = false
             };
             Messenger.Default.Send(message, MessageContext.BrainWardenToElectrodePointerMessage);

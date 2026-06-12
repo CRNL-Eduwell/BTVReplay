@@ -6,6 +6,9 @@ using System.Runtime.Serialization;
 
 public class BrainDataContainer
 {
+    // Computed (does FileInfo.Exists on possibly-UNC paths). [JsonIgnore] stops it being
+    // serialized into every .dbtv2 - which also did synchronous network I/O on every save.
+    [Newtonsoft.Json.JsonIgnore]
     public bool HasAnat
     {
         get
@@ -98,13 +101,13 @@ public class BrainDataContainer
 
     public void Display()
     {
-        UnityEngine.Debug.Log("Left Mesh Path : " + LeftHemisphere);
-        UnityEngine.Debug.Log("Right Mesg Path : " + RightHemisphere);
-        UnityEngine.Debug.Log("Transform Path : " + Transformation);
-        UnityEngine.Debug.Log("Pts Path : " + Pts);
-        UnityEngine.Debug.Log("Atlas Path : " + Atlas);
-        UnityEngine.Debug.Log("Mesh Configuration : " + EnumExtensions.GetDescription(MeshConfiguration));
-        UnityEngine.Debug.Log("Eeg Technology : " + EnumExtensions.GetDescription(EegTechnology));
+        BtvLog.Log("Left Mesh Path : " + LeftHemisphere);
+        BtvLog.Log("Right Mesg Path : " + RightHemisphere);
+        BtvLog.Log("Transform Path : " + Transformation);
+        BtvLog.Log("Pts Path : " + Pts);
+        BtvLog.Log("Atlas Path : " + Atlas);
+        BtvLog.Log("Mesh Configuration : " + EnumExtensions.GetDescription(MeshConfiguration));
+        BtvLog.Log("Eeg Technology : " + EnumExtensions.GetDescription(EegTechnology));
     }
 
     #region operators
@@ -125,7 +128,7 @@ public class BrainDataContainer
 
     public override int GetHashCode()
     {
-        return base.GetHashCode();
+        return System.HashCode.Combine(LeftHemisphere, RightHemisphere, Transformation, Pts, Atlas, MeshConfiguration, EegTechnology);
     }
 
     public static bool operator ==(BrainDataContainer a, BrainDataContainer b)

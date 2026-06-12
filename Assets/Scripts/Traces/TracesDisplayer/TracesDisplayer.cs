@@ -104,12 +104,12 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
                 {
                     if (IsAlmostEqual(Mathf.Abs(Event.current.delta.y), Mathf.Abs(scrollDelta.y)))
                     {
-                        //UnityEngine.Debug.Log("ismouse");
+                        //BtvLog.Log("ismouse");
                         UpdateTracesParameters(scrollDelta.y > 0 ? true : false);
                     }
                     else
                     {
-                        //UnityEngine.Debug.Log("ispad");
+                        //BtvLog.Log("ispad");
                         m_WheelSum += scrollDelta.y;
                         if (m_WheelSum <= -0.1f)
                         {
@@ -136,7 +136,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
             {
                 TraceDisplayerPointerMessage message = new TraceDisplayerPointerMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = TraceDisplayerPointerMessage.Task.ShowAndUpdate,
                     PointerPosition = new Vector3(worldClick.x, worldClick.y, 0),
                     ShowPointer = true,
                     Code = eventsIndexes[0].Code.ToString(),
@@ -251,14 +251,14 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case TraceDisplayerNormalize.Task.Reset:
                 {
-                    UnityEngine.Debug.Log("Reseting Data");
+                    BtvLog.Log("Reseting Data");
                     break;
                 }
-            case 1:
+            case TraceDisplayerNormalize.Task.Normalize:
                 {
-                    UnityEngine.Debug.Log("Normalizing Data");
+                    BtvLog.Log("Normalizing Data");
                     if (message.EndTimeBaseline * FileHandle.Frequency.RawValue > Channel.NumberOfSample)
                     {
                         ApplicationState.displayMessage("Can not normalize data", "NOK", "You can not normlize data using an event that finishes after the end of the file");
@@ -299,7 +299,6 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         {
             ShowWindowMessage mess = new ShowWindowMessage
             {
-                TaskToExecute = 0,
                 WindowName = "NormalizeWindow"
             };
 
@@ -410,6 +409,11 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     {
         if (Index > -1 && Index < FileHandle.NumberOfElectrodes)
         {
+            // Navigating to another electrode dismisses the 1D correlation coloring on the
+            // brain: it was computed against a site the user is no longer inspecting.
+            if (Index != m_currentElectrodeID)
+                EventsService.ClearCorrelations();
+
             m_currentElectrodeID = Index;
             Channel = FileHandle.Channels[m_currentElectrodeID];
             m_ElectrodeLabel.Label = Channel.Label;
@@ -458,16 +462,17 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     public void AddEvent(BtvEvent btvEvent)
     {
+        if (m_VideoPlayer.VideoInterface.TotalVideoTime <= 0)
+            return;
+
         Texture2D texture = ((Texture2D)m_TextureRawImage.texture);
-        float perC = ((btvEvent.TimeInMilliSeconds / m_VideoPlayer.VideoInterface.TotalVideoTime));// * 1000);
-        int pixelID = (int)(perC * texture.width);
+        int pixelID = PixelForTime(btvEvent.TimeInMilliSeconds, texture);
 
         if (btvEvent.Duration > 0)
         {
             if (btvEvent.Duration > 1000)
             {
-                float perCDuration = ((btvEvent.TimeInMilliSeconds + btvEvent.Duration) / m_VideoPlayer.VideoInterface.TotalVideoTime);// * 1000;
-                int pixelIDDuration = (int)(perCDuration * texture.width);
+                int pixelIDDuration = PixelForTime(btvEvent.TimeInMilliSeconds + btvEvent.Duration, texture);
                 for (int i = 0; i < texture.height; i++)
                 {
                     for (int j = 0; j < pixelIDDuration - pixelID; j++)
@@ -487,16 +492,17 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     public void RemoveEvent(BtvEvent btvEvent)
     {
+        if (m_VideoPlayer.VideoInterface.TotalVideoTime <= 0)
+            return;
+
         Texture2D texture = ((Texture2D)m_TextureRawImage.texture);
-        float perC = (btvEvent.TimeInMilliSeconds / m_VideoPlayer.VideoInterface.TotalVideoTime);// * 1000);
-        int pixelID = (int)(perC * texture.width);
+        int pixelID = PixelForTime(btvEvent.TimeInMilliSeconds, texture);
 
         if (btvEvent.Duration > 0)
         {
             if (btvEvent.Duration > 1000)
             {
-                float perCDuration = ((btvEvent.TimeInMilliSeconds + btvEvent.Duration) / m_VideoPlayer.VideoInterface.TotalVideoTime);// * 1000;
-                int pixelIDDuration = (int)(perCDuration * texture.width);
+                int pixelIDDuration = PixelForTime(btvEvent.TimeInMilliSeconds + btvEvent.Duration, texture);
                 for (int i = 0; i < texture.height; i++)
                 {
                     for (int j = 0; j < pixelIDDuration - pixelID; j++)
@@ -511,6 +517,16 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         }
         texture.SetPixels(m_TextureColorData);
         texture.Apply();
+    }
+
+    // Events can sit outside the video timeline (an event past the end of the recording, or no
+    // video prepared yet): clamp to the texture bounds so painting can never throw. An exception
+    // here aborts the caller's add/delete flow halfway through and desyncs the event lists kept
+    // by the other modules.
+    private int PixelForTime(float timeInMilliSeconds, Texture2D texture)
+    {
+        float perC = timeInMilliSeconds / m_VideoPlayer.VideoInterface.TotalVideoTime;
+        return Mathf.Clamp((int)(perC * texture.width), 0, texture.width - 1);
     }
 
     public void RemoveAllEvents()

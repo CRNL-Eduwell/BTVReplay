@@ -24,10 +24,10 @@ public class ReactionTimePointer : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case ReactionTimePointerMessage.Task.ShowAndUpdate:
                 UpdatePointerInformation(message);
                 break;
-            case 1:
+            case ReactionTimePointerMessage.Task.Hide:
                 m_RootImageObject.SetActive(message.ShowPointer);
                 break;
             default:

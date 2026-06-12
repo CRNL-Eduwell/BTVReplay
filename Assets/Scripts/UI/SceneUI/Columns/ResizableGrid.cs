@@ -79,7 +79,7 @@ public class ResizableGrid : MonoBehaviour
 
     private void OnRectTransformDimensionsChange()
     {
-        UnityEngine.Debug.Log("OnRect Resize grid");
+        BtvLog.Log("OnRect Resize grid");
         if (InitDone)
         {
             UpdateHandlersMinMaxPositions();

@@ -3,14 +3,9 @@ using System.Collections;
 
 class ShowWindowMessage
 {
-    // 0 : SHow
-    // 1 : Hide 
-    public int TaskToExecute
-    {
-        get;
-        set;
-    }
-
+    // The message only ever shows a window: WindowsManager spawns the named prefab if no
+    // instance exists. The old TaskToExecute field (0 show / 1 hide) was never read and
+    // hiding was never implemented, so it was removed.
     public string WindowName
     {
         get;

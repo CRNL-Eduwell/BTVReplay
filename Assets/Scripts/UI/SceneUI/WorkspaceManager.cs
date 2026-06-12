@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Data.Factory;
+﻿using System.Collections;
+using Assets.Scripts.Data.Factory;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,6 +16,7 @@ public class WorkspaceManager : MonoBehaviour
     {
         Messenger.Default.Register<UiToLayoutsMessage>(this, OnUiToLayoutsMessage, MessageContext.UiToLayouts);
         Messenger.Default.Register<ShortcutMessage>(this, OnShortcutMessage, MessageContext.ShortcutMessage);
+        StartCoroutine(InitDisplayWhenRendered());
     }
 
     private void OnDestroy()
@@ -23,21 +25,24 @@ public class WorkspaceManager : MonoBehaviour
         Messenger.Default.Unregister(this, MessageContext.ShortcutMessage);
     }
 
-    private void Update()
+    //Since we don't intantiate the workspace but it is already there, it is subjected to the rendering
+    //phase of unity , and therefore passes through stages where it's rect is 0,0 and has some NaN data
+    //we want to init the display only when the container is rendered. That is until we do the whole
+    //thing dynamically at the loading time, which should make the issue disapear because the area
+    //will already be rendered.
+    //Waiting in a one-shot coroutine instead of polling every frame in Update(): once the grid has a
+    //valid rect we init once and the coroutine ends, so there is no per-frame work for the app lifetime.
+    private IEnumerator InitDisplayWhenRendered()
     {
-        //Since we don't intantiate the workspace but it is already there, it is subjected to the rendering
-        //phase of unity , and therefore passes through stages where it's rect is 0,0 and has some NaN data
-        //we want to init the display only when the container is rendered. That is until we do the whole
-        //thing dynamically at the loading time, which should make the issue disapear because the area
-        //will already be rendered
-        bool hasGridBeenRendered = m_grid.RectTransform.rect.width > 0 && m_grid.RectTransform.rect.height > 0;
-        if (m_grid.InitDone == false && hasGridBeenRendered)
+        yield return new WaitUntil(() =>
+            m_grid.RectTransform.rect.width > 0 && m_grid.RectTransform.rect.height > 0);
+        if (!m_grid.InitDone)
             InitDisplay();
     }
 
     private void InitDisplay()
     {
-        UnityEngine.Debug.Log("Init");
+        BtvLog.Log("Init");
         m_grid.Init();
 
         m_grid.VerticalHandlers[0].MagneticPosition = 0.495f;
@@ -57,15 +62,15 @@ public class WorkspaceManager : MonoBehaviour
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case UiToLayoutsMessage.Task.Load:
                 {
-                    UnityEngine.Debug.Log("Should Load a layout from : " + message.Path);
+                    BtvLog.Log("Should Load a layout from : " + message.Path);
                     LoadLayout(message.Path);
                     break;
                 }
-            case 1:
+            case UiToLayoutsMessage.Task.Save:
                 {
-                    UnityEngine.Debug.Log("Should save layout at : " + message.Path);
+                    BtvLog.Log("Should save layout at : " + message.Path);
                     SaveLayout(message.Path);
                     break;
                 }
@@ -225,9 +230,13 @@ public class WorkspaceManager : MonoBehaviour
         opt.Color = traceParameters.Color;
         opt.LineWidth = (int)traceParameters.Width;
 
-        //Try to load the different positions of the traces
-        WindowLayout layout = GameObject.Find(traceParameters.Parent).GetComponent<WindowLayout>();
-        WindowLayout layouthandle = (layout != null) ? _LeftWindowLayout : _RightWindowLayout;
+        //Try to load the different positions of the traces.
+        // Guard the lookup (Find returns null on a missing/blank saved parent name, which used to
+        // NRE), and route by *which* layout the saved parent actually is - the old ternary found
+        // a layout then ignored it, degenerating to "found anything -> left, else right".
+        GameObject parentObject = string.IsNullOrEmpty(traceParameters.Parent) ? null : GameObject.Find(traceParameters.Parent);
+        WindowLayout layout = parentObject != null ? parentObject.GetComponent<WindowLayout>() : null;
+        WindowLayout layouthandle = (layout == _LeftWindowLayout) ? _LeftWindowLayout : _RightWindowLayout;
         layouthandle.ForceDrop(trace.gameObject, traceParameters.GridLayout, traceParameters.Id);
     }
 

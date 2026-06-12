@@ -15,7 +15,7 @@ public class GraphEvents : MonoBehaviour
         {
             if (value == false)
                 HideActiveEvents();
-            UnityEngine.Debug.Log("Setting displa " + value);
+            BtvLog.Log("Setting displa " + value);
             m_DisplayEvents = value;
         }
     }
@@ -27,6 +27,12 @@ public class GraphEvents : MonoBehaviour
     private List<GameObject> m_EventsAdded = new List<GameObject>();
     private bool m_DisplayEvents = true;
 
+    // Reused every tick by UpdateEventsOnTrace so the per-frame event-window query allocates nothing.
+    private readonly List<int> m_IdOverFlow = new List<int>();
+    private readonly List<int> m_IdRightEnter = new List<int>();
+    private readonly List<int> m_IdInside = new List<int>();
+    private readonly List<int> m_IdLeftEnter = new List<int>();
+
     public void init(Trace parentWin)
     {
         m_parent = parentWin;
@@ -37,7 +43,16 @@ public class GraphEvents : MonoBehaviour
 
     public void AddEventToTrace(BtvEvent currentEvent, int id)
     {
-        UnityEngine.Debug.Log("Add event to trace");
+        if (id < 0 || id > m_EventsAdded.Count)
+        {
+            // The insert index comes from EventsService.Events; if it does not fit this trace's
+            // list the two are already out of sync - rebuild from the service instead of throwing.
+            Debug.LogWarning("GraphEvents: event insert index " + id + " does not fit the trace list (" + m_EventsAdded.Count + " events), rebuilding from EventsService.");
+            RebuildEventsFromService();
+            return;
+        }
+
+        BtvLog.Log("Add event to trace");
         GameObject currentEventToAdd = null;
         if (currentEvent.Duration == 0)
             currentEventToAdd = Instantiate(m_EventZeroDurationPrefab);
@@ -72,6 +87,16 @@ public class GraphEvents : MonoBehaviour
 
     public void UpdateEventsOnTrace(int milliSecToLook)
     {
+        // m_EventsAdded must stay index-parallel with EventsService.Events. If any upstream
+        // add/delete/load path desynced them (an exception mid-add, a reset or an events-file
+        // reload that this trace never heard about), rebuild from the service instead of
+        // indexing out of range on every video tick.
+        if (m_EventsAdded.Count != EventsService.Events.Count)
+        {
+            Debug.LogWarning("GraphEvents: trace event objects out of sync with EventsService (" + m_EventsAdded.Count + " vs " + EventsService.Events.Count + "), rebuilding.");
+            RebuildEventsFromService();
+        }
+
         int EventCount = EventsService.Events.Count;
         if (EventCount > 0)
         {
@@ -86,11 +111,12 @@ public class GraphEvents : MonoBehaviour
             HideActiveEvents();
             if (DisplayEvents)
             {
-                //We get all relevant events
-                List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right);
-                List<int> idRightEnter = EventsService.GetEventIdsEnteringWindow(left, right);
-                List<int> idInside = EventsService.GetEventIdsInsideWindow(left, right);
-                List<int> idLeftEnter = EventsService.GetEventIdsExitingWindow(left, right);
+                //We get all relevant events in a single allocation-free pass over reused buffers
+                EventsService.CollectEventIdsForWindow(left, right, m_IdOverFlow, m_IdRightEnter, m_IdInside, m_IdLeftEnter);
+                List<int> idOverFlow = m_IdOverFlow;
+                List<int> idRightEnter = m_IdRightEnter;
+                List<int> idInside = m_IdInside;
+                List<int> idLeftEnter = m_IdLeftEnter;
 
                 //Then we display
                 float sizeV = m_parentRectTransform.rect.height - 10;
@@ -152,6 +178,20 @@ public class GraphEvents : MonoBehaviour
                     if (tf != null) tf.UpdateTfMap(left, right);
                 }
             }
+        }
+    }
+
+    private void RebuildEventsFromService()
+    {
+        for (int i = 0; i < m_EventsAdded.Count; i++)
+        {
+            Destroy(m_EventsAdded[i]);
+        }
+        m_EventsAdded.Clear();
+
+        for (int i = 0; i < EventsService.Events.Count; i++)
+        {
+            AddEventToTrace(EventsService.Events[i], i);
         }
     }
 

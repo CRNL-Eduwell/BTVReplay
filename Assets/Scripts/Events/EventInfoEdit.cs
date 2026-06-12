@@ -81,7 +81,7 @@ public class EventInfoEdit : MonoBehaviour
 
         EventsModificationMessage message = new EventsModificationMessage
         {
-            TaskToExecute = 1,
+            TaskToExecute = EventsModificationMessage.Task.ModifyEvent,
             Event = m_Event,
             EventMemory = m_OriginalEvent
         };
@@ -115,7 +115,7 @@ public class EventInfoEdit : MonoBehaviour
     {
         EventsModificationMessage message = new EventsModificationMessage
         {
-            TaskToExecute = 2,
+            TaskToExecute = EventsModificationMessage.Task.DeleteEvent,
             Event = m_Event
         };
         Messenger.Default.Send(message, MessageContext.EventsModificationMessage);

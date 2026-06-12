@@ -122,6 +122,7 @@ public class Site : MonoBehaviour
     private TraceOption m_MasterTraceOption = null;
     private BtvChannel m_Channel = null;
     private Frequency m_Frequency = null;
+    private bool m_MessengerRegistered = false;
     #endregion
 
     public void Init(AnatomicalSite site)
@@ -129,8 +130,7 @@ public class Site : MonoBehaviour
         m_Plot = site;
         m_MasterTraceOption = TracesService.GetOptionsFor(0);
 
-        Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
-        Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
+        RegisterMessengerHandlers();
 
         m_MeshRenderer = gameObject.GetComponent<MeshRenderer>();
         m_Material = m_MeshRenderer.material; // instanced once; reused by the Color setter
@@ -168,31 +168,46 @@ public class Site : MonoBehaviour
     {
         //m_MasterTraceOption.PropertyChanged -= OnMasterTraceOptionPropertyChanged;
 
-        Messenger.Default.Unregister(this, MessageContext.UiToBrain);
-        Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
+        UnregisterMessengerHandlers();
     }
 
     /// <summary>
-    /// Re-subscribe when a site is re-activated after OnDisable (Messenger.Register is
-    /// idempotent, so this is safe alongside the registration in Init). Guarded on m_Plot so
-    /// the pre-Init OnEnable fired during Instantiate is a no-op.
+    /// Re-subscribe when a site is re-activated after OnDisable. Guarded on m_Plot so the
+    /// pre-Init OnEnable fired during Instantiate is a no-op.
     /// </summary>
     private void OnEnable()
     {
         if (m_Plot == null) return;
-        Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
-        Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
+        RegisterMessengerHandlers();
     }
 
     private void OnDestroy()
     {
+        UnregisterMessengerHandlers();
+    }
+
+    // Registration can be reached from both Init and OnEnable depending on whether the site is
+    // active when Init runs, so it is guarded at the component level - the Messenger rejects a
+    // duplicate (recipient, context) registration loudly instead of dropping it silently.
+    private void RegisterMessengerHandlers()
+    {
+        if (m_MessengerRegistered) return;
+        Messenger.Default.Register<UiToBrainMessage>(this, OnBrainParametersMessage, MessageContext.UiToBrain);
+        Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
+        m_MessengerRegistered = true;
+    }
+
+    private void UnregisterMessengerHandlers()
+    {
+        if (!m_MessengerRegistered) return;
         Messenger.Default.Unregister(this, MessageContext.UiToBrain);
         Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
+        m_MessengerRegistered = false;
     }
 
     private void OnBrainParametersMessage(UiToBrainMessage message)
     {
-        if (message.TaskToExecute == 2) //=> gain update
+        if (message.TaskToExecute == UiToBrainMessage.Task.UpdateGain) //=> gain update
             m_Gain = message.Gain;
     }
 

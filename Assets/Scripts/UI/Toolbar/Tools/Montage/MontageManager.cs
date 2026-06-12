@@ -29,7 +29,7 @@ namespace BTV.UI.Module3D.Tools
 
         private void OnMontageMessage(MontageMessage message)
         {
-            if (message.TaskToExecute == 0)
+            if (message.TaskToExecute == MontageMessage.Task.UpdateMontageList)
             {
                 m_SelectMontageDropdown.options.Clear();
                 foreach (var montage in Services.EegFileService.EegFileService.Montages)
@@ -44,7 +44,6 @@ namespace BTV.UI.Module3D.Tools
         {
             ShowWindowMessage message = new ShowWindowMessage
             {
-                TaskToExecute = 0,
                 WindowName = "MontageWindow"
             };
             Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
@@ -69,7 +68,6 @@ namespace BTV.UI.Module3D.Tools
             {
                 ShowWindowMessage message = new ShowWindowMessage
                 {
-                    TaskToExecute = 0,
                     WindowName = "MontageWindow"
                 };
                 Messenger.Default.Send(message, MessageContext.ShowWindowMessage);

@@ -26,12 +26,12 @@ public class Brain : MonoBehaviour
 
     private void OnMasterTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        UnityEngine.Debug.Log("Brain.cs : OnMasterTraceOptionPropertyChanged");
+        BtvLog.Log("Brain.cs : OnMasterTraceOptionPropertyChanged");
         switch (e.PropertyName)
         {
             case "FileHandle":
                 {
-                    UnityEngine.Debug.Log("OnMasterTraceOptionPropertyChanged FileHandle");
+                    BtvLog.Log("OnMasterTraceOptionPropertyChanged FileHandle");
                     if (m_BrainReferentialID == 2)
                     {
                         int suffix = EegFileService.GetContainerSuffix(m_MasterTraceOption.FileHandle);
@@ -57,7 +57,7 @@ public class Brain : MonoBehaviour
             m_MasterTraceOption = TracesService.GetOptionsFor(0);
             m_MasterTraceOption.PropertyChanged += OnMasterTraceOptionPropertyChanged;
 
-            UnityEngine.Debug.Log("OnLoader Message => LoadBrain");
+            BtvLog.Log("OnLoader Message => LoadBrain");
             if (message.HasAnatomy)
             {
                 LoadBrainAndElectrodes(message.Anatomy);
@@ -133,19 +133,19 @@ public class Brain : MonoBehaviour
 
     private void OnBrainParametersMessage(UiToBrainMessage message)
     {
-        UnityEngine.Debug.Log("Brain Message, yata");
+        BtvLog.Log("Brain Message, yata");
         switch (message.TaskToExecute)
         {
-            case 0:
-                Debug.Log("Update Brain Model");
+            case UiToBrainMessage.Task.ChangeReferential:
+                BtvLog.Log("Update Brain Model");
                 m_BrainReferentialID = message.ModelId;
                 UpdateBrainModel(message.ModelId);
                 break;
-            case 1:
-                Debug.Log("Update Brain Visu");
+            case UiToBrainMessage.Task.ChangeMeshDisplay:
+                BtvLog.Log("Update Brain Visu");
                 UpdateDisplayedMeshes(message.MeshesToDisplay);
                 break;
-            case 2:
+            case UiToBrainMessage.Task.UpdateGain:
                 //manage by each site individually
                 break;
             default:

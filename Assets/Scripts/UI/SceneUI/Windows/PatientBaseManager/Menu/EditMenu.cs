@@ -49,6 +49,13 @@ namespace BTV.UI.PatientBaseManager
             m_CopySubjectsSubMenu.ItemClicked.AddListener(CopySubjectsToDatabase);
 
             DatabaseService.Databases.CollectionChanged += UpdateDatabaseCollection;
+            // Seed the destination submenus with the databases that were already open before
+            // this menu existed (the manager window can be closed and reopened).
+            foreach (var item in DatabaseService.Databases)
+            {
+                m_MoveSubjectsSubMenu.AddSubMenuItem(item);
+                m_CopySubjectsSubMenu.AddSubMenuItem(item);
+            }
         }
 
         private void OnDestroy()
@@ -70,7 +77,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 0
+                TaskToExecute = EditMenuMessage.Task.RenameDatabase
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
@@ -80,7 +87,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 1
+                TaskToExecute = EditMenuMessage.Task.CloseDatabase
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
@@ -90,7 +97,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 2
+                TaskToExecute = EditMenuMessage.Task.RenameSubject
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
@@ -100,7 +107,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 3
+                TaskToExecute = EditMenuMessage.Task.AddSubject
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
@@ -110,7 +117,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 4
+                TaskToExecute = EditMenuMessage.Task.DeleteSubject
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             Close();
@@ -120,7 +127,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 5,
+                TaskToExecute = EditMenuMessage.Task.MoveSubjects,
                 DestinationDatabase = databaseName
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
@@ -132,7 +139,7 @@ namespace BTV.UI.PatientBaseManager
         {
             EditMenuMessage message = new EditMenuMessage
             {
-                TaskToExecute = 6,
+                TaskToExecute = EditMenuMessage.Task.CopySubjects,
                 DestinationDatabase = databaseName
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
@@ -146,7 +153,7 @@ namespace BTV.UI.PatientBaseManager
             {
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
                     {
-                        UnityEngine.Debug.Log("Adding a Database element : ");
+                        BtvLog.Log("Adding a Database element : ");
                         SubjectRepository itemToAdd = (SubjectRepository)e.NewItems[0]; //list of new items, only one at a time normally
                         m_MoveSubjectsSubMenu.AddSubMenuItem(itemToAdd);
                         m_CopySubjectsSubMenu.AddSubMenuItem(itemToAdd);
@@ -154,12 +161,12 @@ namespace BTV.UI.PatientBaseManager
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
                     {
-                        UnityEngine.Debug.Log("Moving a Database element : ");
+                        BtvLog.Log("Moving a Database element : ");
                         break;
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
                     {
-                        UnityEngine.Debug.Log("Removing a Database element : ");
+                        BtvLog.Log("Removing a Database element : ");
                         SubjectRepository itemToRemove = (SubjectRepository)e.OldItems[0];
                         m_MoveSubjectsSubMenu.RemoveSubMenuItem(itemToRemove);
                         m_CopySubjectsSubMenu.RemoveSubMenuItem(itemToRemove);
@@ -167,12 +174,12 @@ namespace BTV.UI.PatientBaseManager
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
                     {
-                        UnityEngine.Debug.Log("Replacing a Database element : ");
+                        BtvLog.Log("Replacing a Database element : ");
                         break;
                     }
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
                     {
-                        UnityEngine.Debug.Log("Reseting a Database element : ");
+                        BtvLog.Log("Reseting a Database element : ");
                         break;
                     }
             }

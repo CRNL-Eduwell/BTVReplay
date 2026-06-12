@@ -2,8 +2,12 @@
 
 public class UiToLayoutsMessage
 {
-    // 0 : Load
-    // 1 : Save
-    public int TaskToExecute { get; set; } = -1;
+    public enum Task
+    {
+        None = -1,
+        Load = 0,
+        Save = 1,
+    }
+    public Task TaskToExecute { get; set; } = Task.None;
     public string Path { get; set; } = "";
 }

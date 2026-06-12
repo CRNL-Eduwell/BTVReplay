@@ -50,12 +50,16 @@ namespace BTV.UI.Module3D.Tools
 
         private void CheckOffsetInput(string str)
         {
-            if (string.IsNullOrEmpty(str)) ConvertTotextValues(m_OffsetMemory);
-            bool isParsed = str.TryParseInt(out int result);
-            if (!isParsed) ConvertTotextValues(m_OffsetMemory);
+            // On invalid input, restore the last good value and stop - the old code fell through
+            // and still fired the event with a stale/garbage value (missing return).
+            if (string.IsNullOrEmpty(str) || !str.TryParseInt(out _))
+            {
+                ConvertTotextValues(m_OffsetMemory);
+                return;
+            }
 
             m_OffsetMemory = GetMillisecondsValue();
-            offsetVideoHasChanged(m_OffsetMemory);
+            offsetVideoHasChanged?.Invoke(m_OffsetMemory);
         }
 
         private void ConvertTotextValues(float milliSeconds)

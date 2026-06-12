@@ -77,14 +77,14 @@ public class ExtendedToggle : MonoBehaviour, IPointerClickHandler
                 if (m_OptionsCounter + 1 <= m_MaxValue)
                 {
                     m_OptionsCounter += 1;
-                    UnityEngine.Debug.Log("Increasing counter " + m_OptionsCounter);
+                    BtvLog.Log("Increasing counter " + m_OptionsCounter);
                 }
                 else
                 {
                     if (m_OptionsCounter - 1 >= m_MinValue)
                     {
                         m_OptionsCounter -= 1;
-                        UnityEngine.Debug.Log("Decreasing counter " + m_OptionsCounter);
+                        BtvLog.Log("Decreasing counter " + m_OptionsCounter);
                     }
                 }
                 m_BackgroundImage.color = (m_OptionsCounter <= 1) ? transparent : blue;

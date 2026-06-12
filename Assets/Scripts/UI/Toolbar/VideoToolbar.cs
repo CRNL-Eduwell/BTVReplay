@@ -40,7 +40,7 @@ namespace BTV.UI.Module3D
         {
             base.AddListeners();
 
-            m_Gain.gainAudioHasChanged += UpdateAudioTraceGain;
+            m_Gain.gainHasChanged += UpdateAudioTraceGain;
             m_Offset.offsetVideoHasChanged += UpdateAudioTraceOffset;
             m_AudioTrace.ToggleTraceAudio += ToggleAudioTrace;
             m_AudioTrace.UpdateAudioFileID += UpdateAudioTraceFile;
@@ -48,10 +48,10 @@ namespace BTV.UI.Module3D
 
         private void UpdateAudioTraceGain(float NewGain)
         {
-            UnityEngine.Debug.Log("Update audio trace gain");
+            BtvLog.Log("Update audio trace gain");
             UiToVideoMessage message = new UiToVideoMessage
             {
-                TaskToExecute = 0,
+                TaskToExecute = UiToVideoMessage.Task.UpdateGain,
                 Gain = NewGain
             };
             Messenger.Default.Send(message, MessageContext.UiToVideo);
@@ -59,10 +59,10 @@ namespace BTV.UI.Module3D
 
         private void UpdateAudioTraceOffset(float NewOffset)
         {
-            UnityEngine.Debug.Log("Update audio trace offset");
+            BtvLog.Log("Update audio trace offset");
             UiToVideoMessage message = new UiToVideoMessage
             {
-                TaskToExecute = 1,
+                TaskToExecute = UiToVideoMessage.Task.UpdateOffset,
                 Offset = NewOffset
             };
             Messenger.Default.Send(message, MessageContext.UiToVideo);
@@ -70,10 +70,10 @@ namespace BTV.UI.Module3D
 
         private void ToggleAudioTrace(bool IsOn)
         {
-            UnityEngine.Debug.Log("Toggle Audio Trace");
+            BtvLog.Log("Toggle Audio Trace");
             UiToVideoMessage message = new UiToVideoMessage
             {
-                TaskToExecute = 2,
+                TaskToExecute = UiToVideoMessage.Task.ToggleAudioTrace,
                 IsTraceOn = IsOn
             };
             Messenger.Default.Send(message, MessageContext.UiToVideo);
@@ -81,10 +81,10 @@ namespace BTV.UI.Module3D
 
         private void UpdateAudioTraceFile(int NewIdSm)
         {
-            UnityEngine.Debug.Log("Update Audio Trace File");
+            BtvLog.Log("Update Audio Trace File");
             UiToVideoMessage message = new UiToVideoMessage
             {
-                TaskToExecute = 3,
+                TaskToExecute = UiToVideoMessage.Task.UpdateAudioFile,
                 TraceID = NewIdSm
             };
             Messenger.Default.Send(message, MessageContext.UiToVideo);

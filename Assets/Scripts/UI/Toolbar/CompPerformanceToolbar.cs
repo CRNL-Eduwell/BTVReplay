@@ -31,7 +31,7 @@ namespace BTV.UI.Module3D
         //{
         //    UiToTaskPerformanceMessage message = new UiToTaskPerformanceMessage
         //    {
-        //        TaskToExecute = 0,
+        //        TaskToExecute = UiToTaskPerformanceMessage.Task.ProcessProtocol,
         //        NewProtocol = protocol
         //    };
         //    Messenger.Default.Send(message, MessageContext.UiToTaskPerformanceMessage);
@@ -41,7 +41,7 @@ namespace BTV.UI.Module3D
         {
             UiToTaskPerformanceMessage message = new UiToTaskPerformanceMessage
             {
-                TaskToExecute = 1,
+                TaskToExecute = UiToTaskPerformanceMessage.Task.UpdateTimeWindow,
                 TimeWindow = UpdatedTime
             };
             Messenger.Default.Send(message, MessageContext.UiToTaskPerformanceMessage);

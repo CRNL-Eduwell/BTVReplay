@@ -69,17 +69,17 @@ public class WindowLayout : MonoBehaviour, IDropHandler
     {
         if (r.sizeDelta.x > TwoBy3.PrevisousSizeCells[windowIndex].width && r.sizeDelta.y <= TwoBy3.PrevisousSizeCells[windowIndex].height)
         {
-            //Debug.Log("Look at 1 by 3");
+            //BtvLog.Log("Look at 1 by 3");
             return OneBy3.Cells[windowIndex];
         }
         else if (r.sizeDelta.x <= TwoBy3.PrevisousSizeCells[windowIndex].width && r.sizeDelta.y <= TwoBy3.PrevisousSizeCells[windowIndex].height)
         {
-            //Debug.Log("Look at 2 by 3");
+            //BtvLog.Log("Look at 2 by 3");
             return TwoBy3.Cells[windowIndex];
         }
         else
         {
-            //Debug.Log("Look at 2 by 2");
+            //BtvLog.Log("Look at 2 by 2");
             return TwoBy2.Cells[windowIndex];
         }
     }
@@ -164,7 +164,7 @@ public class WindowLayout : MonoBehaviour, IDropHandler
         else if (grid.ColumnCount == 2 && grid.RowCount == 2) return GridLayout.TwoBy2;
         else
         {
-            UnityEngine.Debug.Log("WindowLayout.GetLayoutFromGrid : grid parameters not supported, returning default 2by2");
+            BtvLog.Log("WindowLayout.GetLayoutFromGrid : grid parameters not supported, returning default 2by2");
             return GridLayout.TwoBy2;
         }
     }

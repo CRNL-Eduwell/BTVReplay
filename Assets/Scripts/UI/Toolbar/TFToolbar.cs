@@ -28,11 +28,11 @@ namespace BTV.UI.Module3D
 
             m_LockCursorsToggle.onValueChanged.AddListener((IsOn) =>
             {
-                UnityEngine.Debug.Log("Toggle TF Cursors Lock");
+                BtvLog.Log("Toggle TF Cursors Lock");
                 //Send Message
                 UiToTFEventsMessage message = new UiToTFEventsMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = UiToTFEventsMessage.Task.ToggleCursorSlave,
                     IsSlaved = IsOn
                 };
                 Messenger.Default.Send(message, MessageContext.UiToTFEvents);
@@ -52,7 +52,7 @@ namespace BTV.UI.Module3D
             {
                 UiToTFEventsMessage message = new UiToTFEventsMessage
                 {
-                    TaskToExecute = 1,
+                    TaskToExecute = UiToTFEventsMessage.Task.UpdateAlpha,
                     ParentWindowIndex = m_CurrentTraceID,
                     Alpha = sliderValue
                 };
@@ -63,7 +63,7 @@ namespace BTV.UI.Module3D
             {
                 UiToTFEventsMessage message = new UiToTFEventsMessage
                 {
-                    TaskToExecute = 2,
+                    TaskToExecute = UiToTFEventsMessage.Task.UpdateFrequencyBand,
                     ParentWindowIndex = m_CurrentTraceID,
                     LowFrequency = lowValue,
                     HighFrequency = highValue
@@ -75,7 +75,7 @@ namespace BTV.UI.Module3D
             {
                 UiToTFEventsMessage message = new UiToTFEventsMessage
                 {
-                    TaskToExecute = 3,
+                    TaskToExecute = UiToTFEventsMessage.Task.UpdateTfWindow,
                     ParentWindowIndex = m_CurrentTraceID,
                     WindowInMs = windowValue
                 };
@@ -86,7 +86,7 @@ namespace BTV.UI.Module3D
             {
                 UiToTFEventsMessage message = new UiToTFEventsMessage
                 {
-                    TaskToExecute = 4,
+                    TaskToExecute = UiToTFEventsMessage.Task.UpdateAmplitude,
                     ParentWindowIndex = m_CurrentTraceID,
                     MinValueFactor = min,
                     MaxValueFactor = max

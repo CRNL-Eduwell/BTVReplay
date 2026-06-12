@@ -26,7 +26,6 @@ namespace BTV.UI.MainWindow
         {
             ShowWindowMessage message = new ShowWindowMessage
             {
-                TaskToExecute = 0,
                 WindowName = "GeneralOptionsPreferences"
             };
             Messenger.Default.Send(message, MessageContext.ShowWindowMessage);

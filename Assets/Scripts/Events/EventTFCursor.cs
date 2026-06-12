@@ -80,7 +80,7 @@ public class EventTFCursor : MonoBehaviour
             {
                 EventsToEventsMessage message = new EventsToEventsMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = EventsToEventsMessage.Task.MoveCursor,
                     XPositionPercentage = localPosition.x / m_ParentRecttransform.rect.width,
                     YPositionPercentage = localPosition.y / m_ParentRecttransform.rect.height,
                     BTVEvent = transform.parent.GetComponent<EventWithDuration>().EventOfInterest,
@@ -99,7 +99,7 @@ public class EventTFCursor : MonoBehaviour
 
     private void OnEventsToEventsMessage(EventsToEventsMessage message)
     {
-        if (message.TaskToExecute == 0)
+        if (message.TaskToExecute == EventsToEventsMessage.Task.MoveCursor)
         {
             if (!m_ShowCursor) return;
 

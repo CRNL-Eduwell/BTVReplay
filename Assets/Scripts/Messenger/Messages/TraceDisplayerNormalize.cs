@@ -4,7 +4,13 @@ using UnityEngine;
 
 class TraceDisplayerNormalize
 {
-    public int TaskToExecute { get; set; } = 0; //0 reset, 1 normalize
+    public enum Task
+    {
+        Reset = 0,
+        Normalize = 1,
+    }
+
+    public Task TaskToExecute { get; set; } = Task.Reset;
     public float BeginTimeBaseline { get; set; } = -1;
     public float EndTimeBaseline { get; set; } = -1;
 }

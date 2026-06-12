@@ -22,7 +22,6 @@ namespace BTV.UI.PatientBaseManager
         {
             ShowWindowMessage message = new ShowWindowMessage
             {
-                TaskToExecute = 0,
                 WindowName = "DBUserPreferences"
             };
             Messenger.Default.Send(message, MessageContext.ShowWindowMessage);

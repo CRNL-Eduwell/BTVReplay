@@ -33,30 +33,30 @@ namespace BTV.UI.Module3D
 
             m_BrainReferentials.needToChangeBrain.AddListener((BrainId) =>
             {
-                UnityEngine.Debug.Log("change brain");
+                BtvLog.Log("change brain");
                 UiToBrainMessage message = new UiToBrainMessage
                 {
-                    TaskToExecute = 0,
+                    TaskToExecute = UiToBrainMessage.Task.ChangeReferential,
                     ModelId = BrainId
                 };
                 Messenger.Default.Send(message, MessageContext.UiToBrain);
             });
             m_BrainVisualisation.UpdateBrainMeshes.AddListener((VisuID) =>
              {
-                 UnityEngine.Debug.Log("change visu");
+                 BtvLog.Log("change visu");
                  UiToBrainMessage message = new UiToBrainMessage
                  {
-                     TaskToExecute = 1,
+                     TaskToExecute = UiToBrainMessage.Task.ChangeMeshDisplay,
                      MeshesToDisplay = VisuID
                  };
                  Messenger.Default.Send(message, MessageContext.UiToBrain);
              });
             m_BrainGain.gainHasChanged.AddListener((NewGain) =>
             {
-                UnityEngine.Debug.Log("update gain");
+                BtvLog.Log("update gain");
                 UiToBrainMessage message = new UiToBrainMessage
                 {
-                    TaskToExecute = 2,
+                    TaskToExecute = UiToBrainMessage.Task.UpdateGain,
                     Gain = NewGain
                 };
                 Messenger.Default.Send(message, MessageContext.UiToBrain);

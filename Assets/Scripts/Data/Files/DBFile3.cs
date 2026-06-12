@@ -30,7 +30,7 @@ public class DBFile3 : ISubjectsContext
     {
         using (StreamReader streamReader = new StreamReader(FilePath))
         {
-            Subjects = JsonConvert.DeserializeObject<List<Subject>>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto }) ?? new List<Subject>();
+            Subjects = JsonConvert.DeserializeObject<List<Subject>>(streamReader.ReadToEnd(), BtvJson.ReadSettings) ?? new List<Subject>();
         }
     }
 
@@ -38,7 +38,7 @@ public class DBFile3 : ISubjectsContext
     {
         try
         {
-            string json = JsonConvert.SerializeObject(subjects, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple });
+            string json = JsonConvert.SerializeObject(subjects, Formatting.Indented, BtvJson.WriteSettings);
             BrainTV.Tools.AtomicFile.WriteAllText(FilePath, json);
             return true;
         }

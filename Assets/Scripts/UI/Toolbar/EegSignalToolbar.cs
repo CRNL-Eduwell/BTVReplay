@@ -91,10 +91,10 @@ namespace BTV.UI.Module3D
 
         private void UpdateTraceGain(float NewGain)
         {
-            UnityEngine.Debug.Log("Update Trace gain");
+            BtvLog.Log("Update Trace gain");
             UiToTraceMessage message = new UiToTraceMessage
             {
-                TaskToExecute = 0,
+                TaskToExecute = UiToTraceMessage.Task.UpdateGain,
                 TraceID = m_TraceID,
                 Gain = NewGain
             };
@@ -103,10 +103,10 @@ namespace BTV.UI.Module3D
 
         private void UpdateTraceOffset(float NewOffset)
         {
-            UnityEngine.Debug.Log("Update Trace offset");
+            BtvLog.Log("Update Trace offset");
             UiToTraceMessage message = new UiToTraceMessage
             {
-                TaskToExecute = 1,
+                TaskToExecute = UiToTraceMessage.Task.UpdateOffset,
                 TraceID = m_TraceID,
                 Offset = NewOffset
             };
@@ -115,10 +115,10 @@ namespace BTV.UI.Module3D
 
         private void ToggleTraceGrid(bool isGridOn)
         {
-            UnityEngine.Debug.Log("Update Grid Toggle");
+            BtvLog.Log("Update Grid Toggle");
             UiToTraceMessage message = new UiToTraceMessage
             {
-                TaskToExecute = 2,
+                TaskToExecute = UiToTraceMessage.Task.ToggleGrid,
                 TraceID = m_TraceID,
                 IsGridOn = isGridOn
             };
@@ -127,10 +127,10 @@ namespace BTV.UI.Module3D
 
         private void UpdateTracePeriod(int NewPeriod)
         {
-            UnityEngine.Debug.Log("Update Trace period");
+            BtvLog.Log("Update Trace period");
             UiToTraceMessage message = new UiToTraceMessage
             {
-                TaskToExecute = 3,
+                TaskToExecute = UiToTraceMessage.Task.UpdateWindowSize,
                 TraceID = m_TraceID,
                 TimeWindow = NewPeriod
             };
@@ -139,10 +139,10 @@ namespace BTV.UI.Module3D
 
         private void ToggleSonification(bool IsSonificationOn)
         {
-            UnityEngine.Debug.Log("Toggle sonification");
+            BtvLog.Log("Toggle sonification");
             UiToTraceMessage message = new UiToTraceMessage
             {
-                TaskToExecute = 4,
+                TaskToExecute = UiToTraceMessage.Task.ToggleSonification,
                 TraceID = m_TraceID,
                 IsSonificationOn = IsSonificationOn
             };
@@ -151,10 +151,10 @@ namespace BTV.UI.Module3D
 
         private void UpdateSonificationSound(int NewIdSound)
         {
-            UnityEngine.Debug.Log("Update sonification sound");
+            BtvLog.Log("Update sonification sound");
             UiToTraceMessage message = new UiToTraceMessage
             {
-                TaskToExecute = 5,
+                TaskToExecute = UiToTraceMessage.Task.UpdateSonificationSound,
                 TraceID = m_TraceID,
                 NewSonificationId = NewIdSound
             };
@@ -163,10 +163,10 @@ namespace BTV.UI.Module3D
 
         private void UpdateTraceColor(Color NewColor)
         {
-            UnityEngine.Debug.Log("Update Trace Color");
+            BtvLog.Log("Update Trace Color");
             UiToTraceMessage message = new UiToTraceMessage
             {
-                TaskToExecute = 6,
+                TaskToExecute = UiToTraceMessage.Task.UpdateColor,
                 TraceID = m_TraceID,
                 Color = NewColor
             };
@@ -175,10 +175,10 @@ namespace BTV.UI.Module3D
 
         private void UpdateTraceCurrentFile(int NewFileId)
         {
-            UnityEngine.Debug.Log("Update File ID");
+            BtvLog.Log("Update File ID");
             UiToTraceMessage message = new UiToTraceMessage
             {
-                TaskToExecute = 7,
+                TaskToExecute = UiToTraceMessage.Task.UpdateFile,
                 TraceID = m_TraceID,
                 FileID = NewFileId
             };

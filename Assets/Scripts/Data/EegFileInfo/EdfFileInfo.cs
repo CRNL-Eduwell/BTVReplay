@@ -23,7 +23,7 @@ public class EdfFileInfo : IEegFileInfo
         Edf = edf;
     }
 
-    public List<ArgumentException> ChecKForErrors()
+    public List<ArgumentException> CheckForErrors()
     {
         List<ArgumentException> Errors = new List<ArgumentException>();
         if (string.IsNullOrEmpty(Edf)) Errors.Add(new ArgumentException("Edf file path should not be a null string"));

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Collections; //IEnumerator
+using System.Threading.Tasks;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +8,6 @@ using UnityEngine.SceneManagement;
 
 using SFB;
 using BTV.Data;
-using CielaSpike;
 using BTV.Services.EegFileService;
 using System.Linq;
 using System.Collections.Generic;
@@ -79,71 +79,6 @@ public class SubjectLoaderService : MonoBehaviour
         PatientNameHeader.text = subject.PatientName;
         ApplicationState.init();
         yield return new WaitForSeconds(0.1f);
-    }
-
-    private IEnumerator c_LoadBrainAnatomy2(Subject subject)
-    {
-        bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
-        bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
-
-        bool ShouldLoadMniFirst = false, ShouldLoadPatFirst = false;
-        if (hasMniContainer && hasPatContainer)
-        {
-            ShouldLoadMniFirst = (mniContainer.HasAnat && !patContainer.HasAnat) || (mniContainer.HasAnat && patContainer.HasAnat);
-            ShouldLoadPatFirst = !mniContainer.HasAnat && patContainer.HasAnat;
-        }
-        else if (hasMniContainer && !hasPatContainer)
-        {
-            ShouldLoadMniFirst = mniContainer.HasAnat;
-            ShouldLoadPatFirst = false;
-        }
-        else if (!hasMniContainer && hasPatContainer)
-        {
-            ShouldLoadMniFirst = false;
-            ShouldLoadPatFirst = patContainer.HasAnat;
-        }
-        else
-        {
-            ShouldLoadMniFirst = false;
-            ShouldLoadPatFirst = false;
-        }
-
-        if (ShouldLoadMniFirst)
-        {
-            LoaderMessage message = new LoaderMessage
-            {
-                Task = LoaderMessage.LoaderTask.LoadBrain,
-                HasAnatomy = true,
-                Anatomy = mniContainer
-            };
-            Messenger.Default.Send(message, MessageContext.LoaderMessage);
-        }
-        else if (ShouldLoadPatFirst)
-        {
-            LoaderMessage message = new LoaderMessage
-            {
-                Task = LoaderMessage.LoaderTask.LoadBrain,
-                HasAnatomy = true,
-                Anatomy = patContainer
-            };
-            Messenger.Default.Send(message, MessageContext.LoaderMessage);
-        }
-        else
-        {
-            //TODO
-            //When there is no 3D model , we take the value of the mni dropdown for eegtech
-            //if this is not filled this might be wrong, need to find another way to know
-            //if it's intra or scalp
-            LoaderMessage message = new LoaderMessage
-            {
-                Task = LoaderMessage.LoaderTask.LoadBrain,
-                HasAnatomy = false,
-                Techno = EegTechnology.Intra
-            };
-            Messenger.Default.Send(message, MessageContext.LoaderMessage);
-        }
-
-        yield return null;
     }
 
     private IEnumerator c_LoadBrainAnatomy(Subject subject)
@@ -229,26 +164,33 @@ public class SubjectLoaderService : MonoBehaviour
         loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, GameObject.Find("CircleWindow").transform) as GameObject).GetComponent<LoadingCircle>();
         loadingCircle.transform.localPosition = new Vector3(0, 0, 0);
 
-        yield return Ninja.JumpToUnity;
         loadingCircle.Set(0, "Finding files");
 
         for (int i = 0; i < eegfiles.Count; i++)
         {
             loadingCircle.Set(0.1f + ((0.9f / eegfiles.Count) * i), "Loading File " + (i+1));
-            yield return Ninja.JumpBack;
-            yield return Process(eegfiles[i], i);
-            yield return Ninja.JumpToUnity;
+            Task loadTask = LoadFile(eegfiles[i], i);
+            if (loadTask != null)
+            {
+                yield return new WaitUntil(() => loadTask.IsCompleted);
+                if (loadTask.IsFaulted)
+                {
+                    // A failed file must not abort the others; surface it and keep loading.
+                    UnityEngine.Debug.LogError("Could not load EEG file " + (i + 1) + " (" + eegfiles[i].Key + ").");
+                    UnityEngine.Debug.LogException(loadTask.Exception.GetBaseException());
+                }
+            }
         }
         loadingCircle.Set(1f, "Files have been loaded");
     }
 
-    private YieldInstruction Process(KeyValuePair<string, IEegFileInfo> kvp, int FileID)
+    private Task LoadFile(KeyValuePair<string, IEegFileInfo> kvp, int FileID)
     {
         if (!kvp.Equals(default(KeyValuePair<string, IEegFileInfo>)))
         {
-            // I give my callback to the process
-            // Async needed for another thread and not freezing/laging UI
-            return this.StartCoroutineAsync(EegFileService.c_Load(kvp.Value, FileID, kvp.Key));
+            // The native read runs on a worker so the UI does not freeze; the montage slot is
+            // assigned back on the main thread inside LoadAsync.
+            return EegFileService.LoadAsync(kvp.Value, FileID, kvp.Key);
         }
 
         return null;

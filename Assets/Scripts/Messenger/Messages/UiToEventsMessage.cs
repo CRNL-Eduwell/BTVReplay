@@ -2,13 +2,17 @@
 
 class UiToEventsMessage
 {
-    // 0 : Load File
-    // 1 : Save File
-    // 2 : Toggle Add Events
-    // 3 : Toggle Show Events
-    // 4 : Delete Events
-    // 5 : Load Matching Code File
-    public int TaskToExecute
+    public enum Task
+    {
+        LoadEventsFile = 0,
+        SaveEventsFile = 1,
+        ToggleAddEvents = 2,
+        ToggleShowEvents = 3,
+        DeleteSelectedEvents = 4,
+        LoadCodeMatchingFile = 5,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

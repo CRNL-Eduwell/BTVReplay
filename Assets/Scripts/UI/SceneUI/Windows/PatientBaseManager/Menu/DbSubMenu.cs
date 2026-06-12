@@ -39,11 +39,15 @@ public class DbSubMenu : MonoBehaviour
     {
         if (e.PropertyName == "ShortName")
         {
-            UnityEngine.Debug.Log("DBSubmenu : Database Name updated");
+            BtvLog.Log("DBSubmenu : Database Name updated");
             SubjectRepository item = sender as SubjectRepository;
             if (m_ChildElements.ContainsKey(item))
             {
-                m_ChildElements[item].transform.GetChild(0).GetComponent<Text>().text = item.ShortName;
+                GameObject itemObject = m_ChildElements[item];
+                // ItemClicked sends Button.name: keep it in sync or copy/move to a renamed
+                // database keeps targeting the old name and fails.
+                itemObject.name = item.ShortName;
+                itemObject.transform.GetChild(0).GetComponent<Text>().text = item.ShortName;
             }
         }
     }
@@ -66,5 +70,17 @@ public class DbSubMenu : MonoBehaviour
             m_ChildElements.Remove(item);
             Destroy(itemObject);
         }
+    }
+
+    private void OnDestroy()
+    {
+        // SubjectRepository instances live in the static DatabaseService and outlive this menu.
+        // Without dropping our PropertyChanged subscriptions here, a later rename fires into this
+        // destroyed object and throws MissingReferenceException (it touches destroyed child UI).
+        foreach (SubjectRepository item in m_ChildElements.Keys)
+        {
+            item.PropertyChanged -= DatabaseInformationUpdated;
+        }
+        m_ChildElements.Clear();
     }
 }

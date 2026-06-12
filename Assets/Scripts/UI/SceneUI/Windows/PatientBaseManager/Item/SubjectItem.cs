@@ -36,7 +36,7 @@ public class SubjectItem : Tools.Unity.Lists.SelectableItem<Subject>
     {
         if (e.PropertyName == "PatientName")
         {
-            UnityEngine.Debug.Log("Subject Name updated");
+            BtvLog.Log("Subject Name updated");
             SetLabelValue();
         }
         else

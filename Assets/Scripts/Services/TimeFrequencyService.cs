@@ -21,7 +21,7 @@ public static class TimeFrequencyService
 
     public static TfTraceOption GetOptionsFor(int traceID)
     {
-        UnityEngine.Debug.Log("Trace " + traceID);
+        BtvLog.Log("Trace " + traceID);
         if (m_Options.ContainsKey(traceID))
         {
             return m_Options[traceID];

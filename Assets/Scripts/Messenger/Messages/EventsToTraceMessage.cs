@@ -1,15 +1,18 @@
 ﻿using BTV.Data;
 
 class EventsToTraceMessage
-{    
-    // 0 : Toggle Add Event
-    // 1 : Toggle Show Event
-    // 2 : Edit Event
-    // 3 : Add Event
-    // 4 : Remove Event
-    // 5 : Display Event
+{
+    public enum Task
+    {
+        ToggleAddEvents = 0,
+        ToggleShowEvents = 1,
+        EditEvent = 2,
+        AddEventToTrace = 3,
+        RemoveEventFromTrace = 4,
+        DisplayEvent = 5,
+    }
 
-    public int TaskToExecute
+    public Task TaskToExecute
     {
         get;
         set;

@@ -1,9 +1,13 @@
 ﻿
 class EventsToTaskPerformanceMessage
 {
-    //0 : Reset all
-    //1 : Mark as updated
-    public int TaskToExecute
+    public enum Task
+    {
+        ResetAll = 0,
+        MarkOutOfDate = 1,
+    }
+
+    public Task TaskToExecute
     {
         get;
         set;

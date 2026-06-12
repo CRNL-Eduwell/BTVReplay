@@ -34,14 +34,7 @@ public class WorkspaceFile : IWorkspaceContext
         {
             using (StreamReader streamReader = new StreamReader(FilePath))
             {
-                JsonSerializerSettings serializerSettings = new JsonSerializerSettings()
-                {
-                    TypeNameHandling = TypeNameHandling.Auto,
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                    Converters = new List<JsonConverter>() { new ColorConverter(), new Vector2Converter(), new Vector3Converter() }
-                };
-
-                Workspace = JsonConvert.DeserializeObject<Workspace>(streamReader.ReadToEnd(), serializerSettings);
+                Workspace = JsonConvert.DeserializeObject<Workspace>(streamReader.ReadToEnd(), BtvJson.ReadSettings);
             }
 
             return 0;
@@ -61,14 +54,7 @@ public class WorkspaceFile : IWorkspaceContext
         {
             using (StreamWriter streamWriter = new StreamWriter(FilePath))
             {
-                JsonSerializerSettings serializerSettings = new JsonSerializerSettings()
-                {
-                    TypeNameHandling = TypeNameHandling.Auto,
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                    Converters = new List<JsonConverter>() { new ColorConverter(), new Vector2Converter(), new Vector3Converter() }
-                };
-
-                string json = JsonConvert.SerializeObject(workspace, Formatting.Indented, serializerSettings );
+                string json = JsonConvert.SerializeObject(workspace, Formatting.Indented, BtvJson.WriteSettings);
                 streamWriter.Write(json);
                 streamWriter.Close();
             }

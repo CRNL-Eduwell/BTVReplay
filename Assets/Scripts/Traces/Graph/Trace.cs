@@ -115,12 +115,12 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                     {
                         if (IsAlmostEqual(Mathf.Abs(Event.current.delta.y), Mathf.Abs(scrollDelta.y)))
                         {
-                            //UnityEngine.Debug.Log("ismouse");
+                            //BtvLog.Log("ismouse");
                             UpdateElectrodeById(scrollDelta.y > 0 ? m_TraceOption.ElectrodeID + 1 : m_TraceOption.ElectrodeID - 1);
                         }
                         else
                         {
-                            //UnityEngine.Debug.Log("ispad");
+                            //BtvLog.Log("ispad");
                             m_WheelSum += scrollDelta.y;
                             if (m_WheelSum <= -0.1f)
                             {
@@ -195,38 +195,38 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
         switch (message.TaskToExecute)
         {
-            case 0:
-                Debug.Log("Update Trace Gain");
+            case UiToTraceMessage.Task.UpdateGain:
+                BtvLog.Log("Update Trace Gain");
                 m_TraceOption.Gain = message.Gain;
                 graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
                 break;
-            case 1:
-                Debug.Log("Update Trace Offset");
+            case UiToTraceMessage.Task.UpdateOffset:
+                BtvLog.Log("Update Trace Offset");
                 m_TraceOption.Offset = message.Offset;
                 break;
-            case 2:
-                Debug.Log("Toggle Grid");
+            case UiToTraceMessage.Task.ToggleGrid:
+                BtvLog.Log("Toggle Grid");
                 graphGrid.IsOn = message.IsGridOn;
                 break;
-            case 3:
-                Debug.Log("Update WIndow Period");
+            case UiToTraceMessage.Task.UpdateWindowSize:
+                BtvLog.Log("Update WIndow Period");
                 UpdateTimeResolution(message.TimeWindow);
                 break;
-            case 4:
-                Debug.Log("Toggle Sonification");
+            case UiToTraceMessage.Task.ToggleSonification:
+                BtvLog.Log("Toggle Sonification");
                 graphSonif.Toggle(message.IsSonificationOn);
                 break;
-            case 5:
-                Debug.Log("Update Sonification Sound");
+            case UiToTraceMessage.Task.UpdateSonificationSound:
+                BtvLog.Log("Update Sonification Sound");
                 graphSonif.ChangeAudioClip(message.NewSonificationId);
                 break;
-            case 6:
-                Debug.Log("Update ColorPicker");
+            case UiToTraceMessage.Task.UpdateColor:
+                BtvLog.Log("Update ColorPicker");
                 graphLabel.Color = message.Color;
                 m_TraceOption.Color = message.Color;
                 break;
-            case 7:
-                Debug.Log("Update File Switcher");
+            case UiToTraceMessage.Task.UpdateFile:
+                BtvLog.Log("Update File Switcher");
                 m_TraceOption.FileHandle = EegFileService.ChangeContainerHandle(m_TraceOption.FileHandle, message.FileID);
                 graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
                 graphLabel.Description = m_TraceOption.FileHandle.Description;
@@ -242,20 +242,20 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         switch (message.TaskToExecute)
         {
-            case 0:
-                Debug.Log("Update Trace Gain");
+            case UiToVideoMessage.Task.UpdateGain:
+                BtvLog.Log("Update Trace Gain");
                 m_AudioOption.Gain = message.Gain;
                 break;
-            case 1:
-                Debug.Log("Update Trace Offset");
+            case UiToVideoMessage.Task.UpdateOffset:
+                BtvLog.Log("Update Trace Offset");
                 m_AudioOption.OffsetInMilliSeconds = message.Offset;
                 break;
-            case 2:
-                Debug.Log("Toggle Audio Trace");
+            case UiToVideoMessage.Task.ToggleAudioTrace:
+                BtvLog.Log("Toggle Audio Trace");
                 audioSignal.Show(message.IsTraceOn);
                 break;
-            case 3:
-                Debug.Log("Update Trace Audio File");
+            case UiToVideoMessage.Task.UpdateAudioFile:
+                BtvLog.Log("Update Trace Audio File");
                 m_AudioOption.FileID = message.TraceID;
                 break;
         }
@@ -265,13 +265,13 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         switch (message.TaskToExecute)
         {
-            case 0: //add toggle
+            case EventsToTraceMessage.Task.ToggleAddEvents:
                 m_AddEvents = message.IsAddEventsOn;
                 break;
-            case 1://show toggle
+            case EventsToTraceMessage.Task.ToggleShowEvents:
                 graphEvent.DisplayEvents = message.IsShowEventsOn;
                 break;
-            case 2://Edit Events
+            case EventsToTraceMessage.Task.EditEvent:
                 if (message.ParentWindowIndex == traceID)
                 {
                     bool ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
@@ -279,13 +279,13 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                         OpenEventModify(message.Event);
                 }
                 break;
-            case 3://Add Event
+            case EventsToTraceMessage.Task.AddEventToTrace:
                 graphEvent.AddEventToTrace(message.Event, message.EventIndex);
                 break;
-            case 4://Delete Event
+            case EventsToTraceMessage.Task.RemoveEventFromTrace:
                 graphEvent.DeleteEventFromTrace(message.EventIndex);
                 break;
-            case 5:
+            case EventsToTraceMessage.Task.DisplayEvent:
                 if (message.ParentWindowIndex == traceID)
                 {
                     bool ind = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
@@ -300,7 +300,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         switch (message.TaskToExecute)
         {
-            case 0:
+            case BrainWardenToTraceMessage.Task.PlotClicked:
                 PlotWasClicked(message.ClickedElectrode);
                 break;
             default:
@@ -327,7 +327,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OnMontageMessage(MontageMessage message)
     {
-        if (message.TaskToExecute == 1)
+        if (message.TaskToExecute == MontageMessage.Task.SelectMontage)
         {
             m_TraceOption.FileHandle = EegFileService.ReturnFirstValidContainer(); // FIXME : keep ID of selected file
             graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
@@ -338,7 +338,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     public void UpdateWindowState(int state)
     {
-        UnityEngine.Debug.Log("Updating Trace " + TraceId + " Ui State");
+        BtvLog.Log("Updating Trace " + TraceId + " Ui State");
         m_State = state;
         switch (m_State)
         {
@@ -382,6 +382,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     public void UpdateElectrodeById(int newId)
     {
+        // The TraceOption.ElectrodeID setter dismisses the 1D correlation coloring on change.
         m_TraceOption.ElectrodeID = newId;
         m_TraceOption.Offset = m_TraceOption.Offset; //update offset, see for autoupdate somewhere ???
         graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
