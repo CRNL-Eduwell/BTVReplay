@@ -77,6 +77,7 @@ namespace BTV.Services.EventsService
         public static void UpdateEvent(BtvEvent ModifiedEvent, BtvEvent OriginalEvent)
         {
             bool UpdateDuration = ModifiedEvent.Duration != OriginalEvent.Duration;
+            bool UpdateSite = ModifiedEvent.SiteOfInterest != OriginalEvent.SiteOfInterest;
             bool UpdateElectrodeDefault = ModifiedEvent.SiteOfInterest == "";
             int Id = GetEventId(OriginalEvent);
             if (Id != -1)
@@ -86,6 +87,14 @@ namespace BTV.Services.EventsService
                 {
                     Events[Id].Correlation = null;
                     Events[Id].Correlation2D = null;
+                }
+
+                // The 1D correlation is computed against the site of interest: changing the site
+                // makes it stale, and the brain would keep displaying the previous electrode's
+                // correlations. The 2D matrix is all-pairs and does not depend on the event site.
+                if (UpdateSite)
+                {
+                    Events[Id].Correlation = null;
                 }
 
                 if (UpdateElectrodeDefault)
