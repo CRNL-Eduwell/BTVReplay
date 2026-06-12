@@ -56,6 +56,11 @@ public class EdfFileInfo : IEegFileInfo
         return new EdfFileInfo(Edf);
     }
 
+    public void TransformPaths(Func<string, string> transform)
+    {
+        Edf = transform(Edf);
+    }
+
     public static bool operator ==(EdfFileInfo a, EdfFileInfo b)
     {
         if (ReferenceEquals(a, b))

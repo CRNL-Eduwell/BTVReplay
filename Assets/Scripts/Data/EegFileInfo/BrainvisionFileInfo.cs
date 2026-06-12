@@ -56,6 +56,11 @@ public class BrainvisionFileInfo : IEegFileInfo
         return new BrainvisionFileInfo(Header);
     }
 
+    public void TransformPaths(Func<string, string> transform)
+    {
+        Header = transform(Header);
+    }
+
     public static bool operator ==(BrainvisionFileInfo a, BrainvisionFileInfo b)
     {
         if (ReferenceEquals(a, b))
