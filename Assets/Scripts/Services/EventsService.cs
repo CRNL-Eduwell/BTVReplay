@@ -105,6 +105,20 @@ namespace BTV.Services.EventsService
             }
         }
 
+        /// <summary>
+        /// Drops every stored 1D correlation. Called when the user navigates to another
+        /// electrode: the brain coloring would otherwise keep displaying correlations computed
+        /// against a site the user is no longer inspecting. The 2D matrices stay - their
+        /// displayed row follows the selected electrode by design.
+        /// </summary>
+        public static void ClearCorrelations()
+        {
+            for (int i = 0; i < Events.Count; i++)
+            {
+                Events[i].Correlation = null;
+            }
+        }
+
         public static void RemoveEvent(BtvEvent Event)
         {
             BtvEvent EventToRemove = new BtvEvent(Event);

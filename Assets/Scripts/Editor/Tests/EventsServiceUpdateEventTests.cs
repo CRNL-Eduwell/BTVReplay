@@ -71,6 +71,22 @@ public class EventsServiceUpdateEventTests
     }
 
     [Test]
+    public void ClearCorrelations_Clears1dOnEveryEvent_AndKeeps2d()
+    {
+        EventsService.AddEvent(new BtvEvent(5, 1000f, 2000, "A1", "B2", "first"));
+        EventsService.AddEvent(new BtvEvent(6, 4000f, 2000, "C3", "D4", "second"));
+        EventsService.Events[0].Correlation = new float[] { 0.1f };
+        EventsService.Events[1].Correlation = new float[] { 0.2f };
+        EventsService.Events[1].Correlation2D = new float[][] { new float[] { 0f } };
+
+        EventsService.ClearCorrelations();
+
+        Assert.IsNull(EventsService.Events[0].Correlation);
+        Assert.IsNull(EventsService.Events[1].Correlation);
+        Assert.IsNotNull(EventsService.Events[1].Correlation2D, "2D display follows the selected electrode by design and must survive");
+    }
+
+    [Test]
     public void UpdateEvent_CommentOnlyChange_KeepsTheStoredCorrelation()
     {
         BtvEvent original = AddEventWithCorrelation();

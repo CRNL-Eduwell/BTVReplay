@@ -1,5 +1,6 @@
 ﻿using BTV.Data;
 using BTV.Services.EegFileService;
+using BTV.Services.EventsService;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -382,9 +383,15 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     public void UpdateElectrodeById(int newId)
     {
+        int previousId = m_TraceOption.ElectrodeID;
         m_TraceOption.ElectrodeID = newId;
         m_TraceOption.Offset = m_TraceOption.Offset; //update offset, see for autoupdate somewhere ???
         graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
+
+        // Navigating to another electrode dismisses the 1D correlation coloring on the brain:
+        // it was computed against a site the user is no longer inspecting.
+        if (m_TraceOption.ElectrodeID != previousId)
+            EventsService.ClearCorrelations();
     }
 
     private void UpdateTracesWidth()

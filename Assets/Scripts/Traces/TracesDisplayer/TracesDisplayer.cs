@@ -409,6 +409,11 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     {
         if (Index > -1 && Index < FileHandle.NumberOfElectrodes)
         {
+            // Navigating to another electrode dismisses the 1D correlation coloring on the
+            // brain: it was computed against a site the user is no longer inspecting.
+            if (Index != m_currentElectrodeID)
+                EventsService.ClearCorrelations();
+
             m_currentElectrodeID = Index;
             Channel = FileHandle.Channels[m_currentElectrodeID];
             m_ElectrodeLabel.Label = Channel.Label;
