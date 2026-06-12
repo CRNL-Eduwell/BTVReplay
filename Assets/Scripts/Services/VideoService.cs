@@ -62,6 +62,26 @@ namespace BTV.Services.VideoService
             }
         }
         public static bool FilteredDataLoaded { get; private set; } = false;
+        /// <summary>
+        /// Whether the VLC executable is present at the configured path. UI flows that need VLC
+        /// check this first and show <see cref="VlcMissingMessage"/> as a plain dialog - a
+        /// missing VLC is a configuration state, not a program error.
+        /// </summary>
+        public static bool VlcFileExist
+        {
+            get
+            {
+                string vlcPath = m_VlcPath;
+                return !string.IsNullOrEmpty(vlcPath) && File.Exists(vlcPath);
+            }
+        }
+        public static string VlcMissingMessage
+        {
+            get
+            {
+                return "VLC was not found at \"" + m_VlcPath + "\".\nInstall VLC or set its installation folder in the user preferences.";
+            }
+        }
 
         private static BtvProgram m_ProcessedAudio = null;
         private static AudioDataContainer m_RawAudioData = null;
@@ -101,14 +121,14 @@ namespace BTV.Services.VideoService
         // process, file IO, DSP) inside Task.Run, and publishes results to the static fields
         // after the await - i.e. back on the Unity main thread.
 
-        // Reads the user preferences, so call it on the main thread. Without this check,
-        // Process.Start fails with an unhelpful "Cannot find the specified file".
+        // Backstop for callers that skipped the VlcFileExist check. Reads the user preferences,
+        // so call it on the main thread. Without this check, Process.Start fails with an
+        // unhelpful "Cannot find the specified file".
         private static string ResolveVlcPathOrThrow()
         {
-            string vlcPath = m_VlcPath;
-            if (string.IsNullOrEmpty(vlcPath) || !System.IO.File.Exists(vlcPath))
-                throw new FileNotFoundException("VLC was not found at \"" + vlcPath + "\". Install VLC or set its installation folder in the user preferences.");
-            return vlcPath;
+            if (!VlcFileExist)
+                throw new FileNotFoundException(VlcMissingMessage);
+            return m_VlcPath;
         }
         public static async Task ExtractAudioAsync(string AudioFilePath, string VideoFilePath)
         {

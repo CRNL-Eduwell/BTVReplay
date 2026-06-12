@@ -23,6 +23,14 @@ namespace BTV.UI.Module3D.Tools
 
         private void TryToExtractAudioFromVideo()
         {
+            // Checked before anything else so a missing VLC is reported as a plain dialog (no
+            // console error) and never deletes an existing audio file it could not re-create.
+            if (!VideoService.VlcFileExist)
+            {
+                ApplicationState.displayMessage("Audio Extraction", "NOK", VideoService.VlcMissingMessage);
+                return;
+            }
+
             if (VideoService.VideoFileExist && !VideoService.AudioFileExist)
             {
                 LaunchAudioExtraction(VideoService.AudioFromVideoPath, VideoService.OriginalVideoPath);

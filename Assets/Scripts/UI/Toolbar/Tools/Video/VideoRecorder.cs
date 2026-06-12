@@ -6,6 +6,12 @@ public class VideoRecorder : MonoBehaviour
 {
     public async void LaunchVideoRecording(string VideoFilePath, string DurationInSecond)
     {
+        if (!VideoService.VlcFileExist)
+        {
+            ApplicationState.displayMessage("Video Record", "NOK", VideoService.VlcMissingMessage);
+            return;
+        }
+
         try
         {
             await VideoService.RecordVideoSnippetAsync(VideoFilePath, DurationInSecond);
