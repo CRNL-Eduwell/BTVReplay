@@ -304,7 +304,14 @@ public class EventsManager : MonoBehaviour
 
     private void AddEvent(BtvEvent Event)
     {
-        EventsService.AddEvent(Event);
+        if (!EventsService.AddEvent(Event))
+        {
+            // The service skipped a duplicate: stop here, otherwise the UI lists and the
+            // per-trace GameObject lists would each gain an entry the service does not have
+            // and drift out of sync with EventsService.Events.
+            UnityEngine.Debug.LogWarning("AddEvent: an identical event already exists, nothing added.");
+            return;
+        }
         EventsService.SortBySample();
         int id = EventsService.GetEventId(Event);
 

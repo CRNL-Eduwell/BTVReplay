@@ -458,16 +458,17 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     public void AddEvent(BtvEvent btvEvent)
     {
+        if (m_VideoPlayer.VideoInterface.TotalVideoTime <= 0)
+            return;
+
         Texture2D texture = ((Texture2D)m_TextureRawImage.texture);
-        float perC = ((btvEvent.TimeInMilliSeconds / m_VideoPlayer.VideoInterface.TotalVideoTime));// * 1000);
-        int pixelID = (int)(perC * texture.width);
+        int pixelID = PixelForTime(btvEvent.TimeInMilliSeconds, texture);
 
         if (btvEvent.Duration > 0)
         {
             if (btvEvent.Duration > 1000)
             {
-                float perCDuration = ((btvEvent.TimeInMilliSeconds + btvEvent.Duration) / m_VideoPlayer.VideoInterface.TotalVideoTime);// * 1000;
-                int pixelIDDuration = (int)(perCDuration * texture.width);
+                int pixelIDDuration = PixelForTime(btvEvent.TimeInMilliSeconds + btvEvent.Duration, texture);
                 for (int i = 0; i < texture.height; i++)
                 {
                     for (int j = 0; j < pixelIDDuration - pixelID; j++)
@@ -487,16 +488,17 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     public void RemoveEvent(BtvEvent btvEvent)
     {
+        if (m_VideoPlayer.VideoInterface.TotalVideoTime <= 0)
+            return;
+
         Texture2D texture = ((Texture2D)m_TextureRawImage.texture);
-        float perC = (btvEvent.TimeInMilliSeconds / m_VideoPlayer.VideoInterface.TotalVideoTime);// * 1000);
-        int pixelID = (int)(perC * texture.width);
+        int pixelID = PixelForTime(btvEvent.TimeInMilliSeconds, texture);
 
         if (btvEvent.Duration > 0)
         {
             if (btvEvent.Duration > 1000)
             {
-                float perCDuration = ((btvEvent.TimeInMilliSeconds + btvEvent.Duration) / m_VideoPlayer.VideoInterface.TotalVideoTime);// * 1000;
-                int pixelIDDuration = (int)(perCDuration * texture.width);
+                int pixelIDDuration = PixelForTime(btvEvent.TimeInMilliSeconds + btvEvent.Duration, texture);
                 for (int i = 0; i < texture.height; i++)
                 {
                     for (int j = 0; j < pixelIDDuration - pixelID; j++)
@@ -511,6 +513,16 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         }
         texture.SetPixels(m_TextureColorData);
         texture.Apply();
+    }
+
+    // Events can sit outside the video timeline (an event past the end of the recording, or no
+    // video prepared yet): clamp to the texture bounds so painting can never throw. An exception
+    // here aborts the caller's add/delete flow halfway through and desyncs the event lists kept
+    // by the other modules.
+    private int PixelForTime(float timeInMilliSeconds, Texture2D texture)
+    {
+        float perC = timeInMilliSeconds / m_VideoPlayer.VideoInterface.TotalVideoTime;
+        return Mathf.Clamp((int)(perC * texture.width), 0, texture.width - 1);
     }
 
     public void RemoveAllEvents()
