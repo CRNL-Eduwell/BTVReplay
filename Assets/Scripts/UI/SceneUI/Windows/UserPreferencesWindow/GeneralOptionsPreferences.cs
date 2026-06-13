@@ -13,17 +13,12 @@ public class GeneralOptionsPreferences : MonoBehaviour
 
     private List<KeyValuePair<Toggle, GameObject>> m_GraphicalElements = null;
     private GeneralPreferences m_Preferences = null;
-    private PathRootsPreferencesTab m_PathRootsTab = null;
 
     void Start()
     {
         m_Preferences = new GeneralPreferences(UserPreferencesService.UserPreferences.GeneralPreferences);
 
         _HeaderClose.onClick.AddListener(Close);
-
-        // Built before the tab enumeration below so the new toggle/panel pair is wired like
-        // the prefab-authored ones.
-        m_PathRootsTab = PathRootsPreferencesTab.Build(_TabSelectorRoot.transform, _TabContentRoot.transform);
 
         int elements = _TabSelectorRoot.transform.childCount;
         m_GraphicalElements = new List<KeyValuePair<Toggle, GameObject>>();
@@ -47,11 +42,6 @@ public class GeneralOptionsPreferences : MonoBehaviour
                     {
                         FolderSelector fs = trm.GetChild(1).GetChild(1).GetComponent<FolderSelector>();
                         fs.Text = m_Preferences.VlcPath;
-                        break;
-                    }
-                case 2:
-                    {
-                        m_PathRootsTab.Populate(m_Preferences.PathRoots);
                         break;
                     }
             }
@@ -90,11 +80,6 @@ public class GeneralOptionsPreferences : MonoBehaviour
                     {
                         FolderSelector fs = kvp.Value.transform.GetChild(1).GetChild(1).GetComponent<FolderSelector>();
                         m_Preferences.VlcPath = fs.Text;
-                        break;
-                    }
-                case 2:
-                    {
-                        m_Preferences.PathRoots = m_PathRootsTab.CollectRoots();
                         break;
                     }
             }

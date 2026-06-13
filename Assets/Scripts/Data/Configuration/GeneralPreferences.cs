@@ -14,13 +14,6 @@ public class GeneralPreferences
     /// </summary>
     public string VlcPath { get; set; } = "";
 
-    /// <summary>
-    /// Machine-specific named roots used to make patient-base paths portable: a path stored as
-    /// "${NAME}/..." resolves against the root named NAME on this machine. The same names must
-    /// be configured (pointing wherever is right locally) on every machine sharing the bases.
-    /// </summary>
-    public List<PathRoot> PathRoots { get; set; } = new List<PathRoot>();
-
     public GeneralPreferences()
     {
 
@@ -30,6 +23,5 @@ public class GeneralPreferences
     {
         ExportPath = preferences.ExportPath;
         VlcPath = preferences.VlcPath;
-        PathRoots = preferences.PathRoots.ConvertAll(r => new PathRoot(r));
     }
 }

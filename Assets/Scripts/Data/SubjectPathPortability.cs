@@ -17,9 +17,10 @@ public static class SubjectPathPortability
         get
         {
             // The preferences are not loaded yet on some early paths (and in edit-mode tests);
-            // fall back to "no named roots" - ${APPCONFIG} still resolves.
+            // fall back to "no named roots" - ${APPCONFIG} still resolves. Roots live with the
+            // database preferences (configured in the patient-base manager's options).
             UserPreferences preferences = BTV.Services.UserPreferencesService.UserPreferencesService.UserPreferences;
-            return preferences != null ? preferences.GeneralPreferences.PathRoots : null;
+            return preferences != null ? preferences.DatabasePreferences.PathRoots : null;
         }
     }
 
