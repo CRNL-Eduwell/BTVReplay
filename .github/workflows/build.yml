@@ -8,8 +8,6 @@ on:
   release:
     types: [ published ]
   workflow_dispatch:
-  push:
-    branches: [ feature/ci-node24 ]   # TEMP (bring-up): validate the action-version bumps, drop before merging
 
 permissions:
   contents: write   # the "Attach to release" step uploads assets to the release
@@ -39,19 +37,16 @@ jobs:
             module: StandaloneLinux64     # unity-setup build-target / module to install
             cliTarget: Linux64            # Unity's own -buildTarget switch value
             artifact: BTVReplay-Linux
-          # TEMP (bring-up): Windows + macOS commented out for the action-bump canary -- bumping
-          # actions/checkout, cache and upload-artifact is platform-agnostic, so the cheap Linux
-          # 1x run validates it. Re-enable both before merging.
-          # - name: Windows
-          #   os: windows-latest
-          #   module: StandaloneWindows64
-          #   cliTarget: Win64
-          #   artifact: BTVReplay-Windows
-          # - name: macOS (arm64)
-          #   os: macos-latest
-          #   module: StandaloneOSX
-          #   cliTarget: OSXUniversal
-          #   artifact: BTVReplay-macOS-arm64
+          - name: Windows
+            os: windows-latest
+            module: StandaloneWindows64
+            cliTarget: Win64
+            artifact: BTVReplay-Windows
+          - name: macOS (arm64)
+            os: macos-latest
+            module: StandaloneOSX
+            cliTarget: OSXUniversal
+            artifact: BTVReplay-macOS-arm64
 
     steps:
       - name: Checkout
