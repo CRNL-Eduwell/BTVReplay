@@ -1,13 +1,16 @@
 name: Build BTVReplay
 
-# Builds the three desktop targets when master is updated (i.e. on a develop -> master
-# release merge), plus on demand. Uses a free Unity *Personal* licence activated from
-# account credentials (no Pro/Plus serial) -- see .github/workflows/README.md for the
-# required secrets and the rationale behind the per-platform native-runner matrix.
+# Builds the three desktop targets and attaches them to the GitHub Release when a release is
+# published -- the develop -> master version flow ends by publishing the VX.Y.Z release -- plus
+# on demand. Uses a free Unity *Personal* licence activated from account credentials (no Pro/Plus
+# serial); see .github/workflows/README.md for the required secrets and the per-platform matrix.
 on:
-  push:
-    branches: [ master ]
+  release:
+    types: [ published ]
   workflow_dispatch:
+
+permissions:
+  contents: write   # the "Attach to release" step uploads assets to the release
 
 concurrency:
   group: build-${{ github.ref }}
@@ -93,9 +96,35 @@ jobs:
             -buildOutput "$GITHUB_WORKSPACE/build" \
             -logFile -
 
-      - name: Upload build
+      # Package the build folder into one archive per platform. ditto preserves the macOS .app
+      # bundle (symlinks, permissions, code signature); zip/7z handle the Linux/Windows folders.
+      # The archive is named after the build folder, so it carries the version (BTVReplay.X.Y.Z.<os>).
+      - name: Package build
+        id: package
+        run: |
+          set -euo pipefail
+          folder=$(ls -d build/*/ | head -1); folder=${folder%/}
+          name=$(basename "$folder")
+          zip="${name}.zip"
+          case "$RUNNER_OS" in
+            macOS)   ditto -c -k --sequesterRsrc --keepParent "$folder" "$zip" ;;
+            Linux)   ( cd build && zip -r -y -q "../$zip" "$name" ) ;;
+            Windows) ( cd build && 7z a -tzip -bso0 "../$zip" "$name" ) ;;
+          esac
+          echo "zip=$zip" >> "$GITHUB_OUTPUT"
+          ls -lh "$zip"
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: build
+          path: ${{ steps.package.outputs.zip }}
           if-no-files-found: error
+
+      # On a published release, attach the archive to it (--clobber so re-runs replace the asset).
+      # Skipped for workflow_dispatch and the bring-up push, which have no release to upload to.
+      - name: Attach to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "${{ steps.package.outputs.zip }}" --clobber

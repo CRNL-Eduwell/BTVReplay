@@ -1,9 +1,11 @@
 # CI builds
 
-`build.yml` builds BTVReplay for **Linux, Windows and macOS** whenever `master` is updated
-(i.e. a `develop -> master` release merge) and on manual dispatch. Builds use a **free Unity
-Personal licence** — no Pro/Plus subscription required — and are uploaded as workflow artifacts
-(Actions run -> Artifacts).
+`build.yml` builds BTVReplay for **Linux, Windows and macOS** whenever a **GitHub Release is
+published** (the `develop -> master` version flow ends by publishing `VX.Y.Z`) and on manual
+dispatch. Builds use a **free Unity Personal licence** — no Pro/Plus subscription required. On a
+release, each platform's build is zipped and **attached to that release** as an asset
+(`BTVReplay.X.Y.Z.<os>.zip`); every run also uploads the same archive as a workflow artifact
+(Actions run -> Artifacts), which is what a manual `workflow_dispatch` run produces.
 
 Each platform builds on its **own native runner** (`ubuntu-latest`, `windows-latest`,
 `macos-latest`). That avoids unsupported cross-platform IL2CPP compilation and — because GitHub's
@@ -35,8 +37,11 @@ a couple of simultaneous activations, so a separate account avoids knocking out 
 
 ## Triggering a build
 
-- **Automatic:** merge `develop -> master` (the release flow).
-- **Manual:** **Actions -> Build BTVReplay -> Run workflow**.
+- **Automatic:** publish a GitHub Release (`VX.Y.Z`) — the end of the `/btv-release` flow. The
+  builds attach to that release as assets when they finish. (A release with no assets for ~20 min
+  is normal: the builds are still running.)
+- **Manual:** **Actions -> Build BTVReplay -> Run workflow** — produces workflow artifacts only
+  (no release to attach to).
 
 The first run per target is slow (no `Library` cache + a full Unity editor install); later runs
 reuse the cached `Library` and are much faster.
