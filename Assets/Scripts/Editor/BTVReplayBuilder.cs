@@ -22,7 +22,22 @@ public class BTVReplayBuilder : MonoBehaviour
         BuildProjectAndZipIt(buildsDirectory, false, BuildTarget.StandaloneOSX);
     }
 
-    public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target)
+    /// <summary>
+    /// Headless entry point that builds the single active build target, selected via Unity's
+    /// "-buildTarget" command-line argument (Win64 / Linux64 / OSXUniversal). CI builds each
+    /// platform on its own native runner, so it calls this rather than <see cref="DefaultBuild"/>
+    /// (which builds all three in one session and would require unsupported cross-compilation).
+    /// Exits with a non-zero code on failure so the CI job fails instead of silently uploading
+    /// an empty/partial artifact.
+    /// </summary>
+    public static void Build()
+    {
+        BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
+        bool succeeded = BuildProjectAndZipIt(ResolveDefaultBuildsDirectory(), false, target);
+        EditorApplication.Exit(succeeded ? 0 : 1);
+    }
+
+    public static bool BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target)
     {
         string os = "";
         switch (target)
@@ -36,7 +51,15 @@ public class BTVReplayBuilder : MonoBehaviour
                 m_DataBuild = "BTVReplay_Data/Config";
                 break;
             case BuildTarget.StandaloneOSX:
+                // UnityEditor.OSXStandalone ships with the macOS build-support module, so the type
+                // only exists when the editor runs on macOS (local dev + the CI macOS runner).
+                // Guarded with UNITY_EDITOR_OSX so the Linux/Windows runners -- which compile this
+                // editor assembly without that module installed -- don't fail with CS0234. The
+                // macOS target is only ever built on a macOS host, which is exactly where the arm64
+                // forcing is needed, so nothing is lost.
+#if UNITY_EDITOR_OSX
                 UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.Build.OSArchitecture.ARM64;
+#endif
                 os = "macos64";
                 m_DataBuild = "Contents/Config";
                 break;
@@ -76,7 +99,7 @@ public class BTVReplayBuilder : MonoBehaviour
         {
             Debug.LogError(string.Format("BTVReplayBuilder: {0} build FAILED ({1}) with {2} error(s); skipping data/plugin copy.",
                 target, report.summary.result, report.summary.totalErrors));
-            return;
+            return false;
         }
         BtvLog.Log(string.Format("BTVReplayBuilder: {0} build succeeded -> {1} ({2:0.0} MB)",
             target, buildDirectory, report.summary.totalSize / (1024f * 1024f)));
@@ -118,6 +141,9 @@ public class BTVReplayBuilder : MonoBehaviour
                 break;
             case BuildTarget.StandaloneOSX:
                 {
+                    // See the UNITY_EDITOR_OSX note above: the arm64 plugin flatten references
+                    // UnityEditor.OSXStandalone, so it must be compiled out on non-macOS runners.
+#if UNITY_EDITOR_OSX
                     if (UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.Build.OSArchitecture.ARM64)
                     {
                         string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
@@ -135,9 +161,12 @@ public class BTVReplayBuilder : MonoBehaviour
                             Debug.LogWarning("BTVReplayBuilder: Contents/PlugIns/ARM64 not found; assuming arm64 plugins are already placed correctly. Verify the .app loads native libraries.");
                         }
                     }
+#endif
                 }
                 break;
         }
+
+        return true;
     }
 
     private static string ResolveDefaultBuildsDirectory()
