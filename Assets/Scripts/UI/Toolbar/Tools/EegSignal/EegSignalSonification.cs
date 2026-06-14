@@ -56,12 +56,12 @@ namespace BTV.UI.Module3D.Tools
         private void ToggleSound(bool IsOn)
         {
             m_SoundChoice.interactable = IsOn;
-            sonifToggled(IsOn);
+            sonifToggled?.Invoke(IsOn);
         }
 
         private void UpdateSound(int NewSoundId)
         {
-            soundChanged(NewSoundId);
+            soundChanged?.Invoke(NewSoundId);
         }
     }
 }

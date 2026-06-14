@@ -31,19 +31,23 @@ namespace Tools.CSharp.EEG
             }
         }
         /// <summary>
-        /// List of electrodes of this file
+        /// List of electrodes of this file. WARNING: every access re-reads and re-marshals ALL
+        /// samples from the native file - read it once into a local (as IEegDataContainer
+        /// does), never inside a loop.
         /// </summary>
         public List<Electrode> Electrodes
         {
             get
             {
-                List<Electrode> electrodes = new List<Electrode>(ElectrodeCount);
-                for (int i = 0; i < ElectrodeCount; i++)
+                int electrodeCount = ElectrodeCount;
+                int numberOfSamples = NumberOfSamples;
+                List<Electrode> electrodes = new List<Electrode>(electrodeCount);
+                for (int i = 0; i < electrodeCount; i++)
                 {
                     float[] data = null;
-                    if (NumberOfSamples != 0)
+                    if (numberOfSamples != 0)
                     {
-                        data = new float[NumberOfSamples];
+                        data = new float[numberOfSamples];
                         GetElectrodeData(_handle, i, 0, data, data.Length);
                     }
                     electrodes.Add(new Electrode(GetElectrode(_handle, i), data));
@@ -68,8 +72,9 @@ namespace Tools.CSharp.EEG
         {
             get
             {
-                List<Trigger> triggers = new List<Trigger>(TriggerCount);
-                for (int i = 0; i < TriggerCount; i++)
+                int triggerCount = TriggerCount;
+                List<Trigger> triggers = new List<Trigger>(triggerCount);
+                for (int i = 0; i < triggerCount; i++)
                 {
                     triggers.Add(new Trigger(GetTrigger(_handle, i)));
                 }
@@ -93,8 +98,9 @@ namespace Tools.CSharp.EEG
         {
             get
             {
-                List<Note> notes = new List<Note>(NoteCount);
-                for (int i = 0; i < NoteCount; i++)
+                int noteCount = NoteCount;
+                List<Note> notes = new List<Note>(noteCount);
+                for (int i = 0; i < noteCount; i++)
                 {
                     notes.Add(new Note(GetNote(_handle, i)));
                 }

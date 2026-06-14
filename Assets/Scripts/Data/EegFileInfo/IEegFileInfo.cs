@@ -10,4 +10,10 @@ public interface IEegFileInfo : ICloneable
     string[] Files { get; }
 
     List<ArgumentException> CheckForErrors();
+
+    /// <summary>
+    /// Applies the transformation to every stored file path (used by the persistence layer to
+    /// expand/tokenize portable paths - see PathTokens).
+    /// </summary>
+    void TransformPaths(Func<string, string> transform);
 }

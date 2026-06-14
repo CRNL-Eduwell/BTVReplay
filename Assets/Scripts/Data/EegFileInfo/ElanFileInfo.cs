@@ -93,6 +93,13 @@ public class ElanFileInfo : IEegFileInfo
         return new ElanFileInfo(Eeg, Pos, Notes);
     }
 
+    public void TransformPaths(Func<string, string> transform)
+    {
+        Eeg = transform(Eeg);
+        Pos = transform(Pos);
+        Notes = transform(Notes);
+    }
+
     public static bool operator ==(ElanFileInfo a, ElanFileInfo b)
     {
         if (ReferenceEquals(a, b))
