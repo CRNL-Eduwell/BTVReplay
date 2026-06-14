@@ -1,0 +1,104 @@
+name: Build BTVReplay
+
+# Builds the three desktop targets when master is updated (i.e. on a develop -> master
+# release merge), plus on demand. Uses a free Unity *Personal* licence activated from
+# account credentials (no Pro/Plus serial) -- see .github/workflows/README.md for the
+# required secrets and the rationale behind the per-platform native-runner matrix.
+on:
+  push:
+    branches: [ master, feature/ci-builds-revive ]   # TEMP (bring-up): drop the feature branch before merging
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash   # one build script works on all three runners (bash ships on windows-latest)
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false   # one target failing must not cancel the others
+      matrix:
+        include:
+          # Each target builds on its OWN native runner. Building all three from one host
+          # (as DefaultBuild does locally) needs cross-platform IL2CPP toolchains that aren't
+          # available, so we fan out instead. macos-latest is Apple Silicon, so its .app is a
+          # real arm64 build and this project's arm64-only native plugins load correctly.
+          - name: Linux
+            os: ubuntu-latest
+            module: StandaloneLinux64     # unity-setup build-target / module to install
+            cliTarget: Linux64            # Unity's own -buildTarget switch value
+            artifact: BTVReplay-Linux
+          # TEMP (bring-up): Windows + macOS are commented out for the Linux-only canary, so we
+          # prove the setup->activate->build->artifact pipeline on cheap 1x minutes before
+          # spending the 10x macOS minutes. Re-enable both before merging.
+          # - name: Windows
+          #   os: windows-latest
+          #   module: StandaloneWindows64
+          #   cliTarget: Win64
+          #   artifact: BTVReplay-Windows
+          # - name: macOS (arm64)
+          #   os: macos-latest
+          #   module: StandaloneOSX
+          #   cliTarget: OSXUniversal
+          #   artifact: BTVReplay-macOS-arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # The Library import cache is the big time saver; the first run per target is a full
+      # asset import (~slow), later runs reuse it. Keyed on the assets so it invalidates
+      # when they change, with progressively looser restore-keys for a warm-ish start.
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ matrix.module }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ matrix.module }}-
+            Library-
+
+      - name: Install Unity
+        id: unity-setup
+        uses: RageAgainstThePixel/unity-setup@v2
+        with:
+          unity-version: 6000.4.10f1   # keep in sync with ProjectSettings; re-pin on editor upgrade
+          build-targets: ${{ matrix.module }}
+
+      # Activates a free Personal licence straight from the account credentials. This replaces
+      # the dead manual .alf -> .ulf web flow (Unity removed Personal from that page). The
+      # action's post-step returns the licence at the end of the job.
+      - name: Activate Unity licence (Personal)
+        uses: RageAgainstThePixel/activate-unity-license@v2
+        with:
+          license: Personal
+          username: ${{ secrets.UNITY_USERNAME }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+
+      # -buildTarget switches the active platform so plugin import settings + defines resolve
+      # correctly; BTVReplayBuilder.Build then builds that active target and copies Assets/Config
+      # and the per-platform natives next to the player (same path as Tools -> Build BTVReplay).
+      # It calls EditorApplication.Exit(1) on failure, so a broken build fails this job.
+      - name: Build ${{ matrix.cliTarget }}
+        run: |
+          set -euo pipefail
+          "$UNITY_EDITOR_PATH" \
+            -batchmode -quit -nographics \
+            -projectPath "$GITHUB_WORKSPACE" \
+            -buildTarget ${{ matrix.cliTarget }} \
+            -executeMethod BTVReplayBuilder.Build \
+            -buildOutput "$GITHUB_WORKSPACE/build" \
+            -logFile -
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: build
+          if-no-files-found: error

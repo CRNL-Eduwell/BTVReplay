@@ -22,7 +22,22 @@ public class BTVReplayBuilder : MonoBehaviour
         BuildProjectAndZipIt(buildsDirectory, false, BuildTarget.StandaloneOSX);
     }
 
-    public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target)
+    /// <summary>
+    /// Headless entry point that builds the single active build target, selected via Unity's
+    /// "-buildTarget" command-line argument (Win64 / Linux64 / OSXUniversal). CI builds each
+    /// platform on its own native runner, so it calls this rather than <see cref="DefaultBuild"/>
+    /// (which builds all three in one session and would require unsupported cross-compilation).
+    /// Exits with a non-zero code on failure so the CI job fails instead of silently uploading
+    /// an empty/partial artifact.
+    /// </summary>
+    public static void Build()
+    {
+        BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
+        bool succeeded = BuildProjectAndZipIt(ResolveDefaultBuildsDirectory(), false, target);
+        EditorApplication.Exit(succeeded ? 0 : 1);
+    }
+
+    public static bool BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target)
     {
         string os = "";
         switch (target)
@@ -76,7 +91,7 @@ public class BTVReplayBuilder : MonoBehaviour
         {
             Debug.LogError(string.Format("BTVReplayBuilder: {0} build FAILED ({1}) with {2} error(s); skipping data/plugin copy.",
                 target, report.summary.result, report.summary.totalErrors));
-            return;
+            return false;
         }
         BtvLog.Log(string.Format("BTVReplayBuilder: {0} build succeeded -> {1} ({2:0.0} MB)",
             target, buildDirectory, report.summary.totalSize / (1024f * 1024f)));
@@ -138,6 +153,8 @@ public class BTVReplayBuilder : MonoBehaviour
                 }
                 break;
         }
+
+        return true;
     }
 
     private static string ResolveDefaultBuildsDirectory()
