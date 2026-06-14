@@ -6,7 +6,7 @@ name: Build BTVReplay
 # required secrets and the rationale behind the per-platform native-runner matrix.
 on:
   push:
-    branches: [ master, feature/ci-builds-revive ]   # TEMP (bring-up): drop the feature branch before merging
+    branches: [ master ]
   workflow_dispatch:
 
 concurrency:
