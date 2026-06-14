@@ -8,8 +8,6 @@ on:
   release:
     types: [ published ]
   workflow_dispatch:
-  push:
-    branches: [ feature/ci-release-assets ]   # TEMP (bring-up): validate packaging, drop before merging
 
 permissions:
   contents: write   # the "Attach to release" step uploads assets to the release
@@ -44,14 +42,11 @@ jobs:
             module: StandaloneWindows64
             cliTarget: Win64
             artifact: BTVReplay-Windows
-          # TEMP (bring-up): macOS is commented out for the packaging-validation canary -- the
-          # macOS .app archive (ditto) was already verified locally and the 10x minutes aren't
-          # worth re-spending just to test zipping. Re-enable before merging.
-          # - name: macOS (arm64)
-          #   os: macos-latest
-          #   module: StandaloneOSX
-          #   cliTarget: OSXUniversal
-          #   artifact: BTVReplay-macOS-arm64
+          - name: macOS (arm64)
+            os: macos-latest
+            module: StandaloneOSX
+            cliTarget: OSXUniversal
+            artifact: BTVReplay-macOS-arm64
 
     steps:
       - name: Checkout
