@@ -50,13 +50,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # The Library import cache is the big time saver; the first run per target is a full
       # asset import (~slow), later runs reuse it. Keyed on the assets so it invalidates
       # when they change, with progressively looser restore-keys for a warm-ish start.
       - name: Cache Library
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Library
           key: Library-${{ matrix.module }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
@@ -115,7 +115,7 @@ jobs:
           ls -lh "$zip"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: ${{ steps.package.outputs.zip }}
