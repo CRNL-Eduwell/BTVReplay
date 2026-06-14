@@ -32,6 +32,7 @@ BTVReplay has no CI gate and a dense, specific PR convention (see **CLAUDE.md �
 - **Lead paragraph, no heading** — one or two sentences: what the change does and where it comes from. Cite the review section/tier or prior PR (`review §2 "culture bugs"`, `Closes the review's §5 …`, `Follow-up to #35`).
 - Then only the sections the change warrants, in this order: `## What` · `## Design` · `## Pieces` · `## The crash` → `## Fixes` · `## Collateral` (or inline `Drive-by:`) · `## Tests` · `## Verification` / `## Manual verification suggested`.
 - **Every non-trivial PR ends with verification**, led with `In-editor: …` — the exact flows exercised against the `Assets/Config/PatientBase/` fixtures (no CI exists, so this is the only proof it works).
+  - **Tooling/docs-only changes** (touches only `.claude/`, `Docs/`, `CLAUDE.md`, `*.md`, CI config — no `Assets/Scripts` runtime code): there's nothing to run in-editor. Say so plainly (`Tooling/docs only — no app code touched, so in-editor PatientBase verification doesn't apply`) and give the *real* validation instead (specs cross-checked against history, links resolve, the skill was dogfooded, etc.). Do NOT invent a fixture flow.
 - **Tests section only if tests were actually added** — give the count + what they pin and the full-suite pass total (`8 new edit-mode tests …; Full suite: 36/36 passing`). Don't invent it.
 - Optional closing scope note: `Known warts left as-is: …` or what a follow-up PR will land.
 
