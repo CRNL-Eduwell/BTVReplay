@@ -34,19 +34,16 @@ jobs:
             module: StandaloneLinux64     # unity-setup build-target / module to install
             cliTarget: Linux64            # Unity's own -buildTarget switch value
             artifact: BTVReplay-Linux
-          # TEMP (bring-up): Windows + macOS are commented out for the Linux-only canary, so we
-          # prove the setup->activate->build->artifact pipeline on cheap 1x minutes before
-          # spending the 10x macOS minutes. Re-enable both before merging.
-          # - name: Windows
-          #   os: windows-latest
-          #   module: StandaloneWindows64
-          #   cliTarget: Win64
-          #   artifact: BTVReplay-Windows
-          # - name: macOS (arm64)
-          #   os: macos-latest
-          #   module: StandaloneOSX
-          #   cliTarget: OSXUniversal
-          #   artifact: BTVReplay-macOS-arm64
+          - name: Windows
+            os: windows-latest
+            module: StandaloneWindows64
+            cliTarget: Win64
+            artifact: BTVReplay-Windows
+          - name: macOS (arm64)
+            os: macos-latest
+            module: StandaloneOSX
+            cliTarget: OSXUniversal
+            artifact: BTVReplay-macOS-arm64
 
     steps:
       - name: Checkout
