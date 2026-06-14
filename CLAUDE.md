@@ -1,4 +1,4 @@
-# BTVReplay (BrainTV Replay)
+# BTVReplay (BrainTV Replay) — Claude Code Instructions
 
 Unity desktop app for synchronized replay of intracranial EEG (SEEG) + patient video for
 epilepsy monitoring review (CHUV). Loads patient databases, draws EEG traces, renders a 3D
@@ -83,6 +83,58 @@ correlations, all synchronized to a video clock.
   repo, kept as-is).
 - **Commit style**: `type: short description` (e.g. `feat:`, `fix:`, `docs:`, `chore:`,
   `refactor:`, `build:`, `perf:`).
+
+## PR Template
+
+Open with a lead paragraph (no heading): one or two sentences saying what the change does
+and where it comes from — cite the review section / tier it closes (`review §2 "culture
+bugs"`, `Closes the review's §5 …`, `tier E item #1`). Then add only the sections the change
+warrants. A small PR (e.g. #30, #32) is just the lead paragraph plus a bullet list; reach for
+headings only when the change has genuinely distinct parts.
+
+Common sections, in this order, pick what fits:
+- `## What` — summary of the change (refactors).
+- `## Design` — the approach and the decisions behind it (features).
+- `## Pieces` — the new components / files introduced.
+- `## The crash` then `## Fixes` — root cause first, then the fixes (bug PRs).
+- `## Collateral` (or an inline `Drive-by:` bullet) — incidental changes ridden along.
+- `## Tests` — count + what they pin (`13 new edit-mode tests …`, `Full suite: 36/36 passing`).
+- `## Verification` (or `## Manual verification suggested`) — the exact in-editor flows
+  exercised, led with `In-editor: …`. Present on every non-trivial PR (the app has no CI gate).
+- A closing note for scope: `Known warts left as-is: …`, or what a follow-up PR will land.
+
+### PR body style
+
+- Dense and precise — explain the **why** and the prior broken behaviour, not just the diff.
+  Name the old failure mode (`used to …`, `the old implementation …`) before the fix.
+- Bullets lead with a bold phrase naming the change, then the explanation:
+  `- **Rename = replace**: EditSubjectName now swaps in a renamed copy …`.
+- Make it traceable: reference code as `file.cs:line` and cite review sections (`§1.2–1.3`).
+- Report tests and verification honestly — counts, pass totals, what each test pins; if a step
+  was manual-only, skipped, or deferred to a follow-up, say so plainly.
+- Follow the Git & GitHub rules above: no tool attribution, PRs target `develop`.
+
+## Release Template
+
+One GitHub release per version: name `BTVReplay X.Y.Z`, tag `VX.Y.Z` (capital `V`). A release
+rolls up the PRs since the last one into user-facing themes — it speaks to operators, not to
+the code.
+
+- Optional one-line lead stating the release's arc, for a major version (4.0.0: "The
+  foundation release of the modernization effort: …"); minor releases skip it.
+- Group changes under theme headings chosen to fit the release — e.g. `## Reliability`,
+  `## Fixes`, `## Performance`, `## Internal`, `## Platform`, `## Security`, `## Data safety`,
+  `## Build`. Not a fixed set; use the few that cover the work.
+- Each section is a plain bullet list.
+
+### Release body style
+
+- Outcome-oriented and user-facing: describe the behaviour change and its effect, not the
+  mechanism. No bold lead-ins, no `file.cs:line`, no review-section citations (those stay in
+  the PRs) — one release bullet rolls up one or more PRs into a single plain sentence.
+- Name the prior bad behaviour in plain terms ("used to vanish", "two launches could
+  previously destroy the base entirely") so the value of the fix is clear.
+- Bold only a key version / engine fact when it matters (`**Unity 6.4 (6000.4.10f1)**`).
 
 ## Current modernization effort
 
