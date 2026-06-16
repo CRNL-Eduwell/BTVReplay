@@ -116,8 +116,8 @@ Assets/
 
 ## Acknowledgements
 
-Signal processing uses [FFTW](https://www.fftw.org/); JSON via [Json.NET](https://www.newtonsoft.com/json).
-With thanks to the clinicians and researchers of the epilepsy monitoring community, and to:
+Signal processing uses [FFTW](https://www.fftw.org/).
+JSON via [Json.NET](https://www.newtonsoft.com/json).
 
 <div align="center">
 
