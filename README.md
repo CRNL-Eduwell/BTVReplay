@@ -123,7 +123,7 @@ JSON via [Json.NET](https://www.newtonsoft.com/json).
 
 <a href="https://www.crnl.fr"><img src="https://www.crnl.fr/sites/default/files/Logo_CRNL2019_INSERM_revu-Leon.png" alt="CRNL — Centre de Recherche en Neurosciences de Lyon" height="60" /></a>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://www.chuv.ch"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Universit%C3%A4tsspital_Lausanne_CHUV_logo.svg/320px-Universit%C3%A4tsspital_Lausanne_CHUV_logo.svg.png" alt="CHUV — Centre Hospitalier Universitaire Vaudois" height="60" /></a>
+  <a href="https://www.chuv.ch"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Universit%C3%A4tsspital_Lausanne_CHUV_logo.svg/960px-Universit%C3%A4tsspital_Lausanne_CHUV_logo.svg.png" alt="CHUV — Centre Hospitalier Universitaire Vaudois" height="60" /></a>
 
 </div>
 
