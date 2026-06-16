@@ -6,7 +6,7 @@
 
 **Synchronized replay of intracranial EEG and patient video for epilepsy monitoring review.**
 
-[![Unity](https://img.shields.io/badge/Unity-6.4%20(6000.4.10f1)-black?logo=unity&logoColor=white)](https://unity.com/releases/editor/whats-new/6000.4.10) [![Platforms](https://img.shields.io/badge/platforms-Windows%20%C2%B7%20Linux%20%C2%B7%20macOS-blue)](#requirements) [![Latest release](https://img.shields.io/github/v/release/floriansipp/BTVReplay?sort=semver)](https://github.com/floriansipp/BTVReplay/releases) [![License](https://img.shields.io/badge/license-TBD-lightgrey)](#license)
+[![Unity](https://img.shields.io/badge/Unity-6.4%20(6000.4.10f1)-black?logo=unity&logoColor=white)](https://unity.com/releases/editor/whats-new/6000.4.10) [![Platforms](https://img.shields.io/badge/platforms-Windows%20%C2%B7%20Linux%20%C2%B7%20macOS-blue)](#requirements) [![Latest release](https://img.shields.io/github/v/release/floriansipp/BTVReplay?sort=semver)](https://github.com/floriansipp/BTVReplay/releases) [![License](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 
 </div>
 
@@ -129,5 +129,7 @@ JSON via [Json.NET](https://www.newtonsoft.com/json).
 
 ## License
 
-To be determined before the public release. A `LICENSE` file will be added here; until then, all
-rights are reserved by the authors.
+Released under the **GNU General Public License v3.0** — see [`LICENSE`](LICENSE).
+
+BTVReplay links FFTW3, which is GPL-licensed; GPLv3 keeps the application compatible with it. The
+bundled Json.NET is MIT-licensed.
