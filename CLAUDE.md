@@ -8,7 +8,9 @@ correlations, all synchronized to a video clock.
 - Unity **6.4 (6000.4.10f1)**, C#, uGUI 2.0 (no UI Toolkit, no TMP usage). Upgraded from
   2021.3.16f1 in June 2026.
 - Single scene: `Assets/_main.unity`, YAML (Force Text serialization since June 2026).
-- No asmdefs, no tests.
+- No asmdefs. Edit-mode tests live in `Assets/Scripts/Editor/Tests/` (~80 cases, run via
+  Unity Test Runner); with no asmdefs they compile into the predefined `Assembly-CSharp-Editor`.
+  There is no CI gate and no play-mode coverage.
 - Comments and commit messages are a French/English mix; UI strings English.
 
 ## Layout
@@ -86,6 +88,9 @@ correlations, all synchronized to a video clock.
 
 ## PR Template
 
+The `/btv-pr` skill drafts a PR to this spec and opens it against `develop`. This section is the
+canonical spec the skill follows — edit it here and the skill re-reads it; keep the two in sync.
+
 Open with a lead paragraph (no heading): one or two sentences saying what the change does
 and where it comes from — cite the review section / tier it closes (`review §2 "culture
 bugs"`, `Closes the review's §5 …`, `tier E item #1`). Then add only the sections the change
@@ -98,7 +103,7 @@ Common sections, in this order, pick what fits:
 - `## Pieces` — the new components / files introduced.
 - `## The crash` then `## Fixes` — root cause first, then the fixes (bug PRs).
 - `## Collateral` (or an inline `Drive-by:` bullet) — incidental changes ridden along.
-- `## Tests` — count + what they pin (`13 new edit-mode tests …`, `Full suite: 36/36 passing`).
+- `## Tests` — count + what they pin (`13 new edit-mode tests …`, `Full suite: 83/83 passing`).
 - `## Verification` (or `## Manual verification suggested`) — the exact in-editor flows
   exercised, led with `In-editor: …`. Present on every non-trivial PR (the app has no CI gate).
 - A closing note for scope: `Known warts left as-is: …`, or what a follow-up PR will land.
@@ -116,9 +121,15 @@ Common sections, in this order, pick what fits:
 
 ## Release Template
 
-One GitHub release per version: name `BTVReplay X.Y.Z`, tag `VX.Y.Z` (capital `V`). A release
-rolls up the PRs since the last one into user-facing themes — it speaks to operators, not to
-the code.
+The `/btv-release` skill runs this whole ritual (version bump → develop→master merge → tag →
+notes). This section is the canonical spec the skill follows.
+
+One GitHub release per version: name `BTVReplay X.Y.Z`, tag `VX.Y.Z` (capital `V`). The
+develop→master merge that precedes the release uses the subject `Merge develop into master:
+VX.Y.Z` — capital `V` too, matching the tag. (Historical note: the 4.1.0/4.2.0 merge subjects
+used a lowercase `v`; that was inconsistent with the tags, standardized to capital `V` going
+forward.) A release rolls up the PRs since the last one into user-facing themes — it speaks to
+operators, not to the code.
 
 - Optional one-line lead stating the release's arc, for a major version (4.0.0: "The
   foundation release of the modernization effort: …"); minor releases skip it.
@@ -140,5 +151,7 @@ the code.
 
 Full review with file:line findings: `Docs/code-review-2026-06.md`.
 Plan (phased): security triage → repo hygiene → data-safety fixes → Unity LTS upgrade →
-perf/architecture cleanup → tests. Keep changes incremental; the app has no test coverage,
-so verify in-editor with the test bases in `Assets/Config/PatientBase/` after each step.
+perf/architecture cleanup → tests. Keep changes incremental; edit-mode tests now cover parts
+of the data/services layer (`Assets/Scripts/Editor/Tests/`) but there's no CI gate and no
+play-mode coverage, so also verify in-editor with the test bases in `Assets/Config/PatientBase/`
+after each step.
