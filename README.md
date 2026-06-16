@@ -6,7 +6,7 @@
 
 **Synchronized replay of intracranial EEG and patient video for epilepsy monitoring review.**
 
-[![Unity](https://img.shields.io/badge/Unity-6.4%20(6000.4.10f1)-black?logo=unity&logoColor=white)](https://unity.com/releases/editor/whats-new/6000.4.10) [![Platforms](https://img.shields.io/badge/platforms-Windows%20%C2%B7%20Linux%20%C2%B7%20macOS-blue)](#requirements) [![Latest release](https://img.shields.io/github/v/release/floriansipp/BTVReplay?sort=semver)](https://github.com/floriansipp/BTVReplay/releases) [![License](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
+[![Unity](https://img.shields.io/badge/Unity-6.4%20(6000.4.10f1)-black?logo=unity&logoColor=white)](https://unity.com/releases/editor/whats-new/6000.4.10) [![Platforms](https://img.shields.io/badge/platforms-Windows%20%C2%B7%20Linux%20%C2%B7%20macOS-blue)](#requirements) [![Latest release](https://img.shields.io/github/v/release/CRNL-Eduwell/BTVReplay?sort=semver)](https://github.com/CRNL-Eduwell/BTVReplay/releases) [![License](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 
 </div>
 
@@ -69,13 +69,13 @@ Native plugins ship per-platform under `Assets/Plugins/` (`Windows-x86_64/`, `Li
 
 ### Run a build
 
-Grab the build for your platform from the [latest release](https://github.com/floriansipp/BTVReplay/releases),
+Grab the build for your platform from the [latest release](https://github.com/CRNL-Eduwell/BTVReplay/releases),
 unzip, and launch. The `Config` folder ships next to the executable.
 
 ### Build from source
 
 ```bash
-git clone https://github.com/floriansipp/BTVReplay.git
+git clone https://github.com/CRNL-Eduwell/BTVReplay.git
 ```
 
 1. Open the project in **Unity 6.4 (6000.4.10f1)** (the single scene is `Assets/_main.unity`).
