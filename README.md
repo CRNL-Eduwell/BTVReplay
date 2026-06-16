@@ -1,6 +1,6 @@
 <div align="center">
 
-![BTVReplay](media/icon.png "BTVReplay")
+<img src="Assets/Branding/AppIcon.png" alt="BTVReplay" width="128" height="128" />
 
 # BTVReplay
 
@@ -121,7 +121,9 @@ With thanks to the clinicians and researchers of the epilepsy monitoring communi
 
 <div align="center">
 
-[![CRNL — Centre de Recherche en Neurosciences de Lyon](media/crnl.png)](https://www.crnl.fr) &nbsp;&nbsp;&nbsp;&nbsp; [![CHUV — Centre Hospitalier Universitaire Vaudois](media/chuv.png)](https://www.chuv.ch)
+<a href="https://www.crnl.fr"><img src="https://www.crnl.fr/sites/default/files/Logo_CRNL2019_INSERM_revu-Leon.png" alt="CRNL — Centre de Recherche en Neurosciences de Lyon" height="60" /></a>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.chuv.ch"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Universit%C3%A4tsspital_Lausanne_CHUV_logo.svg/320px-Universit%C3%A4tsspital_Lausanne_CHUV_logo.svg.png" alt="CHUV — Centre Hospitalier Universitaire Vaudois" height="60" /></a>
 
 </div>
 
