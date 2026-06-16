@@ -1,13 +1,14 @@
+<div align="center">
+
 ![BTVReplay](media/icon.png "BTVReplay")
 
 # BTVReplay
 
 **Synchronized replay of intracranial EEG and patient video for epilepsy monitoring review.**
 
-[![Unity](https://img.shields.io/badge/Unity-6.4%20(6000.4.10f1)-black?logo=unity&logoColor=white)](https://unity.com/releases/editor/whats-new/6000.4.10)
-[![Platforms](https://img.shields.io/badge/platforms-Windows%20%C2%B7%20Linux%20%C2%B7%20macOS-blue)](#requirements)
-[![Latest release](https://img.shields.io/github/v/release/floriansipp/BTVReplay?sort=semver)](https://github.com/floriansipp/BTVReplay/releases)
-[![License](https://img.shields.io/badge/license-TBD-lightgrey)](#license)
+[![Unity](https://img.shields.io/badge/Unity-6.4%20(6000.4.10f1)-black?logo=unity&logoColor=white)](https://unity.com/releases/editor/whats-new/6000.4.10) [![Platforms](https://img.shields.io/badge/platforms-Windows%20%C2%B7%20Linux%20%C2%B7%20macOS-blue)](#requirements) [![Latest release](https://img.shields.io/github/v/release/floriansipp/BTVReplay?sort=semver)](https://github.com/floriansipp/BTVReplay/releases) [![License](https://img.shields.io/badge/license-TBD-lightgrey)](#license)
+
+</div>
 
 ---
 
@@ -118,9 +119,11 @@ Assets/
 Signal processing uses [FFTW](https://www.fftw.org/); JSON via [Json.NET](https://www.newtonsoft.com/json).
 With thanks to the clinicians and researchers of the epilepsy monitoring community, and to:
 
-[![CRNL — Centre de Recherche en Neurosciences de Lyon](media/crnl.png)](https://www.crnl.fr)
-&nbsp;&nbsp;&nbsp;&nbsp;
-[![CHUV — Centre Hospitalier Universitaire Vaudois](media/chuv.png)](https://www.chuv.ch)
+<div align="center">
+
+[![CRNL — Centre de Recherche en Neurosciences de Lyon](media/crnl.png)](https://www.crnl.fr) &nbsp;&nbsp;&nbsp;&nbsp; [![CHUV — Centre Hospitalier Universitaire Vaudois](media/chuv.png)](https://www.chuv.ch)
+
+</div>
 
 ## License
 
