@@ -2,9 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using BTV.Data;
+using BTV.Services;
 
 public class BTV3DModule : MonoBehaviour
 {
+    public Session PatientSession { get; private set; }
     public Trace Window1 { get { return m_Window1; } }
     public Trace Window2 { get { return m_Window2; } }
     public TaskPerformanceTrace TaskPerformanceWindow { get { return m_TaskPerformanceWindow; } }
@@ -17,4 +19,10 @@ public class BTV3DModule : MonoBehaviour
     [SerializeField] private Trace m_Window1 = null;
     [SerializeField] private Trace m_Window2 = null;
     [SerializeField] private TaskPerformanceTrace m_TaskPerformanceWindow = null;
+
+    public void Initialize(Session session)
+    {
+        PatientSession = session;
+        m_TaskPerformanceWindow.Initialize(session);
+    }
 }

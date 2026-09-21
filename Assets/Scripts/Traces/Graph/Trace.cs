@@ -1,4 +1,5 @@
 ﻿using BTV.Data;
+using BTV.Services;
 using BTV.Services.EegFileService;
 using System.Collections;
 using System.Collections.Generic;
@@ -63,6 +64,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private TraceOption m_TraceOption = null;
     private AudioTraceOption m_AudioOption = null;
+    private Session m_Session = null;
 
     void Awake()
     {
@@ -163,25 +165,26 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OnLoaderMessage(LoaderMessage message)
     {
-        if (message.Task == LoaderMessage.LoaderTask.LoadTrace)
+        if (message.Task == LoaderMessage.LoaderTask.LoadTrace && Session.IsCurrent(message.PatientSession))
         {
-            Initialization();
+            Initialization(message.PatientSession);
         }
     }
 
-    private void Initialization()
+    private void Initialization(Session session)
     {
+        m_Session = session;
         m_rectTransform = gameObject.GetComponent<RectTransform>();
 
-        m_TraceOption = TracesService.GetOptionsFor(traceID);
-        m_AudioOption = TracesService.GetAudioOptions();
+        m_TraceOption = TracesService.GetOptionsFor(m_Session, traceID);
+        m_AudioOption = TracesService.GetAudioOptions(m_Session);
 
         eegSignal.Initialize(traceID, m_TraceOption);
         audioSignal.Initialize(0, m_AudioOption);
         graphLabel.Initialize(m_TraceOption);
 
         graphGrid.init(m_TraceOption.WindowInSeconds);
-        graphEvent.init(this);
+        graphEvent.init(this, m_Session);
         graphSonif.Init(this);
 
         graphLabel.ElectrodeButton.onClick.AddListener(UpdateTracesWidth);
@@ -311,6 +314,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OnVideoToModulesMessage(VideoToModulesMessage message)
     {
+        if (!m_initDone) return;
+
         if (message.IsStopped)
         {
             graphSonif.Mute();

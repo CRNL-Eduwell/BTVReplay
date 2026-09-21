@@ -29,7 +29,7 @@ namespace BTV.UI.Module3D.Tools
         private Texture2D m_TexturePicker = null;
         private Color[] m_DataColorPicker;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             //Init Sliders
             m_RedSlider.Init();

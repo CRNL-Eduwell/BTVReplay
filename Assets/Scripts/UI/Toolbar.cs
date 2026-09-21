@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using BTV.Services;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,11 +17,14 @@ namespace BTV.UI.Module3D
         /// </summary>
         protected List<Tools.Tool> m_Tools = new List<Tools.Tool>();
 
+        public Session PatientSession { get; private set; }
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
-        public void Initialize()
+        public virtual void Initialize(Session session)
         {
+            PatientSession = session ?? throw new ArgumentNullException(nameof(session));
             AddTools();
             AddListeners();
         }
@@ -35,7 +39,7 @@ namespace BTV.UI.Module3D
         {
             foreach (Tools.Tool tool in m_Tools)
             {
-                tool.Initialize();
+                tool.Initialize(PatientSession);
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BTV.Services;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -83,15 +84,16 @@ namespace BTV.UI.Module3D
         /// </summary>
         private void Initialize()
         {
-            m_BrainToolbar.Initialize();
-            m_EegSignal1Toolbar.Initialize();
-            m_EegSignal2Toolbar.Initialize();
-            m_PerformanceToolbar.Initialize();
-            m_VideoToolbar.Initialize();
-            m_EventsToolbar.Initialize();
-            m_TfToolbar.Initialize();
-            m_LayoutsToolbar.Initialize();
-            m_MontageToolbar.Initialize();
+            Session session = Session.Current;
+            m_BrainToolbar.Initialize(session);
+            m_EegSignal1Toolbar.Initialize(session);
+            m_EegSignal2Toolbar.Initialize(session);
+            m_PerformanceToolbar.Initialize(session);
+            m_VideoToolbar.Initialize(session);
+            m_EventsToolbar.Initialize(session);
+            m_TfToolbar.Initialize(session);
+            m_LayoutsToolbar.Initialize(session);
+            m_MontageToolbar.Initialize(session);
 
             CurrentToolbar = null;
 

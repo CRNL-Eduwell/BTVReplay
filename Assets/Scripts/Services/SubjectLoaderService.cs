@@ -44,24 +44,30 @@ public class SubjectLoaderService : MonoBehaviour
 
     private IEnumerator c_load(Subject subject, string experimentName)
     {
+        Session session = Session.Current;
         SubjectInfoService.SetSubject(subject, experimentName);
         
         yield return StartCoroutine(c_loadEEGFile(SubjectInfoService.GetSubjectFilesAndDescription()));
+        if (!Session.IsCurrent(session)) yield break;
+
         TracesService.InitTraces();
         TimeFrequencyService.InitTraces();
 
         LoaderMessage message = new LoaderMessage
         {
-            Task = LoaderMessage.LoaderTask.MediaLoader
+            Task = LoaderMessage.LoaderTask.MediaLoader,
+            PatientSession = session
         };
         Messenger.Default.Send(message, MessageContext.LoaderMessage);
 
-        yield return StartCoroutine(c_loadVideo(SubjectInfoService.VideoPath));
-        yield return StartCoroutine(c_LoadBrainAnatomy(subject));
+        yield return StartCoroutine(c_loadVideo(session, SubjectInfoService.VideoPath));
+        yield return StartCoroutine(c_LoadBrainAnatomy(session, subject));
+        if (!Session.IsCurrent(session)) yield break;
 
         message = new LoaderMessage
         {
-            Task = LoaderMessage.LoaderTask.LoadTrace
+            Task = LoaderMessage.LoaderTask.LoadTrace,
+            PatientSession = session
         };
         Messenger.Default.Send(message, MessageContext.LoaderMessage);
 
@@ -81,7 +87,7 @@ public class SubjectLoaderService : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
     }
 
-    private IEnumerator c_LoadBrainAnatomy(Subject subject)
+    private IEnumerator c_LoadBrainAnatomy(Session session, Subject subject)
     {
         bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
         bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
@@ -98,6 +104,8 @@ public class SubjectLoaderService : MonoBehaviour
         //TODO 
         //atlas is loaded in the service and now we'll need to link atlas info in visualisation part 
         yield return AnatomicalDataService.c_LoadAtlas(patContainer.Atlas);
+
+        if (!Session.IsCurrent(session)) yield break;
 
         bool ShouldLoadMniFirst = false, ShouldLoadPatFirst = false;
         if (hasMniContainer && hasPatContainer)
@@ -126,6 +134,7 @@ public class SubjectLoaderService : MonoBehaviour
             LoaderMessage message = new LoaderMessage
             {
                 Task = LoaderMessage.LoaderTask.LoadBrain,
+                PatientSession = session,
                 HasAnatomy = true,
                 Anatomy = mniContainer
             };
@@ -136,6 +145,7 @@ public class SubjectLoaderService : MonoBehaviour
             LoaderMessage message = new LoaderMessage
             {
                 Task = LoaderMessage.LoaderTask.LoadBrain,
+                PatientSession = session,
                 HasAnatomy = true,
                 Anatomy = patContainer
             };
@@ -150,6 +160,7 @@ public class SubjectLoaderService : MonoBehaviour
             LoaderMessage message = new LoaderMessage
             {
                 Task = LoaderMessage.LoaderTask.LoadBrain,
+                PatientSession = session,
                 HasAnatomy = false,
                 Techno = EegTechnology.Intra
             };
@@ -196,8 +207,10 @@ public class SubjectLoaderService : MonoBehaviour
         return null;
     }
 
-    private IEnumerator c_loadVideo(string videoPath)
+    private IEnumerator c_loadVideo(Session session, string videoPath)
     {
+        if (!Session.IsCurrent(session)) yield break;
+
         //load video
         BtvProgram container = EegFileService.ReturnFirstValidContainer();
         if (container == null)
@@ -206,6 +219,7 @@ public class SubjectLoaderService : MonoBehaviour
         LoaderMessage message = new LoaderMessage
         {
             Task = LoaderMessage.LoaderTask.LoadVideo,
+            PatientSession = session,
             VideoPath = videoPath,
             totalFileDuration = container != null ? container.TotalDurationInMilliseconds : -1
         };

@@ -15,7 +15,7 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField]
         private Text _FileShortName = null;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_LoadFile.onClick.AddListener(Load);
         }

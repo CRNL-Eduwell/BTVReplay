@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using BTV.Services;
+using UnityEngine;
 
 namespace BTV.UI.Module3D
 {
@@ -38,9 +39,9 @@ namespace BTV.UI.Module3D
         Color yellow = new Color(0.9058f, 0.8784f, 0.0f);
 
         #region Private Methods
-        public new void Initialize()
+        public override void Initialize(Session session)
         {
-            base.Initialize();
+            base.Initialize(session);
             Messenger.Default.Register<ForceUpdateTraceMessage>(this, OnForceUpdateTraceMessage, MessageContext.ForceUpdateTraceMessage);
         }
 

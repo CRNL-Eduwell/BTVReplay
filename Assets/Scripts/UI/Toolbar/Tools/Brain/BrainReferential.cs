@@ -17,7 +17,7 @@ namespace BTV.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_Dropdown.onValueChanged.AddListener((value) => { UpdateBrainReferential(value); });
         }

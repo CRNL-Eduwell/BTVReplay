@@ -25,7 +25,7 @@ namespace BTV.UI.Module3D.Tools
         /// </summary>
         private float m_Offset = 0;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_Label.text = "Offset : " + m_Offset + "%";
             m_AddOffset.onClick.AddListener(AddOffset);

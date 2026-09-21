@@ -20,7 +20,7 @@ namespace BTV.UI.Module3D.Tools
 
         private bool m_InitInteractableDone = false;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
 
@@ -35,7 +35,7 @@ namespace BTV.UI.Module3D.Tools
 
         private void OnLoaderMessage(LoaderMessage message)
         {
-            if (message.Task == LoaderMessage.LoaderTask.LoadBrain)
+            if (message.Task == LoaderMessage.LoaderTask.LoadBrain && ReferenceEquals(PatientSession, message.PatientSession))
             {
                 if (!m_InitInteractableDone)
                 {

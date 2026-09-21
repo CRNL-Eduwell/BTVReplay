@@ -23,6 +23,16 @@ namespace BTV.Services.VideoService
             remove { Session.Current.AudioDataLoadedHandlers -= value; }
         }
 
+        public static void SubscribeAudioDataLoaded(Session session, AudioDataLoaded handler)
+        {
+            session.AudioDataLoadedHandlers += handler;
+        }
+
+        public static void UnsubscribeAudioDataLoaded(Session session, AudioDataLoaded handler)
+        {
+            session.AudioDataLoadedHandlers -= handler;
+        }
+
         public static string OriginalVideoPath
         {
             get

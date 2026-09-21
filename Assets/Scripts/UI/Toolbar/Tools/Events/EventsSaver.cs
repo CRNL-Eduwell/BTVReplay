@@ -19,7 +19,7 @@ namespace BTV.UI.Module3D.Tools
 
         private ExtensionFilter[] m_ExtensionList = { new ExtensionFilter("BrainTV Event File", "btv"), new ExtensionFilter("Elan Event File", "pos") };
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_SaveFile.onClick.AddListener(Save);
         }

@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Data.Factory;
+using BTV.Services;
 using BTV.Services.AnatomicalDataService;
 using BTV.Services.EegFileService;
 using BTV.Services.SubjectInfoService;
@@ -52,9 +53,9 @@ public class Brain : MonoBehaviour
 
     private void OnLoaderMessage(LoaderMessage message)
     {
-        if (message.Task == LoaderMessage.LoaderTask.LoadBrain)
+        if (message.Task == LoaderMessage.LoaderTask.LoadBrain && Session.IsCurrent(message.PatientSession))
         {
-            m_MasterTraceOption = TracesService.GetOptionsFor(0);
+            m_MasterTraceOption = TracesService.GetOptionsFor(message.PatientSession, 0);
             m_MasterTraceOption.PropertyChanged += OnMasterTraceOptionPropertyChanged;
 
             BtvLog.Log("OnLoader Message => LoadBrain");

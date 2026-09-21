@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using BTV.Data;
 using BTV.Services;
 using BTV.Services.EegFileService;
@@ -44,8 +46,8 @@ public class ApplicationStateResetTests
         ApplicationState.ResetAllServices();
 
         Assert.IsNull(TimeFrequencyService.BaselineEvent, "the previous patient's TF baseline must not survive a switch");
-        Assert.IsNull(TaskPerformanceService.ProcessedTriggers, "the previous patient's performance triggers must not survive a switch");
-        Assert.IsNull(TaskPerformanceService.Colors, "trigger colors are patient-scoped alongside the processed triggers");
+        Assert.IsEmpty(TaskPerformanceService.ProcessedTriggers, "the previous patient's performance triggers must not survive a switch");
+        Assert.IsEmpty(TaskPerformanceService.Colors, "trigger colors are patient-scoped alongside the processed triggers");
     }
 
     [Test]
@@ -57,6 +59,21 @@ public class ApplicationStateResetTests
 
         Assert.AreNotSame(previous, Session.Current);
         Assert.IsTrue(previous.IsDisposed);
+    }
+
+    [Test]
+    public void SessionReplacement_LeavesDisposedCollectionsSafeToRead()
+    {
+        Session previous = Session.Current;
+        BTV.Services.EventsService.EventsService.Events.Add(new BtvEvent(1, 100f));
+        SetTaskPerformanceProperty("ProcessedTriggers", new List<EegTrigger>());
+        SetTaskPerformanceProperty("Colors", new List<Color>());
+
+        Session.ReplaceCurrent();
+
+        Assert.AreEqual(0, BTV.Services.EventsService.EventsService.GetEventCount(previous));
+        Assert.AreEqual(0, TaskPerformanceService.GetProcessedTriggers(previous).Count);
+        Assert.AreEqual(0, TaskPerformanceService.GetColors(previous).Count);
     }
 
     [Test]
@@ -154,6 +171,53 @@ public class ApplicationStateResetTests
     }
 
     [Test]
+    public void RuntimeModules_DoNotReachIntoSessionStateDirectly()
+    {
+        string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+        Regex directSessionAccess = new Regex(@"\b(?:PatientSession|m_Session|m_PatientSession|session)\s*\.");
+
+        string[] violations = Directory.GetFiles(scriptsRoot, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !IsUnder(path, "Services") && !IsUnder(path, "Editor"))
+            .SelectMany(path => File.ReadLines(path)
+                .Select((line, index) => new { path, line, lineNumber = index + 1 }))
+            .Where(entry => directSessionAccess.IsMatch(entry.line))
+            .Select(entry => entry.path.Replace(scriptsRoot + Path.DirectorySeparatorChar, "") + ":" + entry.lineNumber)
+            .ToArray();
+
+        CollectionAssert.IsEmpty(violations,
+            "runtime modules must use session-aware service APIs instead of Session's internal state");
+    }
+
+    [Test]
+    public void SessionAwareServiceOverloads_UseTheInjectedSessionInsteadOfCurrent()
+    {
+        Session detachedSession = new Session();
+        try
+        {
+            Dictionary<int, TraceOption> traceOptions =
+                (Dictionary<int, TraceOption>)GetSessionProperty(detachedSession, "TraceOptions");
+            TraceOption detachedOption = new TraceOption(null, Color.red);
+            traceOptions.Add(0, detachedOption);
+
+            List<BtvEvent> events = (List<BtvEvent>)GetSessionProperty(detachedSession, "Events");
+            BtvEvent detachedEvent = new BtvEvent(10, 250f) { Correlation = new[] { 0.5f } };
+            events.Add(detachedEvent);
+
+            Assert.AreSame(detachedOption, TracesService.GetOptionsFor(detachedSession, 0));
+            Assert.AreSame(
+                ((List<BtvMontage>)GetSessionProperty(detachedSession, "Montages"))[0],
+                EegFileService.GetCurrentMontage(detachedSession));
+
+            BTV.Services.EventsService.EventsService.ClearCorrelations(detachedSession);
+            Assert.IsNull(detachedEvent.Correlation);
+        }
+        finally
+        {
+            detachedSession.Dispose();
+        }
+    }
+
+    [Test]
     public void SessionReplacement_DiscardsPendingEegAndAudioPublications()
     {
         Session previousSession = Session.Current;
@@ -212,6 +276,19 @@ public class ApplicationStateResetTests
         PropertyInfo property = typeof(TaskPerformanceService).GetProperty(propertyName);
         Assert.NotNull(property, "TaskPerformanceService property not found: " + propertyName);
         property.SetValue(null, value, null);
+    }
+
+    private static object GetSessionProperty(Session session, string propertyName)
+    {
+        PropertyInfo property = typeof(Session).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(property, "Session property not found: " + propertyName);
+        return property.GetValue(session, null);
+    }
+
+    private static bool IsUnder(string path, string directoryName)
+    {
+        string marker = Path.DirectorySeparatorChar + directoryName + Path.DirectorySeparatorChar;
+        return path.Contains(marker);
     }
 
     private static bool InvokeMontagePublisher(string methodName, params object[] arguments)

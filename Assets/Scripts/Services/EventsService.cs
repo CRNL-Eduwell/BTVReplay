@@ -12,7 +12,7 @@ namespace BTV.Services.EventsService
         public static List<BtvEvent> Events
         {
             get { return Session.Current.Events; }
-            set { Session.Current.Events = value; }
+            set { Session.Current.Events = value ?? new List<BtvEvent>(); }
         }
 
         public static void Reset()
@@ -117,9 +117,14 @@ namespace BTV.Services.EventsService
         /// </summary>
         public static void ClearCorrelations()
         {
-            for (int i = 0; i < Events.Count; i++)
+            ClearCorrelations(Session.Current);
+        }
+
+        public static void ClearCorrelations(Session session)
+        {
+            for (int i = 0; i < session.Events.Count; i++)
             {
-                Events[i].Correlation = null;
+                session.Events[i].Correlation = null;
             }
         }
 
@@ -152,10 +157,30 @@ namespace BTV.Services.EventsService
 
         public static List<int> FindIndexes(int SearchValue)
         {
-            return Events.Select((item, index) => new { Item = item, Index = index })
+            return FindIndexes(Session.Current, SearchValue);
+        }
+
+        public static List<int> FindIndexes(Session session, int SearchValue)
+        {
+            return session.Events.Select((item, index) => new { Item = item, Index = index })
              .Where(x => x.Item.Code == SearchValue)
              .Select(x => x.Index)
              .ToList();
+        }
+
+        public static int GetEventCount(Session session)
+        {
+            return session.Events.Count;
+        }
+
+        public static BtvEvent GetEvent(Session session, int index)
+        {
+            return session.Events[index];
+        }
+
+        public static List<BtvEvent> FindEvents(Session session, Predicate<BtvEvent> predicate)
+        {
+            return session.Events.FindAll(predicate);
         }
 
         // First index whose event start time is >= ms. Relies on Events being sorted ascending by
@@ -165,12 +190,17 @@ namespace BTV.Services.EventsService
         // Precondition of the queries: left <= right (always true - the window is [ms - period, ms]).
         private static int LowerBoundByTime(float ms)
         {
+            return LowerBoundByTime(Events, ms);
+        }
+
+        private static int LowerBoundByTime(List<BtvEvent> events, float ms)
+        {
             int lo = 0;
-            int hi = Events.Count;
+            int hi = events.Count;
             while (lo < hi)
             {
                 int mid = lo + ((hi - lo) >> 1);
-                if (Events[mid].TimeInMilliSeconds < ms)
+                if (events[mid].TimeInMilliSeconds < ms)
                     lo = mid + 1;
                 else
                     hi = mid;
@@ -294,15 +324,22 @@ namespace BTV.Services.EventsService
         public static void CollectEventIdsForWindow(int LeftBorderMilliSeconds, int RightBorderMilliSeconds,
             List<int> biggerThanWindow, List<int> enteringWindow, List<int> insideWindow, List<int> exitingWindow)
         {
+            CollectEventIdsForWindow(Session.Current, LeftBorderMilliSeconds, RightBorderMilliSeconds,
+                biggerThanWindow, enteringWindow, insideWindow, exitingWindow);
+        }
+
+        public static void CollectEventIdsForWindow(Session session, int LeftBorderMilliSeconds, int RightBorderMilliSeconds,
+            List<int> biggerThanWindow, List<int> enteringWindow, List<int> insideWindow, List<int> exitingWindow)
+        {
             biggerThanWindow.Clear();
             enteringWindow.Clear();
             insideWindow.Clear();
             exitingWindow.Clear();
 
-            int hi = LowerBoundByTime(RightBorderMilliSeconds);
+            int hi = LowerBoundByTime(session.Events, RightBorderMilliSeconds);
             for (int i = 0; i < hi; i++)
             {
-                BtvEvent e = Events[i];
+                BtvEvent e = session.Events[i];
                 float start = e.TimeInMilliSeconds;
                 float end = start + e.Duration;
 

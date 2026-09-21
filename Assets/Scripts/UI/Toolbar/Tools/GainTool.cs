@@ -29,7 +29,7 @@ namespace BTV.UI.Module3D.Tools
         /// </summary>
         private float m_Gain = 1;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             RefreshLabel();
             m_AddGain.onClick.AddListener(AddGain);

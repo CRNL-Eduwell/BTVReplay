@@ -32,8 +32,13 @@ namespace BTV.Services.EegFileService
                 Messenger.Default.Send(message, MessageContext.MontageMessage);
             }
         }
-        public static BtvMontage CurrentMontage { get { return Montages[SelectedMontageID]; } }
+        public static BtvMontage CurrentMontage { get { return GetCurrentMontage(Session.Current); } }
         public static BtvMontage DefaultMontage { get { return Montages[0]; } }
+
+        public static BtvMontage GetCurrentMontage(Session session)
+        {
+            return session.Montages[session.SelectedMontageID];
+        }
 
         public static void Reset()
         {
@@ -83,9 +88,15 @@ namespace BTV.Services.EegFileService
 
         public static int GetContainerSuffix(BtvProgram currentFile)
         {
-            for (int i = 0; i < CurrentMontage.EegFiles.Length; i++)
+            return GetContainerSuffix(Session.Current, currentFile);
+        }
+
+        public static int GetContainerSuffix(Session session, BtvProgram currentFile)
+        {
+            BtvProgram[] eegFiles = GetCurrentMontage(session).EegFiles;
+            for (int i = 0; i < eegFiles.Length; i++)
             {
-                if (CurrentMontage.EegFiles[i] == currentFile) 
+                if (eegFiles[i] == currentFile)
                     return i;
             }
             return -1;
@@ -93,15 +104,27 @@ namespace BTV.Services.EegFileService
 
         public static BtvProgram ChangeContainerHandle(BtvProgram currentFile, int newID)
         {
-            return CurrentMontage.EegFiles[newID] != null ? CurrentMontage.EegFiles[newID] : currentFile;
+            return ChangeContainerHandle(Session.Current, currentFile, newID);
+        }
+
+        public static BtvProgram ChangeContainerHandle(Session session, BtvProgram currentFile, int newID)
+        {
+            BtvProgram candidate = GetCurrentMontage(session).EegFiles[newID];
+            return candidate != null ? candidate : currentFile;
         }
 
         public static BtvProgram ReturnFirstValidContainer()
         {
-            for (int i = 0; i < CurrentMontage.EegFiles.Length; i++)
+            return ReturnFirstValidContainer(Session.Current);
+        }
+
+        public static BtvProgram ReturnFirstValidContainer(Session session)
+        {
+            BtvProgram[] eegFiles = GetCurrentMontage(session).EegFiles;
+            for (int i = 0; i < eegFiles.Length; i++)
             {
-                if (CurrentMontage.EegFiles[i] != null)
-                    return CurrentMontage.EegFiles[i];
+                if (eegFiles[i] != null)
+                    return eegFiles[i];
             }
 
             return null;
@@ -109,10 +132,15 @@ namespace BTV.Services.EegFileService
 
         public static bool IsFileIdValid(int FileID)
         {
+            return IsFileIdValid(Session.Current, FileID);
+        }
+
+        public static bool IsFileIdValid(Session session, int FileID)
+        {
             if (FileID < 0) return false;
             if (FileID >= 6) return false;
 
-            return CurrentMontage.EegFiles[FileID] != null;
+            return GetCurrentMontage(session).EegFiles[FileID] != null;
         }
 
         public static void AddNewChannel(float[] Data, string Name, int SamplingFrequency, int ProgramID)
