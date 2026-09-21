@@ -191,9 +191,15 @@ namespace BTV.Services.EegFileService
 
         private static bool TryPublishEditedMontage(int generation, BtvMontage montage, string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription)
         {
-            if (generation != m_StateGeneration || !Montages.Contains(montage))
+            if (generation != m_StateGeneration)
             {
                 BtvLog.Log("Discarded a montage edit built for a previous patient session.");
+                return false;
+            }
+
+            if (!Montages.Contains(montage))
+            {
+                Debug.LogWarning("Discarded a completed montage edit because its target montage no longer exists.");
                 return false;
             }
 

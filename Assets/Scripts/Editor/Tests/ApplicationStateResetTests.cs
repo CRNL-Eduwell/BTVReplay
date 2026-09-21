@@ -81,6 +81,9 @@ public class ApplicationStateResetTests
         int previousGeneration = GetMontageGeneration();
 
         EegFileService.Reset();
+        // Keep the old object reachable so only the stale generation can reject publication.
+        // Without the generation check, this continuation would now mutate the object.
+        EegFileService.Montages.Add(previousMontage);
         bool published = InvokeMontagePublisher(
             "TryPublishEditedMontage",
             previousGeneration,
@@ -91,7 +94,7 @@ public class ApplicationStateResetTests
 
         Assert.IsFalse(published);
         Assert.AreEqual("Before", previousMontage.Name, "a stale continuation must not mutate its old montage instance");
-        Assert.AreEqual(1, EegFileService.Montages.Count);
+        Assert.AreEqual(2, EegFileService.Montages.Count);
     }
 
     private static void SetTaskPerformanceProperty(string propertyName, object value)
