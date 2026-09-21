@@ -1,4 +1,5 @@
 ﻿using System;
+using BTV.Services;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -46,6 +47,7 @@ public class CustomVideoPlayer : MonoBehaviour
     private long m_CurrentTime = 0;
     private bool m_WaitToSync = false;
     private bool m_VideoWasPlaying = false;
+    private Session m_Session = null;
     #endregion
 
     private void Awake()
@@ -77,6 +79,8 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void Update()
     {
+        if (m_Session != null && !Session.IsCurrent(m_Session)) return;
+
         if (m_Initialized)
         {
             if (!VideoInterface.IsStopped)
@@ -110,14 +114,15 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void OnLoaderMessage(LoaderMessage message)
     {
-        if (message.Task == LoaderMessage.LoaderTask.LoadVideo)
+        if (message.Task == LoaderMessage.LoaderTask.LoadVideo && Session.IsCurrent(message.PatientSession))
         {
-            Init(message.VideoPath, message.totalFileDuration);
+            Init(message.PatientSession, message.VideoPath, message.totalFileDuration);
         }
     }
 
-    private void Init(string videoPath, int eegFileDurationInMillisec)
+    private void Init(Session session, string videoPath, int eegFileDurationInMillisec)
     {
+        m_Session = session;
         // Tear down a previous player + listeners before re-initialising, otherwise a second
         // LoadVideo stacks another VideoPlayer component and a duplicate set of button listeners
         // (every click would then fire twice).

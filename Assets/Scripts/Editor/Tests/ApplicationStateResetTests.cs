@@ -154,6 +154,35 @@ public class ApplicationStateResetTests
     }
 
     [Test]
+    public void SessionAwareServiceOverloads_UseTheInjectedSessionInsteadOfCurrent()
+    {
+        Session detachedSession = new Session();
+        try
+        {
+            Dictionary<int, TraceOption> traceOptions =
+                (Dictionary<int, TraceOption>)GetSessionProperty(detachedSession, "TraceOptions");
+            TraceOption detachedOption = new TraceOption(null, Color.red);
+            traceOptions.Add(0, detachedOption);
+
+            List<BtvEvent> events = (List<BtvEvent>)GetSessionProperty(detachedSession, "Events");
+            BtvEvent detachedEvent = new BtvEvent(10, 250f) { Correlation = new[] { 0.5f } };
+            events.Add(detachedEvent);
+
+            Assert.AreSame(detachedOption, TracesService.GetOptionsFor(detachedSession, 0));
+            Assert.AreSame(
+                ((List<BtvMontage>)GetSessionProperty(detachedSession, "Montages"))[0],
+                EegFileService.GetCurrentMontage(detachedSession));
+
+            BTV.Services.EventsService.EventsService.ClearCorrelations(detachedSession);
+            Assert.IsNull(detachedEvent.Correlation);
+        }
+        finally
+        {
+            detachedSession.Dispose();
+        }
+    }
+
+    [Test]
     public void SessionReplacement_DiscardsPendingEegAndAudioPublications()
     {
         Session previousSession = Session.Current;
@@ -212,6 +241,13 @@ public class ApplicationStateResetTests
         PropertyInfo property = typeof(TaskPerformanceService).GetProperty(propertyName);
         Assert.NotNull(property, "TaskPerformanceService property not found: " + propertyName);
         property.SetValue(null, value, null);
+    }
+
+    private static object GetSessionProperty(Session session, string propertyName)
+    {
+        PropertyInfo property = typeof(Session).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(property, "Session property not found: " + propertyName);
+        return property.GetValue(session, null);
     }
 
     private static bool InvokeMontagePublisher(string methodName, params object[] arguments)

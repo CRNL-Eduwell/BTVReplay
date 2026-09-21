@@ -1,4 +1,5 @@
 ﻿using BTV.Data;
+using BTV.Services;
 using BTV.Services.CalculationService;
 using BTV.Services.EegFileService;
 using BTV.Services.EventsService;
@@ -31,6 +32,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     private BtvProgram FileHandle = null;
     private BtvChannel Channel = null;
+    private Session m_Session = null;
 
     private float[] m_dataProcessed = null;
     private Vector3[] m_dataArray = null;
@@ -131,7 +133,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_rectTransform, Input.mousePosition, Camera.main, out Vector2 localPosition);
             float perc = ((localPosition.x + (0.5f * m_rectTransform.rect.width)) / m_rectTransform.rect.width);
             float mouseTime = perc * m_VideoPlayer.VideoInterface.TotalVideoTime;
-            List<BtvEvent> eventsIndexes = EventsService.Events.FindAll(x => x.Duration > 0 && (mouseTime >= x.TimeInMilliSeconds && mouseTime <= x.TimeInMilliSeconds + x.Duration));
+            List<BtvEvent> eventsIndexes = m_Session.Events.FindAll(x => x.Duration > 0 && (mouseTime >= x.TimeInMilliSeconds && mouseTime <= x.TimeInMilliSeconds + x.Duration));
             if (eventsIndexes.Count > 0)
             {
                 TraceDisplayerPointerMessage message = new TraceDisplayerPointerMessage
@@ -156,17 +158,18 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     private void OnLoaderMessage(LoaderMessage message)
     {
-        if (message.Task == LoaderMessage.LoaderTask.LoadTrace)
+        if (message.Task == LoaderMessage.LoaderTask.LoadTrace && Session.IsCurrent(message.PatientSession))
         {
-            Init();
+            Init(message.PatientSession);
         }
     }
 
-    private void Init()
+    private void Init(Session session)
     {
+        m_Session = session;
         m_NormalizeData.onClick.AddListener(OnNormalizeButtonClick);
 
-        FileHandle = EegFileService.ReturnFirstValidContainer();
+        FileHandle = EegFileService.ReturnFirstValidContainer(m_Session);
         m_currentElectrodeID = 0;
         Channel = FileHandle.Channels[m_currentElectrodeID];
         //==
@@ -412,7 +415,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
             // Navigating to another electrode dismisses the 1D correlation coloring on the
             // brain: it was computed against a site the user is no longer inspecting.
             if (Index != m_currentElectrodeID)
-                EventsService.ClearCorrelations();
+                EventsService.ClearCorrelations(m_Session);
 
             m_currentElectrodeID = Index;
             Channel = FileHandle.Channels[m_currentElectrodeID];
@@ -425,19 +428,19 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     {
         if (yDelta < 0)
         {
-            if (EegFileService.IsFileIdValid(m_ContainerId - 1))
+            if (EegFileService.IsFileIdValid(m_Session, m_ContainerId - 1))
             {
                 m_ContainerId -= 1;
             }
         }
         else
         {
-            if (EegFileService.IsFileIdValid(m_ContainerId + 1))
+            if (EegFileService.IsFileIdValid(m_Session, m_ContainerId + 1))
             {
                 m_ContainerId += 1;
             }
         }
-        FileHandle = EegFileService.ChangeContainerHandle(FileHandle, m_ContainerId);
+        FileHandle = EegFileService.ChangeContainerHandle(m_Session, FileHandle, m_ContainerId);
         Channel = FileHandle.Channels[m_currentElectrodeID];
 
         m_downsamplingFactor = Mathf.Max(1, Mathf.CeilToInt(m_NumberOfPixelsByPoint * (float)Channel.NumberOfSample / (m_rectTransform.rect.width)));

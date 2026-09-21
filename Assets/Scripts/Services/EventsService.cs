@@ -117,9 +117,14 @@ namespace BTV.Services.EventsService
         /// </summary>
         public static void ClearCorrelations()
         {
-            for (int i = 0; i < Events.Count; i++)
+            ClearCorrelations(Session.Current);
+        }
+
+        public static void ClearCorrelations(Session session)
+        {
+            for (int i = 0; i < session.Events.Count; i++)
             {
-                Events[i].Correlation = null;
+                session.Events[i].Correlation = null;
             }
         }
 

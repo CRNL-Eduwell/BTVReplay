@@ -41,9 +41,14 @@ public static class TracesService
 
     public static TraceOption GetOptionsFor(int traceID)
     {
-        if (Options.ContainsKey(traceID))
+        return GetOptionsFor(BTV.Services.Session.Current, traceID);
+    }
+
+    public static TraceOption GetOptionsFor(BTV.Services.Session session, int traceID)
+    {
+        if (session.TraceOptions.ContainsKey(traceID))
         {
-            return Options[traceID];
+            return session.TraceOptions[traceID];
         }
         else
         {
@@ -53,9 +58,14 @@ public static class TracesService
 
     public static AudioTraceOption GetAudioOptions()
     {
-        if (AudioOption != null)
+        return GetAudioOptions(BTV.Services.Session.Current);
+    }
+
+    public static AudioTraceOption GetAudioOptions(BTV.Services.Session session)
+    {
+        if (session.AudioTraceOption != null)
         {
-            return AudioOption;
+            return session.AudioTraceOption;
         }
         else
         {

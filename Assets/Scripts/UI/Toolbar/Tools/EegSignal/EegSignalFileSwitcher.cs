@@ -42,7 +42,7 @@ namespace BTV.UI.Module3D.Tools
         }
         private void OnLoaderMessage(LoaderMessage message)
         {
-            if (message.Task == LoaderMessage.LoaderTask.LoadBrain)
+            if (message.Task == LoaderMessage.LoaderTask.LoadBrain && ReferenceEquals(PatientSession, message.PatientSession))
             {
                 if (!m_InitInteractableDone)
                 {
