@@ -204,12 +204,37 @@ public class ApplicationStateResetTests
             events.Add(detachedEvent);
 
             Assert.AreSame(detachedOption, TracesService.GetOptionsFor(detachedSession, 0));
+            Assert.AreSame(detachedEvent,
+                BTV.Services.EventsService.EventsService.GetEvents(detachedSession)[0]);
             Assert.AreSame(
                 ((List<BtvMontage>)GetSessionProperty(detachedSession, "Montages"))[0],
                 EegFileService.GetCurrentMontage(detachedSession));
 
             BTV.Services.EventsService.EventsService.ClearCorrelations(detachedSession);
             Assert.IsNull(detachedEvent.Correlation);
+
+            BtvEvent laterEvent = new BtvEvent(20, 500f);
+            Assert.IsTrue(BTV.Services.EventsService.EventsService.AddEvent(detachedSession, laterEvent));
+            BTV.Services.EventsService.EventsService.SortBySample(detachedSession);
+            Assert.AreEqual(2, BTV.Services.EventsService.EventsService.GetEventCount(detachedSession));
+            Assert.AreEqual(1, BTV.Services.EventsService.EventsService.GetEventId(detachedSession, laterEvent));
+            Assert.AreEqual(0, BTV.Services.EventsService.EventsService.GetEventCount(Session.Current),
+                "event writes through an injected session must not mutate Current");
+
+            Dictionary<int, string> codeComments =
+                (Dictionary<int, string>)GetSessionProperty(detachedSession, "CodeComments");
+            codeComments.Add(42, "detached");
+            Assert.IsTrue(BTV.Services.CodeMatchingService.CodeMatchingService.HasCodesFor(detachedSession));
+            Assert.AreEqual("detached",
+                BTV.Services.CodeMatchingService.CodeMatchingService.GetCommentFromCode(detachedSession, 42));
+
+            Dictionary<string, List<AnatomicalSite>> sites =
+                (Dictionary<string, List<AnatomicalSite>>)GetSessionProperty(detachedSession, "SitesPerReferential");
+            AnatomicalSite detachedSite = new AnatomicalSite("A1", Vector3.zero);
+            sites.Add("MNI", new List<AnatomicalSite> { detachedSite });
+            Assert.AreSame(detachedSite,
+                BTV.Services.AnatomicalDataService.AnatomicalDataService
+                    .ReturnFirstValidSitesList(detachedSession).Value[0]);
         }
         finally
         {

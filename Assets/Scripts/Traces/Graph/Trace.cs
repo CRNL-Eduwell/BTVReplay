@@ -486,11 +486,11 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         if (m_AddEvents && m_PopUpAddWindow == null)
         {
             Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
-            Event.SecondSiteOfInterest = traceID == 0 ? TracesService.ElectrodeName(1) : TracesService.ElectrodeName(0);
+            Event.SecondSiteOfInterest = traceID == 0 ? TracesService.ElectrodeName(m_Session, 1) : TracesService.ElectrodeName(m_Session, 0);
 
             m_PopUpAddWindow = Instantiate(m_AddEventWindowPrefabs, parent);
             EventInfoAdd infoAdd = m_PopUpAddWindow.GetComponent<EventInfoAdd>();
-            infoAdd.Init(Event);
+            infoAdd.Init(m_Session, Event);
         }
     }
 
@@ -501,7 +501,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
             m_PopUpDisplayWindow = Instantiate(m_DisplayEventWindowPrefabs, parent);
             EventInfoDisplay infoDisp = m_PopUpDisplayWindow.GetComponent<EventInfoDisplay>();
-            infoDisp.init(Event);
+            infoDisp.Init(m_Session, Event);
         }
     }
 
@@ -512,7 +512,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
             m_PopUpEditWindow = Instantiate(m_EditEventWindowPrefabs, parent);
             EventInfoEdit infoEdit = m_PopUpEditWindow.GetComponent<EventInfoEdit>();
-            infoEdit.Init(Event);
+            infoEdit.Init(m_Session, Event);
         }
     }
 }

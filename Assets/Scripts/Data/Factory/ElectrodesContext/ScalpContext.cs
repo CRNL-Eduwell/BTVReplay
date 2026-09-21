@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using BTV.Data;
-using BTV.Services.EegFileService;
 
 namespace Assets.Scripts.Data.Factory
 {
@@ -13,7 +12,8 @@ namespace Assets.Scripts.Data.Factory
         /// 
         /// </summary>
         /// <param name="parent">Root Brain Gameobject</param>
-        public void LoadElectrodesOnBrain(GameObject parent, List<AnatomicalSite> sites)
+        public void LoadElectrodesOnBrain(GameObject parent, List<AnatomicalSite> sites,
+            Action<Site, AnatomicalSite> initializeSite)
         {
             if (sites == null || sites.Count == 0)
             {
@@ -35,7 +35,7 @@ namespace Assets.Scripts.Data.Factory
 
                 GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, Coordinates, Quaternion.identity, Electrode.transform);
                 NewPlot.name = sites[i].Label;
-                NewPlot.GetComponent<Site>().Init(sites[i]);
+                initializeSite(NewPlot.GetComponent<Site>(), sites[i]);
                 if (dps != null)
                 {
                     if (NewPlot.activeSelf)

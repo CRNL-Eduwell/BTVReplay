@@ -6,14 +6,14 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
-using BTV.Services.EegFileService;
 using BTV.Data;
 
 namespace Assets.Scripts.Data.Factory
 {
     public class IntraContext : IElectrodesContext
     {
-        public void LoadElectrodesOnBrain(GameObject parent, List<AnatomicalSite> sites)
+        public void LoadElectrodesOnBrain(GameObject parent, List<AnatomicalSite> sites,
+            Action<Site, AnatomicalSite> initializeSite)
         {
             if (sites == null || sites.Count == 0)
             {
@@ -41,7 +41,7 @@ namespace Assets.Scripts.Data.Factory
                     GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, electrodes[i].Value[j].Coordinates, Quaternion.identity);
                     NewPlot.name = electrodes[i].Value[j].Label;
                     NewPlot.transform.parent = Electrode.transform;
-                    NewPlot.GetComponent<Site>().Init(sites[counter]);
+                    initializeSite(NewPlot.GetComponent<Site>(), sites[counter]);
                     counter++;
                 }
             }

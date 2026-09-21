@@ -200,32 +200,44 @@ namespace BTV.Services.AnatomicalDataService
 
         public static KeyValuePair<string, List<AnatomicalSite>> ReturnFirstValidSitesList()
         {
-            if (SitesPerReferential.ContainsKey("MNI")) return new KeyValuePair<string, List<AnatomicalSite>>("MNI", SitesPerReferential["MNI"]);
-            else if (SitesPerReferential.ContainsKey("PAT")) return new KeyValuePair<string, List<AnatomicalSite>>("PAT", SitesPerReferential["PAT"]);
-            else if (SitesPerReferential.ContainsKey("ELEC_0")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", SitesPerReferential["ELEC_0"]);
-            else if (SitesPerReferential.ContainsKey("ELEC_1")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", SitesPerReferential["ELEC_1"]);
-            else if (SitesPerReferential.ContainsKey("ELEC_2")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", SitesPerReferential["ELEC_2"]);
-            else if (SitesPerReferential.ContainsKey("ELEC_3")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", SitesPerReferential["ELEC_3"]);
-            else if (SitesPerReferential.ContainsKey("ELEC_4")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", SitesPerReferential["ELEC_4"]);
-            else if (SitesPerReferential.ContainsKey("ELEC_5")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", SitesPerReferential["ELEC_5"]);
+            return ReturnFirstValidSitesList(Session.Current);
+        }
+
+        public static KeyValuePair<string, List<AnatomicalSite>> ReturnFirstValidSitesList(Session session)
+        {
+            Dictionary<string, List<AnatomicalSite>> sites = session.SitesPerReferential;
+            if (sites.ContainsKey("MNI")) return new KeyValuePair<string, List<AnatomicalSite>>("MNI", sites["MNI"]);
+            else if (sites.ContainsKey("PAT")) return new KeyValuePair<string, List<AnatomicalSite>>("PAT", sites["PAT"]);
+            else if (sites.ContainsKey("ELEC_0")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_0"]);
+            else if (sites.ContainsKey("ELEC_1")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_1"]);
+            else if (sites.ContainsKey("ELEC_2")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_2"]);
+            else if (sites.ContainsKey("ELEC_3")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_3"]);
+            else if (sites.ContainsKey("ELEC_4")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_4"]);
+            else if (sites.ContainsKey("ELEC_5")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_5"]);
             else return default;
         }
 
         public static List<AnatomicalSite> GetSitesListFrom(string referential, int fileId = -1)
         {
-            if (referential == "MNI" && SitesPerReferential.ContainsKey("MNI"))
+            return GetSitesListFrom(Session.Current, referential, fileId);
+        }
+
+        public static List<AnatomicalSite> GetSitesListFrom(Session session, string referential, int fileId = -1)
+        {
+            Dictionary<string, List<AnatomicalSite>> sites = session.SitesPerReferential;
+            if (referential == "MNI" && sites.ContainsKey("MNI"))
             {
-                return new List<AnatomicalSite>(SitesPerReferential["MNI"]);
+                return new List<AnatomicalSite>(sites["MNI"]);
             }
-            else if (referential == "PAT" && SitesPerReferential.ContainsKey("PAT"))
+            else if (referential == "PAT" && sites.ContainsKey("PAT"))
             {
-                return new List<AnatomicalSite>(SitesPerReferential["PAT"]);
+                return new List<AnatomicalSite>(sites["PAT"]);
             }
             else if (referential == "ELEC" && fileId != -1)
             {
                 string key = "ELEC_" + fileId.ToString();
-                bool hasKeyData = SitesPerReferential.ContainsKey(key);
-                return hasKeyData ? new List<AnatomicalSite>(SitesPerReferential[key]) : default;
+                bool hasKeyData = sites.ContainsKey(key);
+                return hasKeyData ? new List<AnatomicalSite>(sites[key]) : default;
             }
             else 
             {

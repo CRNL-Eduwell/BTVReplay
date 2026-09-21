@@ -82,7 +82,12 @@ namespace BTV.Services.SubjectInfoService
 
         public static BrainDataContainer GetBrainDataContainer(string label)
         {
-            Session.Current.Subject.AnatomicalSpaces.TryGetValue(label, out BrainDataContainer patContainer);
+            return GetBrainDataContainer(Session.Current, label);
+        }
+
+        public static BrainDataContainer GetBrainDataContainer(Session session, string label)
+        {
+            session.Subject.AnatomicalSpaces.TryGetValue(label, out BrainDataContainer patContainer);
             return patContainer;
         }
     }
