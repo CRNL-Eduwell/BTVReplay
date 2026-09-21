@@ -224,6 +224,12 @@ public class SubjectLoaderService : MonoBehaviour
         r.ExperimentName = experimentName;
         r.TriggerReload = true;
 
+        // LoadScene completes later in the frame. Stop the outgoing player now so its final
+        // Update cannot broadcast ticks after the patient session has been replaced.
+        CustomVideoPlayer outgoingVideoPlayer = FindObjectOfType<CustomVideoPlayer>();
+        if (outgoingVideoPlayer != null)
+            outgoingVideoPlayer.enabled = false;
+
         // Start the new patient lifetime before the replacement scene's Awake methods run.
         // Components created by that scene can then safely subscribe to session-scoped events.
         Session.ReplaceCurrent();
