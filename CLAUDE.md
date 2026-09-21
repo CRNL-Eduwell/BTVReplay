@@ -26,7 +26,9 @@ correlations, all synchronized to a video clock.
   `CalculationManager` handles FFT/STFT/correlation, `SubjectLoaderService` orchestrates loads,
   and `SubjectRepository` owns DB load/save + `*BU` backup. A patient switch replaces and
   disposes the Session in `SubjectLoaderService` before loading the replacement scene;
-  `ApplicationState.ResetAllServices()` then initializes state and publishes UI resets.
+  `ApplicationState.ResetAllServices()` then initializes state and publishes UI resets. Runtime
+  modules receive that same Session through toolbar initialization, the `BTV3DModule` composition
+  root, or `LoaderMessage.PatientSession`; prefer explicit-session service overloads inside them.
 - `Assets/Scripts/Messenger/` — typed pub/sub singleton. One handler per (recipient,
   MessageContext enum); messages carry typed `TaskToExecute` enum op-codes. Register in
   Awake/Start, Unregister in OnDestroy. Dispatch is registration-order, allocation-free,
