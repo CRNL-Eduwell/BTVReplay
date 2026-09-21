@@ -20,12 +20,14 @@ public class ApplicationStateResetTests
     [SetUp]
     public void SetUp()
     {
+        Session.ReplaceCurrent();
         ApplicationState.ResetAllServices();
     }
 
     [TearDown]
     public void TearDown()
     {
+        Session.ReplaceCurrent();
         ApplicationState.ResetAllServices();
     }
 
@@ -47,11 +49,11 @@ public class ApplicationStateResetTests
     }
 
     [Test]
-    public void ResetAllServices_ReplacesAndDisposesThePatientSession()
+    public void SessionReplacement_ReplacesAndDisposesThePatientSession()
     {
         Session previous = Session.Current;
 
-        ApplicationState.ResetAllServices();
+        Session.ReplaceCurrent();
 
         Assert.AreNotSame(previous, Session.Current);
         Assert.IsTrue(previous.IsDisposed);
@@ -74,6 +76,7 @@ public class ApplicationStateResetTests
     {
         Session previousSession = Session.Current;
 
+        Session.ReplaceCurrent();
         ApplicationState.ResetAllServices();
         bool published = InvokeMontagePublisher(
             "TryPublishNewMontage",
@@ -94,6 +97,7 @@ public class ApplicationStateResetTests
         EegFileService.Montages.Add(previousMontage);
         Session previousSession = Session.Current;
 
+        Session.ReplaceCurrent();
         ApplicationState.ResetAllServices();
         // Keep the old object reachable so only the stale session can reject publication.
         // Without the identity check, this continuation would now mutate the object.
@@ -154,6 +158,7 @@ public class ApplicationStateResetTests
     {
         Session previousSession = Session.Current;
 
+        Session.ReplaceCurrent();
         ApplicationState.ResetAllServices();
 
         Assert.IsFalse(InvokePrivateBool(typeof(EegFileService), "TryPublishEegFile", previousSession, null, 0));
@@ -171,13 +176,35 @@ public class ApplicationStateResetTests
         BTV.Services.VideoService.VideoService.AudioDataLoaded += handler;
         Session previousSession = Session.Current;
 
-        ApplicationState.ResetAllServices();
+        Session.ReplaceCurrent();
 
         PropertyInfo handlersProperty = typeof(Session).GetProperty(
             "AudioDataLoadedHandlers",
             BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.NotNull(handlersProperty);
         Assert.IsNull(handlersProperty.GetValue(previousSession, null));
+    }
+
+    [Test]
+    public void ResetBroadcasts_PreserveAudioSubscriberRegisteredByTheNewScene()
+    {
+        Session.ReplaceCurrent();
+        Session newSession = Session.Current;
+        bool audioLoaded = false;
+        BTV.Services.VideoService.AudioDataLoaded handler = () => audioLoaded = true;
+        BTV.Services.VideoService.VideoService.AudioDataLoaded += handler;
+
+        ApplicationState.ResetAllServices();
+        Assert.AreSame(newSession, Session.Current, "reset broadcasts must not replace the session created before scene load");
+        bool published = InvokePrivateBool(
+            typeof(BTV.Services.VideoService.VideoService),
+            "TryPublishProcessedAudio",
+            newSession,
+            null,
+            "loaded");
+
+        Assert.IsTrue(published);
+        Assert.IsTrue(audioLoaded, "the replacement scene's pre-Update subscriber must survive reset broadcasts");
     }
 
     private static void SetTaskPerformanceProperty(string propertyName, object value)

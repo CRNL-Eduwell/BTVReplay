@@ -223,6 +223,10 @@ public class SubjectLoaderService : MonoBehaviour
         r.SubjectToReload = new Subject(subject);
         r.ExperimentName = experimentName;
         r.TriggerReload = true;
+
+        // Start the new patient lifetime before the replacement scene's Awake methods run.
+        // Components created by that scene can then safely subscribe to session-scoped events.
+        Session.ReplaceCurrent();
         SceneManager.LoadScene("_main");
     }
 }

@@ -130,7 +130,6 @@ namespace BTV.Services.VideoService
             ProcessedAudio = null;
             RawAudioData = null;
             FilteredDataLoaded = false;
-            Session.Current.AudioDataLoadedHandlers = null;
         }
 
         #region AudioProcessing

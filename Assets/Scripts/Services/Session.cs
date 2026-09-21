@@ -12,7 +12,8 @@ namespace BTV.Services
     ///
     /// Static services remain as compatibility facades for now, but their state lives here.
     /// Replacing Current gives a patient switch one atomic identity boundary and lets async
-    /// continuations reject results produced for a disposed session.
+    /// continuations reject results produced for a disposed session. Current and replacement
+    /// are main-thread-only; workers may carry a captured reference but must not read or mutate it.
     /// </summary>
     public sealed class Session : IDisposable
     {
