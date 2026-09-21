@@ -226,7 +226,7 @@ public class SubjectLoaderService : MonoBehaviour
 
         // LoadScene completes later in the frame. Stop the outgoing player now so its final
         // Update cannot broadcast ticks after the patient session has been replaced.
-        CustomVideoPlayer outgoingVideoPlayer = FindObjectOfType<CustomVideoPlayer>();
+        CustomVideoPlayer outgoingVideoPlayer = FindAnyObjectByType<CustomVideoPlayer>();
         if (outgoingVideoPlayer != null)
             outgoingVideoPlayer.enabled = false;
 
