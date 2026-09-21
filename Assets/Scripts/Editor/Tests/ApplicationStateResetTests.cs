@@ -209,9 +209,6 @@ public class ApplicationStateResetTests
 
         string[] violations = Directory.GetFiles(scriptsRoot, "*.cs", SearchOption.AllDirectories)
             .Where(path => !IsUnder(path, "Services") && !IsUnder(path, "Editor"))
-            // B-8 owns these two misnamed legacy components; they cannot receive a Session until
-            // their prefab binding is resolved, and are deliberately outside the M-1 migration.
-            .Where(path => !path.EndsWith("EegSignal2.cs") && !path.EndsWith("AudioSignal2.cs"))
             .SelectMany(path => File.ReadLines(path)
                 .Select((line, index) => new { path, line, lineNumber = index + 1 }))
             .Where(entry => !entry.line.TrimStart().StartsWith("//"))
@@ -221,6 +218,36 @@ public class ApplicationStateResetTests
 
         CollectionAssert.IsEmpty(violations,
             "runtime modules must pass their injected patient session to patient-scoped services");
+    }
+
+    [Test]
+    public void LegacyBindingCleanup_RemovesDeletedScriptReferencesAndDebugHarness()
+    {
+        string[] deletedScriptGuids =
+        {
+            "45e1228a4e515d84b943c345f00b0654", // DebugFlorian
+            "b93bbb3a49b2c964c8b63f8339951447", // AudioSignal2
+            "41302adf67cf3e84ebde81de1e0b2b82", // EegSignal2
+            "e90a48e8ae4ac924182c370cc9630169"  // SignalDisp
+        };
+
+        string[] serializedAssetPaths = Directory.GetFiles(Application.dataPath, "*", SearchOption.AllDirectories)
+            .Where(path => path.EndsWith(".prefab") || path.EndsWith(".unity"))
+            .ToArray();
+
+        string[] danglingReferences = serializedAssetPaths
+            .Select(path => new { path, contents = File.ReadAllText(path) })
+            .SelectMany(asset => deletedScriptGuids
+                .Where(asset.contents.Contains)
+                .Select(guid => asset.path.Replace(Application.dataPath, "Assets") + ": " + guid))
+            .ToArray();
+
+        CollectionAssert.IsEmpty(danglingReferences,
+            "deleted MonoBehaviour GUIDs must not remain serialized in scenes or prefabs");
+
+        string mainScene = File.ReadAllText(Path.Combine(Application.dataPath, "_main.unity"));
+        StringAssert.DoesNotContain("1550218495", mainScene,
+            "removing the debug root must also remove its Transform from SceneRoots");
     }
 
     [Test]
