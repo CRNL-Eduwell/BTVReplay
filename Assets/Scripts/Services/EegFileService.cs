@@ -23,21 +23,36 @@ namespace BTV.Services.EegFileService
             }
             set
             {
-                Session.Current.SelectedMontageID = value;
-                MontageMessage message = new MontageMessage
-                {
-                    TaskToExecute = MontageMessage.Task.SelectMontage,
-                    SelectedMontageID = value
-                };
-                Messenger.Default.Send(message, MessageContext.MontageMessage);
+                SetSelectedMontage(Session.Current, value);
             }
         }
         public static BtvMontage CurrentMontage { get { return GetCurrentMontage(Session.Current); } }
-        public static BtvMontage DefaultMontage { get { return Montages[0]; } }
+        public static BtvMontage DefaultMontage { get { return GetDefaultMontage(Session.Current); } }
 
         public static BtvMontage GetCurrentMontage(Session session)
         {
             return session.Montages[session.SelectedMontageID];
+        }
+
+        public static IReadOnlyList<BtvMontage> GetMontages(Session session)
+        {
+            return session.Montages;
+        }
+
+        public static BtvMontage GetDefaultMontage(Session session)
+        {
+            return session.Montages[0];
+        }
+
+        public static void SetSelectedMontage(Session session, int value)
+        {
+            session.SelectedMontageID = value;
+            MontageMessage message = new MontageMessage
+            {
+                TaskToExecute = MontageMessage.Task.SelectMontage,
+                SelectedMontageID = value
+            };
+            Messenger.Default.Send(message, MessageContext.MontageMessage);
         }
 
         public static void Reset()
@@ -156,20 +171,25 @@ namespace BTV.Services.EegFileService
 
         public static void AddMontage(string name, List<ChannelCorrespondance> montageDescription, string fileName = "")
         {
+            AddMontage(Session.Current, name, montageDescription, fileName);
+        }
+
+        public static void AddMontage(Session session, string name, List<ChannelCorrespondance> montageDescription, string fileName = "")
+        {
+            List<BtvMontage> montages = session.Montages;
             // Generate unique name
-            if (Montages.Any(m => m.Name == name))
+            if (montages.Any(m => m.Name == name))
             {
                 int count = 1;
                 string newName = string.Format("{0}({1})", name, count);
-                while (Montages.Any(m => m.Name == newName))
+                while (montages.Any(m => m.Name == newName))
                 {
                     count++;
                     newName = string.Format("{0}({1})", name, count);
                 }
                 name = newName;
             }
-            BtvProgram[] baseFiles = DefaultMontage.EegFiles; // static state: snapshot the reference on the main thread
-            Session session = Session.Current;
+            BtvProgram[] baseFiles = GetDefaultMontage(session).EegFiles;
             LoadingManager.Load(async progress =>
             {
                 BtvProgram[] eegFiles = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
@@ -179,9 +199,15 @@ namespace BTV.Services.EegFileService
         }
         public static void RemoveSelectedMontage()
         {
-            if (CurrentMontage.IsCustom)
+            RemoveSelectedMontage(Session.Current);
+        }
+
+        public static void RemoveSelectedMontage(Session session)
+        {
+            BtvMontage currentMontage = GetCurrentMontage(session);
+            if (currentMontage.IsCustom)
             {
-                Montages.Remove(CurrentMontage);
+                session.Montages.Remove(currentMontage);
                 MontageMessage message = new MontageMessage
                 {
                     TaskToExecute = MontageMessage.Task.UpdateMontageList,
@@ -192,20 +218,25 @@ namespace BTV.Services.EegFileService
         }
         public static void EditMontage(BtvMontage montage, string name, List<ChannelCorrespondance> montageDescription, string fileName = "")
         {
+            EditMontage(Session.Current, montage, name, montageDescription, fileName);
+        }
+
+        public static void EditMontage(Session session, BtvMontage montage, string name, List<ChannelCorrespondance> montageDescription, string fileName = "")
+        {
+            List<BtvMontage> montages = session.Montages;
             // Generate unique name
-            if (Montages.Any(m => m.Name == name && m != montage))
+            if (montages.Any(m => m.Name == name && m != montage))
             {
                 int count = 1;
                 string newName = string.Format("{0}({1})", name, count);
-                while (Montages.Any(m => m.Name == newName && m != montage))
+                while (montages.Any(m => m.Name == newName && m != montage))
                 {
                     count++;
                     newName = string.Format("{0}({1})", name, count);
                 }
                 name = newName;
             }
-            BtvProgram[] baseFiles = DefaultMontage.EegFiles; // static state: snapshot the reference on the main thread
-            Session session = Session.Current;
+            BtvProgram[] baseFiles = GetDefaultMontage(session).EegFiles;
             LoadingManager.Load(async progress =>
             {
                 BtvProgram[] eegFiles = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
@@ -258,6 +289,11 @@ namespace BTV.Services.EegFileService
 
         public static void LoadMontage(string path)
         {
+            LoadMontage(Session.Current, path);
+        }
+
+        public static void LoadMontage(Session session, string path)
+        {
             string name = "";
             List<ChannelCorrespondance> montageDescription = new List<ChannelCorrespondance>();
             string line = "";
@@ -273,7 +309,7 @@ namespace BTV.Services.EegFileService
                     }
                 }
             }
-            AddMontage(name, montageDescription);
+            AddMontage(session, name, montageDescription);
         }
         /// <summary>
         /// Builds the montage files by evaluating each channel's correspondance expression.

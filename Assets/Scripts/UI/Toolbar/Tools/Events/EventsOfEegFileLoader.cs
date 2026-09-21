@@ -47,7 +47,7 @@ namespace BTV.UI.Module3D.Tools
 
         private void SetFileLabels()
         {
-            List<string> keys = SubjectInfoService.GetSubjectFileKeys();
+            List<string> keys = SubjectInfoService.GetSubjectFileKeys(PatientSession);
 
             m_EegFiles.options.Clear();
             foreach (var item in keys)
@@ -61,7 +61,7 @@ namespace BTV.UI.Module3D.Tools
             var dropDownList = GetComponentInChildren<DropDownController>(true);
             for (int i = 0; i < 6; i++)
             {
-                if (!EegFileService.IsFileIdValid(i))
+                if (!EegFileService.IsFileIdValid(PatientSession, i))
                 {
                     dropDownList.indexesToDisable.Add(i);
                 }
@@ -71,7 +71,7 @@ namespace BTV.UI.Module3D.Tools
 
         private void Load()
         {
-            Data.BtvProgram program = EegFileService.ChangeContainerHandle(null, m_EegFiles.value);
+            Data.BtvProgram program = EegFileService.ChangeContainerHandle(PatientSession, null, m_EegFiles.value);
             if (program != null)
             {
                 List<Data.BtvEvent> evs = new List<Data.BtvEvent>(program.Events);

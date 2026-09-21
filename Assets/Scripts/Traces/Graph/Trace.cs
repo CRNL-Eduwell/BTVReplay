@@ -230,7 +230,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case UiToTraceMessage.Task.UpdateFile:
                 BtvLog.Log("Update File Switcher");
-                m_TraceOption.FileHandle = EegFileService.ChangeContainerHandle(m_TraceOption.FileHandle, message.FileID);
+                m_TraceOption.FileHandle = EegFileService.ChangeContainerHandle(m_Session, m_TraceOption.FileHandle, message.FileID);
                 graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
                 graphLabel.Description = m_TraceOption.FileHandle.Description;
                 UpdateTimeResolution(m_TraceOption.WindowInSeconds);
@@ -334,7 +334,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         if (message.TaskToExecute == MontageMessage.Task.SelectMontage)
         {
-            m_TraceOption.FileHandle = EegFileService.ReturnFirstValidContainer(); // FIXME : keep ID of selected file
+            m_TraceOption.FileHandle = EegFileService.ReturnFirstValidContainer(m_Session); // FIXME : keep ID of selected file
             graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
             graphLabel.Description = m_TraceOption.FileHandle.Description;
             UpdateTimeResolution(m_TraceOption.WindowInSeconds);

@@ -23,7 +23,7 @@ namespace BTV.UI.Module3D.Tools
 
         private void Load()
         {
-            string directory = TracesService.GetOptionsFor(0).FileHandle.Directory;
+            string directory = TracesService.GetOptionsFor(PatientSession, 0).FileHandle.Directory;
 
 #if UNITY_STANDALONE_OSX
             FileBrowser.GetExistingFileNameAsync((str) =>

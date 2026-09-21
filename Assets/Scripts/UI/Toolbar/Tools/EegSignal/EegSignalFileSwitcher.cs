@@ -35,7 +35,7 @@ namespace BTV.UI.Module3D.Tools
         {
             int currentValue = m_FileDropDown.value;
             int nextValue = currentValue + direction;
-            if (EegFileService.IsFileIdValid(nextValue))
+            if (EegFileService.IsFileIdValid(PatientSession, nextValue))
             {
                 m_FileDropDown.value = nextValue;
             }
@@ -55,7 +55,7 @@ namespace BTV.UI.Module3D.Tools
 
         private void SetFileLabels()
         {
-            List<string> keys = SubjectInfoService.GetSubjectFileKeys();
+            List<string> keys = SubjectInfoService.GetSubjectFileKeys(PatientSession);
 
             m_FileDropDown.options.Clear();
             foreach (var item in keys)
@@ -69,7 +69,7 @@ namespace BTV.UI.Module3D.Tools
             var dropDownList = GetComponentInChildren<DropDownController>(true);
             for (int i = 0; i < 6; i++)
             {
-                if (!EegFileService.IsFileIdValid(i))
+                if (!EegFileService.IsFileIdValid(PatientSession, i))
                 {
                     dropDownList.indexesToDisable.Add(i);
                 }

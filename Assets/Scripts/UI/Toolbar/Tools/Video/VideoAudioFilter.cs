@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using BTV.Services.VideoService;
+using BTV.Services;
 using System.IO;
 
 namespace BTV.UI.Module3D.Tools
@@ -21,9 +22,9 @@ namespace BTV.UI.Module3D.Tools
 
         private void TryToFilterAudioFromVideo()
         {
-            if (VideoService.AudioFileExist)
+            if (VideoService.AudioFileExists(PatientSession))
             {
-                if (!VideoService.FilteredAudioFileExist)
+                if (!VideoService.FilteredAudioFileExists(PatientSession))
                 {
                     LaunchAudioFiltering("300:100:1300", 64);
                 }
@@ -42,7 +43,7 @@ namespace BTV.UI.Module3D.Tools
         {
             try
             {
-                File.Delete(VideoService.FilteredAudioPath);
+                File.Delete(VideoService.GetFilteredAudioPath(PatientSession));
             }
             catch (IOException ioExp)
             {
@@ -56,8 +57,10 @@ namespace BTV.UI.Module3D.Tools
         {
             try
             {
-                await VideoService.LoadRawAudioFromFileAsync(VideoService.AudioFromVideoPath);
-                await VideoService.FilterAudioFromVideoAsync(FrequencyBands, FinalFrequency);
+                await VideoService.LoadRawAudioFromFileAsync(PatientSession, VideoService.GetAudioFromVideoPath(PatientSession));
+                if (this == null || !Session.IsCurrent(PatientSession)) return;
+                await VideoService.FilterAudioFromVideoAsync(PatientSession, FrequencyBands, FinalFrequency);
+                if (this == null || !Session.IsCurrent(PatientSession)) return;
                 ApplicationState.displayMessage("Audio Filtering", "OK", "Audio has been correctly filtered.");
             }
             catch (Exception ex)
