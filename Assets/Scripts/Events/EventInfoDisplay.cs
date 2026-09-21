@@ -2,6 +2,7 @@
 using BTV.Data;
 using BTV.Services.EegFileService;
 using BTV.Services.VideoService;
+using BTV.Services;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,9 +31,11 @@ public class EventInfoDisplay : MonoBehaviour
     private Button m_CalculateTimeFrequency = null;
 
     private BtvEvent m_Event = null;
+    private Session m_PatientSession = null;
 
-    public void init(BtvEvent clickedEvent)
+    public void Init(Session patientSession, BtvEvent clickedEvent)
     {
+        m_PatientSession = patientSession;
         m_Event = new BtvEvent(clickedEvent);
 
         InitTimeDisplay((int)m_Event.TimeInSeconds);
@@ -72,13 +75,13 @@ public class EventInfoDisplay : MonoBehaviour
 
     private void InitElectrodeDropDown()
     {
-        BtvProgram container = EegFileService.ReturnFirstValidContainer();
+        BtvProgram container = EegFileService.ReturnFirstValidContainer(m_PatientSession);
 
         m_Electrodes.options.Clear();
         for (int i = 0; i < container.NumberOfElectrodes; i++)
             m_Electrodes.options.Add(new Dropdown.OptionData(container.GetElectrodeNameFromElectrodeID(i)));
 
-        if(VideoService.FilteredDataLoaded)
+        if(VideoService.IsFilteredDataLoaded(m_PatientSession))
             m_Electrodes.options.Add(new Dropdown.OptionData("AUD"));
 
         m_Electrodes.value = container.GetElectrodeIDFromElectrodeName(m_Event.SiteOfInterest);
@@ -93,6 +96,7 @@ public class EventInfoDisplay : MonoBehaviour
 
     private void UpdateEventMainElectrode(int ElectrodeID)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         BtvEvent modifyEvent = new BtvEvent(m_Event)
         {
             SiteOfInterest = m_Electrodes.options[ElectrodeID].text
@@ -111,6 +115,7 @@ public class EventInfoDisplay : MonoBehaviour
 
     private void EditEvent()
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         EventsModificationMessage message = new EventsModificationMessage
         {
             TaskToExecute = EventsModificationMessage.Task.EditEvent,
@@ -123,6 +128,7 @@ public class EventInfoDisplay : MonoBehaviour
 
     private void CalculateCorrelation()
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         EventsModificationMessage message = new EventsModificationMessage
         {
             TaskToExecute = EventsModificationMessage.Task.ComputeCorrelation,
@@ -133,6 +139,7 @@ public class EventInfoDisplay : MonoBehaviour
 
     private void Calculate2DCorrelation()
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         EventsModificationMessage message = new EventsModificationMessage
         {
             TaskToExecute = EventsModificationMessage.Task.ComputeCorrelation2D,

@@ -75,10 +75,15 @@ public static class TracesService
 
     public static string ElectrodeName(int traceID)
     {
-        if (Options.ContainsKey(traceID))
+        return ElectrodeName(BTV.Services.Session.Current, traceID);
+    }
+
+    public static string ElectrodeName(BTV.Services.Session session, int traceID)
+    {
+        if (session.TraceOptions.ContainsKey(traceID))
         {
-            int electrodeID = Options[traceID].ElectrodeID;
-            BtvProgram handle = Options[traceID].FileHandle;
+            int electrodeID = session.TraceOptions[traceID].ElectrodeID;
+            BtvProgram handle = session.TraceOptions[traceID].FileHandle;
             return handle.GetElectrodeNameFromElectrodeID(electrodeID);
         }
         else
@@ -109,15 +114,25 @@ public static class TracesService
 
     public static int ElectrodeCount(int traceID)
     {
-        return Options.ContainsKey(traceID) ? Options[traceID].FileHandle.NumberOfElectrodes : -1;
+        return ElectrodeCount(BTV.Services.Session.Current, traceID);
+    }
+
+    public static int ElectrodeCount(BTV.Services.Session session, int traceID)
+    {
+        return session.TraceOptions.ContainsKey(traceID) ? session.TraceOptions[traceID].FileHandle.NumberOfElectrodes : -1;
     }
 
     public static float[] ChannelData(int traceID, int electrodeID = -1)
     {
-        if (Options.ContainsKey(traceID))
+        return ChannelData(BTV.Services.Session.Current, traceID, electrodeID);
+    }
+
+    public static float[] ChannelData(BTV.Services.Session session, int traceID, int electrodeID = -1)
+    {
+        if (session.TraceOptions.ContainsKey(traceID))
         {
-            BtvProgram handle = Options[traceID].FileHandle;
-            if (electrodeID == -1) electrodeID = Options[traceID].ElectrodeID;
+            BtvProgram handle = session.TraceOptions[traceID].FileHandle;
+            if (electrodeID == -1) electrodeID = session.TraceOptions[traceID].ElectrodeID;
             if (electrodeID < handle.NumberOfElectrodes)
             {
                 return handle.Channels[electrodeID].Data;
@@ -135,9 +150,15 @@ public static class TracesService
 
     public static float[] AudioChannelData()
     {
-        if (AudioOption == null) return null;
-        if (AudioOption.FileID < 0) return null;
+        return AudioChannelData(BTV.Services.Session.Current);
+    }
 
-        return AudioOption.FileHandle.Channels[AudioOption.FileID].Data;
+    public static float[] AudioChannelData(BTV.Services.Session session)
+    {
+        AudioTraceOption option = session.AudioTraceOption;
+        if (option == null) return null;
+        if (option.FileID < 0) return null;
+
+        return option.FileHandle.Channels[option.FileID].Data;
     }
 }

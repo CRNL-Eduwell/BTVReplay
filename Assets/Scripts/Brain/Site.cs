@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Tools.CSharp.EEG;
 using UnityEngine;
+using BTV.Services;
 
 public class Site : MonoBehaviour
 {
@@ -123,12 +124,14 @@ public class Site : MonoBehaviour
     private BtvChannel m_Channel = null;
     private Frequency m_Frequency = null;
     private bool m_MessengerRegistered = false;
+    private Session m_PatientSession = null;
     #endregion
 
-    public void Init(AnatomicalSite site)
+    public void Init(Session patientSession, AnatomicalSite site)
     {
+        m_PatientSession = patientSession;
         m_Plot = site;
-        m_MasterTraceOption = TracesService.GetOptionsFor(0);
+        m_MasterTraceOption = TracesService.GetOptionsFor(m_PatientSession, 0);
 
         RegisterMessengerHandlers();
 
@@ -207,12 +210,14 @@ public class Site : MonoBehaviour
 
     private void OnBrainParametersMessage(UiToBrainMessage message)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         if (message.TaskToExecute == UiToBrainMessage.Task.UpdateGain) //=> gain update
             m_Gain = message.Gain;
     }
 
     private void OnVideoToModulesMessage(VideoToModulesMessage message)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         UpdateSize((int)message.TimeMilliseconds);
     }
 
@@ -234,4 +239,3 @@ public class Site : MonoBehaviour
         }
     }
 }
-

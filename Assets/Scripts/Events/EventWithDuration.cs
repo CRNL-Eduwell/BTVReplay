@@ -104,7 +104,7 @@ public class EventWithDuration : EventTrace
         if (shoudNormalize)
         {
             NormalizeTF window = SpawnFrequencyChoiceWindow();
-            window.Initialize(() =>
+            window.Initialize(m_Session, () =>
             {
                 if (TimeFrequencyService.GetBaselineEvent(m_Session) == null)
                 {

@@ -4,6 +4,7 @@ using BTV.Data;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using BTV.Services;
 
 public class NormalizeTF : MonoBehaviour
 {
@@ -20,17 +21,19 @@ public class NormalizeTF : MonoBehaviour
     [SerializeField] private Button _NormalizeOk = null;
     [SerializeField] private Button _SetAsDefault = null;
 
-    public void Initialize(UnityAction yesAction, UnityAction cancelAction)
+    public void Initialize(Session patientSession, UnityAction yesAction, UnityAction cancelAction)
     {
+        _NormalizedEventList.Initialize(patientSession);
         _Close.onClick.AddListener(Close);
         ((ISelectionCountable)_NormalizedEventList).OnSelectionChanged.AddListener(UpdateShownEvent);
 
         _NormalizeOk.onClick.AddListener(yesAction);
         _SetAsDefault.onClick.AddListener(cancelAction);
 
-        if (TimeFrequencyService.BaselineEvent != null)
+        BtvEvent baselineEvent = TimeFrequencyService.GetBaselineEvent(patientSession);
+        if (baselineEvent != null)
         {
-            int indexOf = _NormalizedEventList.Objects.IndexOf(TimeFrequencyService.BaselineEvent);
+            int indexOf = _NormalizedEventList.Objects.IndexOf(baselineEvent);
             if (indexOf == -1)
             {
                 UnityEngine.Debug.LogError("Baseline event not found in event list");

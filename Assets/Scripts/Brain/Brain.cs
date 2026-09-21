@@ -18,6 +18,7 @@ public class Brain : MonoBehaviour
     IElectrodesContext m_ElectrodesContext = null;
     private TraceOption m_MasterTraceOption = null;
     private int m_BrainReferentialID = -1;
+    private Session m_PatientSession = null;
 
     void Awake()
     {
@@ -27,6 +28,7 @@ public class Brain : MonoBehaviour
 
     private void OnMasterTraceOptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         BtvLog.Log("Brain.cs : OnMasterTraceOptionPropertyChanged");
         switch (e.PropertyName)
         {
@@ -35,8 +37,8 @@ public class Brain : MonoBehaviour
                     BtvLog.Log("OnMasterTraceOptionPropertyChanged FileHandle");
                     if (m_BrainReferentialID == 2)
                     {
-                        int suffix = EegFileService.GetContainerSuffix(m_MasterTraceOption.FileHandle);
-                        List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("ELEC", suffix);
+                        int suffix = EegFileService.GetContainerSuffix(m_PatientSession, m_MasterTraceOption.FileHandle);
+                        List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom(m_PatientSession, "ELEC", suffix);
                         UpdateBrainMesh(sites);
                     }
                     break;
@@ -55,6 +57,7 @@ public class Brain : MonoBehaviour
     {
         if (message.Task == LoaderMessage.LoaderTask.LoadBrain && Session.IsCurrent(message.PatientSession))
         {
+            m_PatientSession = message.PatientSession;
             m_MasterTraceOption = TracesService.GetOptionsFor(message.PatientSession, 0);
             m_MasterTraceOption.PropertyChanged += OnMasterTraceOptionPropertyChanged;
 
@@ -102,10 +105,10 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.EegTechnology);
-        KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList();
+        KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList(m_PatientSession);
         m_BrainReferentialID = d.Key == "MNI" ? 0 : 1;
 
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, d.Value);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_PatientSession, m_Electrodes, d.Value);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         m_BrainCamera.InitCameraPosition();
@@ -123,10 +126,10 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(eeg);
-        KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList();
+        KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList(m_PatientSession);
         m_BrainReferentialID = 2;
 
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, d.Value);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_PatientSession, m_Electrodes, d.Value);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         m_BrainCamera.InitCameraPosition();
@@ -134,6 +137,7 @@ public class Brain : MonoBehaviour
 
     private void OnBrainParametersMessage(UiToBrainMessage message)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         BtvLog.Log("Brain Message, yata");
         switch (message.TaskToExecute)
         {
@@ -163,8 +167,8 @@ public class Brain : MonoBehaviour
                 {
                     m_LeftHemiBrain.gameObject.SetActive(true);
                     m_RightHemiBrain.gameObject.SetActive(true);
-                    BrainDataContainer mniContainer = SubjectInfoService.GetBrainDataContainer("MNI");
-                    List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("MNI");
+                    BrainDataContainer mniContainer = SubjectInfoService.GetBrainDataContainer(m_PatientSession, "MNI");
+                    List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom(m_PatientSession, "MNI");
                     UpdateBrainMesh(mniContainer, sites);
                     break;
                 }
@@ -172,8 +176,8 @@ public class Brain : MonoBehaviour
                 {
                     m_LeftHemiBrain.gameObject.SetActive(true);
                     m_RightHemiBrain.gameObject.SetActive(true);
-                    BrainDataContainer patContainer = SubjectInfoService.GetBrainDataContainer("MNI");
-                    List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("PAT");
+                    BrainDataContainer patContainer = SubjectInfoService.GetBrainDataContainer(m_PatientSession, "MNI");
+                    List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom(m_PatientSession, "PAT");
                     UpdateBrainMesh(patContainer, sites);
                     break;
                 }
@@ -181,8 +185,8 @@ public class Brain : MonoBehaviour
                 {
                     m_LeftHemiBrain.gameObject.SetActive(false);
                     m_RightHemiBrain.gameObject.SetActive(false);
-                    int suffix = EegFileService.GetContainerSuffix(m_MasterTraceOption.FileHandle);
-                    List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom("ELEC", suffix);
+                    int suffix = EegFileService.GetContainerSuffix(m_PatientSession, m_MasterTraceOption.FileHandle);
+                    List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom(m_PatientSession, "ELEC", suffix);
                     UpdateBrainMesh(sites);
                     break;
                 }
@@ -220,7 +224,7 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.EegTechnology);
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, sites);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_PatientSession, m_Electrodes, sites);
 
         // Hack part 2 , put it back outside of the canvas
         gameObject.transform.position += new Vector3(-10000, 0, 0);
@@ -248,7 +252,7 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
 
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, sites);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_PatientSession, m_Electrodes, sites);
 
         // Hack part 2 , put it back outside of the canvas
         gameObject.transform.position += new Vector3(-10000, 0, 0);

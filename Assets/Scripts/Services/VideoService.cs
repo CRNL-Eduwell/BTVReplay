@@ -80,6 +80,11 @@ namespace BTV.Services.VideoService
             get { return Session.Current.FilteredDataLoaded; }
             private set { Session.Current.FilteredDataLoaded = value; }
         }
+
+        public static bool IsFilteredDataLoaded(Session session)
+        {
+            return session.FilteredDataLoaded;
+        }
         /// <summary>
         /// Whether the VLC executable is present at the configured path. UI flows that need VLC
         /// check this first and show <see cref="VlcMissingMessage"/> as a plain dialog - a

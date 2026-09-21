@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 using UnityEngine;
 using BTV.Services.EegFileService;
 using BTV.Data;
+using BTV.Services;
 
 namespace Assets.Scripts.Data.Factory
 {
     public class IntraContext : IElectrodesContext
     {
-        public void LoadElectrodesOnBrain(GameObject parent, List<AnatomicalSite> sites)
+        public void LoadElectrodesOnBrain(Session patientSession, GameObject parent, List<AnatomicalSite> sites)
         {
             if (sites == null || sites.Count == 0)
             {
@@ -41,7 +42,7 @@ namespace Assets.Scripts.Data.Factory
                     GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, electrodes[i].Value[j].Coordinates, Quaternion.identity);
                     NewPlot.name = electrodes[i].Value[j].Label;
                     NewPlot.transform.parent = Electrode.transform;
-                    NewPlot.GetComponent<Site>().Init(sites[counter]);
+                    NewPlot.GetComponent<Site>().Init(patientSession, sites[counter]);
                     counter++;
                 }
             }
