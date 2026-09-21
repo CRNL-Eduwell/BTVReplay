@@ -26,10 +26,15 @@ public static class TimeFrequencyService
 
     public static TfTraceOption GetOptionsFor(int traceID)
     {
+        return GetOptionsFor(BTV.Services.Session.Current, traceID);
+    }
+
+    public static TfTraceOption GetOptionsFor(BTV.Services.Session session, int traceID)
+    {
         BtvLog.Log("Trace " + traceID);
-        if (Options.ContainsKey(traceID))
+        if (session.TfTraceOptions.ContainsKey(traceID))
         {
-            return Options[traceID];
+            return session.TfTraceOptions[traceID];
         }
         else
         {
@@ -39,7 +44,12 @@ public static class TimeFrequencyService
 
     public static int GetFrameSizeFor(int traceID)
     {
-        float Fs = TracesService.SamplingFrequency(traceID);
-        return Mathf.RoundToInt(Options[traceID].WindowInMilliseconds * Fs / 1000);
+        return GetFrameSizeFor(BTV.Services.Session.Current, traceID);
+    }
+
+    public static int GetFrameSizeFor(BTV.Services.Session session, int traceID)
+    {
+        float Fs = TracesService.SamplingFrequency(session, traceID);
+        return Mathf.RoundToInt(session.TfTraceOptions[traceID].WindowInMilliseconds * Fs / 1000);
     }
 }

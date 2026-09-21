@@ -170,12 +170,17 @@ namespace BTV.Services.EventsService
         // Precondition of the queries: left <= right (always true - the window is [ms - period, ms]).
         private static int LowerBoundByTime(float ms)
         {
+            return LowerBoundByTime(Events, ms);
+        }
+
+        private static int LowerBoundByTime(List<BtvEvent> events, float ms)
+        {
             int lo = 0;
-            int hi = Events.Count;
+            int hi = events.Count;
             while (lo < hi)
             {
                 int mid = lo + ((hi - lo) >> 1);
-                if (Events[mid].TimeInMilliSeconds < ms)
+                if (events[mid].TimeInMilliSeconds < ms)
                     lo = mid + 1;
                 else
                     hi = mid;
@@ -299,15 +304,22 @@ namespace BTV.Services.EventsService
         public static void CollectEventIdsForWindow(int LeftBorderMilliSeconds, int RightBorderMilliSeconds,
             List<int> biggerThanWindow, List<int> enteringWindow, List<int> insideWindow, List<int> exitingWindow)
         {
+            CollectEventIdsForWindow(Session.Current, LeftBorderMilliSeconds, RightBorderMilliSeconds,
+                biggerThanWindow, enteringWindow, insideWindow, exitingWindow);
+        }
+
+        public static void CollectEventIdsForWindow(Session session, int LeftBorderMilliSeconds, int RightBorderMilliSeconds,
+            List<int> biggerThanWindow, List<int> enteringWindow, List<int> insideWindow, List<int> exitingWindow)
+        {
             biggerThanWindow.Clear();
             enteringWindow.Clear();
             insideWindow.Clear();
             exitingWindow.Clear();
 
-            int hi = LowerBoundByTime(RightBorderMilliSeconds);
+            int hi = LowerBoundByTime(session.Events, RightBorderMilliSeconds);
             for (int i = 0; i < hi; i++)
             {
-                BtvEvent e = Events[i];
+                BtvEvent e = session.Events[i];
                 float start = e.TimeInMilliSeconds;
                 float end = start + e.Duration;
 

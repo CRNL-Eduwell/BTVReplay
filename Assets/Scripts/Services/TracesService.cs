@@ -89,7 +89,12 @@ public static class TracesService
 
     public static int WindowInSeconds(int traceID)
     {
-        return Options.ContainsKey(traceID) ? Options[traceID].WindowInSeconds : -1;
+        return WindowInSeconds(BTV.Services.Session.Current, traceID);
+    }
+
+    public static int WindowInSeconds(BTV.Services.Session session, int traceID)
+    {
+        return session.TraceOptions.ContainsKey(traceID) ? session.TraceOptions[traceID].WindowInSeconds : -1;
     }
 
     public static int SamplingFrequency(int traceID)

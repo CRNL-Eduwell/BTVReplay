@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BTV.Services;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +23,7 @@ public class EventWithDuration : EventTrace
     private float m_begMemory = -1;
     private float m_endMemory = -1;
     private TfTraceOption m_TfTraceOption = null;
+    private Session m_Session = null;
     private float Fs_Max_Visu = 0;
     private int LeftTimeMemoryMs = 0, RightTimeMemoryMs = 0;
 
@@ -55,14 +57,15 @@ public class EventWithDuration : EventTrace
         if (m_TfTexture != null) Destroy(m_TfTexture);
     }
 
-    public void Initialize(BTV.Data.BtvEvent currentEvent, int winID)
+    public void Initialize(BTV.Data.BtvEvent currentEvent, int winID, Session session)
     {
         base.Init(currentEvent, winID);
+        m_Session = session;
 
-        m_TfTraceOption = TimeFrequencyService.GetOptionsFor(ParentWindowIndex);
+        m_TfTraceOption = TimeFrequencyService.GetOptionsFor(m_Session, ParentWindowIndex);
         m_TfTraceOption.PropertyChanged += OnTimeFrequencyTraceOption_PropertyChanged;
 
-        Fs_Max_Visu = TracesService.SamplingFrequency(ParentWindowIndex) / 2;
+        Fs_Max_Visu = TracesService.SamplingFrequency(m_Session, ParentWindowIndex) / 2;
         Fs_Max_Visu = (Fs_Max_Visu / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
     }
 
@@ -103,7 +106,7 @@ public class EventWithDuration : EventTrace
             NormalizeTF window = SpawnFrequencyChoiceWindow();
             window.Initialize(() =>
             {
-                if (TimeFrequencyService.BaselineEvent == null)
+                if (m_Session.BaselineEvent == null)
                 {
                     if (window.Baseline == null)
                     {
@@ -130,7 +133,7 @@ public class EventWithDuration : EventTrace
                     ProcessCalculationMessage message = new ProcessCalculationMessage
                     {
                         Task = Calculations.NormalizedTF,
-                        BaselineEvent = new BTV.Data.BtvEvent(TimeFrequencyService.BaselineEvent),
+                        BaselineEvent = new BTV.Data.BtvEvent(m_Session.BaselineEvent),
                         EventOfInterest = new BTV.Data.BtvEvent(EventOfInterest),
                         TraceIndex = ParentWindowIndex
                     };
@@ -149,7 +152,7 @@ public class EventWithDuration : EventTrace
                 }
                 else
                 {
-                    TimeFrequencyService.BaselineEvent = new BTV.Data.BtvEvent(window.Baseline);
+                    m_Session.BaselineEvent = new BTV.Data.BtvEvent(window.Baseline);
                 }
             });
         }
@@ -268,7 +271,7 @@ public class EventWithDuration : EventTrace
 
         if (!m_HasDataToDisplay) return;
 
-        float samplingFreq = TracesService.SamplingFrequency(ParentWindowIndex);
+        float samplingFreq = TracesService.SamplingFrequency(m_Session, ParentWindowIndex);
 
         float leftClockInSample = (LeftTimekInMs * samplingFreq) / 1000;
         float rightClockInSample = (RightTimeInMs * samplingFreq) / 1000;
@@ -279,7 +282,7 @@ public class EventWithDuration : EventTrace
         float beg = (leftClockInSample - begInSample) < 0 ? 0 : leftClockInSample - begInSample;
         float end = (rightClockInSample - endInSample) < 0 ? (rightClockInSample - begInSample) : (endInSample - begInSample);
 
-        int frameSize = TimeFrequencyService.GetFrameSizeFor(ParentWindowIndex);
+        int frameSize = TimeFrequencyService.GetFrameSizeFor(m_Session, ParentWindowIndex);
         int hopSize = frameSize / 2;
         if (beg != m_begMemory || end != m_endMemory || overrideCheck)
         {

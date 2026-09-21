@@ -184,7 +184,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         graphLabel.Initialize(m_TraceOption);
 
         graphGrid.init(m_TraceOption.WindowInSeconds);
-        graphEvent.init(this);
+        graphEvent.init(this, m_Session);
         graphSonif.Init(this);
 
         graphLabel.ElectrodeButton.onClick.AddListener(UpdateTracesWidth);

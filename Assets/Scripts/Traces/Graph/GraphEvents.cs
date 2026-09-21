@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using BTV.Services.EventsService;
+using BTV.Services;
 using BTV.Data;
 
 public class GraphEvents : MonoBehaviour
@@ -24,6 +25,7 @@ public class GraphEvents : MonoBehaviour
     private GameObject m_EventZeroDurationPrefab = null, m_EventNonZeroDurationPrefab = null;
     private RectTransform m_parentRectTransform = null;
     private Trace m_parent = null;
+    private Session m_Session = null;
     private List<GameObject> m_EventsAdded = new List<GameObject>();
     private bool m_DisplayEvents = true;
 
@@ -33,9 +35,10 @@ public class GraphEvents : MonoBehaviour
     private readonly List<int> m_IdInside = new List<int>();
     private readonly List<int> m_IdLeftEnter = new List<int>();
 
-    public void init(Trace parentWin)
+    public void init(Trace parentWin, Session session)
     {
         m_parent = parentWin;
+        m_Session = session;
         m_EventZeroDurationPrefab = Resources.Load("Prefabs/Trace-Event", typeof(GameObject)) as GameObject;
         m_EventNonZeroDurationPrefab = Resources.Load("Prefabs/Trace-Event2", typeof(GameObject)) as GameObject;
         m_parentRectTransform = gameObject.transform.parent.GetComponent<RectTransform>();
@@ -71,7 +74,7 @@ public class GraphEvents : MonoBehaviour
         }
         else
         {
-            currentEventToAdd.GetComponent<EventWithDuration>().Initialize(currentEvent, m_parent.TraceId);
+            currentEventToAdd.GetComponent<EventWithDuration>().Initialize(currentEvent, m_parent.TraceId, m_Session);
         }
     }
 
@@ -91,19 +94,19 @@ public class GraphEvents : MonoBehaviour
         // add/delete/load path desynced them (an exception mid-add, a reset or an events-file
         // reload that this trace never heard about), rebuild from the service instead of
         // indexing out of range on every video tick.
-        if (m_EventsAdded.Count != EventsService.Events.Count)
+        if (m_EventsAdded.Count != m_Session.Events.Count)
         {
-            Debug.LogWarning("GraphEvents: trace event objects out of sync with EventsService (" + m_EventsAdded.Count + " vs " + EventsService.Events.Count + "), rebuilding.");
+            Debug.LogWarning("GraphEvents: trace event objects out of sync with its session (" + m_EventsAdded.Count + " vs " + m_Session.Events.Count + "), rebuilding.");
             RebuildEventsFromService();
         }
 
-        int EventCount = EventsService.Events.Count;
+        int EventCount = m_Session.Events.Count;
         if (EventCount > 0)
         {
-            float samplingFreq = TracesService.SamplingFrequency(m_parent.TraceId);
-            int PeriodInSeconds = TracesService.WindowInSeconds(m_parent.TraceId);
+            float samplingFreq = TracesService.SamplingFrequency(m_Session, m_parent.TraceId);
+            int PeriodInSeconds = TracesService.WindowInSeconds(m_Session, m_parent.TraceId);
             float widthOfGameObject = m_parent.gameObject.transform.GetComponent<RectTransform>().rect.width - 10; //TODO : do we get some way of getting that from parent or not
-            float horizontalScale = widthOfGameObject / TracesService.GetOptionsFor(m_parent.TraceId).NumberOfPoint;
+            float horizontalScale = widthOfGameObject / TracesService.GetOptionsFor(m_Session, m_parent.TraceId).NumberOfPoint;
 
             int left = milliSecToLook - (PeriodInSeconds * 1000);
             int right = milliSecToLook;
@@ -112,7 +115,7 @@ public class GraphEvents : MonoBehaviour
             if (DisplayEvents)
             {
                 //We get all relevant events in a single allocation-free pass over reused buffers
-                EventsService.CollectEventIdsForWindow(left, right, m_IdOverFlow, m_IdRightEnter, m_IdInside, m_IdLeftEnter);
+                EventsService.CollectEventIdsForWindow(m_Session, left, right, m_IdOverFlow, m_IdRightEnter, m_IdInside, m_IdLeftEnter);
                 List<int> idOverFlow = m_IdOverFlow;
                 List<int> idRightEnter = m_IdRightEnter;
                 List<int> idInside = m_IdInside;
@@ -123,8 +126,8 @@ public class GraphEvents : MonoBehaviour
 
                 for (int i = 0; i < idRightEnter.Count; i++)
                 {
-                    float positionInsideRect = (((left - EventsService.Events[idRightEnter[i]].TimeInMilliSeconds) * samplingFreq) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                    float rightevent = right - EventsService.Events[idRightEnter[i]].TimeInMilliSeconds;
+                    float positionInsideRect = (((left - m_Session.Events[idRightEnter[i]].TimeInMilliSeconds) * samplingFreq) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float rightevent = right - m_Session.Events[idRightEnter[i]].TimeInMilliSeconds;
                     float size = (rightevent / (right - left)) * widthOfGameObject;
 
                     m_EventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
@@ -137,10 +140,10 @@ public class GraphEvents : MonoBehaviour
 
                 for (int i = 0; i < idInside.Count; i++)
                 {
-                    float positionInsideRect = (((left - EventsService.Events[idInside[i]].TimeInMilliSeconds) * samplingFreq) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                    float size = ((float)EventsService.Events[idInside[i]].Duration / (right - left)) * widthOfGameObject;
+                    float positionInsideRect = (((left - m_Session.Events[idInside[i]].TimeInMilliSeconds) * samplingFreq) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
+                    float size = ((float)m_Session.Events[idInside[i]].Duration / (right - left)) * widthOfGameObject;
 
-                    if (EventsService.Events[idInside[i]].Duration > 0)
+                    if (m_Session.Events[idInside[i]].Duration > 0)
                     {
                         m_EventsAdded[idInside[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
                     }
@@ -155,7 +158,7 @@ public class GraphEvents : MonoBehaviour
                 for (int i = 0; i < idLeftEnter.Count; i++)
                 {
                     float positionInsideRect = (-widthOfGameObject / 2) + 1;
-                    float leftevent = (EventsService.Events[idLeftEnter[i]].TimeInMilliSeconds + EventsService.Events[idLeftEnter[i]].Duration) - left;
+                    float leftevent = (m_Session.Events[idLeftEnter[i]].TimeInMilliSeconds + m_Session.Events[idLeftEnter[i]].Duration) - left;
                     float size = (leftevent / (right - left)) * widthOfGameObject;
 
                     m_EventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
@@ -189,9 +192,9 @@ public class GraphEvents : MonoBehaviour
         }
         m_EventsAdded.Clear();
 
-        for (int i = 0; i < EventsService.Events.Count; i++)
+        for (int i = 0; i < m_Session.Events.Count; i++)
         {
-            AddEventToTrace(EventsService.Events[i], i);
+            AddEventToTrace(m_Session.Events[i], i);
         }
     }
 
