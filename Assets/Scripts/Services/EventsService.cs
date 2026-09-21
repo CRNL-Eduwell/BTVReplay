@@ -12,7 +12,7 @@ namespace BTV.Services.EventsService
         public static List<BtvEvent> Events
         {
             get { return Session.Current.Events; }
-            set { Session.Current.Events = value; }
+            set { Session.Current.Events = value ?? new List<BtvEvent>(); }
         }
 
         public static void Reset()

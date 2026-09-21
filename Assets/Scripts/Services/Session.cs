@@ -43,8 +43,8 @@ namespace BTV.Services
         internal bool FilteredDataLoaded { get; set; }
         internal AudioDataLoaded AudioDataLoadedHandlers { get; set; }
 
-        internal List<EegTrigger> ProcessedTriggers { get; set; }
-        internal List<Color> TaskPerformanceColors { get; set; }
+        internal List<EegTrigger> ProcessedTriggers { get; set; } = new List<EegTrigger>();
+        internal List<Color> TaskPerformanceColors { get; set; } = new List<Color>();
         internal Dictionary<int, string> CodeComments { get; set; } = new Dictionary<int, string>();
 
         /// <summary>
@@ -71,20 +71,20 @@ namespace BTV.Services
             IsDisposed = true;
             AudioDataLoadedHandlers = null;
             Subject = null;
-            Montages.Clear();
-            Events.Clear();
-            TraceOptions.Clear();
+            Montages?.Clear();
+            Events?.Clear();
+            TraceOptions?.Clear();
             AudioTraceOption = null;
             BaselineEvent = null;
-            TfTraceOptions.Clear();
-            SitesPerReferential.Clear();
+            TfTraceOptions?.Clear();
+            SitesPerReferential?.Clear();
             Atlas?.Dispose();
             Atlas = null;
             ProcessedAudio = null;
             RawAudioData = null;
             ProcessedTriggers = new List<EegTrigger>();
             TaskPerformanceColors = new List<Color>();
-            CodeComments.Clear();
+            CodeComments?.Clear();
         }
 
         internal static List<BtvMontage> CreateDefaultMontages()

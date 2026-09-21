@@ -25,22 +25,18 @@ namespace BTV.Services.TaskPerformanceService
 
         public static IReadOnlyList<EegTrigger> GetProcessedTriggers(Session session)
         {
-            return session.ProcessedTriggers != null
-                ? (IReadOnlyList<EegTrigger>)session.ProcessedTriggers
-                : Array.Empty<EegTrigger>();
+            return session.ProcessedTriggers;
         }
 
         public static IReadOnlyList<Color> GetColors(Session session)
         {
-            return session.TaskPerformanceColors != null
-                ? (IReadOnlyList<Color>)session.TaskPerformanceColors
-                : Array.Empty<Color>();
+            return session.TaskPerformanceColors;
         }
 
         public static void Reset()
         {
-            ProcessedTriggers = null;
-            Colors = null;
+            ProcessedTriggers = new List<EegTrigger>();
+            Colors = new List<Color>();
         }
 
         //calculateReactionTime in old pos.cs
