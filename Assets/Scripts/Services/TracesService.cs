@@ -94,7 +94,12 @@ public static class TracesService
 
     public static int SamplingFrequency(int traceID)
     {
-        return Options.ContainsKey(traceID) ? Options[traceID].SamplingFrequency : -1;
+        return SamplingFrequency(BTV.Services.Session.Current, traceID);
+    }
+
+    public static int SamplingFrequency(BTV.Services.Session session, int traceID)
+    {
+        return session.TraceOptions.ContainsKey(traceID) ? session.TraceOptions[traceID].SamplingFrequency : -1;
     }
 
     public static int ElectrodeCount(int traceID)

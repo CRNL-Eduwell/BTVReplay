@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using BTV.Services;
 using BTV.Services.TaskPerformanceService;
 using UnityEngine;
 using UnityEngine.UI;
@@ -52,6 +53,12 @@ public class TaskPerformanceTrace : MonoBehaviour
     private int m_State = 1;
 
     private Stopwatch m_internalTimer = new Stopwatch();
+    private Session m_Session = null;
+
+    public void Initialize(Session session)
+    {
+        m_Session = session;
+    }
 
 
     public void UpdateWindowState(int state)
@@ -214,24 +221,24 @@ public class TaskPerformanceTrace : MonoBehaviour
     {
         BtvLog.Log("Update Protocol Events");
         m_HasDataToDisplay = false;
-        TaskPerformanceService.ProcessEventsForExperiment(protocol);
+        TaskPerformanceService.ProcessEventsForExperiment(m_Session, protocol);
         UpdateEvents();
         UpdateProtocolPicturesAndCodes(protocol);
-        m_HasDataToDisplay = (TaskPerformanceService.ProcessedTriggers.Count == 0) ? false : true;
+        m_HasDataToDisplay = m_Session.ProcessedTriggers.Count != 0;
 
         m_internalTimer.Restart();
     }
 
     private void UpdateEvents()
     {
-        int TriggerCount = TaskPerformanceService.ProcessedTriggers.Count;
+        int TriggerCount = m_Session.ProcessedTriggers.Count;
         BtvLog.Log("Update Events " + TriggerCount);
 
         for (int i = 0; i < TriggerCount; i++)
         {
             TriggerBarplot trigger = Instantiate(m_TriggerBarplotPrefabs, m_TaskBarHolder); //instancier avec parent dzans les paramètres
-            trigger.Trigger = TaskPerformanceService.ProcessedTriggers[i];
-            trigger.SetColor(TaskPerformanceService.Colors[i]);
+            trigger.Trigger = m_Session.ProcessedTriggers[i];
+            trigger.SetColor(m_Session.TaskPerformanceColors[i]);
             trigger.UpdatePosition(0, i, 0, -2);
             trigger.UpdatePosition(0, i, 100, -2);
             trigger.Show(false);
@@ -264,7 +271,7 @@ public class TaskPerformanceTrace : MonoBehaviour
     private void UpdateTimeResolution(int periodInSecond)
     {
         m_PeriopdInSec = periodInSecond;
-        m_NumberOfPoint = TracesService.SamplingFrequency(0) * m_PeriopdInSec;
+        m_NumberOfPoint = TracesService.SamplingFrequency(m_Session, 0) * m_PeriopdInSec;
     }
 
     private void UpdateScales()
