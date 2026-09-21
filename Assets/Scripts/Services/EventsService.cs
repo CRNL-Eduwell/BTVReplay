@@ -198,6 +198,11 @@ namespace BTV.Services.EventsService
             return session.Events.Count;
         }
 
+        public static IReadOnlyList<BtvEvent> GetEvents(Session session)
+        {
+            return session.Events;
+        }
+
         public static BtvEvent GetEvent(Session session, int index)
         {
             return session.Events[index];
@@ -233,6 +238,9 @@ namespace BTV.Services.EventsService
             return lo;
         }
 
+        // The allocating single-category query methods remain as independent reference
+        // implementations for EventsServiceWindowQueryTests. Runtime tick paths should use
+        // CollectEventIdsForWindow with reusable buffers.
         /// <summary>
         ///
         /// [BeginEvent ---------------------------------------------- EndEvent]

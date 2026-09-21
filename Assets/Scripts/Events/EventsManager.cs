@@ -200,11 +200,10 @@ public class EventsManager : MonoBehaviour
 
     private void GoToPreviousEvent()
     {
-        int eventCount = EventsService.GetEventCount(m_PatientSession);
-        if (eventCount > 0)
+        IReadOnlyList<BtvEvent> events = EventsService.GetEvents(m_PatientSession);
+        if (events.Count > 0)
         {
             long videoTimeInMs = m_videoPlayer.VideoInterface.ClockTime;
-            List<BtvEvent> events = EventsService.FindEvents(m_PatientSession, _ => true);
             int index = events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(videoTimeInMs);
             if (index < 0) index = ~index - 1;
 
@@ -223,15 +222,14 @@ public class EventsManager : MonoBehaviour
 
     private void GoToNextEvent()
     {
-        int eventCount = EventsService.GetEventCount(m_PatientSession);
-        if (eventCount > 0)
+        IReadOnlyList<BtvEvent> events = EventsService.GetEvents(m_PatientSession);
+        if (events.Count > 0)
         {
             long videoTimeInMs = m_videoPlayer.VideoInterface.ClockTime;
-            List<BtvEvent> events = EventsService.FindEvents(m_PatientSession, _ => true);
             int index = events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(videoTimeInMs);
             index = (index < 0) ? ~index : index + 1;
 
-            if (index + 1 <= eventCount)
+            if (index + 1 <= events.Count)
             {
                 int eventTimeInMs = (int)events[index].TimeInMilliSeconds;
                 ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
@@ -280,7 +278,7 @@ public class EventsManager : MonoBehaviour
             if (ClearPreviousEvents)
             {
                 EventsService.Load(m_PatientSession, filePath, SamplingFrequency);
-                List<BtvEvent> events = EventsService.FindEvents(m_PatientSession, _ => true);
+                List<BtvEvent> events = EventsService.GetEvents(m_PatientSession).ToList();
                 //load in UI List
                 m_EventsList.DeleteAllEvents();
                 m_EventsList.LoadEvents(events);

@@ -204,6 +204,8 @@ public class ApplicationStateResetTests
             events.Add(detachedEvent);
 
             Assert.AreSame(detachedOption, TracesService.GetOptionsFor(detachedSession, 0));
+            Assert.AreSame(detachedEvent,
+                BTV.Services.EventsService.EventsService.GetEvents(detachedSession)[0]);
             Assert.AreSame(
                 ((List<BtvMontage>)GetSessionProperty(detachedSession, "Montages"))[0],
                 EegFileService.GetCurrentMontage(detachedSession));

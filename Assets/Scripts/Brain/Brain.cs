@@ -108,10 +108,15 @@ public class Brain : MonoBehaviour
         KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList(m_PatientSession);
         m_BrainReferentialID = d.Key == "MNI" ? 0 : 1;
 
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_PatientSession, m_Electrodes, d.Value);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, d.Value, InitializeSite);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         m_BrainCamera.InitCameraPosition();
+    }
+
+    private void InitializeSite(Site site, AnatomicalSite anatomicalSite)
+    {
+        site.Init(m_PatientSession, anatomicalSite);
     }
 
     private void LoadElectrodesDefault(EegTechnology eeg)
@@ -129,7 +134,7 @@ public class Brain : MonoBehaviour
         KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList(m_PatientSession);
         m_BrainReferentialID = 2;
 
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_PatientSession, m_Electrodes, d.Value);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, d.Value, InitializeSite);
 
         m_BrainCamera = GameObject.Find("CameraBrain").GetComponent<BrainCamera>();
         m_BrainCamera.InitCameraPosition();
@@ -224,7 +229,7 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.EegTechnology);
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_PatientSession, m_Electrodes, sites);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, sites, InitializeSite);
 
         // Hack part 2 , put it back outside of the canvas
         gameObject.transform.position += new Vector3(-10000, 0, 0);
@@ -252,7 +257,7 @@ public class Brain : MonoBehaviour
         m_Electrodes = new GameObject("Electrodes");
         m_Electrodes.transform.parent = gameObject.transform;
 
-        m_ElectrodesContext.LoadElectrodesOnBrain(m_PatientSession, m_Electrodes, sites);
+        m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, sites, InitializeSite);
 
         // Hack part 2 , put it back outside of the canvas
         gameObject.transform.position += new Vector3(-10000, 0, 0);
