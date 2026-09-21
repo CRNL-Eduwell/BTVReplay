@@ -97,6 +97,18 @@ public class ApplicationStateResetTests
         Assert.AreEqual(2, EegFileService.Montages.Count);
     }
 
+    [Test]
+    public void LoadingCompletion_IgnoresACircleDestroyedByThePatientSwitch()
+    {
+        GameObject loadingObject = new GameObject("LoadingCircle from previous scene");
+        LoadingCircle destroyedCircle = loadingObject.AddComponent<LoadingCircle>();
+        Object.DestroyImmediate(loadingObject);
+
+        MethodInfo method = typeof(LoadingManager).GetMethod("CloseIfAlive", StaticNonPublic);
+        Assert.NotNull(method, "LoadingManager close guard not found");
+        Assert.DoesNotThrow(() => method.Invoke(null, new object[] { destroyedCircle }));
+    }
+
     private static void SetTaskPerformanceProperty(string propertyName, object value)
     {
         PropertyInfo property = typeof(TaskPerformanceService).GetProperty(propertyName);

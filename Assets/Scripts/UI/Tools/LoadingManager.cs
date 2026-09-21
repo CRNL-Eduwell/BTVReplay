@@ -60,8 +60,13 @@ public class LoadingManager : MonoBehaviour
         }
         finally
         {
-            loadingCircle.Close();
+            CloseIfAlive(loadingCircle);
         }
+    }
+
+    private static void CloseIfAlive(LoadingCircle loadingCircle)
+    {
+        if (loadingCircle != null) loadingCircle.Close();
     }
     #endregion
 }
