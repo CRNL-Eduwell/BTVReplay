@@ -20,7 +20,7 @@ namespace BTV.UI.Module3D.Tools
 
         private bool m_InitInteractableDone = false;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
 

@@ -27,7 +27,7 @@ namespace BTV.UI.Module3D.Tools
         private int m_Gain = 1;
 
         #region Public Methods
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             //BtvLog.Log("Init brain gain");
             m_Label.text = "Gain : " + m_Gain;

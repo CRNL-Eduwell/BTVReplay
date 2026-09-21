@@ -42,7 +42,7 @@ namespace BTV.UI.Module3D
             _TraceToggler.SelectedTrace.AddListener((traceID) =>
             {
                 m_CurrentTraceID = traceID;
-                m_Options = PatientSession.TfTraceOptions[m_CurrentTraceID];
+                m_Options = TimeFrequencyService.GetOptionsFor(PatientSession, m_CurrentTraceID);
                 _AlphaSlider.SetValueWithoutNotify(m_Options.Alpha);
                 _TfWindow.SetFrequencyBandWithoutNotify((int)m_Options.LowFrequency, (int)m_Options.HighFrequency);
                 _TfWindow.SetTimePeriodWithoutNotify((int)m_Options.WindowInMilliseconds);

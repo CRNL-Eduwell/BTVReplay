@@ -14,13 +14,12 @@ namespace BTV.UI.Module3D.Tools
         public void Initialize(Session session)
         {
             PatientSession = session ?? throw new ArgumentNullException(nameof(session));
-            Initialize();
+            OnInitialize();
         }
 
         /// <summary>
-        /// Add the listeners for this tool. Kept as the derived-class hook while callers migrate
-        /// to the session-aware overload.
+        /// Add the listeners for this tool after its patient session has been bound.
         /// </summary>
-        public abstract void Initialize();
+        protected abstract void OnInitialize();
     }
 }

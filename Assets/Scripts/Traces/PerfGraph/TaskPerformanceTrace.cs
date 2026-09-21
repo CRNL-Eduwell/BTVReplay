@@ -224,21 +224,23 @@ public class TaskPerformanceTrace : MonoBehaviour
         TaskPerformanceService.ProcessEventsForExperiment(m_Session, protocol);
         UpdateEvents();
         UpdateProtocolPicturesAndCodes(protocol);
-        m_HasDataToDisplay = m_Session.ProcessedTriggers.Count != 0;
+        m_HasDataToDisplay = TaskPerformanceService.GetProcessedTriggers(m_Session).Count != 0;
 
         m_internalTimer.Restart();
     }
 
     private void UpdateEvents()
     {
-        int TriggerCount = m_Session.ProcessedTriggers.Count;
+        IReadOnlyList<EegTrigger> processedTriggers = TaskPerformanceService.GetProcessedTriggers(m_Session);
+        IReadOnlyList<Color> colors = TaskPerformanceService.GetColors(m_Session);
+        int TriggerCount = processedTriggers.Count;
         BtvLog.Log("Update Events " + TriggerCount);
 
         for (int i = 0; i < TriggerCount; i++)
         {
             TriggerBarplot trigger = Instantiate(m_TriggerBarplotPrefabs, m_TaskBarHolder); //instancier avec parent dzans les paramètres
-            trigger.Trigger = m_Session.ProcessedTriggers[i];
-            trigger.SetColor(m_Session.TaskPerformanceColors[i]);
+            trigger.Trigger = processedTriggers[i];
+            trigger.SetColor(colors[i]);
             trigger.UpdatePosition(0, i, 0, -2);
             trigger.UpdatePosition(0, i, 100, -2);
             trigger.Show(false);

@@ -12,7 +12,7 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField] Button m_LoadMontageButton;
         [SerializeField] Button m_SaveSelectedMontageButton;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_LoadMontageButton.onClick.AddListener(Load);
             m_SaveSelectedMontageButton.onClick.AddListener(Save);

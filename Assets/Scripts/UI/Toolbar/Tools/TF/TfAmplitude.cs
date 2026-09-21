@@ -11,7 +11,7 @@ namespace BTV.UI.Module3D.Tools
 
         [SerializeField] private RangeSlider m_RangeSlider = null;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_RangeSlider.onValueChanged.AddListener(UpdateAmplitudeValues);
         }

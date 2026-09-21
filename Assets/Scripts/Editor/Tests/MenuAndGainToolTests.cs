@@ -46,7 +46,7 @@ public class MenuAndGainToolTests
     private class TestTool : Tool
     {
         public int InitializeCount { get; private set; }
-        public override void Initialize() { InitializeCount++; }
+        protected override void OnInitialize() { InitializeCount++; }
     }
 
     private class TestToolbar : Toolbar

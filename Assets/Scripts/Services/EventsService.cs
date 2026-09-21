@@ -157,10 +157,30 @@ namespace BTV.Services.EventsService
 
         public static List<int> FindIndexes(int SearchValue)
         {
-            return Events.Select((item, index) => new { Item = item, Index = index })
+            return FindIndexes(Session.Current, SearchValue);
+        }
+
+        public static List<int> FindIndexes(Session session, int SearchValue)
+        {
+            return session.Events.Select((item, index) => new { Item = item, Index = index })
              .Where(x => x.Item.Code == SearchValue)
              .Select(x => x.Index)
              .ToList();
+        }
+
+        public static int GetEventCount(Session session)
+        {
+            return session.Events.Count;
+        }
+
+        public static BtvEvent GetEvent(Session session, int index)
+        {
+            return session.Events[index];
+        }
+
+        public static List<BtvEvent> FindEvents(Session session, Predicate<BtvEvent> predicate)
+        {
+            return session.Events.FindAll(predicate);
         }
 
         // First index whose event start time is >= ms. Relies on Events being sorted ascending by

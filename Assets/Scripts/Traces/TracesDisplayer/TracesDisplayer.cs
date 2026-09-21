@@ -94,7 +94,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     private void OnGUI()
     {
-        if (m_VideoPlayer.VideoInterface == null) return;
+        if (m_VideoPlayer.VideoInterface == null || m_Session == null) return;
 
         bool isOver = RectTransformUtility.RectangleContainsScreenPoint(m_rectTransform, Input.mousePosition, Camera.main);
         if (isOver)
@@ -133,7 +133,8 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_rectTransform, Input.mousePosition, Camera.main, out Vector2 localPosition);
             float perc = ((localPosition.x + (0.5f * m_rectTransform.rect.width)) / m_rectTransform.rect.width);
             float mouseTime = perc * m_VideoPlayer.VideoInterface.TotalVideoTime;
-            List<BtvEvent> eventsIndexes = m_Session.Events.FindAll(x => x.Duration > 0 && (mouseTime >= x.TimeInMilliSeconds && mouseTime <= x.TimeInMilliSeconds + x.Duration));
+            List<BtvEvent> eventsIndexes = EventsService.FindEvents(m_Session,
+                x => x.Duration > 0 && mouseTime >= x.TimeInMilliSeconds && mouseTime <= x.TimeInMilliSeconds + x.Duration);
             if (eventsIndexes.Count > 0)
             {
                 TraceDisplayerPointerMessage message = new TraceDisplayerPointerMessage

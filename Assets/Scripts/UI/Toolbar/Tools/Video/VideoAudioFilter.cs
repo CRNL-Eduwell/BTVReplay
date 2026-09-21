@@ -14,7 +14,7 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField]
         private Button m_FilterAudio = null;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_FilterAudio.onClick.AddListener(TryToFilterAudioFromVideo);
         }

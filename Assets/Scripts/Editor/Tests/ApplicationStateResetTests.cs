@@ -60,6 +60,21 @@ public class ApplicationStateResetTests
     }
 
     [Test]
+    public void SessionReplacement_LeavesDisposedCollectionsSafeToRead()
+    {
+        Session previous = Session.Current;
+        BTV.Services.EventsService.EventsService.Events.Add(new BtvEvent(1, 100f));
+        SetTaskPerformanceProperty("ProcessedTriggers", new List<EegTrigger>());
+        SetTaskPerformanceProperty("Colors", new List<Color>());
+
+        Session.ReplaceCurrent();
+
+        Assert.AreEqual(0, BTV.Services.EventsService.EventsService.GetEventCount(previous));
+        Assert.AreEqual(0, TaskPerformanceService.GetProcessedTriggers(previous).Count);
+        Assert.AreEqual(0, TaskPerformanceService.GetColors(previous).Count);
+    }
+
+    [Test]
     public void EegReset_RestoresTheDefaultMontageSelection()
     {
         EegFileService.SelectedMontageID = 4;

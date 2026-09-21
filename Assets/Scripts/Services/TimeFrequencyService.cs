@@ -10,6 +10,16 @@ public static class TimeFrequencyService
         get { return BTV.Services.Session.Current.BaselineEvent; }
         set { BTV.Services.Session.Current.BaselineEvent = value; }
     }
+
+    public static BtvEvent GetBaselineEvent(BTV.Services.Session session)
+    {
+        return session.BaselineEvent;
+    }
+
+    public static void SetBaselineEvent(BTV.Services.Session session, BtvEvent baselineEvent)
+    {
+        session.BaselineEvent = baselineEvent;
+    }
     private static Dictionary<int, TfTraceOption> Options { get { return BTV.Services.Session.Current.TfTraceOptions; } }
 
     public static void Reset()

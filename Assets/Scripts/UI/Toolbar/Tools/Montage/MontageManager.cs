@@ -12,7 +12,7 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField] Button m_RemoveSelectedMontageButton;
         [SerializeField] Button m_EditSelectedMontageButton;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             Messenger.Default.Register<MontageMessage>(this, OnMontageMessage, MessageContext.MontageMessage);
             m_AddMontageButton.onClick.AddListener(AddNewMontage);

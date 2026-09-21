@@ -17,7 +17,6 @@ public class Brain : MonoBehaviour
     #endregion
     IElectrodesContext m_ElectrodesContext = null;
     private TraceOption m_MasterTraceOption = null;
-    private Session m_Session = null;
     private int m_BrainReferentialID = -1;
 
     void Awake()
@@ -56,8 +55,7 @@ public class Brain : MonoBehaviour
     {
         if (message.Task == LoaderMessage.LoaderTask.LoadBrain && Session.IsCurrent(message.PatientSession))
         {
-            m_Session = message.PatientSession;
-            m_MasterTraceOption = TracesService.GetOptionsFor(m_Session, 0);
+            m_MasterTraceOption = TracesService.GetOptionsFor(message.PatientSession, 0);
             m_MasterTraceOption.PropertyChanged += OnMasterTraceOptionPropertyChanged;
 
             BtvLog.Log("OnLoader Message => LoadBrain");

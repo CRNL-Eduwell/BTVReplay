@@ -71,20 +71,20 @@ namespace BTV.Services
             IsDisposed = true;
             AudioDataLoadedHandlers = null;
             Subject = null;
-            Montages = null;
-            Events = null;
-            TraceOptions = null;
+            Montages.Clear();
+            Events.Clear();
+            TraceOptions.Clear();
             AudioTraceOption = null;
             BaselineEvent = null;
-            TfTraceOptions = null;
-            SitesPerReferential = null;
+            TfTraceOptions.Clear();
+            SitesPerReferential.Clear();
             Atlas?.Dispose();
             Atlas = null;
             ProcessedAudio = null;
             RawAudioData = null;
-            ProcessedTriggers = null;
-            TaskPerformanceColors = null;
-            CodeComments = null;
+            ProcessedTriggers = new List<EegTrigger>();
+            TaskPerformanceColors = new List<Color>();
+            CodeComments.Clear();
         }
 
         internal static List<BtvMontage> CreateDefaultMontages()

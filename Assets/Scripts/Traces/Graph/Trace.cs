@@ -314,6 +314,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OnVideoToModulesMessage(VideoToModulesMessage message)
     {
+        if (!m_initDone) return;
+
         if (message.IsStopped)
         {
             graphSonif.Mute();

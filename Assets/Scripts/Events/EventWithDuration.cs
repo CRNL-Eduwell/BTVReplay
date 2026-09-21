@@ -106,7 +106,7 @@ public class EventWithDuration : EventTrace
             NormalizeTF window = SpawnFrequencyChoiceWindow();
             window.Initialize(() =>
             {
-                if (m_Session.BaselineEvent == null)
+                if (TimeFrequencyService.GetBaselineEvent(m_Session) == null)
                 {
                     if (window.Baseline == null)
                     {
@@ -133,7 +133,7 @@ public class EventWithDuration : EventTrace
                     ProcessCalculationMessage message = new ProcessCalculationMessage
                     {
                         Task = Calculations.NormalizedTF,
-                        BaselineEvent = new BTV.Data.BtvEvent(m_Session.BaselineEvent),
+                        BaselineEvent = new BTV.Data.BtvEvent(TimeFrequencyService.GetBaselineEvent(m_Session)),
                         EventOfInterest = new BTV.Data.BtvEvent(EventOfInterest),
                         TraceIndex = ParentWindowIndex
                     };
@@ -152,7 +152,7 @@ public class EventWithDuration : EventTrace
                 }
                 else
                 {
-                    m_Session.BaselineEvent = new BTV.Data.BtvEvent(window.Baseline);
+                    TimeFrequencyService.SetBaselineEvent(m_Session, new BTV.Data.BtvEvent(window.Baseline));
                 }
             });
         }

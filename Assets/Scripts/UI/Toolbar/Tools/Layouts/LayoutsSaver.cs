@@ -19,7 +19,7 @@ namespace BTV.UI.Module3D.Tools
 
         private ExtensionFilter[] m_ExtensionList = { new ExtensionFilter("Workspace File", "workspace") };
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_SaveFile.onClick.AddListener(Save);
         }

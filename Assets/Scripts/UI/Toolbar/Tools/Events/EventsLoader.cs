@@ -16,7 +16,7 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField]
         private Button m_LoadFile = null;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_LoadFile.onClick.AddListener(Load);
         }

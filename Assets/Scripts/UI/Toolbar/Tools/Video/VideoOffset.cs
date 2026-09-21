@@ -30,7 +30,7 @@ namespace BTV.UI.Module3D.Tools
         /// </summary>
         private float m_OffsetMemory = 0;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_OffsetMinutes.text = "00";
             m_OffsetSeconds.text = "00";

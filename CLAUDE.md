@@ -28,7 +28,8 @@ correlations, all synchronized to a video clock.
   disposes the Session in `SubjectLoaderService` before loading the replacement scene;
   `ApplicationState.ResetAllServices()` then initializes state and publishes UI resets. Runtime
   modules receive that same Session through toolbar initialization, the `BTV3DModule` composition
-  root, or `LoaderMessage.PatientSession`; prefer explicit-session service overloads inside them.
+  root, or `LoaderMessage.PatientSession`. Modules treat Session as an opaque lifetime identity:
+  use explicit-session service APIs rather than reading its internal patient-state properties.
 - `Assets/Scripts/Messenger/` — typed pub/sub singleton. One handler per (recipient,
   MessageContext enum); messages carry typed `TaskToExecute` enum op-codes. Register in
   Awake/Start, Unregister in OnDestroy. Dispatch is registration-order, allocation-free,

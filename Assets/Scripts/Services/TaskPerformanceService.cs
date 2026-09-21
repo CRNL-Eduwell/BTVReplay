@@ -23,6 +23,20 @@ namespace BTV.Services.TaskPerformanceService
             private set { Session.Current.TaskPerformanceColors = value; }
         }
 
+        public static IReadOnlyList<EegTrigger> GetProcessedTriggers(Session session)
+        {
+            return session.ProcessedTriggers != null
+                ? (IReadOnlyList<EegTrigger>)session.ProcessedTriggers
+                : Array.Empty<EegTrigger>();
+        }
+
+        public static IReadOnlyList<Color> GetColors(Session session)
+        {
+            return session.TaskPerformanceColors != null
+                ? (IReadOnlyList<Color>)session.TaskPerformanceColors
+                : Array.Empty<Color>();
+        }
+
         public static void Reset()
         {
             ProcessedTriggers = null;
@@ -76,11 +90,7 @@ namespace BTV.Services.TaskPerformanceService
         private static int FindFirstIndexAfter(Session session, int flagCode)
         {
             int beginValue = 0;
-            List<int> indexBegin = session.Events
-                .Select((btvEvent, index) => new { btvEvent, index })
-                .Where(item => item.btvEvent.Code == flagCode)
-                .Select(item => item.index)
-                .ToList();
+            List<int> indexBegin = EventsService.EventsService.FindIndexes(session, flagCode);
             if (indexBegin.Count > 0)
             { 
                 for (int i = 1; i < indexBegin.Count; i++)
