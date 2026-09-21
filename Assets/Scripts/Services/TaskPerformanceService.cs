@@ -12,8 +12,16 @@ namespace BTV.Services.TaskPerformanceService
 {
     public static class TaskPerformanceService
     {
-        public static List<EegTrigger> ProcessedTriggers { get; private set; } = null;
-        public static List<Color> Colors { get; private set; } = null;
+        public static List<EegTrigger> ProcessedTriggers
+        {
+            get { return Session.Current.ProcessedTriggers; }
+            private set { Session.Current.ProcessedTriggers = value; }
+        }
+        public static List<Color> Colors
+        {
+            get { return Session.Current.TaskPerformanceColors; }
+            private set { Session.Current.TaskPerformanceColors = value; }
+        }
 
         public static void Reset()
         {

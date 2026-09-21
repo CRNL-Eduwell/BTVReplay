@@ -12,6 +12,7 @@ using BTV.Services.CodeMatchingService;
 using BTV.Services.AnatomicalDataService;
 using BTV.Services.SubjectInfoService;
 using BTV.Services.TaskPerformanceService;
+using BTV.Services;
 
 public static class ApplicationState
 {
@@ -36,6 +37,8 @@ public static class ApplicationState
 
     public static void ResetAllServices()
     {
+        // Establish the new patient identity before reset methods publish UI updates.
+        Session.ReplaceCurrent();
         SubjectInfoService.Reset();
         AnatomicalDataService.Reset();
         EegFileService.Reset();

@@ -9,7 +9,11 @@ namespace BTV.Services.EventsService
 {
     public static class EventsService
     {
-        public static List<BtvEvent> Events { get; set; } = new List<BtvEvent>();
+        public static List<BtvEvent> Events
+        {
+            get { return Session.Current.Events; }
+            set { Session.Current.Events = value; }
+        }
 
         public static void Reset()
         {

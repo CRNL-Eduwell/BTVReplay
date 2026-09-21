@@ -20,10 +20,12 @@ correlations, all synchronized to a video clock.
   workspaces, events (`.pos`/`.btv`), protocols (`.prov`). EEG samples are read natively via
   the `EEGFormat` C++ library wrapped in `Data/Files/EEG/File.cs`, copied to managed dicts by
   `Data/IEegDataContainer.cs` then disposed.
-- `Assets/Scripts/Services/` — static classes with global state: `EegFileService` (6 EEG
-  slots, montage generation), `EventsService`, `TracesService`, `AnatomicalDataService`,
-  `CalculationManager` (FFT/STFT/correlation), `SubjectLoaderService` (load orchestrator),
-  `SubjectRepository` (DB load/save + `*BU` backup). Reset via `ApplicationState.ResetAllServices()`.
+- `Assets/Scripts/Services/` — `Session.Current` owns mutable state for the loaded patient;
+  existing static services are compatibility facades over it (`EegFileService` with 6 EEG
+  slots, `EventsService`, `TracesService`, `AnatomicalDataService`, `VideoService`, etc.).
+  `CalculationManager` handles FFT/STFT/correlation, `SubjectLoaderService` orchestrates loads,
+  and `SubjectRepository` owns DB load/save + `*BU` backup. A patient switch replaces and
+  disposes the Session through `ApplicationState.ResetAllServices()`.
 - `Assets/Scripts/Messenger/` — typed pub/sub singleton. One handler per (recipient,
   MessageContext enum); messages carry typed `TaskToExecute` enum op-codes. Register in
   Awake/Start, Unregister in OnDestroy. Dispatch is registration-order, allocation-free,
@@ -60,8 +62,9 @@ correlations, all synchronized to a video clock.
   target `CultureInfo.InvariantCulture` for all new persistence code.
 - Threading: background work uses async/await — gather inputs on the main thread, compute in
   `Task.Run` returning a result, publish after the `await` (the continuation resumes on the
-  Unity main thread). Never mutate service/static state from inside a `Task.Run` worker;
-  report progress via `IProgress` (see `LoadingManager.Load`).
+  Unity main thread). Capture `Session.Current` before starting patient-specific work and
+  require `Session.IsCurrent(capturedSession)` before publishing. Never mutate session state
+  from inside a `Task.Run` worker; report progress via `IProgress` (see `LoadingManager.Load`).
 - Messenger: one handler per (recipient, context) — a duplicate registration is rejected and
   logged as an error; always pair Register/Unregister with the **same** context.
 - Many GameObject lookups are by scene-object name string (`GameObject.Find`) — renaming
