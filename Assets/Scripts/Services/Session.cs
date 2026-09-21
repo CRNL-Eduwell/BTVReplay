@@ -82,8 +82,8 @@ namespace BTV.Services
             Atlas = null;
             ProcessedAudio = null;
             RawAudioData = null;
-            ProcessedTriggers = new List<EegTrigger>();
-            TaskPerformanceColors = new List<Color>();
+            ProcessedTriggers?.Clear();
+            TaskPerformanceColors?.Clear();
             CodeComments?.Clear();
         }
 

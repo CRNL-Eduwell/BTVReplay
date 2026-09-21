@@ -174,7 +174,7 @@ public class ApplicationStateResetTests
     public void RuntimeModules_DoNotReachIntoSessionStateDirectly()
     {
         string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
-        Regex directSessionAccess = new Regex(@"\b(?:PatientSession|m_Session)\s*\.");
+        Regex directSessionAccess = new Regex(@"\b(?:PatientSession|m_Session|m_PatientSession|session)\s*\.");
 
         string[] violations = Directory.GetFiles(scriptsRoot, "*.cs", SearchOption.AllDirectories)
             .Where(path => !IsUnder(path, "Services") && !IsUnder(path, "Editor"))
