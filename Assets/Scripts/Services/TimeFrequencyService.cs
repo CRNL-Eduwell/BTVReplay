@@ -5,27 +5,31 @@ using UnityEngine;
 
 public static class TimeFrequencyService
 {
-    public static BtvEvent BaselineEvent { get; set; } = null;
-    private static Dictionary<int, TfTraceOption> m_Options = new Dictionary<int, TfTraceOption>();
+    public static BtvEvent BaselineEvent
+    {
+        get { return BTV.Services.Session.Current.BaselineEvent; }
+        set { BTV.Services.Session.Current.BaselineEvent = value; }
+    }
+    private static Dictionary<int, TfTraceOption> Options { get { return BTV.Services.Session.Current.TfTraceOptions; } }
 
     public static void Reset()
     {
         BaselineEvent = null;
-        m_Options = new Dictionary<int, TfTraceOption>();
+        BTV.Services.Session.Current.TfTraceOptions = new Dictionary<int, TfTraceOption>();
     }
 
     public static void InitTraces()
     {
-        m_Options.Add(0, new TfTraceOption(1f));
-        m_Options.Add(1, new TfTraceOption(1f));
+        Options.Add(0, new TfTraceOption(1f));
+        Options.Add(1, new TfTraceOption(1f));
     }
 
     public static TfTraceOption GetOptionsFor(int traceID)
     {
         BtvLog.Log("Trace " + traceID);
-        if (m_Options.ContainsKey(traceID))
+        if (Options.ContainsKey(traceID))
         {
-            return m_Options[traceID];
+            return Options[traceID];
         }
         else
         {
@@ -36,6 +40,6 @@ public static class TimeFrequencyService
     public static int GetFrameSizeFor(int traceID)
     {
         float Fs = TracesService.SamplingFrequency(traceID);
-        return Mathf.RoundToInt(m_Options[traceID].WindowInMilliseconds * Fs / 1000);
+        return Mathf.RoundToInt(Options[traceID].WindowInMilliseconds * Fs / 1000);
     }
 }

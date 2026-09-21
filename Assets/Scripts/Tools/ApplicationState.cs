@@ -36,6 +36,8 @@ public static class ApplicationState
 
     public static void ResetAllServices()
     {
+        // Session isolation is established before the scene reload. These compatibility resets
+        // initialize the fresh state and publish the UI reset messages expected by the new scene.
         SubjectInfoService.Reset();
         AnatomicalDataService.Reset();
         EegFileService.Reset();

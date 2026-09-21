@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using BTV.Data;
+using BTV.Services;
 using BTV.Services.EegFileService;
 using BTV.Services.TaskPerformanceService;
 using NUnit.Framework;
@@ -17,12 +20,14 @@ public class ApplicationStateResetTests
     [SetUp]
     public void SetUp()
     {
+        Session.ReplaceCurrent();
         ApplicationState.ResetAllServices();
     }
 
     [TearDown]
     public void TearDown()
     {
+        Session.ReplaceCurrent();
         ApplicationState.ResetAllServices();
     }
 
@@ -44,6 +49,17 @@ public class ApplicationStateResetTests
     }
 
     [Test]
+    public void SessionReplacement_ReplacesAndDisposesThePatientSession()
+    {
+        Session previous = Session.Current;
+
+        Session.ReplaceCurrent();
+
+        Assert.AreNotSame(previous, Session.Current);
+        Assert.IsTrue(previous.IsDisposed);
+    }
+
+    [Test]
     public void EegReset_RestoresTheDefaultMontageSelection()
     {
         EegFileService.SelectedMontageID = 4;
@@ -58,12 +74,13 @@ public class ApplicationStateResetTests
     [Test]
     public void EegReset_DiscardsANewMontageCompletedForThePreviousPatient()
     {
-        int previousGeneration = GetMontageGeneration();
+        Session previousSession = Session.Current;
 
-        EegFileService.Reset();
+        Session.ReplaceCurrent();
+        ApplicationState.ResetAllServices();
         bool published = InvokeMontagePublisher(
             "TryPublishNewMontage",
-            previousGeneration,
+            previousSession,
             "Late montage",
             new BtvProgram[6],
             new List<ChannelCorrespondance>());
@@ -78,15 +95,16 @@ public class ApplicationStateResetTests
     {
         BtvMontage previousMontage = new BtvMontage("Before", new BtvProgram[6]);
         EegFileService.Montages.Add(previousMontage);
-        int previousGeneration = GetMontageGeneration();
+        Session previousSession = Session.Current;
 
-        EegFileService.Reset();
-        // Keep the old object reachable so only the stale generation can reject publication.
-        // Without the generation check, this continuation would now mutate the object.
+        Session.ReplaceCurrent();
+        ApplicationState.ResetAllServices();
+        // Keep the old object reachable so only the stale session can reject publication.
+        // Without the identity check, this continuation would now mutate the object.
         EegFileService.Montages.Add(previousMontage);
         bool published = InvokeMontagePublisher(
             "TryPublishEditedMontage",
-            previousGeneration,
+            previousSession,
             previousMontage,
             "After",
             new BtvProgram[6],
@@ -102,11 +120,91 @@ public class ApplicationStateResetTests
     {
         GameObject loadingObject = new GameObject("LoadingCircle from previous scene");
         LoadingCircle destroyedCircle = loadingObject.AddComponent<LoadingCircle>();
-        Object.DestroyImmediate(loadingObject);
+        UnityEngine.Object.DestroyImmediate(loadingObject);
 
         MethodInfo method = typeof(LoadingManager).GetMethod("CloseIfAlive", StaticNonPublic);
         Assert.NotNull(method, "LoadingManager close guard not found");
         Assert.DoesNotThrow(() => method.Invoke(null, new object[] { destroyedCircle }));
+    }
+
+    [Test]
+    public void PatientServices_KeepNoMutableStaticStateOutsideSession()
+    {
+        Type[] patientServices =
+        {
+            typeof(BTV.Services.SubjectInfoService.SubjectInfoService),
+            typeof(EegFileService),
+            typeof(BTV.Services.EventsService.EventsService),
+            typeof(TracesService),
+            typeof(TimeFrequencyService),
+            typeof(BTV.Services.AnatomicalDataService.AnatomicalDataService),
+            typeof(BTV.Services.VideoService.VideoService),
+            typeof(TaskPerformanceService),
+            typeof(BTV.Services.CodeMatchingService.CodeMatchingService)
+        };
+
+        string[] mutableStaticFields = patientServices
+            .SelectMany(type => type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
+            .Where(field => !field.IsLiteral && !field.IsInitOnly)
+            .Select(field => field.DeclaringType.Name + "." + field.Name)
+            .ToArray();
+
+        CollectionAssert.IsEmpty(mutableStaticFields,
+            "patient-owned mutable fields belong on Session; service APIs should only forward to Session.Current");
+    }
+
+    [Test]
+    public void SessionReplacement_DiscardsPendingEegAndAudioPublications()
+    {
+        Session previousSession = Session.Current;
+
+        Session.ReplaceCurrent();
+        ApplicationState.ResetAllServices();
+
+        Assert.IsFalse(InvokePrivateBool(typeof(EegFileService), "TryPublishEegFile", previousSession, null, 0));
+        Assert.IsFalse(InvokePrivateBool(typeof(BTV.Services.VideoService.VideoService), "TryPublishRawAudio", previousSession, null));
+        Assert.IsFalse(InvokePrivateBool(typeof(BTV.Services.VideoService.VideoService), "TryPublishProcessedAudio", previousSession, null, "loaded"));
+        Assert.IsNull(EegFileService.DefaultMontage.EegFiles[0]);
+        Assert.IsFalse(BTV.Services.VideoService.VideoService.FilteredDataLoaded);
+        Assert.IsNull(BTV.Services.VideoService.VideoService.GetAudioContainer());
+    }
+
+    [Test]
+    public void SessionReplacement_DropsAudioSubscribersFromThePreviousScene()
+    {
+        BTV.Services.VideoService.AudioDataLoaded handler = () => { };
+        BTV.Services.VideoService.VideoService.AudioDataLoaded += handler;
+        Session previousSession = Session.Current;
+
+        Session.ReplaceCurrent();
+
+        PropertyInfo handlersProperty = typeof(Session).GetProperty(
+            "AudioDataLoadedHandlers",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(handlersProperty);
+        Assert.IsNull(handlersProperty.GetValue(previousSession, null));
+    }
+
+    [Test]
+    public void ResetBroadcasts_PreserveAudioSubscriberRegisteredByTheNewScene()
+    {
+        Session.ReplaceCurrent();
+        Session newSession = Session.Current;
+        bool audioLoaded = false;
+        BTV.Services.VideoService.AudioDataLoaded handler = () => audioLoaded = true;
+        BTV.Services.VideoService.VideoService.AudioDataLoaded += handler;
+
+        ApplicationState.ResetAllServices();
+        Assert.AreSame(newSession, Session.Current, "reset broadcasts must not replace the session created before scene load");
+        bool published = InvokePrivateBool(
+            typeof(BTV.Services.VideoService.VideoService),
+            "TryPublishProcessedAudio",
+            newSession,
+            null,
+            "loaded");
+
+        Assert.IsTrue(published);
+        Assert.IsTrue(audioLoaded, "the replacement scene's pre-Update subscriber must survive reset broadcasts");
     }
 
     private static void SetTaskPerformanceProperty(string propertyName, object value)
@@ -116,17 +214,15 @@ public class ApplicationStateResetTests
         property.SetValue(null, value, null);
     }
 
-    private static int GetMontageGeneration()
-    {
-        FieldInfo field = typeof(EegFileService).GetField("m_StateGeneration", StaticNonPublic);
-        Assert.NotNull(field, "montage generation guard not found");
-        return (int)field.GetValue(null);
-    }
-
     private static bool InvokeMontagePublisher(string methodName, params object[] arguments)
     {
-        MethodInfo method = typeof(EegFileService).GetMethod(methodName, StaticNonPublic);
-        Assert.NotNull(method, "montage publisher not found: " + methodName);
+        return InvokePrivateBool(typeof(EegFileService), methodName, arguments);
+    }
+
+    private static bool InvokePrivateBool(Type type, string methodName, params object[] arguments)
+    {
+        MethodInfo method = type.GetMethod(methodName, StaticNonPublic);
+        Assert.NotNull(method, "session publisher not found: " + type.Name + "." + methodName);
         return (bool)method.Invoke(null, arguments);
     }
 }

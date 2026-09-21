@@ -17,7 +17,11 @@ namespace BTV.Services.VideoService
 
     public static class VideoService
     {
-        public static event AudioDataLoaded AudioDataLoaded;
+        public static event AudioDataLoaded AudioDataLoaded
+        {
+            add { Session.Current.AudioDataLoadedHandlers += value; }
+            remove { Session.Current.AudioDataLoadedHandlers -= value; }
+        }
 
         public static string OriginalVideoPath
         {
@@ -61,7 +65,11 @@ namespace BTV.Services.VideoService
                 return FilteredAudioPath != "" ? new FileInfo(FilteredAudioPath).Exists : false;
             }
         }
-        public static bool FilteredDataLoaded { get; private set; } = false;
+        public static bool FilteredDataLoaded
+        {
+            get { return Session.Current.FilteredDataLoaded; }
+            private set { Session.Current.FilteredDataLoaded = value; }
+        }
         /// <summary>
         /// Whether the VLC executable is present at the configured path. UI flows that need VLC
         /// check this first and show <see cref="VlcMissingMessage"/> as a plain dialog - a
@@ -83,8 +91,16 @@ namespace BTV.Services.VideoService
             }
         }
 
-        private static BtvProgram m_ProcessedAudio = null;
-        private static AudioDataContainer m_RawAudioData = null;
+        private static BtvProgram ProcessedAudio
+        {
+            get { return Session.Current.ProcessedAudio; }
+            set { Session.Current.ProcessedAudio = value; }
+        }
+        private static AudioDataContainer RawAudioData
+        {
+            get { return Session.Current.RawAudioData; }
+            set { Session.Current.RawAudioData = value; }
+        }
         private static string m_VlcPath
         {
             get
@@ -111,8 +127,8 @@ namespace BTV.Services.VideoService
 
         public static void Reset()
         {
-            m_ProcessedAudio = null;
-            m_RawAudioData = null;
+            ProcessedAudio = null;
+            RawAudioData = null;
             FilteredDataLoaded = false;
         }
 
@@ -176,13 +192,27 @@ namespace BTV.Services.VideoService
 
         public static async Task LoadRawAudioFromFileAsync(string RawAudioFromVideoPath)
         {
+            Session session = Session.Current;
             AudioDataContainer rawAudioData = await Task.Run(() => new AudioDataContainer(RawAudioFromVideoPath, AudioFile.AudioFileType.Wav));
-            m_RawAudioData = rawAudioData;
+            TryPublishRawAudio(session, rawAudioData);
+        }
+
+        private static bool TryPublishRawAudio(Session session, AudioDataContainer rawAudioData)
+        {
+            if (!Session.IsCurrent(session))
+            {
+                BtvLog.Log("Discarded raw audio loaded for a previous patient session.");
+                return false;
+            }
+
+            session.RawAudioData = rawAudioData;
+            return true;
         }
 
         public static async Task FilterAudioFromVideoAsync(string FrequencyBands, int DownsampFreq)
         {
-            AudioDataContainer rawAudioData = m_RawAudioData;
+            Session session = Session.Current;
+            AudioDataContainer rawAudioData = session.RawAudioData;
             string filteredAudioPath = FilteredAudioPath; // reads SubjectInfoService: resolve on the main thread
 
             BtvProgram processedAudio = await Task.Run(() =>
@@ -214,42 +244,53 @@ namespace BTV.Services.VideoService
                 return new BtvProgram(container);
             });
 
-            m_ProcessedAudio = processedAudio;
-            AudioDataLoaded?.Invoke();
-            FilteredDataLoaded = true;
+            TryPublishProcessedAudio(session, processedAudio, "produced");
         }
 
         public static async Task LoadFilteredAudioFromFileAsync(string FilteredAudioFilePath)
         {
+            Session session = Session.Current;
             BtvProgram processedAudio = await Task.Run(() =>
             {
                 AudioDataContainer container = new AudioDataContainer(FilteredAudioFilePath, AudioFile.AudioFileType.Processed);
                 return new BtvProgram(container);
             });
 
-            m_ProcessedAudio = processedAudio;
-            AudioDataLoaded?.Invoke();
-            FilteredDataLoaded = true;
+            TryPublishProcessedAudio(session, processedAudio, "loaded");
+        }
+
+        private static bool TryPublishProcessedAudio(Session session, BtvProgram processedAudio, string operation)
+        {
+            if (!Session.IsCurrent(session))
+            {
+                BtvLog.Log("Discarded filtered audio " + operation + " for a previous patient session.");
+                return false;
+            }
+
+            session.ProcessedAudio = processedAudio;
+            session.AudioDataLoadedHandlers?.Invoke();
+            session.FilteredDataLoaded = true;
+            return true;
         }
         #endregion
 
         public static BtvChannel GetSmoothedAudio(int ID)
         {
-            if (m_ProcessedAudio == null)
+            if (ProcessedAudio == null)
                 return null;
 
-            if (ID >= m_ProcessedAudio.NumberOfElectrodes)
+            if (ID >= ProcessedAudio.NumberOfElectrodes)
                 throw new Exception("Error , wanted Audio channel ID is greater than the total number of channels");
 
-            return m_ProcessedAudio.Channels[ID];
+            return ProcessedAudio.Channels[ID];
         }
 
         public static BtvProgram GetAudioContainer()
         {
-            if (m_ProcessedAudio == null)
+            if (ProcessedAudio == null)
                 return null;
 
-            return m_ProcessedAudio;
+            return ProcessedAudio;
         }
     }
 }

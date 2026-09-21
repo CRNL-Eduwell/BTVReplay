@@ -14,18 +14,16 @@ namespace BTV.Services.EegFileService
 {
     public static class EegFileService
     {
-        public static List<BtvMontage> Montages { get; private set; } = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
-        private static int m_SelectedMontageID = 0;
-        private static int m_StateGeneration = 0;
+        public static List<BtvMontage> Montages { get { return Session.Current.Montages; } }
         public static int SelectedMontageID
         {
             get
             {
-                return m_SelectedMontageID;
+                return Session.Current.SelectedMontageID;
             }
             set
             {
-                m_SelectedMontageID = value;
+                Session.Current.SelectedMontageID = value;
                 MontageMessage message = new MontageMessage
                 {
                     TaskToExecute = MontageMessage.Task.SelectMontage,
@@ -39,9 +37,8 @@ namespace BTV.Services.EegFileService
 
         public static void Reset()
         {
-            unchecked { m_StateGeneration++; }
-            Montages = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
-            m_SelectedMontageID = 0;
+            Session.Current.Montages = Session.CreateDefaultMontages();
+            Session.Current.SelectedMontageID = 0;
             MontageMessage message = new MontageMessage
             {
                 TaskToExecute = MontageMessage.Task.UpdateMontageList,
@@ -58,6 +55,7 @@ namespace BTV.Services.EegFileService
             // The native EEG read + managed copy runs on a worker; the montage slot is assigned
             // after the await, back on the main thread (the old version mutated the static
             // montage from the worker thread).
+            Session session = Session.Current;
             BtvProgram eegFile = await Task.Run(() =>
             {
                 if (fileInfo.Files.Length > 0 && System.IO.File.Exists(fileInfo.Files[0]))
@@ -68,7 +66,19 @@ namespace BTV.Services.EegFileService
                 return null;
             });
 
-            Montages[0].SetEEGFile(eegFile, FileID);
+            TryPublishEegFile(session, eegFile, FileID);
+        }
+
+        private static bool TryPublishEegFile(Session session, BtvProgram eegFile, int fileID)
+        {
+            if (!Session.IsCurrent(session))
+            {
+                BtvLog.Log("Discarded an EEG file loaded for a previous patient session.");
+                return false;
+            }
+
+            session.Montages[0].SetEEGFile(eegFile, fileID);
+            return true;
         }
 
         public static int GetContainerSuffix(BtvProgram currentFile)
@@ -131,12 +141,12 @@ namespace BTV.Services.EegFileService
                 name = newName;
             }
             BtvProgram[] baseFiles = DefaultMontage.EegFiles; // static state: snapshot the reference on the main thread
-            int generation = m_StateGeneration;
+            Session session = Session.Current;
             LoadingManager.Load(async progress =>
             {
                 BtvProgram[] eegFiles = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
 
-                TryPublishNewMontage(generation, name, eegFiles, montageDescription);
+                TryPublishNewMontage(session, name, eegFiles, montageDescription);
             });
         }
         public static void RemoveSelectedMontage()
@@ -167,44 +177,44 @@ namespace BTV.Services.EegFileService
                 name = newName;
             }
             BtvProgram[] baseFiles = DefaultMontage.EegFiles; // static state: snapshot the reference on the main thread
-            int generation = m_StateGeneration;
+            Session session = Session.Current;
             LoadingManager.Load(async progress =>
             {
                 BtvProgram[] eegFiles = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
 
-                TryPublishEditedMontage(generation, montage, name, eegFiles, montageDescription);
+                TryPublishEditedMontage(session, montage, name, eegFiles, montageDescription);
             });
         }
 
-        private static bool TryPublishNewMontage(int generation, string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription)
+        private static bool TryPublishNewMontage(Session session, string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription)
         {
-            if (generation != m_StateGeneration)
+            if (!Session.IsCurrent(session))
             {
                 BtvLog.Log("Discarded a montage built for a previous patient session.");
                 return false;
             }
 
-            Montages.Add(new BtvMontage(name, eegFiles, montageDescription));
-            SendMontageListUpdate(Montages.Count - 1);
+            session.Montages.Add(new BtvMontage(name, eegFiles, montageDescription));
+            SendMontageListUpdate(session.Montages.Count - 1);
             return true;
         }
 
-        private static bool TryPublishEditedMontage(int generation, BtvMontage montage, string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription)
+        private static bool TryPublishEditedMontage(Session session, BtvMontage montage, string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription)
         {
-            if (generation != m_StateGeneration)
+            if (!Session.IsCurrent(session))
             {
                 BtvLog.Log("Discarded a montage edit built for a previous patient session.");
                 return false;
             }
 
-            if (!Montages.Contains(montage))
+            if (!session.Montages.Contains(montage))
             {
                 Debug.LogWarning("Discarded a completed montage edit because its target montage no longer exists.");
                 return false;
             }
 
             montage.Load(name, eegFiles, montageDescription);
-            SendMontageListUpdate(Montages.IndexOf(montage));
+            SendMontageListUpdate(session.Montages.IndexOf(montage));
             return true;
         }
 
