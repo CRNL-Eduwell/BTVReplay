@@ -16,6 +16,7 @@ namespace BTV.Services.EegFileService
     {
         public static List<BtvMontage> Montages { get; private set; } = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
         private static int m_SelectedMontageID = 0;
+        private static int m_StateGeneration = 0;
         public static int SelectedMontageID
         {
             get
@@ -38,7 +39,9 @@ namespace BTV.Services.EegFileService
 
         public static void Reset()
         {
+            unchecked { m_StateGeneration++; }
             Montages = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
+            m_SelectedMontageID = 0;
             MontageMessage message = new MontageMessage
             {
                 TaskToExecute = MontageMessage.Task.UpdateMontageList,
@@ -128,17 +131,12 @@ namespace BTV.Services.EegFileService
                 name = newName;
             }
             BtvProgram[] baseFiles = DefaultMontage.EegFiles; // static state: snapshot the reference on the main thread
+            int generation = m_StateGeneration;
             LoadingManager.Load(async progress =>
             {
                 BtvProgram[] eegFiles = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
 
-                Montages.Add(new BtvMontage(name, eegFiles, montageDescription));
-                MontageMessage message = new MontageMessage
-                {
-                    TaskToExecute = MontageMessage.Task.UpdateMontageList,
-                    SelectedMontageID = Montages.Count - 1
-                };
-                Messenger.Default.Send(message, MessageContext.MontageMessage);
+                TryPublishNewMontage(generation, name, eegFiles, montageDescription);
             });
         }
         public static void RemoveSelectedMontage()
@@ -169,19 +167,51 @@ namespace BTV.Services.EegFileService
                 name = newName;
             }
             BtvProgram[] baseFiles = DefaultMontage.EegFiles; // static state: snapshot the reference on the main thread
+            int generation = m_StateGeneration;
             LoadingManager.Load(async progress =>
             {
                 BtvProgram[] eegFiles = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
 
-                montage.Load(name, eegFiles, montageDescription);
-                MontageMessage message = new MontageMessage
-                {
-                    TaskToExecute = MontageMessage.Task.UpdateMontageList,
-                    SelectedMontageID = Montages.IndexOf(montage)
-                };
-                Messenger.Default.Send(message, MessageContext.MontageMessage);
+                TryPublishEditedMontage(generation, montage, name, eegFiles, montageDescription);
             });
         }
+
+        private static bool TryPublishNewMontage(int generation, string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription)
+        {
+            if (generation != m_StateGeneration)
+            {
+                BtvLog.Log("Discarded a montage built for a previous patient session.");
+                return false;
+            }
+
+            Montages.Add(new BtvMontage(name, eegFiles, montageDescription));
+            SendMontageListUpdate(Montages.Count - 1);
+            return true;
+        }
+
+        private static bool TryPublishEditedMontage(int generation, BtvMontage montage, string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription)
+        {
+            if (generation != m_StateGeneration || !Montages.Contains(montage))
+            {
+                BtvLog.Log("Discarded a montage edit built for a previous patient session.");
+                return false;
+            }
+
+            montage.Load(name, eegFiles, montageDescription);
+            SendMontageListUpdate(Montages.IndexOf(montage));
+            return true;
+        }
+
+        private static void SendMontageListUpdate(int selectedMontageID)
+        {
+            MontageMessage message = new MontageMessage
+            {
+                TaskToExecute = MontageMessage.Task.UpdateMontageList,
+                SelectedMontageID = selectedMontageID
+            };
+            Messenger.Default.Send(message, MessageContext.MontageMessage);
+        }
+
         public static void LoadMontage(string path)
         {
             string name = "";
