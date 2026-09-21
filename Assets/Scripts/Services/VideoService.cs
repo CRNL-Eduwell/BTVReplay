@@ -251,6 +251,8 @@ namespace BTV.Services.VideoService
         public static async Task FilterAudioFromVideoAsync(Session session, string FrequencyBands, int DownsampFreq)
         {
             AudioDataContainer rawAudioData = session.RawAudioData;
+            // Resolves SubjectInfoService-backed patient state on the main thread; do not move
+            // this lookup into the Task.Run worker below.
             string filteredAudioPath = GetFilteredAudioPath(session);
 
             BtvProgram processedAudio = await Task.Run(() =>

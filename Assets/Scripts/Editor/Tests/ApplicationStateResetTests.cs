@@ -180,6 +180,7 @@ public class ApplicationStateResetTests
             .Where(path => !IsUnder(path, "Services") && !IsUnder(path, "Editor"))
             .SelectMany(path => File.ReadLines(path)
                 .Select((line, index) => new { path, line, lineNumber = index + 1 }))
+            .Where(entry => !entry.line.TrimStart().StartsWith("//"))
             .Where(entry => directSessionAccess.IsMatch(entry.line))
             .Select(entry => entry.path.Replace(scriptsRoot + Path.DirectorySeparatorChar, "") + ":" + entry.lineNumber)
             .ToArray();
@@ -194,10 +195,17 @@ public class ApplicationStateResetTests
         string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
         Regex sessionlessFacade = new Regex(
             @"SubjectInfoService\.(?:SubjectName|VideoPath|GetSubjectFileKeys\(\s*\)|GetBrainDataContainer\(\s*"")" +
-            @"|EegFileService\.(?:Montages|SelectedMontageID|CurrentMontage|DefaultMontage|ReturnFirstValidContainer\(\s*\))" +
+            @"|EegFileService\.(?:Montages|SelectedMontageID|CurrentMontage|DefaultMontage|ReturnFirstValidContainer\(\s*\)" +
+            @"|IsFileIdValid\(\s*[^,\)]+\)|GetContainerSuffix\(\s*[^,\)]+\))" +
+            @"|AnatomicalDataService\.(?:GetSitesListFrom\(\s*""|ReturnFirstValidSitesList\(\s*\))" +
             @"|TimeFrequencyService\.BaselineEvent\b|CodeMatchingService\.HasCodes\b" +
-            @"|TracesService\.GetOptionsFor\(\s*[^,\)]+\)" +
-            @"|VideoService\.(?:OriginalVideoPath|AudioFromVideoPath|FilteredAudioPath|VideoFileExist\b|AudioFileExist\b|FilteredAudioFileExist\b|FilteredDataLoaded\b)");
+            @"|CodeMatchingService\.GetCommentFromCode\(\s*[^,\)]+\)" +
+            @"|TracesService\.(?:(?:GetOptionsFor|SamplingFrequency|WindowInSeconds|ElectrodeCount|ElectrodeName|ChannelData)\(\s*[^,\)]+\)" +
+            @"|AudioChannelData\(\s*\)|GetAudioOptions\(\s*\))" +
+            @"|TimeFrequencyService\.(?:GetOptionsFor|GetFrameSizeFor)\(\s*[^,\)]+\)" +
+            @"|EventsService\.Events\b" +
+            @"|VideoService\.(?:OriginalVideoPath|AudioFromVideoPath|FilteredAudioPath|VideoFileExist\b|AudioFileExist\b|FilteredAudioFileExist\b|FilteredDataLoaded\b" +
+            @"|GetAudioContainer\(\s*\)|GetSmoothedAudio\(\s*[^,\)]+\))");
 
         string[] violations = Directory.GetFiles(scriptsRoot, "*.cs", SearchOption.AllDirectories)
             .Where(path => !IsUnder(path, "Services") && !IsUnder(path, "Editor"))
@@ -206,6 +214,7 @@ public class ApplicationStateResetTests
             .Where(path => !path.EndsWith("EegSignal2.cs") && !path.EndsWith("AudioSignal2.cs"))
             .SelectMany(path => File.ReadLines(path)
                 .Select((line, index) => new { path, line, lineNumber = index + 1 }))
+            .Where(entry => !entry.line.TrimStart().StartsWith("//"))
             .Where(entry => sessionlessFacade.IsMatch(entry.line))
             .Select(entry => entry.path.Replace(scriptsRoot + Path.DirectorySeparatorChar, "") + ":" + entry.lineNumber)
             .ToArray();
