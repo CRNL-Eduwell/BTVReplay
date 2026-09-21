@@ -10,6 +10,7 @@ public static class TimeFrequencyService
 
     public static void Reset()
     {
+        BaselineEvent = null;
         m_Options = new Dictionary<int, TfTraceOption>();
     }
 

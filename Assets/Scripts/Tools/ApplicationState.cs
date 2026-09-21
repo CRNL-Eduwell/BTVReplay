@@ -11,6 +11,7 @@ using Tools.Unity;
 using BTV.Services.CodeMatchingService;
 using BTV.Services.AnatomicalDataService;
 using BTV.Services.SubjectInfoService;
+using BTV.Services.TaskPerformanceService;
 
 public static class ApplicationState
 {
@@ -43,6 +44,7 @@ public static class ApplicationState
         VideoService.Reset();
         EventsService.Reset();
         CodeMatchingService.Reset();
+        TaskPerformanceService.Reset();
     }
 
     // Touches the UI, so call it on the main thread (async flows: after the await, never inside
