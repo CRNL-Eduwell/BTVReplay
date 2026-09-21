@@ -29,14 +29,15 @@ namespace BTV.UI.Module3D.Tools
         public override void Initialize()
         {
             m_FileDropDown.options.Clear();
-            VideoService.AudioDataLoaded += LoadDropDownData;
+            PatientSession.AudioDataLoadedHandlers += LoadDropDownData;
             m_ShowTrace.onValueChanged.AddListener((bool isChecked) => { ToggleTraceAudio?.Invoke(isChecked); });
         }
 
         private void OnDestroy()
         {
             m_ShowTrace.onValueChanged.RemoveAllListeners();
-            VideoService.AudioDataLoaded -= LoadDropDownData;
+            if (PatientSession != null)
+                PatientSession.AudioDataLoadedHandlers -= LoadDropDownData;
             m_FileDropDown.onValueChanged.RemoveAllListeners();
         }
 

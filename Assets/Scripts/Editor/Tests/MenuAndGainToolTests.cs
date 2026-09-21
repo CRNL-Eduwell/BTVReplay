@@ -1,4 +1,6 @@
 using BTV.UI;
+using BTV.Services;
+using BTV.UI.Module3D;
 using BTV.UI.Module3D.Tools;
 using NUnit.Framework;
 using UnityEngine;
@@ -39,6 +41,18 @@ public class MenuAndGainToolTests
     {
         public Menu[] menus;
         protected override Menu[] Menus { get { return menus; } }
+    }
+
+    private class TestTool : Tool
+    {
+        public int InitializeCount { get; private set; }
+        public override void Initialize() { InitializeCount++; }
+    }
+
+    private class TestToolbar : Toolbar
+    {
+        public Tool tool;
+        protected override void AddTools() { m_Tools.Add(tool); }
     }
 
     private TestMenuBar CreateMenuBar(params Menu[] menus)
@@ -157,6 +171,23 @@ public class MenuAndGainToolTests
 
         Assert.IsFalse(a.IsOpen);
         Assert.IsFalse(b.IsOpen);
+    }
+    #endregion
+
+    #region Session injection
+    [Test]
+    public void Toolbar_InjectsTheSamePatientSessionIntoItsTools()
+    {
+        Session session = Session.Current;
+        TestToolbar toolbar = m_Root.AddComponent<TestToolbar>();
+        TestTool tool = m_Root.AddComponent<TestTool>();
+        toolbar.tool = tool;
+
+        toolbar.Initialize(session);
+
+        Assert.AreSame(session, toolbar.PatientSession);
+        Assert.AreSame(session, tool.PatientSession);
+        Assert.AreEqual(1, tool.InitializeCount);
     }
     #endregion
 
