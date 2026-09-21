@@ -3649,7 +3649,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6791665745739128852}
   - component: {fileID: 6791665745739128850}
-  - component: {fileID: 6791665745739128853}
   m_Layer: 5
   m_Name: LineRenderer
   m_TagString: Untagged
@@ -3786,20 +3785,6 @@ LineRenderer:
   m_UseWorldSpace: 0
   m_Loop: 0
   m_ApplyActiveColorSpace: 0
---- !u!114 &6791665745739128853
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6791665745739128855}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41302adf67cf3e84ebde81de1e0b2b82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _LineRenderer: {fileID: 6791665745739128850}
-  m_currentElectrodeID: 1
 --- !u!1 &6791665745763086317
 GameObject:
   m_ObjectHideFlags: 0
@@ -4725,7 +4710,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6791665746070422393}
   - component: {fileID: 6791665746070422343}
-  - component: {fileID: 6791665746070422342}
   m_Layer: 5
   m_Name: LineRendererRMS
   m_TagString: Untagged
@@ -4862,19 +4846,6 @@ LineRenderer:
   m_UseWorldSpace: 0
   m_Loop: 0
   m_ApplyActiveColorSpace: 0
---- !u!114 &6791665746070422342
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6791665746070422392}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b93bbb3a49b2c964c8b63f8339951447, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _LineRenderer: {fileID: 6791665746070422343}
 --- !u!1 &6791665746100943444
 GameObject:
   m_ObjectHideFlags: 0
@@ -6772,7 +6743,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6791665746770594229}
   - component: {fileID: 6791665746770594227}
-  - component: {fileID: 6791665746770594226}
   m_Layer: 5
   m_Name: LineRenderer
   m_TagString: Untagged
@@ -6909,20 +6879,6 @@ LineRenderer:
   m_UseWorldSpace: 0
   m_Loop: 0
   m_ApplyActiveColorSpace: 0
---- !u!114 &6791665746770594226
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6791665746770594228}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41302adf67cf3e84ebde81de1e0b2b82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _LineRenderer: {fileID: 6791665746770594227}
-  m_currentElectrodeID: 0
 --- !u!1 &6791665746776671771
 GameObject:
   m_ObjectHideFlags: 0
@@ -8077,7 +8033,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6791665747292564169}
   - component: {fileID: 6791665747292564183}
-  - component: {fileID: 6791665747292564182}
   m_Layer: 5
   m_Name: LineRendererRMS
   m_TagString: Untagged
@@ -8214,19 +8169,6 @@ LineRenderer:
   m_UseWorldSpace: 0
   m_Loop: 0
   m_ApplyActiveColorSpace: 0
---- !u!114 &6791665747292564182
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6791665747292564168}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b93bbb3a49b2c964c8b63f8339951447, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _LineRenderer: {fileID: 6791665747292564183}
 --- !u!1 &6791665747307331470
 GameObject:
   m_ObjectHideFlags: 0
