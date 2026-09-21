@@ -181,7 +181,7 @@ public class Brain : MonoBehaviour
                 {
                     m_LeftHemiBrain.gameObject.SetActive(true);
                     m_RightHemiBrain.gameObject.SetActive(true);
-                    BrainDataContainer patContainer = SubjectInfoService.GetBrainDataContainer(m_PatientSession, "MNI");
+                    BrainDataContainer patContainer = SubjectInfoService.GetBrainDataContainer(m_PatientSession, "PAT");
                     List<AnatomicalSite> sites = AnatomicalDataService.GetSitesListFrom(m_PatientSession, "PAT");
                     UpdateBrainMesh(patContainer, sites);
                     break;
