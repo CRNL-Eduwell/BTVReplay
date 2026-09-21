@@ -5,11 +5,31 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using BTV.Services;
 
 public class ScreenshotTaker : MonoBehaviour
 {
+    private Session m_PatientSession = null;
+
+    private void Awake()
+    {
+        Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
+    }
+
+    private void OnDestroy()
+    {
+        Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
+    }
+
+    private void OnLoaderMessage(LoaderMessage message)
+    {
+        if (message.Task == LoaderMessage.LoaderTask.MediaLoader && Session.IsCurrent(message.PatientSession))
+            m_PatientSession = message.PatientSession;
+    }
+
     public void TakeScreenshot()
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         try
         {
             string preferencePath = UserPreferencesService.UserPreferences.GeneralPreferences.ExportPath;
@@ -17,7 +37,7 @@ public class ScreenshotTaker : MonoBehaviour
 
             string folderPath = Path.GetFullPath(preferencePath + "/Screenshots/");
             if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-            string screenshotPath = folderPath + string.Format("{0}_FullView.png", SubjectInfoService.SubjectName);
+            string screenshotPath = folderPath + string.Format("{0}_FullView.png", SubjectInfoService.GetSubjectName(m_PatientSession));
             GenerateUniqueSavePath(ref screenshotPath);
             ScreenCapture.CaptureScreenshot(screenshotPath);
         }

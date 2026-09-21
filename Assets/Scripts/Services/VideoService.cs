@@ -35,45 +35,27 @@ namespace BTV.Services.VideoService
 
         public static string OriginalVideoPath
         {
-            get
-            {
-                return SubjectInfoService.SubjectInfoService.VideoPath;
-            }
+            get { return GetOriginalVideoPath(Session.Current); }
         }
         public static string AudioFromVideoPath
         {
-            get
-            {
-                return Path.ChangeExtension(OriginalVideoPath, ".wav");
-            }
+            get { return GetAudioFromVideoPath(Session.Current); }
         }
         public static string FilteredAudioPath
         {
-            get
-            {
-                return AudioFromVideoPath.Replace(".wav", "_audio.csv");
-            }
+            get { return GetFilteredAudioPath(Session.Current); }
         }
         public static bool VideoFileExist
         {
-            get
-            {
-                return OriginalVideoPath != "" ? new FileInfo(OriginalVideoPath).Exists : false;
-            }
+            get { return VideoFileExists(Session.Current); }
         }
         public static bool AudioFileExist
         {
-            get
-            {
-                return AudioFromVideoPath != "" ? new FileInfo(AudioFromVideoPath).Exists : false;
-            }
+            get { return AudioFileExists(Session.Current); }
         }
         public static bool FilteredAudioFileExist
         {
-            get
-            {
-                return FilteredAudioPath != "" ? new FileInfo(FilteredAudioPath).Exists : false;
-            }
+            get { return FilteredAudioFileExists(Session.Current); }
         }
         public static bool FilteredDataLoaded
         {
@@ -84,6 +66,39 @@ namespace BTV.Services.VideoService
         public static bool IsFilteredDataLoaded(Session session)
         {
             return session.FilteredDataLoaded;
+        }
+
+        public static string GetOriginalVideoPath(Session session)
+        {
+            return SubjectInfoService.SubjectInfoService.GetVideoPath(session);
+        }
+
+        public static string GetAudioFromVideoPath(Session session)
+        {
+            return Path.ChangeExtension(GetOriginalVideoPath(session), ".wav");
+        }
+
+        public static string GetFilteredAudioPath(Session session)
+        {
+            return GetAudioFromVideoPath(session).Replace(".wav", "_audio.csv");
+        }
+
+        public static bool VideoFileExists(Session session)
+        {
+            string path = GetOriginalVideoPath(session);
+            return path != "" && new FileInfo(path).Exists;
+        }
+
+        public static bool AudioFileExists(Session session)
+        {
+            string path = GetAudioFromVideoPath(session);
+            return path != "" && new FileInfo(path).Exists;
+        }
+
+        public static bool FilteredAudioFileExists(Session session)
+        {
+            string path = GetFilteredAudioPath(session);
+            return path != "" && new FileInfo(path).Exists;
         }
         /// <summary>
         /// Whether the VLC executable is present at the configured path. UI flows that need VLC
@@ -207,7 +222,11 @@ namespace BTV.Services.VideoService
 
         public static async Task LoadRawAudioFromFileAsync(string RawAudioFromVideoPath)
         {
-            Session session = Session.Current;
+            await LoadRawAudioFromFileAsync(Session.Current, RawAudioFromVideoPath);
+        }
+
+        public static async Task LoadRawAudioFromFileAsync(Session session, string RawAudioFromVideoPath)
+        {
             AudioDataContainer rawAudioData = await Task.Run(() => new AudioDataContainer(RawAudioFromVideoPath, AudioFile.AudioFileType.Wav));
             TryPublishRawAudio(session, rawAudioData);
         }
@@ -226,9 +245,15 @@ namespace BTV.Services.VideoService
 
         public static async Task FilterAudioFromVideoAsync(string FrequencyBands, int DownsampFreq)
         {
-            Session session = Session.Current;
+            await FilterAudioFromVideoAsync(Session.Current, FrequencyBands, DownsampFreq);
+        }
+
+        public static async Task FilterAudioFromVideoAsync(Session session, string FrequencyBands, int DownsampFreq)
+        {
             AudioDataContainer rawAudioData = session.RawAudioData;
-            string filteredAudioPath = FilteredAudioPath; // reads SubjectInfoService: resolve on the main thread
+            // Resolves SubjectInfoService-backed patient state on the main thread; do not move
+            // this lookup into the Task.Run worker below.
+            string filteredAudioPath = GetFilteredAudioPath(session);
 
             BtvProgram processedAudio = await Task.Run(() =>
             {
@@ -264,7 +289,11 @@ namespace BTV.Services.VideoService
 
         public static async Task LoadFilteredAudioFromFileAsync(string FilteredAudioFilePath)
         {
-            Session session = Session.Current;
+            await LoadFilteredAudioFromFileAsync(Session.Current, FilteredAudioFilePath);
+        }
+
+        public static async Task LoadFilteredAudioFromFileAsync(Session session, string FilteredAudioFilePath)
+        {
             BtvProgram processedAudio = await Task.Run(() =>
             {
                 AudioDataContainer container = new AudioDataContainer(FilteredAudioFilePath, AudioFile.AudioFileType.Processed);
@@ -291,21 +320,29 @@ namespace BTV.Services.VideoService
 
         public static BtvChannel GetSmoothedAudio(int ID)
         {
-            if (ProcessedAudio == null)
+            return GetSmoothedAudio(Session.Current, ID);
+        }
+
+        public static BtvChannel GetSmoothedAudio(Session session, int ID)
+        {
+            BtvProgram processedAudio = session.ProcessedAudio;
+            if (processedAudio == null)
                 return null;
 
-            if (ID >= ProcessedAudio.NumberOfElectrodes)
+            if (ID >= processedAudio.NumberOfElectrodes)
                 throw new Exception("Error , wanted Audio channel ID is greater than the total number of channels");
 
-            return ProcessedAudio.Channels[ID];
+            return processedAudio.Channels[ID];
         }
 
         public static BtvProgram GetAudioContainer()
         {
-            if (ProcessedAudio == null)
-                return null;
+            return GetAudioContainer(Session.Current);
+        }
 
-            return ProcessedAudio;
+        public static BtvProgram GetAudioContainer(Session session)
+        {
+            return session.ProcessedAudio;
         }
     }
 }

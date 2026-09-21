@@ -174,18 +174,53 @@ public class ApplicationStateResetTests
     public void RuntimeModules_DoNotReachIntoSessionStateDirectly()
     {
         string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
-        Regex directSessionAccess = new Regex(@"\b(?:PatientSession|m_Session|m_PatientSession|session)\s*\.");
+        Regex directSessionAccess = new Regex(@"\b(?:PatientSession|patientSession|m_Session|m_PatientSession|session)\s*\.");
 
         string[] violations = Directory.GetFiles(scriptsRoot, "*.cs", SearchOption.AllDirectories)
             .Where(path => !IsUnder(path, "Services") && !IsUnder(path, "Editor"))
             .SelectMany(path => File.ReadLines(path)
                 .Select((line, index) => new { path, line, lineNumber = index + 1 }))
+            .Where(entry => !entry.line.TrimStart().StartsWith("//"))
             .Where(entry => directSessionAccess.IsMatch(entry.line))
             .Select(entry => entry.path.Replace(scriptsRoot + Path.DirectorySeparatorChar, "") + ":" + entry.lineNumber)
             .ToArray();
 
         CollectionAssert.IsEmpty(violations,
             "runtime modules must use session-aware service APIs instead of Session's internal state");
+    }
+
+    [Test]
+    public void RuntimeModules_DoNotUseSessionlessPatientServiceFacades()
+    {
+        string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+        Regex sessionlessFacade = new Regex(
+            @"SubjectInfoService\.(?:SubjectName|VideoPath|GetSubjectFileKeys\(\s*\)|GetBrainDataContainer\(\s*"")" +
+            @"|EegFileService\.(?:Montages|SelectedMontageID|CurrentMontage|DefaultMontage|ReturnFirstValidContainer\(\s*\)" +
+            @"|IsFileIdValid\(\s*[^,\)]+\)|GetContainerSuffix\(\s*[^,\)]+\))" +
+            @"|AnatomicalDataService\.(?:GetSitesListFrom\(\s*""|ReturnFirstValidSitesList\(\s*\))" +
+            @"|TimeFrequencyService\.BaselineEvent\b|CodeMatchingService\.HasCodes\b" +
+            @"|CodeMatchingService\.GetCommentFromCode\(\s*[^,\)]+\)" +
+            @"|TracesService\.(?:(?:GetOptionsFor|SamplingFrequency|WindowInSeconds|ElectrodeCount|ElectrodeName|ChannelData)\(\s*[^,\)]+\)" +
+            @"|AudioChannelData\(\s*\)|GetAudioOptions\(\s*\))" +
+            @"|TimeFrequencyService\.(?:GetOptionsFor|GetFrameSizeFor)\(\s*[^,\)]+\)" +
+            @"|EventsService\.Events\b" +
+            @"|VideoService\.(?:OriginalVideoPath|AudioFromVideoPath|FilteredAudioPath|VideoFileExist\b|AudioFileExist\b|FilteredAudioFileExist\b|FilteredDataLoaded\b" +
+            @"|GetAudioContainer\(\s*\)|GetSmoothedAudio\(\s*[^,\)]+\))");
+
+        string[] violations = Directory.GetFiles(scriptsRoot, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !IsUnder(path, "Services") && !IsUnder(path, "Editor"))
+            // B-8 owns these two misnamed legacy components; they cannot receive a Session until
+            // their prefab binding is resolved, and are deliberately outside the M-1 migration.
+            .Where(path => !path.EndsWith("EegSignal2.cs") && !path.EndsWith("AudioSignal2.cs"))
+            .SelectMany(path => File.ReadLines(path)
+                .Select((line, index) => new { path, line, lineNumber = index + 1 }))
+            .Where(entry => !entry.line.TrimStart().StartsWith("//"))
+            .Where(entry => sessionlessFacade.IsMatch(entry.line))
+            .Select(entry => entry.path.Replace(scriptsRoot + Path.DirectorySeparatorChar, "") + ":" + entry.lineNumber)
+            .ToArray();
+
+        CollectionAssert.IsEmpty(violations,
+            "runtime modules must pass their injected patient session to patient-scoped services");
     }
 
     [Test]
@@ -196,7 +231,7 @@ public class ApplicationStateResetTests
         {
             Dictionary<int, TraceOption> traceOptions =
                 (Dictionary<int, TraceOption>)GetSessionProperty(detachedSession, "TraceOptions");
-            TraceOption detachedOption = new TraceOption(null, Color.red);
+            TraceOption detachedOption = new TraceOption(detachedSession, null, Color.red);
             traceOptions.Add(0, detachedOption);
 
             List<BtvEvent> events = (List<BtvEvent>)GetSessionProperty(detachedSession, "Events");
@@ -235,6 +270,24 @@ public class ApplicationStateResetTests
             Assert.AreSame(detachedSite,
                 BTV.Services.AnatomicalDataService.AnatomicalDataService
                     .ReturnFirstValidSitesList(detachedSession).Value[0]);
+
+            Subject detachedSubject = new Subject { PatientName = "Detached" };
+            detachedSubject.Experiments.Add(new Experiment
+            {
+                Label = "Exam",
+                Video = "/tmp/detached-video.mp4"
+            });
+            SetSessionProperty(detachedSession, "Subject", detachedSubject);
+            SetSessionProperty(detachedSession, "ExamIndex", 0);
+            Assert.AreEqual("Detached",
+                BTV.Services.SubjectInfoService.SubjectInfoService.GetSubjectName(detachedSession));
+            Assert.AreEqual("/tmp/detached-video.mp4",
+                BTV.Services.VideoService.VideoService.GetOriginalVideoPath(detachedSession));
+            Assert.IsFalse(BTV.Services.SubjectInfoService.SubjectInfoService
+                .HasBrainAnatomy(detachedSession, "PAT"),
+                "a subject with no PAT entry must be treated as unavailable, not dereferenced");
+            Assert.AreEqual("Subject not defined",
+                BTV.Services.SubjectInfoService.SubjectInfoService.GetSubjectName(Session.Current));
         }
         finally
         {
@@ -308,6 +361,13 @@ public class ApplicationStateResetTests
         PropertyInfo property = typeof(Session).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.NotNull(property, "Session property not found: " + propertyName);
         return property.GetValue(session, null);
+    }
+
+    private static void SetSessionProperty(Session session, string propertyName, object value)
+    {
+        PropertyInfo property = typeof(Session).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(property, "Session property not found: " + propertyName);
+        property.SetValue(session, value, null);
     }
 
     private static bool IsUnder(string path, string directoryName)

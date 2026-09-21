@@ -7,19 +7,24 @@ namespace BTV.Services.SubjectInfoService
     {
         public static string SubjectName
         {
-            get
-            {
-                return Session.Current.Subject != null ? Session.Current.Subject.PatientName : "Subject not defined";
-            }
+            get { return GetSubjectName(Session.Current); }
+        }
+
+        public static string GetSubjectName(Session session)
+        {
+            return session.Subject != null ? session.Subject.PatientName : "Subject not defined";
         }
 
         public static string VideoPath
         {
-            get
-            {
-                Session session = Session.Current;
-                return (session.Subject != null && session.ExamIndex != -1) ? session.Subject.Experiments[session.ExamIndex].Video : "";
-            }
+            get { return GetVideoPath(Session.Current); }
+        }
+
+        public static string GetVideoPath(Session session)
+        {
+            return (session.Subject != null && session.ExamIndex != -1)
+                ? session.Subject.Experiments[session.ExamIndex].Video
+                : "";
         }
 
         public static void Reset()
@@ -48,7 +53,11 @@ namespace BTV.Services.SubjectInfoService
 
         public static List<string> GetSubjectFileKeys()
         {
-            Session session = Session.Current;
+            return GetSubjectFileKeys(Session.Current);
+        }
+
+        public static List<string> GetSubjectFileKeys(Session session)
+        {
             List<string> keys = new List<string>();
             foreach (var item in session.Subject.Experiments[session.ExamIndex].Files)
             {
@@ -89,6 +98,12 @@ namespace BTV.Services.SubjectInfoService
         {
             session.Subject.AnatomicalSpaces.TryGetValue(label, out BrainDataContainer patContainer);
             return patContainer;
+        }
+
+        public static bool HasBrainAnatomy(Session session, string label)
+        {
+            BrainDataContainer container = GetBrainDataContainer(session, label);
+            return container != null && container.HasAnat;
         }
     }
 }

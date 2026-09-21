@@ -1,4 +1,5 @@
 using BTV.Services.EegFileService;
+using BTV.Data;
 using SFB;
 using System;
 using UnityEngine;
@@ -20,16 +21,17 @@ namespace BTV.UI.Module3D.Tools
 
         private void Save()
         {
+            BtvMontage montage = EegFileService.GetCurrentMontage(PatientSession);
 #if UNITY_STANDALONE_OSX
             FileBrowser.GetSavedFileNameAsync((filePath) =>
             {
                 if (!string.IsNullOrEmpty(filePath))
-                    EegFileService.CurrentMontage.Save(filePath);
-            }, new ExtensionFilter[] { new ExtensionFilter("BrainTV montage file", "btvmontage") }, "Save Montage File", "", EegFileService.CurrentMontage.Name);
+                    montage.Save(filePath);
+            }, new ExtensionFilter[] { new ExtensionFilter("BrainTV montage file", "btvmontage") }, "Save Montage File", "", montage.Name);
 #else
-            string filePath = FileBrowser.GetSavedFileName(new ExtensionFilter[] { new ExtensionFilter("BrainTV Montage File", "btvmontage") }, "Save Montage File", "", EegFileService.CurrentMontage.Name);
+            string filePath = FileBrowser.GetSavedFileName(new ExtensionFilter[] { new ExtensionFilter("BrainTV Montage File", "btvmontage") }, "Save Montage File", "", montage.Name);
             if (!string.IsNullOrEmpty(filePath))
-                EegFileService.CurrentMontage.Save(filePath);
+                montage.Save(filePath);
 #endif
         }
 
@@ -39,12 +41,12 @@ namespace BTV.UI.Module3D.Tools
             FileBrowser.GetExistingFileNameAsync((filePath) =>
             {
                 if (!string.IsNullOrEmpty(filePath))
-                    EegFileService.LoadMontage(filePath);
+                    EegFileService.LoadMontage(PatientSession, filePath);
             }, new string[] { "btvmontage" }, "Select an Montage File");
 #else
             string filePath = FileBrowser.GetExistingFileName(new string[] { "btvmontage" }, "Select a Montage File");
             if (!string.IsNullOrEmpty(filePath))
-                EegFileService.LoadMontage(filePath);
+                EegFileService.LoadMontage(PatientSession, filePath);
 #endif
         }
     }

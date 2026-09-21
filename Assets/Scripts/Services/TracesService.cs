@@ -27,8 +27,9 @@ public static class TracesService
 
     public static void InitTraces()
     {
-        Options.Add(0, new TraceOption(EegFileService.ReturnFirstValidContainer(), m_blue));
-        Options.Add(1, new TraceOption(EegFileService.ReturnFirstValidContainer(), m_yellow));
+        BTV.Services.Session session = BTV.Services.Session.Current;
+        Options.Add(0, new TraceOption(session, EegFileService.ReturnFirstValidContainer(session), m_blue));
+        Options.Add(1, new TraceOption(session, EegFileService.ReturnFirstValidContainer(session), m_yellow));
         AudioOption = new AudioTraceOption(null);
 
         VideoService.AudioDataLoaded += OnAudioDataLoaded;

@@ -30,6 +30,8 @@ correlations, all synchronized to a video clock.
   modules receive that same Session through toolbar initialization, the `BTV3DModule` composition
   root, or `LoaderMessage.PatientSession`. Modules treat Session as an opaque lifetime identity:
   use explicit-session service APIs rather than reading its internal patient-state properties.
+  Edit-mode source gates enforce both rules. The misnamed legacy `EegSignal3`/`AudioSignal3`
+  components are the sole facade exception pending the separate B-8 prefab-binding decision.
 - `Assets/Scripts/Messenger/` — typed pub/sub singleton. One handler per (recipient,
   MessageContext enum); messages carry typed `TaskToExecute` enum op-codes. Register in
   Awake/Start, Unregister in OnDestroy. Dispatch is registration-order, allocation-free,
