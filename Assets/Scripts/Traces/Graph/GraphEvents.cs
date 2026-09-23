@@ -128,9 +128,8 @@ public class GraphEvents : MonoBehaviour
                 for (int i = 0; i < idRightEnter.Count; i++)
                 {
                     BtvEvent currentEvent = EventsService.GetEvent(m_Session, idRightEnter[i]);
-                    float positionInsideRect = (((left - currentEvent.TimeInMilliSeconds) * samplingFreq) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                    float rightevent = right - currentEvent.TimeInMilliSeconds;
-                    float size = (rightevent / (right - left)) * widthOfGameObject;
+                    float positionInsideRect = TraceGeometry.EventX(left, currentEvent.TimeInMilliSeconds, samplingFreq, horizontalScale, widthOfGameObject);
+                    float size = TraceGeometry.SpanWidth(right - currentEvent.TimeInMilliSeconds, left, right, widthOfGameObject);
 
                     m_EventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
                     m_EventsAdded[idRightEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
@@ -143,8 +142,8 @@ public class GraphEvents : MonoBehaviour
                 for (int i = 0; i < idInside.Count; i++)
                 {
                     BtvEvent currentEvent = EventsService.GetEvent(m_Session, idInside[i]);
-                    float positionInsideRect = (((left - currentEvent.TimeInMilliSeconds) * samplingFreq) / 1000) * -horizontalScale + ((-widthOfGameObject / 2) + 1);
-                    float size = ((float)currentEvent.Duration / (right - left)) * widthOfGameObject;
+                    float positionInsideRect = TraceGeometry.EventX(left, currentEvent.TimeInMilliSeconds, samplingFreq, horizontalScale, widthOfGameObject);
+                    float size = TraceGeometry.SpanWidth(currentEvent.Duration, left, right, widthOfGameObject);
 
                     if (currentEvent.Duration > 0)
                     {
@@ -161,9 +160,8 @@ public class GraphEvents : MonoBehaviour
                 for (int i = 0; i < idLeftEnter.Count; i++)
                 {
                     BtvEvent currentEvent = EventsService.GetEvent(m_Session, idLeftEnter[i]);
-                    float positionInsideRect = (-widthOfGameObject / 2) + 1;
-                    float leftevent = (currentEvent.TimeInMilliSeconds + currentEvent.Duration) - left;
-                    float size = (leftevent / (right - left)) * widthOfGameObject;
+                    float positionInsideRect = TraceGeometry.PanelLeftEdge(widthOfGameObject);
+                    float size = TraceGeometry.SpanWidth((currentEvent.TimeInMilliSeconds + currentEvent.Duration) - left, left, right, widthOfGameObject);
 
                     m_EventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
                     m_EventsAdded[idLeftEnter[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);
@@ -175,7 +173,7 @@ public class GraphEvents : MonoBehaviour
 
                 for (int i = 0; i < idOverFlow.Count; i++)
                 {
-                    float positionInsideRect = (-widthOfGameObject / 2) + 1;
+                    float positionInsideRect = TraceGeometry.PanelLeftEdge(widthOfGameObject);
                     float size = widthOfGameObject;
                     m_EventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
                     m_EventsAdded[idOverFlow[i]].transform.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeV);

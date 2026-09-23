@@ -235,7 +235,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
                     for (int j = 0; j < opt.FileHandle.NumberOfElectrodes; j++)
                     {
                         string ElectrodeName = opt.FileHandle.GetElectrodeNameFromElectrodeID(j);
-                        Color NewColor = GetCorrelationColor(currentEvent.Correlation2D[id][j]);
+                        Color NewColor = CorrelationColor.For(currentEvent.Correlation2D[id][j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
@@ -244,7 +244,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
                     for (int j = 0; j < opt.FileHandle.NumberOfElectrodes; j++)
                     {
                         string ElectrodeName = opt.FileHandle.GetElectrodeNameFromElectrodeID(j);
-                        Color NewColor = GetCorrelationColor(currentEvent.Correlation[j]);
+                        Color NewColor = CorrelationColor.For(currentEvent.Correlation[j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
@@ -296,29 +296,6 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         else if (m_siteByName.TryGetValue(Name.ToUpper(), out Site electrode) && electrode != null)
         {
             electrode.Color = NewColor;
-        }
-    }
-
-    private Color GetCorrelationColor(float value)
-    {
-        if (value > 0)
-        {
-            float r = Color.white.r * (1 - value) + Color.red.r * value;
-            float g = Color.white.g * (1 - value) + Color.red.g * value;
-            float b = Color.white.b * (1 - value) + Color.red.b * value;
-            return new Color(r, g, b, 1);
-        }
-        else if (value < 0)
-        {
-            float absVal = Mathf.Abs(value);
-            float r = Color.white.r * (1 - absVal) + Color.blue.r * absVal;
-            float g = Color.white.g * (1 - absVal) + Color.blue.g * absVal;
-            float b = Color.white.b * (1 - absVal) + Color.blue.b * absVal;
-            return new Color(r, g, b, 1);
-        }
-        else
-        {
-            return Color.green;
         }
     }
 }
