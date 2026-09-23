@@ -26,11 +26,13 @@ public class TimeFrequencyDataStructure
         {
             if (m_TopValueNeedsUpdate)
             {
-                var values = Freq_TimeFrame.Values.SelectMany(v => v).OrderBy(v => v).ToArray();
+                // NaN marks bins with no defined value (a flat z-score baseline); they must not
+                // decide the colour scale.
+                var values = Freq_TimeFrame.Values.SelectMany(v => v).Where(v => !float.IsNaN(v) && !float.IsInfinity(v)).OrderBy(v => v).ToArray();
                 int index = (int)(values.Length * 0.90f);
                 if (index <= 0) index = 0;
                 if (index >= values.Length) index = values.Length - 1;
-                m_TopValue = values[index];
+                m_TopValue = values.Length > 0 ? values[index] : 0f;
                 m_TopValueNeedsUpdate = false;
             }
             return m_TopValue;
