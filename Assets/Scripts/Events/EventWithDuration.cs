@@ -398,6 +398,8 @@ public class EventWithDuration : EventTrace
         return colorMap;
     }
 
+    private static readonly Color s_NoDataColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+
     private Texture2D EegData2Colors(TimeFrequencyDataStructure eegData, int beg, int end)
     {
         float maxBoundary = eegData.TopValue > 256 ? eegData.TopValue : 256;
@@ -417,6 +419,13 @@ public class EventWithDuration : EventTrace
             float[] data = eegData.GetFrequencyBinData(l);
             for (int m = beg; m < end; m++)
             {
+                if (float.IsNaN(data[m]) || float.IsInfinity(data[m]))
+                {
+                    // No defined value (flat z-score baseline): neutral, never a colour that
+                    // reads as activity. NaN used to round to the bottom of the jet map.
+                    cursor.SetPixel(m - beg, l - lowBinIndex, s_NoDataColor);
+                    continue;
+                }
                 float r = (data[m] - minValue) / (maxValue - minValue);
 
                 int col = Mathf.RoundToInt(0 + (511 * r));
