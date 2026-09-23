@@ -18,8 +18,8 @@ public class RecordVideoWindow : MonoBehaviour
         m_Close.onClick.AddListener(CloseWindow);
         m_CreateVideo.onClick.AddListener(RecordVideo);
 
-        m_VideoPlayer = FindObjectOfType<CustomVideoPlayer>();
-        m_VideoRecorder = FindObjectOfType<VideoRecorder>();
+        m_VideoPlayer = FindAnyObjectByType<CustomVideoPlayer>();
+        m_VideoRecorder = FindAnyObjectByType<VideoRecorder>();
     }
 
     private void OnDestroy()

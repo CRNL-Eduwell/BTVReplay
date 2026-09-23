@@ -99,7 +99,7 @@ public class EventsManager : MonoBehaviour
                     if (file.Extension == ".pos")
                     {
                         string path = message.FilePathToSave.Replace(".pos", "_btv.pos");
-                        InputFieldWindow window = SpawnFrequencyChoiceWindow();
+                        InputFieldWindow window = SpawnInputFieldWindow();
                         window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { SaveEventsTo(path, window.IntValue); window.Close(); }, () => { window.Close(); });
                     }
                     else
@@ -242,7 +242,7 @@ public class EventsManager : MonoBehaviour
         }
     }
 
-    private InputFieldWindow SpawnFrequencyChoiceWindow()
+    private InputFieldWindow SpawnInputFieldWindow()
     {
         GameObject viewGameObject = GameObject.Find("Windows");
         GameObject inputField = Instantiate(m_InputFieldWindowPrefabs, viewGameObject.transform);
@@ -255,7 +255,7 @@ public class EventsManager : MonoBehaviour
         FileInfo file = new FileInfo(filePath);
         if (file.Extension.Equals(".pos"))
         {
-            InputFieldWindow window = SpawnFrequencyChoiceWindow();
+            InputFieldWindow window = SpawnInputFieldWindow();
             window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { LoadEvents(file.FullName, window.IntValue, clearPreviousEvents); window.Close(); }, () => { window.Close(); });
         }
         else

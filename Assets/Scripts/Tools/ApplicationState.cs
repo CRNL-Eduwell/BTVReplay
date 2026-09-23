@@ -65,7 +65,7 @@ public static class ApplicationState
         messageWindow.displayConfirmation(HeaderMessage, DetailledMessage, yesAction, cancelAction);
     }
 
-    public static InputFieldWindow SpawnFrequencyChoiceWindow()
+    public static InputFieldWindow SpawnInputFieldWindow()
     {
         m_InputFieldWindowPrefabs = Resources.Load("Prefabs/UIElements/InputFieldWindow", typeof(GameObject)) as GameObject; //enlever d'ici quand le debug de la nouvelle db est finis
 

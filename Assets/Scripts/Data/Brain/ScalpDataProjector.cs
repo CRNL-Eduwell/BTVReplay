@@ -26,7 +26,7 @@ public class ScalpDataProjector : MonoBehaviour
         m_HalfSphere = GetComponent<HalfSphere>();
         m_MeshFilter = GetComponent<MeshFilter>();
         m_MeshRenderer = GetComponent<MeshRenderer>();
-        m_Video = GameObject.FindObjectOfType<CustomVideoPlayer>();
+        m_Video = FindAnyObjectByType<CustomVideoPlayer>();
 
         //check if data array is allocated and/or if the size is correct
         if (m_InterpolatedData == null || (m_InterpolatedData.Length != 201 * 201)) //(hardcoded resolution for now, will add option at a later point)
