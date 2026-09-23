@@ -100,11 +100,11 @@ public class EventsManager : MonoBehaviour
                     {
                         string path = message.FilePathToSave.Replace(".pos", "_btv.pos");
                         InputFieldWindow window = SpawnFrequencyChoiceWindow();
-                        window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { EventsService.SaveEvents(m_PatientSession, path, window.IntValue); window.Close(); }, () => { window.Close(); });
+                        window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { SaveEventsTo(path, window.IntValue); window.Close(); }, () => { window.Close(); });
                     }
                     else
                     {
-                        EventsService.SaveEvents(m_PatientSession, file.FullName);
+                        SaveEventsTo(file.FullName);
                     }
                     break;
                 }
@@ -277,7 +277,8 @@ public class EventsManager : MonoBehaviour
         {
             if (ClearPreviousEvents)
             {
-                EventsService.Load(m_PatientSession, filePath, SamplingFrequency);
+                if (!TryReadEvents(filePath, () => EventsService.Load(m_PatientSession, filePath, SamplingFrequency)))
+                    return;
                 List<BtvEvent> events = EventsService.GetEvents(m_PatientSession).ToList();
                 //load in UI List
                 m_EventsList.DeleteAllEvents();
@@ -308,12 +309,43 @@ public class EventsManager : MonoBehaviour
             }
             else
             {
-                List<BtvEvent> list = EventsService.LoadEventsFromFile(filePath, SamplingFrequency);
+                List<BtvEvent> list = null;
+                if (!TryReadEvents(filePath, () => list = EventsService.LoadEventsFromFile(filePath, SamplingFrequency)))
+                    return;
                 foreach (BtvEvent btvEvent in list)
                 {
                     AddEvent(btvEvent);
                 }
             }
+        }
+    }
+
+    // Wraps only the file read, so a UI failure afterwards is not reported as an unreadable file.
+    private bool TryReadEvents(string filePath, System.Action read)
+    {
+        try
+        {
+            read();
+            return true;
+        }
+        catch (System.Exception e)
+        {
+            UnityEngine.Debug.LogError("EventsManager => could not read events from " + filePath + ": " + e);
+            ApplicationState.displayMessage("Events not loaded", "NOK", "The events could not be read from " + filePath + ":\n" + e.Message + "\n\nThe events already loaded were kept.");
+            return false;
+        }
+    }
+
+    private void SaveEventsTo(string filePath, int samplingFrequency = 0)
+    {
+        try
+        {
+            EventsService.SaveEvents(m_PatientSession, filePath, samplingFrequency);
+        }
+        catch (System.Exception e)
+        {
+            UnityEngine.Debug.LogError("EventsManager => could not save events to " + filePath + ": " + e);
+            ApplicationState.displayMessage("Events not saved", "NOK", "The events could not be saved to " + filePath + ":\n" + e.Message);
         }
     }
 

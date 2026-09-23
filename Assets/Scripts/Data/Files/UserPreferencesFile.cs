@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.IO;
 using Newtonsoft.Json;
-using System;
 using Assets.Scripts.Data.Factory;
 
 public class UserPreferencesFile : IUserPreferencesContext
@@ -27,41 +26,23 @@ public class UserPreferencesFile : IUserPreferencesContext
         }
     }
 
-    private int Load(string FilePath)
+    // Throws when the file cannot be read or holds no preferences. The old version substituted
+    // a default UserPreferences (empty PathRoots) and reported only through Console.WriteLine,
+    // so the next save from the options window silently overwrote the real file.
+    private void Load(string FilePath)
     {
-        try
+        using (StreamReader streamReader = new StreamReader(FilePath))
         {
-            using (StreamReader streamReader = new StreamReader(FilePath))
-            {
-                UserPreferences = JsonConvert.DeserializeObject<UserPreferences>(streamReader.ReadToEnd(), BtvJson.ReadSettings);
-            }
-
-            return 0;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("The User Preferences file could not be read:");
-            Console.WriteLine(e.Message);
-            UserPreferences = new UserPreferences();
-            return -1;
+            UserPreferences = JsonConvert.DeserializeObject<UserPreferences>(streamReader.ReadToEnd(), BtvJson.ReadSettings)
+                ?? throw new InvalidDataException("The preferences file is empty.");
         }
     }
 
+    // Throws on failure; the caller decides how to report it. Serialized first and swapped in
+    // atomically, so a failed save cannot truncate the previous file.
     public static void Save(string FilePath, UserPreferences preferences)
     {
-        try
-        {
-            using (StreamWriter streamWriter = new StreamWriter(FilePath))
-            {
-                string json = JsonConvert.SerializeObject(preferences, Formatting.Indented, BtvJson.WriteSettings);
-                streamWriter.Write(json);
-                streamWriter.Close();
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Error saving User Preferences file at " + FilePath);
-            Debug.LogException(e);
-        }
+        string json = JsonConvert.SerializeObject(preferences, Formatting.Indented, BtvJson.WriteSettings);
+        BrainTV.Tools.AtomicFile.WriteAllText(FilePath, json);
     }
 }

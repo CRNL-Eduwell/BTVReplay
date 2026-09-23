@@ -87,7 +87,8 @@ public class GeneralOptionsPreferences : MonoBehaviour
         }
 
         UserPreferencesService.UserPreferences.GeneralPreferences = m_Preferences;
-        UserPreferencesService.SavePreferences();
+        if (!UserPreferencesService.SavePreferences(out string error))
+            ApplicationState.displayMessage("Preferences not saved", "NOK", error);
         Close();
     }
 

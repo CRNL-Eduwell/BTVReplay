@@ -43,16 +43,17 @@ namespace BTV.Data
                 IsCustom = true;
             }
         }
+        // Built in memory and swapped in atomically, so a failed save cannot truncate an
+        // existing montage file. Throws on failure.
         public void Save(string path)
         {
-            using (StreamWriter sw = new StreamWriter(path))
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.AppendLine(Name);
+            foreach (var channelCorrespondance in MontageDescription)
             {
-                sw.WriteLine(Name);
-                foreach (var channelCorrespondance in MontageDescription)
-                {
-                    sw.WriteLine(string.Format("{0},{1}", channelCorrespondance.BaseLabel, channelCorrespondance.CorrespondingLabel));
-                }
+                sb.AppendLine(string.Format("{0},{1}", channelCorrespondance.BaseLabel, channelCorrespondance.CorrespondingLabel));
             }
+            BrainTV.Tools.AtomicFile.WriteAllText(path, sb.ToString());
         }
         #endregion
     }

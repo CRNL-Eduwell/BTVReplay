@@ -1,7 +1,9 @@
 ﻿using Assets.Scripts.Data.Factory;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using UnityEngine;
 using BrainTV.Tools.NumberExtensions;
 using BTV.Data;
@@ -31,44 +33,39 @@ namespace Assets.Scripts.Data.Files
                 Debug.LogError("PosFile => Filepath : " + FilePath + " does not exist ");
         }
 
-        private int Load(string FilePath)
+        // Throws when the file cannot be read, and when it has content but not a single event
+        // line parses (wrong format or corrupt). The old version substituted an empty list and
+        // reported only through Console.WriteLine, so a failed load looked like "no events".
+        private void Load(string FilePath)
         {
-            try
+            bool hasContent = false;
+            using (StreamReader sr = new StreamReader(FilePath))
             {
-                using (StreamReader sr = new StreamReader(FilePath))
+                Events = new List<BtvEvent>();
+
+                string r;
+                while ((r = sr.ReadLine()) != null)
                 {
-                    Events = new List<BtvEvent>();
-
-                    string r;
-                    while ((r = sr.ReadLine()) != null)
+                    if (r.Trim().Length > 0) hasContent = true;
+                    //the regex mean you split by everything but a single white space
+                    string[] resultSplit = System.Text.RegularExpressions.Regex.Split(r, @"\s{2,}");
+                    if (resultSplit.Length == 7)
                     {
-                        //the regex mean you split by everything but a single white space
-                        string[] resultSplit = System.Text.RegularExpressions.Regex.Split(r, @"\s{2,}");
-                        if (resultSplit.Length == 7)
-                        {
-                            int Time = TimeStringToMilliSeconds(resultSplit[0]);
-                            string Comment = resultSplit[1] == "EMPTY_COMMENT" ? "" : resultSplit[1];
-                            int Code = int.Parse(resultSplit[2]);
-                            int Sample = int.Parse(resultSplit[3]);
-                            resultSplit[4].TryParseFloat(out float floatValue);
-                            int Duration = (int)floatValue;
-                            string FirstElectrodeOfInterest = resultSplit[5] == "E_F_SITE" ? "" : resultSplit[5];
-                            string SecondElectrodeOfInterest = resultSplit[6] == "E_S_SITE" ? "" : resultSplit[6];
+                        int Time = TimeStringToMilliSeconds(resultSplit[0]);
+                        string Comment = resultSplit[1] == "EMPTY_COMMENT" ? "" : resultSplit[1];
+                        int Code = int.Parse(resultSplit[2], CultureInfo.InvariantCulture);
+                        int Sample = int.Parse(resultSplit[3], CultureInfo.InvariantCulture);
+                        resultSplit[4].TryParseFloat(out float floatValue);
+                        int Duration = (int)floatValue;
+                        string FirstElectrodeOfInterest = resultSplit[5] == "E_F_SITE" ? "" : resultSplit[5];
+                        string SecondElectrodeOfInterest = resultSplit[6] == "E_S_SITE" ? "" : resultSplit[6];
 
-                            Events.Add(new BtvEvent(Code, Time, Duration, FirstElectrodeOfInterest, SecondElectrodeOfInterest, Comment));
-                        }
+                        Events.Add(new BtvEvent(Code, Time, Duration, FirstElectrodeOfInterest, SecondElectrodeOfInterest, Comment));
                     }
-                    sr.Close();
-                    return 0;
                 }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine("The btv file could not be read:");
-                Console.WriteLine(e.Message);
-                Events = new List<BtvEvent>();
-                return -1;
-            }
+            if (hasContent && Events.Count == 0)
+                throw new InvalidDataException("No event line could be read; is this a .btv file?");
         }
 
         private int TimeStringToMilliSeconds(string str)
@@ -91,49 +88,38 @@ namespace Assets.Scripts.Data.Files
             }
             else
             {
-                Console.WriteLine("BtvFile => Error when spliting time string, we should only have 4 elements (3 for older file models)");
-                Console.WriteLine("Make sure the format is hh:mm:ss.ms");
-                Console.WriteLine("Returning 0 as value");
+                Debug.LogWarning("BtvFile => cannot read time \"" + str + "\" (expected hh:mm:ss.ms or hh:mm:ss), using 0.");
                 return 0;
             }
         }
 
+        // Throws on failure (it used to swallow the error into Console.WriteLine, so a failed
+        // save looked like success). Built in memory and swapped in atomically.
         public static void Save(string FilePath, List<BtvEvent> Events)
         {
-            try
+            StringBuilder sb = new StringBuilder();
+            foreach (BtvEvent eegEvent in Events)
             {
-                using (StreamWriter sw = new StreamWriter(FilePath))
-                {
-                    foreach (BtvEvent eegEvent in Events)
-                    {
-                        // Use local strings for the file sentinels instead of writing them back
-                        // into the live event - the old code mutated Comment/SiteOfInterest in
-                        // memory to "EMPTY_COMMENT"/"E_F_SITE", which then showed up in the UI.
-                        string comment = string.IsNullOrWhiteSpace(eegEvent.Comment) ? "EMPTY_COMMENT" : eegEvent.Comment;
-                        string firstSite = string.IsNullOrWhiteSpace(eegEvent.SiteOfInterest) ? "E_F_SITE" : eegEvent.SiteOfInterest;
-                        string secondSite = string.IsNullOrWhiteSpace(eegEvent.SecondSiteOfInterest) ? "E_S_SITE" : eegEvent.SecondSiteOfInterest;
+                // Use local strings for the file sentinels instead of writing them back
+                // into the live event - the old code mutated Comment/SiteOfInterest in
+                // memory to "EMPTY_COMMENT"/"E_F_SITE", which then showed up in the UI.
+                string comment = string.IsNullOrWhiteSpace(eegEvent.Comment) ? "EMPTY_COMMENT" : eegEvent.Comment;
+                string firstSite = string.IsNullOrWhiteSpace(eegEvent.SiteOfInterest) ? "E_F_SITE" : eegEvent.SiteOfInterest;
+                string secondSite = string.IsNullOrWhiteSpace(eegEvent.SecondSiteOfInterest) ? "E_S_SITE" : eegEvent.SecondSiteOfInterest;
 
-                        string timeString = MilliSecondsToTimeString(eegEvent.TimeInMilliSeconds);
-                        sw.Write(timeString.PadRight(18));
-                        sw.Write(comment.PadRight(40));
-                        sw.Write(eegEvent.Code.ToString().PadRight(10));
-                        // Sample column: BtvEvent has no sample field and the value is discarded
-                        // on load, so a placeholder is written. (Proper fix needs the sampling
-                        // frequency to derive it from the timestamp - out of scope here.)
-                        sw.Write("00000".PadRight(10));
-                        sw.Write(eegEvent.Duration.ToString().PadRight(10));
-                        sw.Write(firstSite.PadRight(10));
-                        sw.WriteLine(secondSite);
-                    }
-
-                    sw.Close();
-                }
+                string timeString = MilliSecondsToTimeString(eegEvent.TimeInMilliSeconds);
+                sb.Append(timeString.PadRight(18));
+                sb.Append(comment.PadRight(40));
+                sb.Append(eegEvent.Code.ToString(CultureInfo.InvariantCulture).PadRight(10));
+                // Sample column: BtvEvent has no sample field and the value is discarded
+                // on load, so a placeholder is written. (Proper fix needs the sampling
+                // frequency to derive it from the timestamp - out of scope here.)
+                sb.Append("00000".PadRight(10));
+                sb.Append(eegEvent.Duration.ToString(CultureInfo.InvariantCulture).PadRight(10));
+                sb.Append(firstSite.PadRight(10));
+                sb.AppendLine(secondSite);
             }
-            catch (Exception e)
-            {
-                Console.WriteLine("Could not write btv file");
-                Console.WriteLine(e.Message);
-            }
+            BrainTV.Tools.AtomicFile.WriteAllText(FilePath, sb.ToString());
         }
 
         private static string MilliSecondsToTimeString(float timeInMilliSec)

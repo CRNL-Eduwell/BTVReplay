@@ -2,7 +2,9 @@
 using BTV.Data;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using UnityEngine;
 
 namespace Assets.Scripts.Data.Files
@@ -30,62 +32,48 @@ namespace Assets.Scripts.Data.Files
                 Debug.LogError("PosFile => Filepath : " + FilePath + " does not exist ");
         }
 
-        private int Load(string FilePath, float samplingFrequency)
+        // Throws when the file cannot be read, and when it has content but not a single event
+        // line parses (wrong format or corrupt). The old version substituted an empty list and
+        // reported only through Console.WriteLine, so a failed load looked like "no events".
+        private void Load(string FilePath, float samplingFrequency)
         {
-            try
+            bool hasContent = false;
+            using (StreamReader sr = new StreamReader(FilePath))
             {
-                using (StreamReader sr = new StreamReader(FilePath))
+                Events = new List<BtvEvent>();
+
+                string r;
+                while ((r = sr.ReadLine()) != null)
                 {
-                    Events = new List<BtvEvent>();
-
-                    string r;
-                    while ((r = sr.ReadLine()) != null)
+                    if (r.Trim().Length > 0) hasContent = true;
+                    string[] resultSplit = r.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (resultSplit.Length == 3)
                     {
-                        string[] resultSplit = r.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (resultSplit.Length == 3)
-                        {
-                            int Code = int.Parse(resultSplit[1]);
-                            int Sample = int.Parse(resultSplit[0]);
-                            float TimeInMilliSec = (Sample / samplingFrequency) * 1000;
+                        int Code = int.Parse(resultSplit[1], CultureInfo.InvariantCulture);
+                        int Sample = int.Parse(resultSplit[0], CultureInfo.InvariantCulture);
+                        float TimeInMilliSec = (Sample / samplingFrequency) * 1000;
 
-                            Events.Add(new BtvEvent(Code, TimeInMilliSec));
-                        }
+                        Events.Add(new BtvEvent(Code, TimeInMilliSec));
                     }
-                    sr.Close();
-                    return 0;
                 }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine("The pos file could not be read:");
-                Console.WriteLine(e.Message);
-                Events = new List<BtvEvent>();
-                return -1;
-            }
+            if (hasContent && Events.Count == 0)
+                throw new InvalidDataException("No event line could be read; is this a .pos file?");
         }
 
+        // Throws on failure (it used to swallow the error into Console.WriteLine, so a failed
+        // save looked like success). Built in memory and swapped in atomically.
         public static void Save(string FilePath, List<BtvEvent> Events, float samplingFrequency = 0)
         {
-            try
+            StringBuilder sb = new StringBuilder();
+            foreach (BtvEvent Event in Events)
             {
-                using (StreamWriter sw = new StreamWriter(FilePath))
-                {
-                    foreach (BtvEvent Event in Events)
-                    {
-                        int sample = Convert.ToInt32(Event.TimeInSeconds * samplingFrequency);
-                        sw.Write(sample.ToString().PadRight(10));
-                        sw.Write(Event.Code.ToString().PadRight(10));
-                        sw.Write("0\n");
-                    }
-
-                    sw.Close();
-                }
+                int sample = Convert.ToInt32(Event.TimeInSeconds * samplingFrequency);
+                sb.Append(sample.ToString(CultureInfo.InvariantCulture).PadRight(10));
+                sb.Append(Event.Code.ToString(CultureInfo.InvariantCulture).PadRight(10));
+                sb.Append("0\n");
             }
-            catch (Exception e)
-            {
-                Console.WriteLine("Could not write pos file");
-                Console.WriteLine(e.Message);
-            }
+            BrainTV.Tools.AtomicFile.WriteAllText(FilePath, sb.ToString());
         }
     }
 }

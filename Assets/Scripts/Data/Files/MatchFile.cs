@@ -44,8 +44,7 @@ namespace Assets.Scripts.Data.Files
             }
             catch (Exception e)
             {
-                Console.WriteLine("The chosen MatchFile could not be read:");
-                Console.WriteLine(e.Message);
+                Debug.LogError("MatchFile => could not read " + FilePath + ": " + e.Message);
                 Pairs = new List<CodeCommentPair>();
                 return -1;
             }
