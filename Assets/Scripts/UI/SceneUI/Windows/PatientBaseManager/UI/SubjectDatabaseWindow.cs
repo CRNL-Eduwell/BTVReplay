@@ -97,7 +97,8 @@ public class SubjectDatabaseWindow : MonoBehaviour
         {
             case FileMenuMessage.Task.NewDatabase:
                 {
-                    DatabaseService.CreateNewDatabase(message.FilePath);
+                    if (!string.IsNullOrEmpty(message.FilePath) && !DatabaseService.CreateNewDatabase(message.FilePath))
+                        ApplicationState.displayMessage("Database not created", "NOK", "The new database could not be written to:\n" + message.FilePath + "\n\nCheck that the folder exists and is writable.");
                     break;
                 }
             case FileMenuMessage.Task.OpenDatabase:

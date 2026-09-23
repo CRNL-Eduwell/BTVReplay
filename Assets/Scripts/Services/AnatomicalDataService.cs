@@ -58,7 +58,7 @@ namespace BTV.Services.AnatomicalDataService
                                 int nbIntraElec = 0, nbIntraPlot = 0;
                                 foreach (Data.BtvChannel channel in container.Channels)
                                 {
-                                    Tuple<string, int> NameAndId = GetIntraPlotInformation(channel.Label);
+                                    Tuple<string, int> NameAndId = IntraContext.GetIntraPlotInformation(channel.Label);
                                     if (memPlot != NameAndId.Item1)
                                     {
                                         nbIntraElec += 5;
@@ -243,31 +243,6 @@ namespace BTV.Services.AnatomicalDataService
             {
                 return default;
             }
-        }
-
-        private static Tuple<string, int> GetIntraPlotInformation(string rawName)
-        {
-            Regex ReLeft = new Regex(@"([a-zA-Z]+)(\d+)");
-            Regex ReRight = new Regex(@"([a-zA-Z]+)(\')(\d+)");
-
-            Match resultLeft = ReLeft.Match(rawName);
-            Match resultRight = ReRight.Match(rawName);
-
-            string plotName = "";
-            int plotID = -1;
-
-            if (resultLeft.Groups[1].Length == 1)
-            {
-                plotName = resultLeft.Groups[1].Value;
-                plotID = int.Parse(resultLeft.Groups[2].Value.ToString());
-            }
-            else if (resultRight.Groups[1].Length == 1)
-            {
-                plotName = resultRight.Groups[1].Value + resultRight.Groups[2].Value;
-                plotID = int.Parse(resultRight.Groups[3].Value.ToString());
-            }
-
-            return new Tuple<string, int>(plotName, plotID);
         }
     }
 }

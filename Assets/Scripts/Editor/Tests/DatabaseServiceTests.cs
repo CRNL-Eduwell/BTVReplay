@@ -191,4 +191,16 @@ public class DatabaseServiceTests
         Assert.AreEqual(1, db.Subjects.Count);
     }
     #endregion
+
+    [Test]
+    public void CreateNewDatabase_UnwritablePath_ReturnsFalseAndRegistersNothing()
+    {
+        string path = Path.Combine(m_TestDir, "missing-folder", "new.dbtv2");
+        LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex("Error saving .dbtv2 file"));
+        LogAssert.Expect(UnityEngine.LogType.Exception, new System.Text.RegularExpressions.Regex("DirectoryNotFoundException"));
+
+        Assert.IsFalse(DatabaseService.CreateNewDatabase(path));
+
+        Assert.AreEqual(0, DatabaseService.Databases.Count, "a base that could not be written must not appear as created");
+    }
 }
