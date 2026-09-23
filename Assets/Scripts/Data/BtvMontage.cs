@@ -11,7 +11,7 @@ namespace BTV.Data
     {
         #region Properties
         public string Name { get; private set; } = "Default";
-        public BtvProgram[] EegFiles { get; private set; } = new BtvProgram[6] { null, null, null, null, null, null };
+        public BtvProgram[] EegFiles { get; private set; } = new BtvProgram[EegSlots.Count];
         public bool IsCustom { get; private set; } = false;
         public List<ChannelCorrespondance> MontageDescription { get; private set; } = new List<ChannelCorrespondance>();
         #endregion
