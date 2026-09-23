@@ -19,6 +19,21 @@ public class ApplicationManager : MonoBehaviour
         UserPreferencesService.LoadPreferences();
         ProtocolService.LoadAllProtocols();
     }
+    // Once per run: this scene reloads on every patient switch.
+    private static bool s_PreferencesErrorShown = false;
+
+    private void Start()
+    {
+        // After every Awake, so the message window exists. Without this the user would only
+        // learn about an unreadable preferences file when ${NAME} paths stop resolving.
+        if (UserPreferencesService.LoadError != null && !s_PreferencesErrorShown)
+        {
+            s_PreferencesErrorShown = true;
+            ApplicationState.displayMessage("Preferences not loaded", "NOK",
+                "The preferences file could not be read, so default preferences are in use and the file will not be overwritten.\n\n"
+                + UserPreferencesService.PATH + "\n" + UserPreferencesService.LoadError);
+        }
+    }
     private void OnDestroy()
     {
         //clean data used

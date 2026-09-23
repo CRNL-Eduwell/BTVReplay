@@ -95,7 +95,8 @@ public class UserPreferencesGUIManager : MonoBehaviour
     {
         UserPreferencesService.UserPreferences.DatabasePreferences.Path = _DBPathSelector.Text;
         UserPreferencesService.UserPreferences.DatabasePreferences.PathRoots = CollectRoots();
-        UserPreferencesService.SavePreferences();
+        if (!UserPreferencesService.SavePreferences(out string error))
+            ApplicationState.displayMessage("Preferences not saved", "NOK", error);
         Close();
     }
 

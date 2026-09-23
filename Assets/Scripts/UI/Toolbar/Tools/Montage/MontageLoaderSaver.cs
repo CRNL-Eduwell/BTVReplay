@@ -26,13 +26,27 @@ namespace BTV.UI.Module3D.Tools
             FileBrowser.GetSavedFileNameAsync((filePath) =>
             {
                 if (!string.IsNullOrEmpty(filePath))
-                    montage.Save(filePath);
+                    SaveMontage(montage, filePath);
             }, new ExtensionFilter[] { new ExtensionFilter("BrainTV montage file", "btvmontage") }, "Save Montage File", "", montage.Name);
 #else
             string filePath = FileBrowser.GetSavedFileName(new ExtensionFilter[] { new ExtensionFilter("BrainTV Montage File", "btvmontage") }, "Save Montage File", "", montage.Name);
             if (!string.IsNullOrEmpty(filePath))
-                montage.Save(filePath);
+                SaveMontage(montage, filePath);
 #endif
+        }
+
+        // An uncaught write error used to surface only as the bug reporter.
+        private static void SaveMontage(BtvMontage montage, string filePath)
+        {
+            try
+            {
+                montage.Save(filePath);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("MontageLoaderSaver => could not save montage to " + filePath + ": " + e);
+                ApplicationState.displayMessage("Montage not saved", "NOK", "The montage could not be saved to " + filePath + ":\n" + e.Message);
+            }
         }
 
         private void Load()

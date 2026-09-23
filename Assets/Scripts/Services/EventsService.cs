@@ -25,17 +25,23 @@ namespace BTV.Services.EventsService
             Load(Session.Current, filePath, samplingFrequency);
         }
 
+        /// <summary>
+        /// Replaces the session's events with the file's. Throws when the file cannot be read,
+        /// and in that case leaves the events already loaded untouched: the old version cleared
+        /// them first, so a corrupt file silently wiped the clinician's current markings.
+        /// </summary>
         public static void Load(Session session, string filePath, int samplingFrequency = 0)
         {
             if (File.Exists(filePath))
             {
                 IEventsContext file = EventsFactory.GetEventsContext(filePath, samplingFrequency);
 
-                session.Events = new List<BtvEvent>();
+                List<BtvEvent> loaded = new List<BtvEvent>(file.Events.Count);
                 for (int i = 0; i < file.Events.Count; i++)
                 {
-                    session.Events.Add(new BtvEvent(file.Events[i]));
+                    loaded.Add(new BtvEvent(file.Events[i]));
                 }
+                session.Events = loaded;
 
                 // Keep the service sorted by start time the same way AddEvent does. The window
                 // queries below binary-search on this order, and the trace GameObject lists are
@@ -45,6 +51,7 @@ namespace BTV.Services.EventsService
             }
         }
 
+        /// <summary>Reads a file's events without touching the session; throws when it cannot be read.</summary>
         public static List<BtvEvent> LoadEventsFromFile(string filePath, int samplingFrequency = 0)
         {
             if (File.Exists(filePath))
@@ -60,17 +67,14 @@ namespace BTV.Services.EventsService
             SaveEvents(Session.Current, filePath, samplingFrequency);
         }
 
+        /// <summary>
+        /// Throws when the file cannot be written, so the caller can tell the user. The writers
+        /// used to swallow their own errors, which made a failed save indistinguishable from a
+        /// successful one.
+        /// </summary>
         public static void SaveEvents(Session session, string filePath, int samplingFrequency = 0)
         {
-            try
-            {
-                EventsFactory.SaveEvents(filePath, session.Events, samplingFrequency);
-            }
-            catch (Exception ex)
-            {
-                UnityEngine.Debug.LogError("Error while saving file events.");
-                UnityEngine.Debug.LogError(ex.Message);
-            }
+            EventsFactory.SaveEvents(filePath, session.Events, samplingFrequency);
         }
 
         /// <summary>
