@@ -65,8 +65,7 @@ namespace BTV.UI.Module3D.Tools
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogError("Error Filtering audio");
-                UnityEngine.Debug.LogException(ex);
+                BtvLog.Handled("Error Filtering audio", ex);
                 ApplicationState.displayMessage("Audio Filtering", "NOK", ex.Message);
             }
         }

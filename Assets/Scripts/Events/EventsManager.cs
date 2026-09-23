@@ -497,8 +497,7 @@ public class EventsManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError("Error processing correlations");
-            UnityEngine.Debug.LogException(ex);
+            BtvLog.Handled("Error processing correlations", ex);
             ApplicationState.displayMessage("Error Processing Correlations", "NOK", ex.Message);
         }
     }
@@ -578,8 +577,7 @@ public class EventsManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError("Error processing 2D correlations");
-            UnityEngine.Debug.LogException(ex);
+            BtvLog.Handled("Error processing 2D correlations", ex);
             ApplicationState.displayMessage("Error Processing Correlations", "NOK", ex.Message);
         }
     }

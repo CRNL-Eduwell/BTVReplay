@@ -53,7 +53,8 @@ namespace Tools.Unity
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                // Not LogException: that would reopen the bug reporter from inside itself.
+                BtvLog.Handled("Bug report could not be prepared", e);
                 ApplicationState.displayMessage(e.Source, "NOK", e.Message);
                 Destroy(gameObject);
             }

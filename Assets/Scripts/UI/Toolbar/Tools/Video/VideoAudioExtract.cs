@@ -70,8 +70,7 @@ namespace BTV.UI.Module3D.Tools
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogError("Error extracting audio");
-                UnityEngine.Debug.LogException(ex);
+                BtvLog.Handled("Error extracting audio", ex);
                 ApplicationState.displayMessage("Audio Extraction", "NOK", ex.Message);
             }
         }
