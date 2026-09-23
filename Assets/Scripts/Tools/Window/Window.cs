@@ -262,8 +262,9 @@ public class Window : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         {
             //if (itemBeingDragged.transform.parent.name != "PanelL" &&
             //itemBeingDragged.transform.parent.name != "PanelR")
-            if (itemBeingDragged.transform.parent.name != "Pannel" &&
-            itemBeingDragged.transform.parent.name != "RightPannel")
+            // Dropped outside a dock area: snap back. Used to compare the parent\'s name with
+            // "Pannel"/"RightPannel", so renaming a dock broke drag and drop.
+            if (itemBeingDragged.transform.parent.GetComponent<WindowLayout>() == null)
             {
                 itemBeingDragged.GetComponent<RectTransform>().SetParent(m_initialTransform);
                 itemBeingDragged.GetComponent<RectTransform>().localPosition = m_initialPanelPosition;

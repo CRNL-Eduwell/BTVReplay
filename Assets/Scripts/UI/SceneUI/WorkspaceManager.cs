@@ -243,13 +243,9 @@ public class WorkspaceManager : MonoBehaviour
         opt.Color = traceParameters.Color;
         opt.LineWidth = (int)traceParameters.Width;
 
-        //Try to load the different positions of the traces.
-        // Guard the lookup (Find returns null on a missing/blank saved parent name, which used to
-        // NRE), and route by *which* layout the saved parent actually is - the old ternary found
-        // a layout then ignored it, degenerating to "found anything -> left, else right".
-        GameObject parentObject = string.IsNullOrEmpty(traceParameters.Parent) ? null : GameObject.Find(traceParameters.Parent);
-        WindowLayout layout = parentObject != null ? parentObject.GetComponent<WindowLayout>() : null;
-        WindowLayout layouthandle = (layout == _LeftWindowLayout) ? _LeftWindowLayout : _RightWindowLayout;
+        // Dock by the saved side id (DockSide) instead of GameObject.Find on a saved scene-object
+        // name; the ids keep the legacy names, so older workspaces restore exactly as before.
+        WindowLayout layouthandle = DockSide.IsLeft(traceParameters.Parent) ? _LeftWindowLayout : _RightWindowLayout;
         layouthandle.ForceDrop(trace.gameObject, traceParameters.GridLayout, traceParameters.Id);
     }
 
@@ -279,7 +275,7 @@ public class WorkspaceManager : MonoBehaviour
             Window = opt.WindowInSeconds,
             Color = opt.Color,
             Width = opt.LineWidth,
-            Parent = win != null ? win.transform.parent.name : null,
+            Parent = win != null ? (win.transform.parent == _LeftWindowLayout.transform ? DockSide.Left : DockSide.Right) : null,
             Id = win != null ? win.windowId : -1,
             GridLayout = win != null ? win.GridLayout : GridLayout.TwoBy2
         };
