@@ -61,8 +61,6 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
         }
     }
 
-    public byte[] TextureBytes => throw new System.NotImplementedException();
-
     #region private members
     private string m_VideoFilePath = "";
     private RawImage m_TextureForVideo = null;
@@ -157,8 +155,6 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
     }
 
     public void SetVolume(float volume) { }
-
-    public void SetVideoOffset(float newOffset) { }
 
     private void ResizeTexture()
     {
