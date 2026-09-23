@@ -167,6 +167,17 @@ namespace BTV.Services.VideoService
         // process, file IO, DSP) inside Task.Run, and publishes results to the static fields
         // after the await - i.e. back on the Unity main thread.
 
+        // The output path is spliced into VLC's --sout chain, where , { } separate or close
+        // options and quotes end the argument: such a path used to make VLC silently write
+        // somewhere else or fail. VLC's own quoting treats backslashes specially, which would
+        // risk Windows paths, so refuse those characters with a message instead.
+        public static string SoutPath(string path)
+        {
+            if (path.IndexOfAny(new[] { ',', '{', '}', '"', '\'' }) >= 0)
+                throw new ArgumentException("VLC cannot write to a path containing , { } or quotes. Choose another folder or file name:\n" + path);
+            return path;
+        }
+
         // Backstop for callers that skipped the VlcFileExist check. Reads the user preferences,
         // so call it on the main thread. Without this check, Process.Start fails with an
         // unhelpful "Cannot find the specified file".
@@ -189,7 +200,7 @@ namespace BTV.Services.VideoService
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.FileName = vlcPath;
                 //startInfo.Arguments = "-I dummy --sout \"#transcode{acodec=s16l,channels=2,samplerate=11025}:std{access=file,mux=wav,dst=" + AudioFilePath + "}\" " + "\"" + VideoFilePath + "\" vlc://quit";
-                startInfo.Arguments = "-I dummy --sout \"#transcode{acodec=s16l,samplerate=11025}:std{access=file,mux=wav,dst=" + AudioFilePath + "}\" " + "\"" + VideoFilePath + "\" vlc://quit";
+                startInfo.Arguments = "-I dummy --sout \"#transcode{acodec=s16l,samplerate=11025}:std{access=file,mux=wav,dst=" + SoutPath(AudioFilePath) + "}\" " + "\"" + VideoFilePath + "\" vlc://quit";
 
                 using (Process process = new Process())
                 {
@@ -209,7 +220,7 @@ namespace BTV.Services.VideoService
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.FileName = vlcPath;
-                startInfo.Arguments = "-I dummy screen:// --screen-fps 25 --sout \"#transcode{vcodec=h264,venc=x264, vb=1500,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + OutputVideoPath + "}\" --stop-time " + durationInSeconds + " vlc://quit";
+                startInfo.Arguments = "-I dummy screen:// --screen-fps 25 --sout \"#transcode{vcodec=h264,venc=x264, vb=1500,acodec=none,scale=1.0}:std{access=file,mux=mp4,dst=" + SoutPath(OutputVideoPath) + "}\" --stop-time " + durationInSeconds + " vlc://quit";
 
                 using (Process recordProcess = new Process())
                 {

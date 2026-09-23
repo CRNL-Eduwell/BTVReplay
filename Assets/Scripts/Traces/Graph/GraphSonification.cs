@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class GraphSonification : MonoBehaviour
 {
@@ -85,21 +86,46 @@ public class GraphSonification : MonoBehaviour
         }
     }
 
-    //Allow to load audio file not in ressource file
+    //Allow to load audio file not in ressource file. UnityWebRequestMultimedia replaces the
+    // obsolete WWW API. A clip that fails to load keeps its slot (null), because clips are
+    // picked by index, and is reported instead of throwing.
     private IEnumerator StartAudio()
     {
-        AudioClip clip = null;
         for (int i = 0; i < ApplicationState.Module3D.SoundFilePaths.Count; i++)
         {
-            WWW audioLoader = new WWW("file://" + ApplicationState.Module3D.SoundFilePaths[i]);
-            while (!audioLoader.isDone)
-                yield return null;
-            clip = audioLoader.GetAudioClip(false);
-            clip.name = "Audio Clip number " + i.ToString();
+            string path = ApplicationState.Module3D.SoundFilePaths[i];
+            AudioClip clip = null;
+            using (UnityWebRequest request = UnityWebRequestMultimedia.GetAudioClip(new System.Uri(path).AbsoluteUri, AudioTypeFor(path)))
+            {
+                yield return request.SendWebRequest();
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    clip = DownloadHandlerAudioClip.GetContent(request);
+                    clip.name = "Audio Clip number " + i.ToString();
+                }
+                else
+                {
+                    Debug.LogWarning("GraphSonification => could not load sound " + path + ": " + request.error);
+                }
+            }
             m_clips.Add(clip);
         }
+        if (m_clips.Count == 0 || m_clips[0] == null) yield break;
         _AudioSourceScript.clip = m_clips[0];
         _AudioSourceScript.Play();
         _AudioSourceScript.Pause();
+    }
+
+    private static AudioType AudioTypeFor(string path)
+    {
+        switch (System.IO.Path.GetExtension(path).ToLowerInvariant())
+        {
+            case ".wav": return AudioType.WAV;
+            case ".mp3": return AudioType.MPEG;
+            case ".ogg": return AudioType.OGGVORBIS;
+            case ".aif":
+            case ".aiff": return AudioType.AIFF;
+            default: return AudioType.UNKNOWN;
+        }
     }
 }
