@@ -244,12 +244,8 @@ public class CustomVideoPlayer : MonoBehaviour
         long time = (long)(value * VideoInterface.TotalVideoTime);
         if (m_LoopMode)
         {
-            if (time > m_MaxTimeClick)
-                SetTime(Math.Min(VideoInterface.TotalVideoTime, m_MaxTimeClick), true);
-            else if (time < m_MinTimeClick)
-                SetTime(Math.Max(0, m_MinTimeClick), true);
-            else
-                SetTime(time);
+            (long target, bool clamped) = LoopWindow.Clamp(time, m_MinTimeClick, m_MaxTimeClick, VideoInterface.TotalVideoTime);
+            SetTime(target, clamped);
         }
         else
         {

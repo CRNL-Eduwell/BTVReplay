@@ -106,7 +106,7 @@ public class EegSignal : MonoBehaviour
         m_HorizontalScale = m_WidthOfGameObject / m_dataArray.Length;
         for (int i = 0; i < m_dataArray.Length; i++)
         {
-            m_dataArray[i].x = ((-m_WidthOfGameObject / 2) + 1) + i * m_HorizontalScale;
+            m_dataArray[i].x = TraceGeometry.PanelLeftEdge(m_WidthOfGameObject) + i * m_HorizontalScale;
             m_dataArray[i].y = 0;
         }
         _LineRenderer.SetPositions(m_dataArray);
@@ -116,27 +116,15 @@ public class EegSignal : MonoBehaviour
     {
         MostRecentTimeInMilliSecs = milliSecToLook;
         //int mostRecentSample = (int)(milliSecToLook * ((float)m_Option.SamplingFrequency / 1000));
-        int mostRecentSample = Mathf.RoundToInt(milliSecToLook * ((float)m_Option.SamplingFrequency / 1000));
-        int posInArray = mostRecentSample - m_Option.NumberOfPoint;
+        int posInArray = TraceGeometry.WindowStartSample(milliSecToLook, m_Option.SamplingFrequency, m_Option.NumberOfPoint);
         
-        m_LimitValue = (m_ParentRectTransform.rect.height - 6.5f) / 2;
+        m_LimitValue = TraceGeometry.ClampLimit(m_ParentRectTransform.rect.height);
         for (int i = 0; i < m_Option.NumberOfPoint; i++)
         {
             if (i + posInArray >= 0)
             {
                 float eegValue = m_Channel.GetSample(i + posInArray, true);
-                float value = m_Option.Gain * eegValue + m_m_offsetCoefficient;
-                if (value >= -m_LimitValue && value <= m_LimitValue)
-                {
-                    m_dataArray[i].y = value;
-                }
-                else
-                {
-                    if (value >= 0)
-                        m_dataArray[i].y = m_LimitValue;
-                    else
-                        m_dataArray[i].y = -m_LimitValue;
-                }
+                m_dataArray[i].y = TraceGeometry.ScaleAndClamp(eegValue, m_Option.Gain, m_m_offsetCoefficient, m_LimitValue);
             }
             else
             {
