@@ -21,12 +21,24 @@ public static class BtvJson
     {
         TypeNameHandling = TypeNameHandling.Auto,
         SerializationBinder = s_Binder,
+        Converters = UnityStructConverters(),
     };
 
     public static JsonSerializerSettings WriteSettings => new JsonSerializerSettings
     {
         TypeNameHandling = TypeNameHandling.Auto,
         SerializationBinder = s_Binder,
+        Converters = UnityStructConverters(),
+    };
+
+    // Unity structs cannot go through Json.NET's reflection path: Color.linear/gamma and
+    // Vector3.normalized return the same type, which trips its self-referencing loop check. The
+    // workspace file stores TraceParameters.Color as "RGBA(...)" text through ColorConverter;
+    // dropping these when this class was introduced (e39abe1) made old workspaces load as
+    // defaults and every workspace save fail on that loop error after truncating the file.
+    private static List<JsonConverter> UnityStructConverters() => new List<JsonConverter>
+    {
+        new ColorConverter(), new Vector2Converter(), new Vector3Converter()
     };
 
     private sealed class BtvSerializationBinder : ISerializationBinder

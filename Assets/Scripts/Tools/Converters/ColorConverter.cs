@@ -1,5 +1,6 @@
 ﻿using BrainTV.Tools.NumberExtensions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using UnityEngine;
 
@@ -34,6 +35,16 @@ public class ColorConverter : JsonConverter
     /// <returns></returns>
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
+        if (reader.TokenType == JsonToken.Null) return default(Color);
+
+        // Json.NET's own reflection shape {"r":..,"g":..,"b":..,"a":..}, accepted in case a file
+        // was ever written while this converter was not registered.
+        if (reader.TokenType == JsonToken.StartObject)
+        {
+            JObject obj = JObject.Load(reader);
+            return new Color(ReadComponent(obj, "r", 0f), ReadComponent(obj, "g", 0f), ReadComponent(obj, "b", 0f), ReadComponent(obj, "a", 1f));
+        }
+
         string[] splitedString = ((string)reader.Value).Split(new char[] { '(', ')' }, StringSplitOptions.None);
         if (splitedString.Length < 2) return Color.white;
 
@@ -46,5 +57,11 @@ public class ColorConverter : JsonConverter
         NumberExtensions.TryParseFloat(splitedColors[3], out float a);
 
         return new Color(r, g, b, a);
+    }
+
+    private static float ReadComponent(JObject obj, string name, float fallback)
+    {
+        JToken token = obj.GetValue(name, StringComparison.OrdinalIgnoreCase);
+        return token != null && (token.Type == JTokenType.Float || token.Type == JTokenType.Integer) ? token.Value<float>() : fallback;
     }
 }
