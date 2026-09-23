@@ -78,12 +78,14 @@ namespace BTV.Services.EegFileService
             Session session = Session.Current;
             BtvProgram eegFile = await Task.Run(() =>
             {
-                if (fileInfo.Files.Length > 0 && System.IO.File.Exists(fileInfo.Files[0]))
-                {
-                    IEegDataContainer container = new IEegDataContainer(fileInfo);
-                    return new BtvProgram(container, description);
-                }
-                return null;
+                if (fileInfo.Files.Length == 0)
+                    return null;
+                // A file that vanished after the loadability check used to leave its slot empty
+                // with no trace at all; throwing lets the loader report it.
+                if (!System.IO.File.Exists(fileInfo.Files[0]))
+                    throw new System.IO.FileNotFoundException("EEG file not found.", fileInfo.Files[0]);
+                IEegDataContainer container = new IEegDataContainer(fileInfo);
+                return new BtvProgram(container, description);
             });
 
             TryPublishEegFile(session, eegFile, FileID);
@@ -192,9 +194,10 @@ namespace BTV.Services.EegFileService
             BtvProgram[] baseFiles = GetDefaultMontage(session).EegFiles;
             LoadingManager.Load(async progress =>
             {
-                BtvProgram[] eegFiles = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
+                (BtvProgram[] eegFiles, string errors) = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
 
-                TryPublishNewMontage(session, name, eegFiles, montageDescription);
+                if (TryPublishNewMontage(session, name, eegFiles, montageDescription))
+                    ReportMontageErrors(name, errors);
             });
         }
         public static void RemoveSelectedMontage()
@@ -239,9 +242,10 @@ namespace BTV.Services.EegFileService
             BtvProgram[] baseFiles = GetDefaultMontage(session).EegFiles;
             LoadingManager.Load(async progress =>
             {
-                BtvProgram[] eegFiles = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
+                (BtvProgram[] eegFiles, string errors) = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
 
-                TryPublishEditedMontage(session, montage, name, eegFiles, montageDescription);
+                if (TryPublishEditedMontage(session, montage, name, eegFiles, montageDescription))
+                    ReportMontageErrors(name, errors);
             });
         }
 
@@ -275,6 +279,22 @@ namespace BTV.Services.EegFileService
             montage.Load(name, eegFiles, montageDescription);
             SendMontageListUpdate(session.Montages.IndexOf(montage));
             return true;
+        }
+
+        // Main thread only (after the await). Expression errors used to go to BtvLog, which is
+        // compiled out of release builds, so a montage with unparsable channels silently showed
+        // base values for them.
+        private static void ReportMontageErrors(string montageName, string errors)
+        {
+            if (string.IsNullOrEmpty(errors)) return;
+            Debug.LogWarning("Montage " + montageName + " built with errors:\n" + errors);
+            const int maxLines = 12;
+            string[] lines = errors.TrimEnd('\n').Split('\n');
+            string shown = string.Join("\n", lines.Take(maxLines));
+            if (lines.Length > maxLines)
+                shown += string.Format("\n... and {0} more.", lines.Length - maxLines);
+            ApplicationState.displayMessage("Montage built with errors", "NOK",
+                "Montage \"" + montageName + "\" was created, but some channel expressions could not be evaluated and keep their base values:\n\n" + shown);
         }
 
         private static void SendMontageListUpdate(int selectedMontageID)
@@ -316,7 +336,7 @@ namespace BTV.Services.EegFileService
         /// Runs on a worker thread (CPU-bound, only touches the snapshot it was given); progress
         /// reports are marshalled back to the main thread by the caller's Progress instance.
         /// </summary>
-        private static BtvProgram[] GenerateMontage(BtvProgram[] baseFiles, List<ChannelCorrespondance> montageDescription, string fileName, IProgress<(float progress, string message)> onChangeProgress)
+        private static (BtvProgram[] files, string errors) GenerateMontage(BtvProgram[] baseFiles, List<ChannelCorrespondance> montageDescription, string fileName, IProgress<(float progress, string message)> onChangeProgress)
         {
             int globalProgress = 0;
             int totalNumberOfValidFiles = string.IsNullOrEmpty(fileName) ? baseFiles.Count(f => f != null) : 1;
@@ -371,9 +391,8 @@ namespace BTV.Services.EegFileService
                 }
                 globalProgress++;
             }
-            if (!string.IsNullOrEmpty(errorList)) // TODO : make this visible for user maybe
-                BtvLog.Log(errorList);
-            return eegFiles;
+            // Reported to the user by the caller, back on the main thread.
+            return (eegFiles, errorList);
         }
     }
 }

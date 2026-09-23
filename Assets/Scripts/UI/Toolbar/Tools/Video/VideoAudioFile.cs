@@ -50,7 +50,7 @@ namespace BTV.UI.Module3D.Tools
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogException(ex);
+                BtvLog.Handled("Error loading filtered audio", ex);
                 ApplicationState.displayMessage("Audio has not been loaded", "NOK", "Error during the loading process.");
             }
         }

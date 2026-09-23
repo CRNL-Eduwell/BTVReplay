@@ -74,8 +74,7 @@ public class CalculationManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError("Error while processing TF");
-            UnityEngine.Debug.LogException(ex);
+            BtvLog.Handled("Error while processing TF", ex);
             ApplicationState.displayMessage("Time-frequency computation failed", "NOK", ex.Message);
         }
     }
@@ -112,8 +111,7 @@ public class CalculationManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError("Error while processing TF Normalization");
-            UnityEngine.Debug.LogException(ex);
+            BtvLog.Handled("Error while processing TF Normalization", ex);
             ApplicationState.displayMessage("Time-frequency normalization failed", "NOK", ex.Message);
         }
     }

@@ -177,6 +177,7 @@ public class SubjectLoaderService : MonoBehaviour
 
         loadingCircle.Set(0, "Finding files");
 
+        List<string> failures = new List<string>();
         for (int i = 0; i < eegfiles.Count; i++)
         {
             loadingCircle.Set(0.1f + ((0.9f / eegfiles.Count) * i), "Loading File " + (i+1));
@@ -186,13 +187,30 @@ public class SubjectLoaderService : MonoBehaviour
                 yield return new WaitUntil(() => loadTask.IsCompleted);
                 if (loadTask.IsFaulted)
                 {
-                    // A failed file must not abort the others; surface it and keep loading.
-                    UnityEngine.Debug.LogError("Could not load EEG file " + (i + 1) + " (" + eegfiles[i].Key + ").");
-                    UnityEngine.Debug.LogException(loadTask.Exception.GetBaseException());
+                    // A failed file must not abort the others; note it, keep loading, and report
+                    // them all at the end. This used to open the bug reporter and then announce
+                    // "Files have been loaded" as if nothing had happened.
+                    System.Exception reason = loadTask.Exception.GetBaseException();
+                    BtvLog.Handled("Could not load EEG file " + (i + 1) + " (" + eegfiles[i].Key + ").", reason);
+                    failures.Add(string.Format("{0} ({1}): {2}", eegfiles[i].Key, FileLabel(eegfiles[i].Value), reason.Message));
                 }
             }
         }
-        loadingCircle.Set(1f, "Files have been loaded");
+        if (failures.Count == 0)
+        {
+            loadingCircle.Set(1f, "Files have been loaded");
+        }
+        else
+        {
+            loadingCircle.Set(1f, failures.Count + " file(s) could not be loaded");
+            ApplicationState.displayMessage("Some EEG files were not loaded", "NOK",
+                "The other files were loaded. These could not be read:\n\n" + string.Join("\n", failures));
+        }
+    }
+
+    private static string FileLabel(IEegFileInfo fileInfo)
+    {
+        return fileInfo != null && fileInfo.Files != null && fileInfo.Files.Length > 0 ? System.IO.Path.GetFileName(fileInfo.Files[0]) : "no file";
     }
 
     private Task LoadFile(KeyValuePair<string, IEegFileInfo> kvp, int FileID)

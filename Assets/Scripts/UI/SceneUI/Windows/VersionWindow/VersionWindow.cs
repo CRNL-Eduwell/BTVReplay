@@ -56,7 +56,8 @@ public class VersionWindow : MonoBehaviour
                 }
                 catch (Exception e)
                 {
-                    Debug.LogException(e);
+                    // A failed background version check is not worth a bug report.
+                    BtvLog.Handled("Version check: could not read the release information", e);
                 }
             }
             else

@@ -44,7 +44,7 @@ namespace BTV.UI.Module3D.Tools
             }
             catch (Exception e)
             {
-                Debug.LogError("MontageLoaderSaver => could not save montage to " + filePath + ": " + e);
+                BtvLog.Handled("MontageLoaderSaver => could not save montage to " + filePath, e);
                 ApplicationState.displayMessage("Montage not saved", "NOK", "The montage could not be saved to " + filePath + ":\n" + e.Message);
             }
         }
@@ -55,13 +55,27 @@ namespace BTV.UI.Module3D.Tools
             FileBrowser.GetExistingFileNameAsync((filePath) =>
             {
                 if (!string.IsNullOrEmpty(filePath))
-                    EegFileService.LoadMontage(PatientSession, filePath);
+                    LoadMontage(filePath);
             }, new string[] { "btvmontage" }, "Select an Montage File");
 #else
             string filePath = FileBrowser.GetExistingFileName(new string[] { "btvmontage" }, "Select a Montage File");
             if (!string.IsNullOrEmpty(filePath))
-                EegFileService.LoadMontage(PatientSession, filePath);
+                LoadMontage(filePath);
 #endif
+        }
+
+        // An unreadable montage file used to throw straight into the bug reporter.
+        private void LoadMontage(string filePath)
+        {
+            try
+            {
+                EegFileService.LoadMontage(PatientSession, filePath);
+            }
+            catch (Exception e)
+            {
+                BtvLog.Handled("MontageLoaderSaver => could not read montage " + filePath, e);
+                ApplicationState.displayMessage("Montage not loaded", "NOK", "The montage file could not be read:\n" + filePath + "\n" + e.Message);
+            }
         }
     }
 }

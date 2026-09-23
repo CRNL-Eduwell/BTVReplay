@@ -43,7 +43,7 @@ public class ScreenshotTaker : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogException(e);
+            BtvLog.Handled("Screenshot could not be saved", e);
             ApplicationState.displayMessage("NOK", "Screenshots could not be saved", "Please verify your rights");
         }
     }

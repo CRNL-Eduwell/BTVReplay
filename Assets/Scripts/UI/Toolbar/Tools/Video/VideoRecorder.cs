@@ -19,8 +19,7 @@ public class VideoRecorder : MonoBehaviour
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError("Error recording video");
-            UnityEngine.Debug.LogException(ex);
+            BtvLog.Handled("Error recording video", ex);
             ApplicationState.displayMessage("Video Record", "NOK", ex.Message);
         }
     }
