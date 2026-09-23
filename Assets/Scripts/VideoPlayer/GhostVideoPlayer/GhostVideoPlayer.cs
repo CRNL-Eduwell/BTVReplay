@@ -21,16 +21,7 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
     /// In MilliSeconds
     /// </summary>
     public long ClockTime { get; set; } = 0;
-    /// <summary>
-    /// Time of the video, there is no possible offset due to user input 
-    /// In MilliSeconds
-    /// </summary>
-    public long Time { get; set; } = -1;
-    /// <summary>
-    /// Exact Time of the video
-    /// In MilliSeconds
-    /// </summary>
-    public long VideoTime { get; set; } = 0;
+    public bool SeeksInstantly => true;
     /// <summary>
     /// Total wanted Time of the video
     /// In MilliSeconds

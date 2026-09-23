@@ -321,7 +321,7 @@ public class CustomVideoPlayer : MonoBehaviour
         // Arm the sync state BEFORE issuing the seek: the ghost player completes its seek
         // synchronously, so OnSeekCompleted may run inside the SetTime call below.
         m_WaitToSync = true;
-        if (!(VideoInterface is GhostVideoPlayer))
+        if (!VideoInterface.SeeksInstantly)
             _BufferingImage.Show();
         if (updateVideoTime)
             VideoInterface.SetTime(time);
