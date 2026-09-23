@@ -37,7 +37,7 @@ namespace Assets.Scripts.Data
 
                 line = sr.ReadLine();
                 line = sr.ReadLine();
-                int numberPlot = int.Parse(line);
+                int numberPlot = int.Parse(line, System.Globalization.CultureInfo.InvariantCulture);
 
                 if (numberPlot <= 0)
                 {

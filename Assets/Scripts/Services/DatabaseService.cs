@@ -13,15 +13,20 @@ namespace BTV.Services.DatabaseService
         public static string DefaultPath { get { return UserPreferencesService.UserPreferencesService.UserPreferences.DatabasePreferences.Path; } }
         public static ObservableCollection<SubjectRepository> Databases { get; private set; } = new ObservableCollection<SubjectRepository>();
 
-        public static void CreateNewDatabase(string filePath)
+        /// <summary>
+        /// Creates and registers an empty database at <paramref name="filePath"/>. Returns false, and
+        /// registers nothing, when the file cannot be written: it used to register the repository
+        /// anyway, so the base looked created while nothing existed on disk.
+        /// </summary>
+        public static bool CreateNewDatabase(string filePath)
         {
-            if (!string.IsNullOrEmpty(filePath))
-            {
-                BtvLog.Log("Creating new db to " + filePath);
-                SubjectRepository db = new SubjectRepository(filePath, null);
-                db.Save();
-                Databases.Add(db);
-            }
+            if (string.IsNullOrEmpty(filePath)) return false;
+
+            BtvLog.Log("Creating new db to " + filePath);
+            SubjectRepository db = new SubjectRepository(filePath, null);
+            if (!db.Save()) return false;
+            Databases.Add(db);
+            return true;
         }
 
         public static void OpenDatabase(string filePath)
@@ -71,12 +76,12 @@ namespace BTV.Services.DatabaseService
             if (File.Exists(newPath)) return false; // never clobber another base on disk
 
             // Rename the on-disk files too, otherwise the old base survives and reloads stale
-            // data later. Backup first: if the main move fails we only lose the backup copy.
+            // data later. The main file moves first: the backup used to move first, so a failed
+            // main move left the backup orphaned under the new name.
+            string oldBackup = oldPath.Substring(0, oldPath.Length - ".dbtv2".Length) + "BU.dbtv2";
+            string newBackup = newPath.Substring(0, newPath.Length - ".dbtv2".Length) + "BU.dbtv2";
             try
             {
-                string oldBackup = oldPath.Substring(0, oldPath.Length - ".dbtv2".Length) + "BU.dbtv2";
-                string newBackup = newPath.Substring(0, newPath.Length - ".dbtv2".Length) + "BU.dbtv2";
-                if (File.Exists(oldBackup) && !File.Exists(newBackup)) File.Move(oldBackup, newBackup);
                 if (File.Exists(oldPath)) File.Move(oldPath, newPath);
             }
             catch (System.Exception e)
@@ -85,7 +90,15 @@ namespace BTV.Services.DatabaseService
                 Debug.LogException(e);
                 return false;
             }
-
+            try
+            {
+                if (File.Exists(oldBackup) && !File.Exists(newBackup)) File.Move(oldBackup, newBackup);
+            }
+            catch (System.Exception e)
+            {
+                // The base itself is renamed; the backup is secondary and is rewritten on the next save.
+                Debug.LogWarning("UpdateDatabaseName : renamed the base but could not move its backup " + oldBackup + ": " + e.Message);
+            }
             BtvLog.Log("Update DB Name, contains element");
             Databases[index].FilePath = newPath;
             return true;

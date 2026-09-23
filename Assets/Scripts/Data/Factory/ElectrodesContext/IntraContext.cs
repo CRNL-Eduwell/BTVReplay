@@ -94,7 +94,8 @@ namespace Assets.Scripts.Data.Factory
             return string.Join(" ", tempPlot);
         }
 
-        private Tuple<string, int> GetIntraPlotInformation(string rawName)
+        /// <summary>Splits an intracranial contact label into electrode name and contact number: "A12" -> (A, 12), "B'3" -> (B', 3); (empty, -1) otherwise.</summary>
+        public static Tuple<string, int> GetIntraPlotInformation(string rawName)
         {
             Regex ReLeft = new Regex(@"([a-zA-Z]+)(\d+)");
             Regex ReRight = new Regex(@"([a-zA-Z]+)(\')(\d+)");
@@ -108,12 +109,12 @@ namespace Assets.Scripts.Data.Factory
             if (resultLeft.Groups[1].Length == 1)
             {
                 plotName = resultLeft.Groups[1].Value;
-                plotID = int.Parse(resultLeft.Groups[2].Value.ToString());
+                plotID = int.Parse(resultLeft.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
             }
             else if (resultRight.Groups[1].Length == 1)
             {
                 plotName = resultRight.Groups[1].Value + resultRight.Groups[2].Value;
-                plotID = int.Parse(resultRight.Groups[3].Value.ToString());
+                plotID = int.Parse(resultRight.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
             }
 
             return new Tuple<string, int>(plotName, plotID);
