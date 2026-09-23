@@ -11,6 +11,13 @@ public class ApplicationManager : MonoBehaviour
 
     private void Awake()
     {
+        // Built players default to the "Fastest" quality level, which has vSync off, and nothing
+        // capped the frame rate: the video clock ticks every rendered frame and every module
+        // redraws on it, paused included, so a player spun hundreds of frames a second. The
+        // levels with vSync on (the editor's default) are left alone.
+        if (QualitySettings.vSyncCount == 0)
+            Application.targetFrameRate = 60;
+
         ApplicationState.Module3D = FindAnyObjectByType<BTV3DModule>();
         if (ApplicationState.Module3D != null)
             ApplicationState.Module3D.Initialize(Session.Current);
