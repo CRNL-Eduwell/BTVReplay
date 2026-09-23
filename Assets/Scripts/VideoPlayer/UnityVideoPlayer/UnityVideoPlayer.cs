@@ -84,7 +84,7 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
         TotalVideoTime = (long)(m_VideoPlayer.length * 1000);
     }
 
-    public void Update()
+    public void Tick()
     {
 
     }

@@ -85,7 +85,7 @@ public class CustomVideoPlayer : MonoBehaviour
         {
             if (!VideoInterface.IsStopped)
             {
-                VideoInterface.Update();
+                VideoInterface.Tick();
 
                 // While a seek is in flight, m_CurrentTime stays frozen on the requested
                 // target; OnSeekCompleted re-syncs it when the player reports the seek landed.
@@ -96,10 +96,13 @@ public class CustomVideoPlayer : MonoBehaviour
                     if (_LoopScrollbar.value >= 1)
                         SetTime(m_MinTimeClick, true);
 
+                // End of media, for both players. Stop() resets the readout and broadcasts the
+                // stopped state; refreshing the scrollbar after it used to re-send the stale
+                // past-the-end time as a live tick, undoing the stop for every module.
                 if (VideoInterface.ClockTime > VideoInterface.TotalVideoTime)
                     Stop();
-
-                UpdateScrollBarPosition();
+                else
+                    UpdateScrollBarPosition();
             }
 
             if (m_LoopMode)
@@ -220,6 +223,9 @@ public class CustomVideoPlayer : MonoBehaviour
     private void Stop()
     {
         VideoInterface.Stop();
+        // UpdateTimeText broadcasts m_CurrentTime; without this it would send the stale time
+        // (past the end, when stopping at end of media) just before the stopped message.
+        m_CurrentTime = 0;
         _TimeScrollbar.value = 0;
         UpdateTimeText(0);
 

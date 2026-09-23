@@ -30,7 +30,11 @@ public interface IVideoPlayer
 
     void Init(string path, int duration, RawImage texture);
     void Cleanup();
-    void Update();
+    /// <summary>
+    /// Advances the player by one frame. Called by CustomVideoPlayer only; deliberately not
+    /// named Update, so Unity does not also call it as a MonoBehaviour message.
+    /// </summary>
+    void Tick();
     void Play();
     void Pause();
     void Stop();
