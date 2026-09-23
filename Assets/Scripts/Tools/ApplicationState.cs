@@ -29,9 +29,9 @@ public static class ApplicationState
         m_InputFieldWindowPrefabs = Resources.Load("Prefabs/UIElements/InputFieldWindow", typeof(GameObject)) as GameObject;
 
         if (coroutineManager == null)
-            coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
+            coroutineManager = Object.FindAnyObjectByType<CoroutineManager>();
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(3).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = FindMessageWindow();
     }
 
     public static void ResetAllServices()
@@ -49,12 +49,19 @@ public static class ApplicationState
         TaskPerformanceService.Reset();
     }
 
+    // By type, including inactive objects: this used to be GameObject.Find("Canvas") then
+    // GetChild(3).GetChild(0), so reordering the Canvas children broke every dialog.
+    private static MessageWindow FindMessageWindow()
+    {
+        return Object.FindAnyObjectByType<MessageWindow>(FindObjectsInactive.Include);
+    }
+
     // Touches the UI, so call it on the main thread (async flows: after the await, never inside
     // a Task.Run worker).
     public static void displayMessage(string HeaderMessage, string TypeMessage, string DetailledMessage)
     {
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(3).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = FindMessageWindow();
         messageWindow.display(HeaderMessage, TypeMessage, DetailledMessage);
     }
 
