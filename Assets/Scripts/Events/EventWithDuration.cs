@@ -103,7 +103,7 @@ public class EventWithDuration : EventTrace
 
         if (shoudNormalize)
         {
-            NormalizeTF window = SpawnFrequencyChoiceWindow();
+            NormalizeTF window = SpawnNormalizeTFWindow();
             window.Initialize(m_Session, () =>
             {
                 if (TimeFrequencyService.GetBaselineEvent(m_Session) == null)
@@ -164,7 +164,7 @@ public class EventWithDuration : EventTrace
         }
     }
 
-    private NormalizeTF SpawnFrequencyChoiceWindow()
+    private NormalizeTF SpawnNormalizeTFWindow()
     {
         GameObject viewGameObject = GameObject.Find("Windows");
         GameObject inputField = Instantiate(m_InputFieldWindowPrefabs, viewGameObject.transform);

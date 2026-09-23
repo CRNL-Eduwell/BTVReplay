@@ -150,7 +150,7 @@ public class ExperimentDataWidget : MonoBehaviour
         addMe.OnSingleClick.AddListener(() => { SwitchTo(addMe); });
         addMe.OnDoubleClick.AddListener(() =>
         {
-            InputFieldWindow window = ApplicationState.SpawnFrequencyChoiceWindow();
+            InputFieldWindow window = ApplicationState.SpawnInputFieldWindow();
             window.Initialize("Label", "Choose a new label for you tab",
                 () =>
                 {

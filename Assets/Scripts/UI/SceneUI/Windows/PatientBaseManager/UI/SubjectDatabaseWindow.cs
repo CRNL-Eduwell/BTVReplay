@@ -216,7 +216,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
         SubjectRepository[] SelectedElements = _DatabaseList.ObjectsSelected;
         if (SelectedElements.Length > 0)
         {
-            InputFieldWindow window = ApplicationState.SpawnFrequencyChoiceWindow();
+            InputFieldWindow window = ApplicationState.SpawnInputFieldWindow();
             window.Initialize("Database Name", "Choose a new name for your Database",
                 () =>
                 {
@@ -250,7 +250,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
             Subject[] SelectedSubjects = _SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                InputFieldWindow window = ApplicationState.SpawnFrequencyChoiceWindow();
+                InputFieldWindow window = ApplicationState.SpawnInputFieldWindow();
                 window.Initialize("Subject Name", "Choose a new name for your Subject",
                     () =>
                     {

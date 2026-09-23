@@ -10,13 +10,14 @@ public class Hemisphere : MonoBehaviour
     private List<Mesh> Mesh = new List<Mesh>();
     private List<MeshRenderer> MeshRenderer = new List<MeshRenderer>();
     private List<Renderer> Renderer = new List<Renderer>();
-    private List<Material[]> materials = new List<Material[]>();
-    private Material BaseMaterialDepth = null;
+    // Mesh and material instances created here. Unity does not free them with their
+    // GameObjects, so every brain-model switch used to leak one mesh and two materials per
+    // sub-surface.
+    private readonly List<Object> m_OwnedInstances = new List<Object>();
     private Material BaseMaterialTransparency = null;
 
     public void InitializeData(string triFilePath, string trmFilePath = "")
     {
-        BaseMaterialDepth = Resources.Load("Materials/Brain-DepthStencil", typeof(Material)) as Material; //Recherche dans Assets\Ressources 
         BaseMaterialTransparency = Resources.Load("Materials/Brain-TransparencyStencil", typeof(Material)) as Material;
         Surface baseSurface = new Surface(triFilePath, trmFilePath);
 
@@ -38,6 +39,7 @@ public class Hemisphere : MonoBehaviour
             //== Get Mesh vertices and tri inside Meshfilter
             MeshFilter.Add(current.AddComponent<MeshFilter>());
             Mesh.Add(MeshFilter[i].mesh);
+            m_OwnedInstances.Add(Mesh[i]);
             Mesh[i].vertices = SurfacesGameObjects[i].Vertices.ToArray();
             Mesh[i].triangles = SurfacesGameObjects[i].TriangleIds;
 
@@ -46,10 +48,12 @@ public class Hemisphere : MonoBehaviour
             Renderer.Add(MeshRenderer[i].GetComponent<Renderer>());
             Renderer[i].enabled = true;
 
-            //== Put Texture on Renderer
-            materials.Add(new Material[] { Instantiate(BaseMaterialDepth) });
-            Renderer[i].materials = materials[i];
-            Renderer[i].material = Instantiate(BaseMaterialTransparency);
+            //== Put Texture on Renderer. A depth-stencil material used to be instantiated here too,
+            // then immediately replaced by this assignment: the brain has only ever rendered with
+            // the transparency material, so the dead instance is gone and nothing looks different.
+            Material transparency = Instantiate(BaseMaterialTransparency);
+            m_OwnedInstances.Add(transparency);
+            Renderer[i].material = transparency;
 
             Mesh[i].RecalculateNormals();
             current.name = "Brain " + i;
@@ -61,5 +65,7 @@ public class Hemisphere : MonoBehaviour
     {
         for (int i = 0; i < SurfacesGameObjects.Count; i++)
             SurfacesGameObjects[i].Dispose();
+        foreach (Object instance in m_OwnedInstances)
+            if (instance != null) Destroy(instance);
     }
 }
