@@ -171,27 +171,34 @@ namespace Tools.CSharp.EEG
         /// </summary>
         public File(FileType type, bool loadData, params string[] paths)
         {
-            string dataPath, eventsPath, notesPath;
+            string dataPath = paths.Length > 0 ? paths[0] : "";
+            string eventsPath, notesPath;
             switch (type)
             {
                 case FileType.ELAN:
-                    dataPath = paths.Length > 0 ? paths[0] : "";
                     eventsPath = paths.Length > 1 ? paths[1] : "";
                     notesPath = paths.Length > 2 ? paths[2] : "";
                     _handle = new HandleRef(this, CreateElanFile(dataPath, eventsPath, notesPath, loadData));
                     break;
                 case FileType.EDF:
-                    dataPath = paths.Length > 0 ? paths[0] : "";
                     _handle = new HandleRef(this, CreateEDFFile(dataPath, loadData));
                     break;
                 case FileType.Micromed:
-                    dataPath = paths.Length > 0 ? paths[0] : "";
                     _handle = new HandleRef(this, CreateMicromedFile(dataPath, loadData));
                     break;
                 case FileType.BrainVision:
-                    dataPath = paths.Length > 0 ? paths[0] : "";
                     _handle = new HandleRef(this, CreateBrainVisionFile(dataPath, loadData));
                     break;
+            }
+
+            // The native readers catch their own errors and return null (a corrupt or truncated
+            // file, a missing Elan .ent sidecar, a BrainVision header pointing at missing data).
+            // Every getter would then pass that null to native code, which dereferences it: a
+            // hard crash of the whole app instead of an error the loader can report.
+            if (_handle.Handle == IntPtr.Zero)
+            {
+                GC.SuppressFinalize(this);
+                throw new System.IO.FileLoadException("The " + type + " reader could not open this file (corrupt, truncated, or a companion file is missing).", dataPath);
             }
         }
         /// <summary>
@@ -205,7 +212,9 @@ namespace Tools.CSharp.EEG
         /// </summary>
         protected override void delete_DLL_class()
         {
-            DeleteFile(_handle);
+            // Zero when the native open failed, or after Dispose: nothing to free.
+            if (_handle.Handle != IntPtr.Zero)
+                DeleteFile(_handle);
         }
         #endregion
 
