@@ -67,7 +67,7 @@ namespace BTV.UI.Module3D.Tools
         private void SetFileInteractability()
         {
             var dropDownList = GetComponentInChildren<DropDownController>(true);
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < BTV.Data.EegSlots.Count; i++)
             {
                 if (!EegFileService.IsFileIdValid(PatientSession, i))
                 {

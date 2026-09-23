@@ -69,8 +69,8 @@ namespace BTV.Services.EegFileService
 
         public static async Task LoadAsync(IEegFileInfo fileInfo, int FileID, string description)
         {
-            if (FileID >= 6)
-                throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
+            if (FileID >= EegSlots.Count)
+                throw new ArgumentException("There are only " + EegSlots.Count + " EEG file slots, fileID argument is wrong => " + FileID);
 
             // The native EEG read + managed copy runs on a worker; the montage slot is assigned
             // after the await, back on the main thread (the old version mutated the static
@@ -155,7 +155,7 @@ namespace BTV.Services.EegFileService
         public static bool IsFileIdValid(Session session, int FileID)
         {
             if (FileID < 0) return false;
-            if (FileID >= 6) return false;
+            if (FileID >= EegSlots.Count) return false;
 
             return GetCurrentMontage(session).EegFiles[FileID] != null;
         }
@@ -340,9 +340,9 @@ namespace BTV.Services.EegFileService
         {
             int globalProgress = 0;
             int totalNumberOfValidFiles = string.IsNullOrEmpty(fileName) ? baseFiles.Count(f => f != null) : 1;
-            BtvProgram[] eegFiles = new BtvProgram[6];
+            BtvProgram[] eegFiles = new BtvProgram[EegSlots.Count];
             string errorList = "";
-            for (int i = 0; i < 6; ++i)
+            for (int i = 0; i < EegSlots.Count; ++i)
             {
                 BtvProgram baseEEGFile = baseFiles[i];
 

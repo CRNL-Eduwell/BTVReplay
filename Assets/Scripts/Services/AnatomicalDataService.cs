@@ -43,7 +43,7 @@ namespace BTV.Services.AnatomicalDataService
         public static IEnumerator c_LoadDefaultElectrodes(EegTechnology eeg)
         {
             Data.BtvProgram container = null;
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < BTV.Data.EegSlots.Count; i++)
             {
                 container = EegFileService.EegFileService.ChangeContainerHandle(container, i);
                 if (container != null)

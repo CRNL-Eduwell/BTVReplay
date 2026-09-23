@@ -91,7 +91,7 @@ namespace BTV.Services
         {
             return new List<BtvMontage>
             {
-                new BtvMontage("Default", new BtvProgram[6])
+                new BtvMontage("Default", new BtvProgram[EegSlots.Count])
             };
         }
     }
