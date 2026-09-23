@@ -64,6 +64,10 @@ public class SubjectLoaderService : MonoBehaviour
         yield return StartCoroutine(c_LoadBrainAnatomy(session, subject));
         if (!Session.IsCurrent(session)) yield break;
 
+        // Sent after the media and anatomy phases so every toolbar is initialised; the files
+        // themselves have been ready since c_loadEEGFile.
+        Messenger.Default.Send(new LoaderMessage { Task = LoaderMessage.LoaderTask.EegFilesReady, PatientSession = session }, MessageContext.LoaderMessage);
+
         message = new LoaderMessage
         {
             Task = LoaderMessage.LoaderTask.LoadTrace,
