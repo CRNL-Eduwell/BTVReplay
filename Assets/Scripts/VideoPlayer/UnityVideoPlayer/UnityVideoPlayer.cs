@@ -29,8 +29,6 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public bool IsStopped { get { return !m_VideoPlayer.isPrepared; } }
 
-    public byte[] TextureBytes => throw new System.NotImplementedException();
-
     #region private members
     private string m_VideoFilePath = "";
     private long m_EegFileDurationInSec = 0;
@@ -179,8 +177,6 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
             Destroy(m_VideoPlayer);
         }
     }
-
-    public void SetVideoOffset(float newOffset) { }
 
     private void ResizeTexture()
     {

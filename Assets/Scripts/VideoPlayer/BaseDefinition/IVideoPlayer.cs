@@ -26,7 +26,6 @@ public interface IVideoPlayer
     bool IsPlaying { get; }
     bool IsPaused { get; }
     bool IsStopped { get; }
-    byte[] TextureBytes { get; }
 
     void Init(string path, int duration, RawImage texture);
     void Cleanup();
@@ -41,5 +40,4 @@ public interface IVideoPlayer
     void MoveTime(long secondsToAdd);
     void SetTime(long timeMilliSec);
     void SetVolume(float volume);
-    void SetVideoOffset(float newOffset);
 }
