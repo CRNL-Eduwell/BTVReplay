@@ -83,9 +83,7 @@ public class Brain : MonoBehaviour
         }
         else
         {
-            m_RightHemiBrain = new GameObject("RightHemi");
-            m_RightHemiBrain.transform.parent = gameObject.transform;
-            m_RightHemiBrain.layer = gameObject.layer;
+            m_RightHemiBrain = CreateChild("RightHemi");
         }
 
         if (brainToLoad.EegTechnology == EegTechnology.Scalp)
@@ -102,8 +100,7 @@ public class Brain : MonoBehaviour
             m_RightHemiBrain.transform.position += new Vector3(0, 16, 9.85f);
         }
 
-        m_Electrodes = new GameObject("Electrodes");
-        m_Electrodes.transform.parent = gameObject.transform;
+        m_Electrodes = CreateChild("Electrodes");
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.EegTechnology);
         KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList(m_PatientSession);
         m_BrainReferentialID = d.Key == "MNI" ? 0 : 1;
@@ -121,15 +118,10 @@ public class Brain : MonoBehaviour
 
     private void LoadElectrodesDefault(EegTechnology eeg)
     {
-        m_LeftHemiBrain = new GameObject("LeftHemi", new System.Type[] { typeof(Hemisphere) });
-        m_LeftHemiBrain.transform.parent = gameObject.transform;
-        m_LeftHemiBrain.layer = gameObject.layer;
-        m_RightHemiBrain = new GameObject("RightHemi", new System.Type[] { typeof(Hemisphere) });
-        m_RightHemiBrain.transform.parent = gameObject.transform;
-        m_RightHemiBrain.layer = gameObject.layer;
+        m_LeftHemiBrain = CreateChild("LeftHemi", typeof(Hemisphere));
+        m_RightHemiBrain = CreateChild("RightHemi", typeof(Hemisphere));
 
-        m_Electrodes = new GameObject("Electrodes");
-        m_Electrodes.transform.parent = gameObject.transform;
+        m_Electrodes = CreateChild("Electrodes");
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(eeg);
         KeyValuePair<string, List<AnatomicalSite>> d = AnatomicalDataService.ReturnFirstValidSitesList(m_PatientSession);
         m_BrainReferentialID = 2;
@@ -203,65 +195,53 @@ public class Brain : MonoBehaviour
         }
     }
 
+    // Rebuilds build in the brain's local space (hemispheres, CreateChild, the electrode
+    // contexts), so they no longer move the brain back from its off-canvas x=-10000 pose and
+    // then out again around the rebuild.
     private void UpdateBrainMesh(BrainDataContainer brainToLoad, List<AnatomicalSite> sites)
     {
-        // This is a hack , we put back the brain main object at his original position and then we 
-        // rmove it back at the end of the reinitialisation => TODO : check unity layer system 
-        gameObject.transform.position -= new Vector3(-10000, 0, 0);
-        gameObject.transform.Rotate(new Vector3(-270, 0, 0));
+        DestroyBuiltChildren();
 
-        Destroy(GameObject.Find("LeftHemi"));
         m_LeftHemiBrain = UpdateOneHemisphere("LeftHemi", 0, brainToLoad.LeftHemisphere, brainToLoad.Transformation);
 
         if (brainToLoad.MeshConfiguration == MeshConfiguration.LeftRight)
-        {
-            Destroy(GameObject.Find("RightHemi"));
             m_RightHemiBrain = UpdateOneHemisphere("RightHemi", 1, brainToLoad.RightHemisphere, brainToLoad.Transformation);
-        }
         else
-        {
-            m_RightHemiBrain = new GameObject("RightHemi");
-            m_RightHemiBrain.transform.parent = gameObject.transform;
-            m_RightHemiBrain.layer = gameObject.layer;
-        }
+            m_RightHemiBrain = CreateChild("RightHemi");
 
-        Destroy(GameObject.Find("Electrodes"));
-        m_Electrodes = new GameObject("Electrodes");
-        m_Electrodes.transform.parent = gameObject.transform;
+        m_Electrodes = CreateChild("Electrodes");
         m_ElectrodesContext = ElectrodesFactory.GetElectrodeContext(brainToLoad.EegTechnology);
         m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, sites, InitializeSite);
-
-        // Hack part 2 , put it back outside of the canvas
-        gameObject.transform.position += new Vector3(-10000, 0, 0);
-        gameObject.transform.Rotate(new Vector3(270, 0, 0));
     }
 
     private void UpdateBrainMesh(List<AnatomicalSite> sites)
     {
-        // This is a hack , we put back the brain main object at his original position and then we 
-        // rmove it back at the end of the reinitialisation => TODO : check unity layer system 
-        gameObject.transform.position -= new Vector3(-10000, 0, 0);
-        gameObject.transform.Rotate(new Vector3(-270, 0, 0));
+        DestroyBuiltChildren();
 
-        Destroy(GameObject.Find("LeftHemi"));
-        m_LeftHemiBrain = new GameObject("LeftHemi");
-        m_LeftHemiBrain.transform.parent = gameObject.transform;
-        m_LeftHemiBrain.layer = gameObject.layer;
-
-        Destroy(GameObject.Find("RightHemi"));
-        m_RightHemiBrain = new GameObject("RightHemi");
-        m_RightHemiBrain.transform.parent = gameObject.transform;
-        m_RightHemiBrain.layer = gameObject.layer;
-
-        Destroy(GameObject.Find("Electrodes"));
-        m_Electrodes = new GameObject("Electrodes");
-        m_Electrodes.transform.parent = gameObject.transform;
+        m_LeftHemiBrain = CreateChild("LeftHemi");
+        m_RightHemiBrain = CreateChild("RightHemi");
+        m_Electrodes = CreateChild("Electrodes");
 
         m_ElectrodesContext.LoadElectrodesOnBrain(m_Electrodes, sites, InitializeSite);
+    }
 
-        // Hack part 2 , put it back outside of the canvas
-        gameObject.transform.position += new Vector3(-10000, 0, 0);
-        gameObject.transform.Rotate(new Vector3(270, 0, 0));
+    // Destroys what the previous build created, by reference. This used to be
+    // Destroy(GameObject.Find("LeftHemi")) and so on, but Find skips inactive objects: hemispheres
+    // hidden by the electrode-only model were never destroyed (their meshes leaked), and a
+    // single-mesh model never destroyed the previous right hemisphere, which stayed on screen.
+    private void DestroyBuiltChildren()
+    {
+        if (m_LeftHemiBrain != null) Destroy(m_LeftHemiBrain);
+        if (m_RightHemiBrain != null) Destroy(m_RightHemiBrain);
+        if (m_Electrodes != null) Destroy(m_Electrodes);
+    }
+
+    private GameObject CreateChild(string name, params System.Type[] components)
+    {
+        GameObject child = new GameObject(name, components);
+        child.transform.SetParent(gameObject.transform, false);
+        child.layer = gameObject.layer;
+        return child;
     }
 
     //Left : sibling 0

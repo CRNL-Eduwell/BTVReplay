@@ -26,9 +26,12 @@ namespace Assets.Scripts.Data.Factory
             List<KeyValuePair<string, List<AnatomicalSite>>> electrodes = GetIntraElectrodes(sites);
             for (int i = 0; i < electrodes.Count; i++)
             {
-                GameObject Electrode = new GameObject();
-                Electrode.name = electrodes[i].Key;
-                Electrode.transform.parent = parent.transform;
+                // Local space throughout: the contacts land at their anatomical coordinates
+                // relative to the brain wherever it sits (off-canvas at x=-10000 after the first
+                // load). They used to be placed in world space, which forced Brain to move itself
+                // back to the origin around every rebuild.
+                GameObject Electrode = new GameObject(electrodes[i].Key);
+                Electrode.transform.SetParent(parent.transform, false);
 
                 for (int j = 0; j < electrodes[i].Value.Count; j++)
                 {
@@ -38,9 +41,10 @@ namespace Assets.Scripts.Data.Factory
                                                                       electrodes[i].Value[j].Coordinates.z);
                     /***************************************************************************/
 
-                    GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, electrodes[i].Value[j].Coordinates, Quaternion.identity);
+                    GameObject NewPlot = GameObject.Instantiate(ElectrodePlot_prefab, Electrode.transform);
+                    NewPlot.transform.localPosition = electrodes[i].Value[j].Coordinates;
+                    NewPlot.transform.localRotation = Quaternion.identity;
                     NewPlot.name = electrodes[i].Value[j].Label;
-                    NewPlot.transform.parent = Electrode.transform;
                     initializeSite(NewPlot.GetComponent<Site>(), sites[counter]);
                     counter++;
                 }
