@@ -26,17 +26,18 @@ namespace BTV.UI.Module3D.Tools
         /// </summary>
         private int[] m_WindowSmoothinginMs = { 0, 250, 500, 1000, 2500, 5000 };
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_FileDropDown.options.Clear();
-            VideoService.AudioDataLoaded += LoadDropDownData;
+            VideoService.SubscribeAudioDataLoaded(PatientSession, LoadDropDownData);
             m_ShowTrace.onValueChanged.AddListener((bool isChecked) => { ToggleTraceAudio?.Invoke(isChecked); });
         }
 
         private void OnDestroy()
         {
             m_ShowTrace.onValueChanged.RemoveAllListeners();
-            VideoService.AudioDataLoaded -= LoadDropDownData;
+            if (PatientSession != null)
+                VideoService.UnsubscribeAudioDataLoaded(PatientSession, LoadDropDownData);
             m_FileDropDown.onValueChanged.RemoveAllListeners();
         }
 

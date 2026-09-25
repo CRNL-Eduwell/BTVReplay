@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using BTV.Services.VideoService;
+using BTV.Services;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,7 +17,7 @@ namespace BTV.UI.Module3D.Tools
 		[SerializeField]
 		private Button m_ExtractAudio = null;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_ExtractAudio.onClick.AddListener(TryToExtractAudioFromVideo);
         }
@@ -31,11 +32,11 @@ namespace BTV.UI.Module3D.Tools
                 return;
             }
 
-            if (VideoService.VideoFileExist && !VideoService.AudioFileExist)
+            if (VideoService.VideoFileExists(PatientSession) && !VideoService.AudioFileExists(PatientSession))
             {
-                LaunchAudioExtraction(VideoService.AudioFromVideoPath, VideoService.OriginalVideoPath);
+                LaunchAudioExtraction(VideoService.GetAudioFromVideoPath(PatientSession), VideoService.GetOriginalVideoPath(PatientSession));
             }
-            else if (VideoService.VideoFileExist && VideoService.AudioFileExist)
+            else if (VideoService.VideoFileExists(PatientSession) && VideoService.AudioFileExists(PatientSession))
             {
                 ApplicationState.displayConfirmation("Audio File already exists", "Do you want to delete the existing file and extract the audio again ?", DeleteAndExtract, () => { });
             }
@@ -49,14 +50,14 @@ namespace BTV.UI.Module3D.Tools
         {
             try
             {
-                File.Delete(VideoService.AudioFromVideoPath);
+                File.Delete(VideoService.GetAudioFromVideoPath(PatientSession));
             }
             catch (IOException ioExp)
             {
                 UnityEngine.Debug.LogError(ioExp.Message);
             }
 
-            LaunchAudioExtraction(VideoService.AudioFromVideoPath, VideoService.OriginalVideoPath);
+            LaunchAudioExtraction(VideoService.GetAudioFromVideoPath(PatientSession), VideoService.GetOriginalVideoPath(PatientSession));
         }
 
         private async void LaunchAudioExtraction(string AudioPath, string VideoPath)
@@ -64,12 +65,12 @@ namespace BTV.UI.Module3D.Tools
             try
             {
                 await VideoService.ExtractAudioAsync(AudioPath, VideoPath);
+                if (this == null || !Session.IsCurrent(PatientSession)) return;
                 ApplicationState.displayMessage("Audio Extraction", "OK", "Audio as been correctly extracted from video file.");
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogError("Error extracting audio");
-                UnityEngine.Debug.LogException(ex);
+                BtvLog.Handled("Error extracting audio", ex);
                 ApplicationState.displayMessage("Audio Extraction", "NOK", ex.Message);
             }
         }

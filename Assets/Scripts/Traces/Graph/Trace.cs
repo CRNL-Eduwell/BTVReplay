@@ -1,4 +1,5 @@
 ﻿using BTV.Data;
+using BTV.Services;
 using BTV.Services.EegFileService;
 using System.Collections;
 using System.Collections.Generic;
@@ -63,6 +64,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private TraceOption m_TraceOption = null;
     private AudioTraceOption m_AudioOption = null;
+    private Session m_Session = null;
 
     void Awake()
     {
@@ -163,25 +165,26 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OnLoaderMessage(LoaderMessage message)
     {
-        if (message.Task == LoaderMessage.LoaderTask.LoadTrace)
+        if (message.Task == LoaderMessage.LoaderTask.LoadTrace && Session.IsCurrent(message.PatientSession))
         {
-            Initialization();
+            Initialization(message.PatientSession);
         }
     }
 
-    private void Initialization()
+    private void Initialization(Session session)
     {
+        m_Session = session;
         m_rectTransform = gameObject.GetComponent<RectTransform>();
 
-        m_TraceOption = TracesService.GetOptionsFor(traceID);
-        m_AudioOption = TracesService.GetAudioOptions();
+        m_TraceOption = TracesService.GetOptionsFor(m_Session, traceID);
+        m_AudioOption = TracesService.GetAudioOptions(m_Session);
 
         eegSignal.Initialize(traceID, m_TraceOption);
         audioSignal.Initialize(0, m_AudioOption);
         graphLabel.Initialize(m_TraceOption);
 
         graphGrid.init(m_TraceOption.WindowInSeconds);
-        graphEvent.init(this);
+        graphEvent.init(this, m_Session);
         graphSonif.Init(this);
 
         graphLabel.ElectrodeButton.onClick.AddListener(UpdateTracesWidth);
@@ -227,7 +230,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
                 break;
             case UiToTraceMessage.Task.UpdateFile:
                 BtvLog.Log("Update File Switcher");
-                m_TraceOption.FileHandle = EegFileService.ChangeContainerHandle(m_TraceOption.FileHandle, message.FileID);
+                m_TraceOption.FileHandle = EegFileService.ChangeContainerHandle(m_Session, m_TraceOption.FileHandle, message.FileID);
                 graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
                 graphLabel.Description = m_TraceOption.FileHandle.Description;
                 UpdateTimeResolution(m_TraceOption.WindowInSeconds);
@@ -311,6 +314,8 @@ public class Trace : MonoBehaviour, IPointerClickHandler
 
     private void OnVideoToModulesMessage(VideoToModulesMessage message)
     {
+        if (!m_initDone) return;
+
         if (message.IsStopped)
         {
             graphSonif.Mute();
@@ -329,7 +334,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
     {
         if (message.TaskToExecute == MontageMessage.Task.SelectMontage)
         {
-            m_TraceOption.FileHandle = EegFileService.ReturnFirstValidContainer(); // FIXME : keep ID of selected file
+            m_TraceOption.FileHandle = EegFileService.ReturnFirstValidContainer(m_Session); // FIXME : keep ID of selected file
             graphLabel.Electrode = m_TraceOption.ElectrodeLabel;
             graphLabel.Description = m_TraceOption.FileHandle.Description;
             UpdateTimeResolution(m_TraceOption.WindowInSeconds);
@@ -481,11 +486,11 @@ public class Trace : MonoBehaviour, IPointerClickHandler
         if (m_AddEvents && m_PopUpAddWindow == null)
         {
             Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
-            Event.SecondSiteOfInterest = traceID == 0 ? TracesService.ElectrodeName(1) : TracesService.ElectrodeName(0);
+            Event.SecondSiteOfInterest = traceID == 0 ? TracesService.ElectrodeName(m_Session, 1) : TracesService.ElectrodeName(m_Session, 0);
 
             m_PopUpAddWindow = Instantiate(m_AddEventWindowPrefabs, parent);
             EventInfoAdd infoAdd = m_PopUpAddWindow.GetComponent<EventInfoAdd>();
-            infoAdd.Init(Event);
+            infoAdd.Init(m_Session, Event);
         }
     }
 
@@ -496,7 +501,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
             m_PopUpDisplayWindow = Instantiate(m_DisplayEventWindowPrefabs, parent);
             EventInfoDisplay infoDisp = m_PopUpDisplayWindow.GetComponent<EventInfoDisplay>();
-            infoDisp.init(Event);
+            infoDisp.Init(m_Session, Event);
         }
     }
 
@@ -507,7 +512,7 @@ public class Trace : MonoBehaviour, IPointerClickHandler
             Transform parent = traceID == 0 ? m_signalWindow1.gameObject.transform : m_signalWindow2.gameObject.transform;
             m_PopUpEditWindow = Instantiate(m_EditEventWindowPrefabs, parent);
             EventInfoEdit infoEdit = m_PopUpEditWindow.GetComponent<EventInfoEdit>();
-            infoEdit.Init(Event);
+            infoEdit.Init(m_Session, Event);
         }
     }
 }

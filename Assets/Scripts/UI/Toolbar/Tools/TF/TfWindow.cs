@@ -29,7 +29,7 @@ namespace BTV.UI.Module3D.Tools
         private int m_LowFrequencyMemory = 0;
         private int m_HighFrequencyMemory = 256;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_LowFrequency.onEndEdit.AddListener(UpdateLowFrequency);
             m_HighFrequency.onEndEdit.AddListener(UpdateHighFrequency);

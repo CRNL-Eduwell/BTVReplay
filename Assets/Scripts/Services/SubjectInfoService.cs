@@ -7,40 +7,45 @@ namespace BTV.Services.SubjectInfoService
     {
         public static string SubjectName
         {
-            get
-            {
-                return m_Subject != null ? m_Subject.PatientName : "Subject not defined";
-            }
+            get { return GetSubjectName(Session.Current); }
+        }
+
+        public static string GetSubjectName(Session session)
+        {
+            return session.Subject != null ? session.Subject.PatientName : "Subject not defined";
         }
 
         public static string VideoPath
         {
-            get
-            {
-                return (m_Subject != null && m_ExamIndex != -1) ? m_Subject.Experiments[m_ExamIndex].Video : "";
-            }
+            get { return GetVideoPath(Session.Current); }
         }
 
-        private static Subject m_Subject = null;
-        private static string m_ExamLabel = "";
-        private static int m_ExamIndex = -1;
+        public static string GetVideoPath(Session session)
+        {
+            return (session.Subject != null && session.ExamIndex != -1)
+                ? session.Subject.Experiments[session.ExamIndex].Video
+                : "";
+        }
 
         public static void Reset()
         {
-            m_Subject = null;
-            m_ExamLabel = "";
-            m_ExamIndex = -1;
+            Session session = Session.Current;
+            session.Subject = null;
+            session.ExamLabel = "";
+            session.ExamIndex = -1;
         }
 
         public static void SetSubject(Subject subject, string examLabel)
         {
-            m_Subject = subject;
-            m_ExamLabel = examLabel;
-            for (int i = 0; i < m_Subject.Experiments.Count; i++)
+            Session session = Session.Current;
+            session.Subject = subject;
+            session.ExamLabel = examLabel;
+            session.ExamIndex = -1;
+            for (int i = 0; i < session.Subject.Experiments.Count; i++)
             {
-                if (m_Subject.Experiments[i].Label == m_ExamLabel)
+                if (session.Subject.Experiments[i].Label == session.ExamLabel)
                 {
-                    m_ExamIndex = i;
+                    session.ExamIndex = i;
                     break;
                 }
             }
@@ -48,8 +53,13 @@ namespace BTV.Services.SubjectInfoService
 
         public static List<string> GetSubjectFileKeys()
         {
+            return GetSubjectFileKeys(Session.Current);
+        }
+
+        public static List<string> GetSubjectFileKeys(Session session)
+        {
             List<string> keys = new List<string>();
-            foreach (var item in m_Subject.Experiments[m_ExamIndex].Files)
+            foreach (var item in session.Subject.Experiments[session.ExamIndex].Files)
             {
                 string label = item.Equals(default(KeyValuePair<string, IEegFileInfo>)) ? "NO FILE" : item.Key;
                 keys.Add(label);
@@ -59,8 +69,9 @@ namespace BTV.Services.SubjectInfoService
 
         public static List<IEegFileInfo> GetSubjectFiles()
         {
+            Session session = Session.Current;
             List<IEegFileInfo> files = new List<IEegFileInfo>();
-            foreach (var item in m_Subject.Experiments[m_ExamIndex].Files)
+            foreach (var item in session.Subject.Experiments[session.ExamIndex].Files)
             {
                 files.Add(item.Value);
             }
@@ -69,8 +80,9 @@ namespace BTV.Services.SubjectInfoService
 
         public static List<KeyValuePair<string, IEegFileInfo>> GetSubjectFilesAndDescription()
         {
+            Session session = Session.Current;
             List<KeyValuePair<string, IEegFileInfo>> files = new List<KeyValuePair<string, IEegFileInfo>>();
-            foreach (var item in m_Subject.Experiments[m_ExamIndex].Files)
+            foreach (var item in session.Subject.Experiments[session.ExamIndex].Files)
             {
                 files.Add(new KeyValuePair<string, IEegFileInfo>(item.Key, item.Value));
             }
@@ -79,8 +91,19 @@ namespace BTV.Services.SubjectInfoService
 
         public static BrainDataContainer GetBrainDataContainer(string label)
         {
-            m_Subject.AnatomicalSpaces.TryGetValue(label, out BrainDataContainer patContainer);
+            return GetBrainDataContainer(Session.Current, label);
+        }
+
+        public static BrainDataContainer GetBrainDataContainer(Session session, string label)
+        {
+            session.Subject.AnatomicalSpaces.TryGetValue(label, out BrainDataContainer patContainer);
             return patContainer;
+        }
+
+        public static bool HasBrainAnatomy(Session session, string label)
+        {
+            BrainDataContainer container = GetBrainDataContainer(session, label);
+            return container != null && container.HasAnat;
         }
     }
 }

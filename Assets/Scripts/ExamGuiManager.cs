@@ -20,7 +20,7 @@ public class ExamGuiManager : MonoBehaviour
             _Video.IsInteractable = value;
         }
     }
-    [SerializeField] private EegInfoGUIManager[] _EegFiles = new EegInfoGUIManager[6] { null, null, null, null, null, null, };
+    [SerializeField] private EegInfoGUIManager[] _EegFiles = new EegInfoGUIManager[BTV.Data.EegSlots.Count] { null, null, null, null, null, null, };
     [SerializeField] private BrowseWidget _Video = null;
 
     private void Awake()

@@ -2,7 +2,6 @@
 // boxed object, which allocated on every Register/Send/Unregister call).
 public enum MessageContext
 {
-    LoaderToBrain,
     UiToBrain,
     UiToTrace,
     UiToTaskPerformanceMessage,

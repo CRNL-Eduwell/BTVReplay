@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using BrainTV.Tools.NumberExtensions;
 using BTV.Data;
 using BTV.Services.CodeMatchingService;
+using BTV.Services;
 
 public class EventInfoEdit : MonoBehaviour
 {
@@ -23,9 +24,11 @@ public class EventInfoEdit : MonoBehaviour
 
     private BtvEvent m_Event = null;
     private BtvEvent m_OriginalEvent = null;
+    private Session m_PatientSession = null;
 
-    public void Init(BtvEvent clickedEvent)
+    public void Init(Session patientSession, BtvEvent clickedEvent)
     {
+        m_PatientSession = patientSession;
         m_Event = new BtvEvent(clickedEvent);
         m_OriginalEvent = new BtvEvent(clickedEvent);
 
@@ -67,16 +70,17 @@ public class EventInfoEdit : MonoBehaviour
 
     private void OnEndEditCodefield(string str)
     {
-        if (!CodeMatchingService.HasCodes) return;
+        if (!Session.IsCurrent(m_PatientSession) || !CodeMatchingService.HasCodesFor(m_PatientSession)) return;
 
         if (int.TryParse(m_Code.text, out int codeValue))
         {
-            m_Comment.text = CodeMatchingService.GetCommentFromCode(codeValue);
+            m_Comment.text = CodeMatchingService.GetCommentFromCode(m_PatientSession, codeValue);
         }
     }
 
     private void SaveEvent()
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         CheckEventIntegrity();
 
         EventsModificationMessage message = new EventsModificationMessage
@@ -113,6 +117,7 @@ public class EventInfoEdit : MonoBehaviour
 
     private void DeleteAction()
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         EventsModificationMessage message = new EventsModificationMessage
         {
             TaskToExecute = EventsModificationMessage.Task.DeleteEvent,

@@ -13,12 +13,17 @@ namespace BTV.Services.AnatomicalDataService
 {
     public static class AnatomicalDataService
     {
-        private static Dictionary<string, List<AnatomicalSite>> m_SitesPerReferential = new Dictionary<string, List<AnatomicalSite>>();
-        private static MarsAtlas m_Atlas = null;
+        private static Dictionary<string, List<AnatomicalSite>> SitesPerReferential { get { return Session.Current.SitesPerReferential; } }
+        private static MarsAtlas Atlas
+        {
+            get { return Session.Current.Atlas; }
+            set { Session.Current.Atlas = value; }
+        }
 
         public static void Reset()
         {
-            m_SitesPerReferential = new Dictionary<string, List<AnatomicalSite>>();
+            Session.Current.SitesPerReferential = new Dictionary<string, List<AnatomicalSite>>();
+            Atlas = null;
         }
 
         public static IEnumerator c_Load(string referentialName, BrainDataContainer brainToLoad)
@@ -26,7 +31,7 @@ namespace BTV.Services.AnatomicalDataService
             IAnatomicalSiteContext anatomicalSiteContext = AnatomicalSiteFactory.GetAnatomicalSiteContext(brainToLoad.Pts);
             try
             {
-                m_SitesPerReferential.Add(referentialName, new List<AnatomicalSite>(anatomicalSiteContext.Electrodes));
+                SitesPerReferential.Add(referentialName, new List<AnatomicalSite>(anatomicalSiteContext.Electrodes));
             }
             catch (ArgumentException ae)
             {
@@ -38,7 +43,7 @@ namespace BTV.Services.AnatomicalDataService
         public static IEnumerator c_LoadDefaultElectrodes(EegTechnology eeg)
         {
             Data.BtvProgram container = null;
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < BTV.Data.EegSlots.Count; i++)
             {
                 container = EegFileService.EegFileService.ChangeContainerHandle(container, i);
                 if (container != null)
@@ -53,7 +58,7 @@ namespace BTV.Services.AnatomicalDataService
                                 int nbIntraElec = 0, nbIntraPlot = 0;
                                 foreach (Data.BtvChannel channel in container.Channels)
                                 {
-                                    Tuple<string, int> NameAndId = GetIntraPlotInformation(channel.Label);
+                                    Tuple<string, int> NameAndId = IntraContext.GetIntraPlotInformation(channel.Label);
                                     if (memPlot != NameAndId.Item1)
                                     {
                                         nbIntraElec += 5;
@@ -69,7 +74,7 @@ namespace BTV.Services.AnatomicalDataService
                                 }
 
                                 string referentialLabel = "ELEC_" + i;
-                                m_SitesPerReferential.Add(referentialLabel, new List<AnatomicalSite>(electrodes));
+                                SitesPerReferential.Add(referentialLabel, new List<AnatomicalSite>(electrodes));
                                 break;
                             }
                         case EegTechnology.Scalp:
@@ -85,7 +90,7 @@ namespace BTV.Services.AnatomicalDataService
                                 }
 
                                 string referentialLabel = "ELEC_" + i;
-                                m_SitesPerReferential.Add(referentialLabel, new List<AnatomicalSite>(electrodes));
+                                SitesPerReferential.Add(referentialLabel, new List<AnatomicalSite>(electrodes));
                                 break;
                             }
                         case EegTechnology.Unknown:
@@ -107,9 +112,9 @@ namespace BTV.Services.AnatomicalDataService
         {
             if (File.Exists(filePath))
             {
-                m_Atlas = new MarsAtlas(Application.dataPath);
-                m_Atlas.loadPatientAtlas(filePath);
-                LinkAtlasData(m_Atlas.electrodes_Atlas);
+                Atlas = new MarsAtlas(Application.dataPath);
+                Atlas.loadPatientAtlas(filePath);
+                LinkAtlasData(Atlas.electrodes_Atlas);
             }
 
             yield return null;
@@ -117,10 +122,10 @@ namespace BTV.Services.AnatomicalDataService
 
         private static void LinkAtlasData(MarsAtlas_plot[] atlas_Plots)
         {
-            int elementCount = m_SitesPerReferential.Count;
+            int elementCount = SitesPerReferential.Count;
             for (int i = 0; i < elementCount; i++)
             {
-                KeyValuePair<string, List<AnatomicalSite>> kvp_sites = m_SitesPerReferential.ElementAt(i);
+                KeyValuePair<string, List<AnatomicalSite>> kvp_sites = SitesPerReferential.ElementAt(i);
                 List<AnatomicalSite> sites = kvp_sites.Value;
                 for (int j = 0; j < sites.Count; j++)
                 {
@@ -175,16 +180,16 @@ namespace BTV.Services.AnatomicalDataService
             {
                 case "MNI":
                     {
-                        return m_SitesPerReferential.ContainsKey("MNI");
+                        return SitesPerReferential.ContainsKey("MNI");
                     }
                 case "PAT":
                     {
-                        return m_SitesPerReferential.ContainsKey("PAT");
+                        return SitesPerReferential.ContainsKey("PAT");
                     }
                 case "ELEC":
                     {
-                        return m_SitesPerReferential.ContainsKey("ELEC_0") || m_SitesPerReferential.ContainsKey("ELEC_1") || m_SitesPerReferential.ContainsKey("ELEC_2") ||
-                               m_SitesPerReferential.ContainsKey("ELEC_3") || m_SitesPerReferential.ContainsKey("ELEC_4") || m_SitesPerReferential.ContainsKey("ELEC_5");
+                        return SitesPerReferential.ContainsKey("ELEC_0") || SitesPerReferential.ContainsKey("ELEC_1") || SitesPerReferential.ContainsKey("ELEC_2") ||
+                               SitesPerReferential.ContainsKey("ELEC_3") || SitesPerReferential.ContainsKey("ELEC_4") || SitesPerReferential.ContainsKey("ELEC_5");
                     }
                 default:
                     {
@@ -195,62 +200,49 @@ namespace BTV.Services.AnatomicalDataService
 
         public static KeyValuePair<string, List<AnatomicalSite>> ReturnFirstValidSitesList()
         {
-            if (m_SitesPerReferential.ContainsKey("MNI")) return new KeyValuePair<string, List<AnatomicalSite>>("MNI", m_SitesPerReferential["MNI"]);
-            else if (m_SitesPerReferential.ContainsKey("PAT")) return new KeyValuePair<string, List<AnatomicalSite>>("PAT", m_SitesPerReferential["PAT"]);
-            else if (m_SitesPerReferential.ContainsKey("ELEC_0")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", m_SitesPerReferential["ELEC_0"]);
-            else if (m_SitesPerReferential.ContainsKey("ELEC_1")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", m_SitesPerReferential["ELEC_1"]);
-            else if (m_SitesPerReferential.ContainsKey("ELEC_2")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", m_SitesPerReferential["ELEC_2"]);
-            else if (m_SitesPerReferential.ContainsKey("ELEC_3")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", m_SitesPerReferential["ELEC_3"]);
-            else if (m_SitesPerReferential.ContainsKey("ELEC_4")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", m_SitesPerReferential["ELEC_4"]);
-            else if (m_SitesPerReferential.ContainsKey("ELEC_5")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", m_SitesPerReferential["ELEC_5"]);
+            return ReturnFirstValidSitesList(Session.Current);
+        }
+
+        public static KeyValuePair<string, List<AnatomicalSite>> ReturnFirstValidSitesList(Session session)
+        {
+            Dictionary<string, List<AnatomicalSite>> sites = session.SitesPerReferential;
+            if (sites.ContainsKey("MNI")) return new KeyValuePair<string, List<AnatomicalSite>>("MNI", sites["MNI"]);
+            else if (sites.ContainsKey("PAT")) return new KeyValuePair<string, List<AnatomicalSite>>("PAT", sites["PAT"]);
+            else if (sites.ContainsKey("ELEC_0")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_0"]);
+            else if (sites.ContainsKey("ELEC_1")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_1"]);
+            else if (sites.ContainsKey("ELEC_2")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_2"]);
+            else if (sites.ContainsKey("ELEC_3")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_3"]);
+            else if (sites.ContainsKey("ELEC_4")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_4"]);
+            else if (sites.ContainsKey("ELEC_5")) return new KeyValuePair<string, List<AnatomicalSite>>("ELEC", sites["ELEC_5"]);
             else return default;
         }
 
         public static List<AnatomicalSite> GetSitesListFrom(string referential, int fileId = -1)
         {
-            if (referential == "MNI" && m_SitesPerReferential.ContainsKey("MNI"))
+            return GetSitesListFrom(Session.Current, referential, fileId);
+        }
+
+        public static List<AnatomicalSite> GetSitesListFrom(Session session, string referential, int fileId = -1)
+        {
+            Dictionary<string, List<AnatomicalSite>> sites = session.SitesPerReferential;
+            if (referential == "MNI" && sites.ContainsKey("MNI"))
             {
-                return new List<AnatomicalSite>(m_SitesPerReferential["MNI"]);
+                return new List<AnatomicalSite>(sites["MNI"]);
             }
-            else if (referential == "PAT" && m_SitesPerReferential.ContainsKey("PAT"))
+            else if (referential == "PAT" && sites.ContainsKey("PAT"))
             {
-                return new List<AnatomicalSite>(m_SitesPerReferential["PAT"]);
+                return new List<AnatomicalSite>(sites["PAT"]);
             }
             else if (referential == "ELEC" && fileId != -1)
             {
                 string key = "ELEC_" + fileId.ToString();
-                bool hasKeyData = m_SitesPerReferential.ContainsKey(key);
-                return hasKeyData ? new List<AnatomicalSite>(m_SitesPerReferential[key]) : default;
+                bool hasKeyData = sites.ContainsKey(key);
+                return hasKeyData ? new List<AnatomicalSite>(sites[key]) : default;
             }
             else 
             {
                 return default;
             }
-        }
-
-        private static Tuple<string, int> GetIntraPlotInformation(string rawName)
-        {
-            Regex ReLeft = new Regex(@"([a-zA-Z]+)(\d+)");
-            Regex ReRight = new Regex(@"([a-zA-Z]+)(\')(\d+)");
-
-            Match resultLeft = ReLeft.Match(rawName);
-            Match resultRight = ReRight.Match(rawName);
-
-            string plotName = "";
-            int plotID = -1;
-
-            if (resultLeft.Groups[1].Length == 1)
-            {
-                plotName = resultLeft.Groups[1].Value;
-                plotID = int.Parse(resultLeft.Groups[2].Value.ToString());
-            }
-            else if (resultRight.Groups[1].Length == 1)
-            {
-                plotName = resultRight.Groups[1].Value + resultRight.Groups[2].Value;
-                plotID = int.Parse(resultRight.Groups[3].Value.ToString());
-            }
-
-            return new Tuple<string, int>(plotName, plotID);
         }
     }
 }

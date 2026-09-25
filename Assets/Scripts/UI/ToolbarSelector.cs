@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using BTV.Services;
 
 namespace BTV.UI.Module3D
 {
@@ -29,6 +30,7 @@ namespace BTV.UI.Module3D
         private void Awake()
         {
             Messenger.Default.Register<ForceToggleToolbar>(this, OnForceToggleToolbar, MessageContext.ForceToggleToolbar);
+            Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
 
             m_Toolbars.Add(m_BrainToggle, m_ToolbarMenu.BrainToolBar);
             m_Toolbars.Add(m_Eeg1Toggle, m_ToolbarMenu.EegSignal1ToolBar);
@@ -46,6 +48,16 @@ namespace BTV.UI.Module3D
         private void OnDestroy()
         {
             Messenger.Default.Unregister(this, MessageContext.ForceToggleToolbar);
+            Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
+        }
+
+        // A freshly loaded patient starts with the performance window hidden. The loader used to
+        // do this itself through GameObject.Find("ButtonPerf"), which broke on a rename of the
+        // button inside the PanelOpt prefab; this component already holds the toggle.
+        private void OnLoaderMessage(LoaderMessage message)
+        {
+            if (message.Task == LoaderMessage.LoaderTask.LoadTrace && Session.IsCurrent(message.PatientSession))
+                m_PerformanceToggle.ForceStartValue(0);
         }
 
         /// <summary>

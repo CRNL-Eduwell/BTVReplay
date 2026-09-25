@@ -97,7 +97,8 @@ public class SubjectDatabaseWindow : MonoBehaviour
         {
             case FileMenuMessage.Task.NewDatabase:
                 {
-                    DatabaseService.CreateNewDatabase(message.FilePath);
+                    if (!string.IsNullOrEmpty(message.FilePath) && !DatabaseService.CreateNewDatabase(message.FilePath))
+                        ApplicationState.displayMessage("Database not created", "NOK", "The new database could not be written to:\n" + message.FilePath + "\n\nCheck that the folder exists and is writable.");
                     break;
                 }
             case FileMenuMessage.Task.OpenDatabase:
@@ -215,7 +216,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
         SubjectRepository[] SelectedElements = _DatabaseList.ObjectsSelected;
         if (SelectedElements.Length > 0)
         {
-            InputFieldWindow window = ApplicationState.SpawnFrequencyChoiceWindow();
+            InputFieldWindow window = ApplicationState.SpawnInputFieldWindow();
             window.Initialize("Database Name", "Choose a new name for your Database",
                 () =>
                 {
@@ -249,7 +250,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
             Subject[] SelectedSubjects = _SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                InputFieldWindow window = ApplicationState.SpawnFrequencyChoiceWindow();
+                InputFieldWindow window = ApplicationState.SpawnInputFieldWindow();
                 window.Initialize("Subject Name", "Choose a new name for your Subject",
                     () =>
                     {

@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using BrainTV.Tools.NumberExtensions;
 using BTV.Data;
 using BTV.Services.CodeMatchingService;
+using BTV.Services;
 
 public class EventInfoAdd : MonoBehaviour
 {
@@ -20,9 +21,11 @@ public class EventInfoAdd : MonoBehaviour
     private Button m_CloseWindow = null;
 
     private BtvEvent m_Event = null;
+    private Session m_PatientSession = null;
 
-    public void Init(BtvEvent clickedEvent)
+    public void Init(Session patientSession, BtvEvent clickedEvent)
     {
+        m_PatientSession = patientSession;
         m_Event = new BtvEvent(clickedEvent);
 
         InitTimeDisplay((int)m_Event.TimeInSeconds);
@@ -61,16 +64,17 @@ public class EventInfoAdd : MonoBehaviour
 
     private void OnEndEditCodefield(string str)
     {
-        if (!CodeMatchingService.HasCodes) return;
+        if (!Session.IsCurrent(m_PatientSession) || !CodeMatchingService.HasCodesFor(m_PatientSession)) return;
 
         if (int.TryParse(m_Code.text, out int codeValue))
         {
-            m_Comment.text = CodeMatchingService.GetCommentFromCode(codeValue);
+            m_Comment.text = CodeMatchingService.GetCommentFromCode(m_PatientSession, codeValue);
         }
     }
 
     private void SaveEvent()
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         CheckEventIntegrity();
 
         EventsModificationMessage message = new EventsModificationMessage

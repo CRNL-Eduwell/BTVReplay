@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
+using BTV.Services;
+using BTV.Services.EegFileService;
 
 namespace BTV.UI
 {
@@ -14,6 +16,7 @@ namespace BTV.UI
         [SerializeField] Dropdown m_FileDropdown;
         [SerializeField] ChannelCorrespondanceList m_ChannelCorrespondanceList;
         private BtvMontage m_EditedMontage = null;
+        private Session m_PatientSession = null;
 
         [SerializeField] Button m_PresetsButton;
         [SerializeField] GameObject m_PresetsPanel;
@@ -23,18 +26,29 @@ namespace BTV.UI
         protected override void SetFields()
         {
             base.SetFields();
-            foreach (var label in Services.EegFileService.EegFileService.DefaultMontage.MontageDescription.Select(c => c.BaseLabel))
-            {
-                m_ChannelCorrespondanceList.Add(new ChannelCorrespondance(label, label));
-            }
-            List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
-            options.Add(new Dropdown.OptionData("All files"));
-            options.AddRange(Services.EegFileService.EegFileService.DefaultMontage.EegFiles.Where(e => e != null).Select(e => new Dropdown.OptionData(e.Description)));
-            m_FileDropdown.options = options;
-            m_FileDropdown.value = 0;
             m_PresetsButton.onClick.AddListener(() => m_PresetsPanel.SetActive(!m_PresetsPanel.activeSelf));
             m_MonopolarButton.onClick.AddListener(Monopolar);
             m_BipolarButton.onClick.AddListener(Bipolar);
+        }
+
+        public void Initialize(Session patientSession)
+        {
+            m_PatientSession = patientSession;
+            m_EditedMontage = null;
+            m_ChannelCorrespondanceList.Set(Enumerable.Empty<ChannelCorrespondance>());
+
+            BtvMontage defaultMontage = EegFileService.GetDefaultMontage(patientSession);
+            foreach (var label in defaultMontage.MontageDescription.Select(c => c.BaseLabel))
+                m_ChannelCorrespondanceList.Add(new ChannelCorrespondance(label, label));
+
+            List<Dropdown.OptionData> options = new List<Dropdown.OptionData>
+            {
+                new Dropdown.OptionData("All files")
+            };
+            options.AddRange(defaultMontage.EegFiles.Where(e => e != null)
+                .Select(e => new Dropdown.OptionData(e.Description)));
+            m_FileDropdown.options = options;
+            m_FileDropdown.value = 0;
         }
 
         public void SetMontage(BtvMontage montage)
@@ -46,13 +60,14 @@ namespace BTV.UI
 
         public void OK()
         {
+            if (!Session.IsCurrent(m_PatientSession)) return;
             if (m_EditedMontage != null)
             {
-                Services.EegFileService.EegFileService.EditMontage(m_EditedMontage, m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList(), m_FileDropdown.value == 0 ? "" : m_FileDropdown.options[m_FileDropdown.value].text);
+                EegFileService.EditMontage(m_PatientSession, m_EditedMontage, m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList(), m_FileDropdown.value == 0 ? "" : m_FileDropdown.options[m_FileDropdown.value].text);
             }
             else
             {
-                Services.EegFileService.EegFileService.AddMontage(m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList(), m_FileDropdown.value == 0 ? "" : m_FileDropdown.options[m_FileDropdown.value].text);
+                EegFileService.AddMontage(m_PatientSession, m_MontageName.text, m_ChannelCorrespondanceList.Objects.ToList(), m_FileDropdown.value == 0 ? "" : m_FileDropdown.options[m_FileDropdown.value].text);
             }
             Close();
         }

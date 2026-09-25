@@ -32,3 +32,6 @@ Assets/Config/PatientBase/ben*.dbtv2.meta
 *.VC.db
 /[Uu]serSettings/
 mono_crash*
+
+# macOS Finder metadata
+.DS_Store

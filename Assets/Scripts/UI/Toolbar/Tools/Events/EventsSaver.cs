@@ -19,14 +19,14 @@ namespace BTV.UI.Module3D.Tools
 
         private ExtensionFilter[] m_ExtensionList = { new ExtensionFilter("BrainTV Event File", "btv"), new ExtensionFilter("Elan Event File", "pos") };
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_SaveFile.onClick.AddListener(Save);
         }
 
         private void Save()
         {
-            string directory = TracesService.GetOptionsFor(0).FileHandle.Directory;
+            string directory = TracesService.GetOptionsFor(PatientSession, 0).FileHandle.Directory;
 
 #if UNITY_STANDALONE_OSX
             FileBrowser.GetSavedFileNameAsync((str) =>

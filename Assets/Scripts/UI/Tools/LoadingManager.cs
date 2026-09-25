@@ -54,14 +54,18 @@ public class LoadingManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.LogError("LoadingManager: a background loading task failed.");
-            Debug.LogException(ex);
+            BtvLog.Handled("LoadingManager: a background loading task failed.", ex);
             ApplicationState.displayMessage("Loading failed", "NOK", ex.Message);
         }
         finally
         {
-            loadingCircle.Close();
+            CloseIfAlive(loadingCircle);
         }
+    }
+
+    private static void CloseIfAlive(LoadingCircle loadingCircle)
+    {
+        if (loadingCircle != null) loadingCircle.Close();
     }
     #endregion
 }

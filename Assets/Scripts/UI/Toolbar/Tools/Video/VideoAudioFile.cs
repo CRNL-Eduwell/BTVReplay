@@ -1,5 +1,6 @@
 ﻿using System;
 using BTV.Services.VideoService;
+using BTV.Services;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +14,7 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField]
         private Button m_LoadFilterAudio = null;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_LoadFilterAudio.onClick.AddListener(TryToLoadFilteredFile);
         }
@@ -29,9 +30,9 @@ namespace BTV.UI.Module3D.Tools
         /// </summary>
         private void TryToLoadFilteredFile()
         {
-            if (VideoService.FilteredAudioFileExist)
+            if (VideoService.FilteredAudioFileExists(PatientSession))
             {
-                StartLoadingFilteredAudio(VideoService.FilteredAudioPath);
+                StartLoadingFilteredAudio(VideoService.GetFilteredAudioPath(PatientSession));
             }
             else
             {
@@ -43,12 +44,13 @@ namespace BTV.UI.Module3D.Tools
         {
             try
             {
-                await VideoService.LoadFilteredAudioFromFileAsync(FilteredAudioFilePath);
+                await VideoService.LoadFilteredAudioFromFileAsync(PatientSession, FilteredAudioFilePath);
+                if (this == null || !Session.IsCurrent(PatientSession)) return;
                 ApplicationState.displayMessage("Audio Loaded", "OK", "Audio has been correctly loaded.");
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogException(ex);
+                BtvLog.Handled("Error loading filtered audio", ex);
                 ApplicationState.displayMessage("Audio has not been loaded", "NOK", "Error during the loading process.");
             }
         }

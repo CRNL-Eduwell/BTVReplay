@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BTV.Services;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +23,7 @@ public class EventWithDuration : EventTrace
     private float m_begMemory = -1;
     private float m_endMemory = -1;
     private TfTraceOption m_TfTraceOption = null;
+    private Session m_Session = null;
     private float Fs_Max_Visu = 0;
     private int LeftTimeMemoryMs = 0, RightTimeMemoryMs = 0;
 
@@ -32,7 +34,7 @@ public class EventWithDuration : EventTrace
         m_InputFieldWindowPrefabs = Resources.Load("Prefabs/NormalizeTF", typeof(GameObject)) as GameObject;
 
         m_Image = transform.GetComponent<RawImage>();
-        m_ColorJetMap = DefineColorMap();
+        m_ColorJetMap = TfMapMath.JetColorMap();
 
         _ShowEvent.onValueChanged.AddListener(ToggleEventView);
         _ShowTimeFrequency.onValueChanged.AddListener(ToggleTimeFrequencyView);
@@ -55,14 +57,15 @@ public class EventWithDuration : EventTrace
         if (m_TfTexture != null) Destroy(m_TfTexture);
     }
 
-    public void Initialize(BTV.Data.BtvEvent currentEvent, int winID)
+    public void Initialize(BTV.Data.BtvEvent currentEvent, int winID, Session session)
     {
         base.Init(currentEvent, winID);
+        m_Session = session;
 
-        m_TfTraceOption = TimeFrequencyService.GetOptionsFor(ParentWindowIndex);
+        m_TfTraceOption = TimeFrequencyService.GetOptionsFor(m_Session, ParentWindowIndex);
         m_TfTraceOption.PropertyChanged += OnTimeFrequencyTraceOption_PropertyChanged;
 
-        Fs_Max_Visu = TracesService.SamplingFrequency(ParentWindowIndex) / 2;
+        Fs_Max_Visu = TracesService.SamplingFrequency(m_Session, ParentWindowIndex) / 2;
         Fs_Max_Visu = (Fs_Max_Visu / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
     }
 
@@ -100,10 +103,10 @@ public class EventWithDuration : EventTrace
 
         if (shoudNormalize)
         {
-            NormalizeTF window = SpawnFrequencyChoiceWindow();
-            window.Initialize(() =>
+            NormalizeTF window = SpawnNormalizeTFWindow();
+            window.Initialize(m_Session, () =>
             {
-                if (TimeFrequencyService.BaselineEvent == null)
+                if (TimeFrequencyService.GetBaselineEvent(m_Session) == null)
                 {
                     if (window.Baseline == null)
                     {
@@ -130,7 +133,7 @@ public class EventWithDuration : EventTrace
                     ProcessCalculationMessage message = new ProcessCalculationMessage
                     {
                         Task = Calculations.NormalizedTF,
-                        BaselineEvent = new BTV.Data.BtvEvent(TimeFrequencyService.BaselineEvent),
+                        BaselineEvent = new BTV.Data.BtvEvent(TimeFrequencyService.GetBaselineEvent(m_Session)),
                         EventOfInterest = new BTV.Data.BtvEvent(EventOfInterest),
                         TraceIndex = ParentWindowIndex
                     };
@@ -149,7 +152,7 @@ public class EventWithDuration : EventTrace
                 }
                 else
                 {
-                    TimeFrequencyService.BaselineEvent = new BTV.Data.BtvEvent(window.Baseline);
+                    TimeFrequencyService.SetBaselineEvent(m_Session, new BTV.Data.BtvEvent(window.Baseline));
                 }
             });
         }
@@ -161,7 +164,7 @@ public class EventWithDuration : EventTrace
         }
     }
 
-    private NormalizeTF SpawnFrequencyChoiceWindow()
+    private NormalizeTF SpawnNormalizeTFWindow()
     {
         GameObject viewGameObject = GameObject.Find("Windows");
         GameObject inputField = Instantiate(m_InputFieldWindowPrefabs, viewGameObject.transform);
@@ -268,26 +271,17 @@ public class EventWithDuration : EventTrace
 
         if (!m_HasDataToDisplay) return;
 
-        float samplingFreq = TracesService.SamplingFrequency(ParentWindowIndex);
+        float samplingFreq = TracesService.SamplingFrequency(m_Session, ParentWindowIndex);
 
-        float leftClockInSample = (LeftTimekInMs * samplingFreq) / 1000;
-        float rightClockInSample = (RightTimeInMs * samplingFreq) / 1000;
-        //
-        float begInSample = EventOfInterest.TimeInSeconds * samplingFreq;
-        float endInSample = begInSample + ((EventOfInterest.Duration * samplingFreq) / 1000);
-        //
-        float beg = (leftClockInSample - begInSample) < 0 ? 0 : leftClockInSample - begInSample;
-        float end = (rightClockInSample - endInSample) < 0 ? (rightClockInSample - begInSample) : (endInSample - begInSample);
+        (float beg, float end) = TfMapMath.VisibleSampleRange(LeftTimekInMs, RightTimeInMs, samplingFreq, EventOfInterest.TimeInSeconds, EventOfInterest.Duration);
 
-        int frameSize = TimeFrequencyService.GetFrameSizeFor(ParentWindowIndex);
-        int hopSize = frameSize / 2;
+        int frameSize = TimeFrequencyService.GetFrameSizeFor(m_Session, ParentWindowIndex);
         if (beg != m_begMemory || end != m_endMemory || overrideCheck)
         {
             m_begMemory = beg;
             m_endMemory = end;
 
-            int begI = Mathf.RoundToInt((beg / frameSize) * (frameSize / hopSize));
-            int endI = Mathf.RoundToInt((end / frameSize) * (frameSize / hopSize)) - 1;
+            (int begI, int endI) = TfMapMath.FrameRange(beg, end, frameSize);
 
             bool enterInWindow = (begI == 0 && endI <= 0);
             bool cameOutOfWindow = (begI >= m_TfDataStruct.TimeFrameCount) && (endI >= m_TfDataStruct.TimeFrameCount);
@@ -334,73 +328,12 @@ public class EventWithDuration : EventTrace
         m_HasDataToDisplay = false;
     }
 
-    private Color[] DefineColorMap()
-    {
-        Color[] colorMap = new Color[512];
 
-        int compteur = 0;
-        for (int i = 0; i < 57; i++)
-        {
-            float r = 0;
-            float g = 0;
-            float b = 143.4375f + (i * 1.9649f);
-            colorMap[i] = new Color(r, g, b);
-        }
-
-        compteur = 57;
-        for (int i = 0; i < 130; i++)
-        {
-            float r = 0;
-            float g = 0.4366f + (i * 1.9649f);
-            float b = 255;
-            colorMap[compteur] = new Color(r, g, b);
-            compteur++;
-        }
-
-        compteur = 187;
-        for (int i = 0; i < 130; i++)
-        {
-            float r = 0.8733f + (i * 1.9649f);
-            float g = 255;
-            float b = 254.1267f - (i * 1.9649f);
-            colorMap[compteur] = new Color(r, g, b);
-            compteur++;
-        }
-
-        compteur = 317;
-        for (int i = 0; i < 130; i++)
-        {
-            float r = 255;
-            float g = 253.6901f - (i * 1.9649f);
-            float b = 0;
-            colorMap[compteur] = new Color(r, g, b);
-            compteur++;
-        }
-
-        compteur = 447;
-        for (int i = 0; i < 65; i++)
-        {
-            float r = 253.2534f - (i * 1.9649f);
-            float g = 0;
-            float b = 0;
-            colorMap[compteur] = new Color(r, g, b);
-            compteur++;
-        }
-
-        // The bands above are authored in 0-255; Unity's Color expects 0-1, so without this the
-        // jet map clamped to a few saturated colours. Normalise (alpha stays opaque).
-        for (int i = 0; i < colorMap.Length; i++)
-            colorMap[i] = new Color(colorMap[i].r / 255f, colorMap[i].g / 255f, colorMap[i].b / 255f, 1f);
-
-        return colorMap;
-    }
+    private static readonly Color s_NoDataColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
     private Texture2D EegData2Colors(TimeFrequencyDataStructure eegData, int beg, int end)
     {
-        float maxBoundary = eegData.TopValue > 256 ? eegData.TopValue : 256;
-        float maxValue = m_TfTraceOption.MaxValueFactor * maxBoundary;
-        float minValue = m_TfTraceOption.MinValueFactor * maxBoundary;
-        if (maxValue == minValue) maxValue = minValue + 1; // to prevent some kind of discontinuity
+        (float minValue, float maxValue) = TfMapMath.ScaleBounds(eegData.TopValue, m_TfTraceOption.MinValueFactor, m_TfTraceOption.MaxValueFactor);
 
         int lowBinIndex = Mathf.RoundToInt(m_TfTraceOption.LowFrequency / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
         int highBinIndex = Mathf.RoundToInt(m_TfTraceOption.HighFrequency / (1000f / m_TfTraceOption.WindowInMilliseconds)) + 1;
@@ -414,16 +347,10 @@ public class EventWithDuration : EventTrace
             float[] data = eegData.GetFrequencyBinData(l);
             for (int m = beg; m < end; m++)
             {
-                float r = (data[m] - minValue) / (maxValue - minValue);
-
-                int col = Mathf.RoundToInt(0 + (511 * r));
-                if (col < 0)
-                    col = 0;
-                else if (col > 511)
-                    col = 511;
-
-                //x,y,color
-                cursor.SetPixel(m - beg, l - lowBinIndex, m_ColorJetMap[col]);
+                // -1 = no defined value (flat z-score baseline): neutral, never a colour that
+                // reads as activity.
+                int col = TfMapMath.ColorIndex(data[m], minValue, maxValue);
+                cursor.SetPixel(m - beg, l - lowBinIndex, col < 0 ? s_NoDataColor : m_ColorJetMap[col]);
             }
         }
         cursor.Apply();

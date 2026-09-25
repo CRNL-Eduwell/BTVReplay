@@ -2,6 +2,7 @@
 using Assets.Scripts.Data.Factory;
 using UnityEngine;
 using UnityEngine.UI;
+using BTV.Services;
 
 public class WorkspaceManager : MonoBehaviour
 {
@@ -11,11 +12,13 @@ public class WorkspaceManager : MonoBehaviour
     [SerializeField] BrainWarden _BrainWarden = null;
     [SerializeField] Trace _Trace1 = null;
     [SerializeField] Trace _Trace2 = null;
+    private Session m_PatientSession = null;
 
     private void Start()
     {
         Messenger.Default.Register<UiToLayoutsMessage>(this, OnUiToLayoutsMessage, MessageContext.UiToLayouts);
         Messenger.Default.Register<ShortcutMessage>(this, OnShortcutMessage, MessageContext.ShortcutMessage);
+        Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
         StartCoroutine(InitDisplayWhenRendered());
     }
 
@@ -23,6 +26,13 @@ public class WorkspaceManager : MonoBehaviour
     {
         Messenger.Default.Unregister(this, MessageContext.UiToLayouts);
         Messenger.Default.Unregister(this, MessageContext.ShortcutMessage);
+        Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
+    }
+
+    private void OnLoaderMessage(LoaderMessage message)
+    {
+        if (message.Task == LoaderMessage.LoaderTask.MediaLoader && Session.IsCurrent(message.PatientSession))
+            m_PatientSession = message.PatientSession;
     }
 
     //Since we don't intantiate the workspace but it is already there, it is subjected to the rendering
@@ -60,6 +70,7 @@ public class WorkspaceManager : MonoBehaviour
 
     private void OnUiToLayoutsMessage(UiToLayoutsMessage message)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         switch (message.TaskToExecute)
         {
             case UiToLayoutsMessage.Task.Load:
@@ -79,6 +90,7 @@ public class WorkspaceManager : MonoBehaviour
 
     private void OnShortcutMessage(ShortcutMessage message)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         if (message.RecipientType == typeof(Trace))
         {
             switch (message.Action)
@@ -145,30 +157,31 @@ public class WorkspaceManager : MonoBehaviour
                         int updateOptionID = _Trace1.GetComponent<Window>().hasFocus ? 0 : _Trace2.GetComponent<Window>().hasFocus ? 1 : -1;
                         if (updateOptionID > -1)
                         {
-                            int index = TracesService.GetOptionsFor(updateOptionID).ElectrodeID;
+                            TraceOption option = TracesService.GetOptionsFor(m_PatientSession, updateOptionID);
+                            int index = option.ElectrodeID;
                             //int index = updateOption.TraceEeg.ElectrodeID;
                             if (message.Parameter == ShortcutActionsParameters.Up)
                             {
                                 index += 1;
                                 //updateOption.UpdateElectrodeById(index);
-                                TracesService.GetOptionsFor(updateOptionID).ElectrodeID = index;
+                                option.ElectrodeID = index;
                             }
                             else if (message.Parameter == ShortcutActionsParameters.Down)
                             {
                                 index -= 1;
                                 //updateOption.UpdateElectrodeById(index);
-                                TracesService.GetOptionsFor(updateOptionID).ElectrodeID = index;
+                                option.ElectrodeID = index;
                             }
                             else if (message.Parameter == ShortcutActionsParameters.Left)
                             {
                                 ForceUpdateTraceMessage forceUpdateMessage = new ForceUpdateTraceMessage
                                 {
                                     TraceID = updateOptionID,
-                                    Gain = TracesService.GetOptionsFor(updateOptionID).Gain,
-                                    Offset = TracesService.GetOptionsFor(updateOptionID).Offset,
-                                    ShowGrid = TracesService.GetOptionsFor(updateOptionID).IsGridOn,
-                                    Period = TracesService.GetOptionsFor(updateOptionID).WindowInSeconds,
-                                    Color = TracesService.GetOptionsFor(updateOptionID).Color,
+                                    Gain = option.Gain,
+                                    Offset = option.Offset,
+                                    ShowGrid = option.IsGridOn,
+                                    Period = option.WindowInSeconds,
+                                    Color = option.Color,
                                     FileNextID = -1
                                 };
                                 Messenger.Default.Send(forceUpdateMessage, MessageContext.ForceUpdateTraceMessage);
@@ -178,11 +191,11 @@ public class WorkspaceManager : MonoBehaviour
                                 ForceUpdateTraceMessage forceUpdateMessage = new ForceUpdateTraceMessage
                                 {
                                     TraceID = updateOptionID,
-                                    Gain = TracesService.GetOptionsFor(updateOptionID).Gain,
-                                    Offset = TracesService.GetOptionsFor(updateOptionID).Offset,
-                                    ShowGrid = TracesService.GetOptionsFor(updateOptionID).IsGridOn,
-                                    Period = TracesService.GetOptionsFor(updateOptionID).WindowInSeconds,
-                                    Color = TracesService.GetOptionsFor(updateOptionID).Color,
+                                    Gain = option.Gain,
+                                    Offset = option.Offset,
+                                    ShowGrid = option.IsGridOn,
+                                    Period = option.WindowInSeconds,
+                                    Color = option.Color,
                                     FileNextID = 1
                                 };
                                 Messenger.Default.Send(forceUpdateMessage, MessageContext.ForceUpdateTraceMessage);
@@ -222,7 +235,7 @@ public class WorkspaceManager : MonoBehaviour
         Messenger.Default.Send(message, MessageContext.ForceUpdateTraceMessage);
 
         //Update 3D Module with the data
-        TraceOption opt = TracesService.GetOptionsFor(trace.TraceId);
+        TraceOption opt = TracesService.GetOptionsFor(m_PatientSession, trace.TraceId);
         opt.Gain = traceParameters.Gain;
         opt.Offset = traceParameters.Offset;
         opt.IsGridOn = traceParameters.ShowGrid;
@@ -230,13 +243,9 @@ public class WorkspaceManager : MonoBehaviour
         opt.Color = traceParameters.Color;
         opt.LineWidth = (int)traceParameters.Width;
 
-        //Try to load the different positions of the traces.
-        // Guard the lookup (Find returns null on a missing/blank saved parent name, which used to
-        // NRE), and route by *which* layout the saved parent actually is - the old ternary found
-        // a layout then ignored it, degenerating to "found anything -> left, else right".
-        GameObject parentObject = string.IsNullOrEmpty(traceParameters.Parent) ? null : GameObject.Find(traceParameters.Parent);
-        WindowLayout layout = parentObject != null ? parentObject.GetComponent<WindowLayout>() : null;
-        WindowLayout layouthandle = (layout == _LeftWindowLayout) ? _LeftWindowLayout : _RightWindowLayout;
+        // Dock by the saved side id (DockSide) instead of GameObject.Find on a saved scene-object
+        // name; the ids keep the legacy names, so older workspaces restore exactly as before.
+        WindowLayout layouthandle = DockSide.IsLeft(traceParameters.Parent) ? _LeftWindowLayout : _RightWindowLayout;
         layouthandle.ForceDrop(trace.gameObject, traceParameters.GridLayout, traceParameters.Id);
     }
 
@@ -257,7 +266,7 @@ public class WorkspaceManager : MonoBehaviour
     private TraceParameters GetTraceLayoutParameters(Trace trace)
     {
         Window win = trace.GetComponent<Window>();
-        TraceOption opt = TracesService.GetOptionsFor(trace.TraceId);
+        TraceOption opt = TracesService.GetOptionsFor(m_PatientSession, trace.TraceId);
         TraceParameters param = new TraceParameters
         {
             Gain = opt.Gain,
@@ -266,7 +275,7 @@ public class WorkspaceManager : MonoBehaviour
             Window = opt.WindowInSeconds,
             Color = opt.Color,
             Width = opt.LineWidth,
-            Parent = win != null ? win.transform.parent.name : null,
+            Parent = win != null ? (win.transform.parent == _LeftWindowLayout.transform ? DockSide.Left : DockSide.Right) : null,
             Id = win != null ? win.windowId : -1,
             GridLayout = win != null ? win.GridLayout : GridLayout.TwoBy2
         };

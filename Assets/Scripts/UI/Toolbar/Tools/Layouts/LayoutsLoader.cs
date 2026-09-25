@@ -16,14 +16,14 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField]
         private Button m_LoadFile = null;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_LoadFile.onClick.AddListener(Load);
         }
 
         private void Load()
         {
-            string directory = TracesService.GetOptionsFor(0).FileHandle.Directory;
+            string directory = TracesService.GetOptionsFor(PatientSession, 0).FileHandle.Directory;
 
 #if UNITY_STANDALONE_OSX
             FileBrowser.GetExistingFileNameAsync((str) =>

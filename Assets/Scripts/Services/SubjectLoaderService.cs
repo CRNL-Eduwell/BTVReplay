@@ -24,6 +24,12 @@ public class SubjectLoaderService : MonoBehaviour
     private LoadingCircle loadingCircle = null;
     #endregion
 
+    // Serialized in _main.unity. These used to be GameObject.Find("CircleWindow") and
+    // GameObject.Find("HeaderDisplay").transform.GetChild(0), so renaming or reordering either
+    // object broke every patient load.
+    [SerializeField] private Transform m_LoadingCircleParent = null;
+    [SerializeField] private Text m_PatientNameHeader = null;
+
     private void Awake()
     {
         Messenger.Default.Register<LoadSubjectMessage>(this, OnLoadSubjectMessage, MessageContext.LoadSubjectMessage);    
@@ -44,44 +50,48 @@ public class SubjectLoaderService : MonoBehaviour
 
     private IEnumerator c_load(Subject subject, string experimentName)
     {
+        Session session = Session.Current;
         SubjectInfoService.SetSubject(subject, experimentName);
         
         yield return StartCoroutine(c_loadEEGFile(SubjectInfoService.GetSubjectFilesAndDescription()));
+        if (!Session.IsCurrent(session)) yield break;
+
         TracesService.InitTraces();
         TimeFrequencyService.InitTraces();
 
         LoaderMessage message = new LoaderMessage
         {
-            Task = LoaderMessage.LoaderTask.MediaLoader
+            Task = LoaderMessage.LoaderTask.MediaLoader,
+            PatientSession = session
         };
         Messenger.Default.Send(message, MessageContext.LoaderMessage);
 
-        yield return StartCoroutine(c_loadVideo(SubjectInfoService.VideoPath));
-        yield return StartCoroutine(c_LoadBrainAnatomy(subject));
+        yield return StartCoroutine(c_loadVideo(session, SubjectInfoService.VideoPath));
+        yield return StartCoroutine(c_LoadBrainAnatomy(session, subject));
+        if (!Session.IsCurrent(session)) yield break;
+
+        // Sent after the media and anatomy phases so every toolbar is initialised; the files
+        // themselves have been ready since c_loadEEGFile.
+        Messenger.Default.Send(new LoaderMessage { Task = LoaderMessage.LoaderTask.EegFilesReady, PatientSession = session }, MessageContext.LoaderMessage);
 
         message = new LoaderMessage
         {
-            Task = LoaderMessage.LoaderTask.LoadTrace
+            Task = LoaderMessage.LoaderTask.LoadTrace,
+            PatientSession = session
         };
         Messenger.Default.Send(message, MessageContext.LoaderMessage);
-
-        //===============
-        yield return new WaitForSeconds(0.1f);
-
-        //kind of an ugly way to deactivate perf at launch time, see to do that by instantiating
-        //the window only when needed 
-        GameObject.Find("ButtonPerf").GetComponent<ExtendedToggle>().ForceStartValue(0);
+        // ToolbarSelector hides the performance window on LoadTrace. That used to happen here,
+        // through GameObject.Find("ButtonPerf"), after a 0.1 s wait that had been added for an
+        // event-loading loop since moved out of the loader; the trailing wait did nothing.
 
         //When everything is loaded we close the loading brain and media panel
         loadingCircle.Close();
         loaded = true;
-        Text PatientNameHeader = GameObject.Find("HeaderDisplay").transform.GetChild(0).GetComponent<Text>();
-        PatientNameHeader.text = subject.PatientName;
+        m_PatientNameHeader.text = subject.PatientName;
         ApplicationState.init();
-        yield return new WaitForSeconds(0.1f);
     }
 
-    private IEnumerator c_LoadBrainAnatomy(Subject subject)
+    private IEnumerator c_LoadBrainAnatomy(Session session, Subject subject)
     {
         bool hasMniContainer = subject.AnatomicalSpaces.TryGetValue("MNI", out BrainDataContainer mniContainer);
         bool hasPatContainer = subject.AnatomicalSpaces.TryGetValue("PAT", out BrainDataContainer patContainer);
@@ -98,6 +108,8 @@ public class SubjectLoaderService : MonoBehaviour
         //TODO 
         //atlas is loaded in the service and now we'll need to link atlas info in visualisation part 
         yield return AnatomicalDataService.c_LoadAtlas(patContainer.Atlas);
+
+        if (!Session.IsCurrent(session)) yield break;
 
         bool ShouldLoadMniFirst = false, ShouldLoadPatFirst = false;
         if (hasMniContainer && hasPatContainer)
@@ -126,6 +138,7 @@ public class SubjectLoaderService : MonoBehaviour
             LoaderMessage message = new LoaderMessage
             {
                 Task = LoaderMessage.LoaderTask.LoadBrain,
+                PatientSession = session,
                 HasAnatomy = true,
                 Anatomy = mniContainer
             };
@@ -136,6 +149,7 @@ public class SubjectLoaderService : MonoBehaviour
             LoaderMessage message = new LoaderMessage
             {
                 Task = LoaderMessage.LoaderTask.LoadBrain,
+                PatientSession = session,
                 HasAnatomy = true,
                 Anatomy = patContainer
             };
@@ -150,6 +164,7 @@ public class SubjectLoaderService : MonoBehaviour
             LoaderMessage message = new LoaderMessage
             {
                 Task = LoaderMessage.LoaderTask.LoadBrain,
+                PatientSession = session,
                 HasAnatomy = false,
                 Techno = EegTechnology.Intra
             };
@@ -161,11 +176,12 @@ public class SubjectLoaderService : MonoBehaviour
 
     private IEnumerator c_loadEEGFile(List<KeyValuePair<string, IEegFileInfo>> eegfiles)
     {
-        loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, GameObject.Find("CircleWindow").transform) as GameObject).GetComponent<LoadingCircle>();
+        loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, m_LoadingCircleParent) as GameObject).GetComponent<LoadingCircle>();
         loadingCircle.transform.localPosition = new Vector3(0, 0, 0);
 
         loadingCircle.Set(0, "Finding files");
 
+        List<string> failures = new List<string>();
         for (int i = 0; i < eegfiles.Count; i++)
         {
             loadingCircle.Set(0.1f + ((0.9f / eegfiles.Count) * i), "Loading File " + (i+1));
@@ -175,13 +191,30 @@ public class SubjectLoaderService : MonoBehaviour
                 yield return new WaitUntil(() => loadTask.IsCompleted);
                 if (loadTask.IsFaulted)
                 {
-                    // A failed file must not abort the others; surface it and keep loading.
-                    UnityEngine.Debug.LogError("Could not load EEG file " + (i + 1) + " (" + eegfiles[i].Key + ").");
-                    UnityEngine.Debug.LogException(loadTask.Exception.GetBaseException());
+                    // A failed file must not abort the others; note it, keep loading, and report
+                    // them all at the end. This used to open the bug reporter and then announce
+                    // "Files have been loaded" as if nothing had happened.
+                    System.Exception reason = loadTask.Exception.GetBaseException();
+                    BtvLog.Handled("Could not load EEG file " + (i + 1) + " (" + eegfiles[i].Key + ").", reason);
+                    failures.Add(string.Format("{0} ({1}): {2}", eegfiles[i].Key, FileLabel(eegfiles[i].Value), reason.Message));
                 }
             }
         }
-        loadingCircle.Set(1f, "Files have been loaded");
+        if (failures.Count == 0)
+        {
+            loadingCircle.Set(1f, "Files have been loaded");
+        }
+        else
+        {
+            loadingCircle.Set(1f, failures.Count + " file(s) could not be loaded");
+            ApplicationState.displayMessage("Some EEG files were not loaded", "NOK",
+                "The other files were loaded. These could not be read:\n\n" + string.Join("\n", failures));
+        }
+    }
+
+    private static string FileLabel(IEegFileInfo fileInfo)
+    {
+        return fileInfo != null && fileInfo.Files != null && fileInfo.Files.Length > 0 ? System.IO.Path.GetFileName(fileInfo.Files[0]) : "no file";
     }
 
     private Task LoadFile(KeyValuePair<string, IEegFileInfo> kvp, int FileID)
@@ -196,8 +229,10 @@ public class SubjectLoaderService : MonoBehaviour
         return null;
     }
 
-    private IEnumerator c_loadVideo(string videoPath)
+    private IEnumerator c_loadVideo(Session session, string videoPath)
     {
+        if (!Session.IsCurrent(session)) yield break;
+
         //load video
         BtvProgram container = EegFileService.ReturnFirstValidContainer();
         if (container == null)
@@ -206,6 +241,7 @@ public class SubjectLoaderService : MonoBehaviour
         LoaderMessage message = new LoaderMessage
         {
             Task = LoaderMessage.LoaderTask.LoadVideo,
+            PatientSession = session,
             VideoPath = videoPath,
             totalFileDuration = container != null ? container.TotalDurationInMilliseconds : -1
         };
@@ -223,6 +259,16 @@ public class SubjectLoaderService : MonoBehaviour
         r.SubjectToReload = new Subject(subject);
         r.ExperimentName = experimentName;
         r.TriggerReload = true;
+
+        // LoadScene completes later in the frame. Stop the outgoing player now so its final
+        // Update cannot broadcast ticks after the patient session has been replaced.
+        CustomVideoPlayer outgoingVideoPlayer = FindAnyObjectByType<CustomVideoPlayer>();
+        if (outgoingVideoPlayer != null)
+            outgoingVideoPlayer.enabled = false;
+
+        // Start the new patient lifetime before the replacement scene's Awake methods run.
+        // Components created by that scene can then safely subscribe to session-scoped events.
+        Session.ReplaceCurrent();
         SceneManager.LoadScene("_main");
     }
 }

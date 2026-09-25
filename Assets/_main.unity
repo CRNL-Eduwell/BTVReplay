@@ -9940,6 +9940,8 @@ MonoBehaviour:
   loaded: 0
   loadingCirclePrefab: {fileID: 1008217178119630, guid: d09bb0e442cad0a4da492d5de132dd62,
     type: 3}
+  m_LoadingCircleParent: {fileID: 529091139}
+  m_PatientNameHeader: {fileID: 5014650966044273489}
 --- !u!114 &430119292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33722,50 +33724,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LoadFile: {fileID: 1796611134}
   _FileShortName: {fileID: 1170653513}
---- !u!1 &1550218494
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1550218495}
-  - component: {fileID: 1550218496}
-  m_Layer: 0
-  m_Name: DEBUG
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1550218495
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1550218494}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1550218496
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1550218494}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45e1228a4e515d84b943c345f00b0654, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1550871368
 GameObject:
   m_ObjectHideFlags: 0
@@ -57086,4 +57044,3 @@ SceneRoots:
   - {fileID: 1779818610}
   - {fileID: 385921051}
   - {fileID: 430119288}
-  - {fileID: 1550218495}

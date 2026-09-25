@@ -17,7 +17,7 @@ namespace BTV.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_Dropdown.onValueChanged.AddListener((value) => { UpdateBrainReferential(value); });
         }
@@ -36,12 +36,10 @@ namespace BTV.UI.Module3D.Tools
             switch (VisuID)
             {
                 case 0:
-                    BrainDataContainer mniContainer = SubjectInfoService.GetBrainDataContainer("MNI");
-                    ChangeReferentialSafely(mniContainer.HasAnat, VisuID);
+                    ChangeReferentialSafely(SubjectInfoService.HasBrainAnatomy(PatientSession, "MNI"), VisuID);
                     break;
                 case 1:
-                    BrainDataContainer patContainer = SubjectInfoService.GetBrainDataContainer("PAT");
-                    ChangeReferentialSafely(patContainer.HasAnat, VisuID);
+                    ChangeReferentialSafely(SubjectInfoService.HasBrainAnatomy(PatientSession, "PAT"), VisuID);
                     break;
                 case 2:
                     needToChangeBrain.Invoke(VisuID);

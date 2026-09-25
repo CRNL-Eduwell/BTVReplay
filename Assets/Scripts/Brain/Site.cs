@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Tools.CSharp.EEG;
 using UnityEngine;
+using BTV.Services;
 
 public class Site : MonoBehaviour
 {
@@ -104,9 +105,16 @@ public class Site : MonoBehaviour
         set
         {
             m_Color = value;
-            // Use the cached instanced material: m_MeshRenderer.materials[0] allocated a new
-            // array and instantiated materials on every call (this runs per electrode per tick).
-            if (m_Material != null) m_Material.color = m_Color;
+            // A property block over the shared material. This used to be an instanced material
+            // per electrode (renderer.material), which nothing destroyed, so every brain rebuild
+            // leaked one per site. The block is shared: this runs per electrode per tick.
+            if (m_MeshRenderer != null)
+            {
+                if (s_ColorBlock == null) s_ColorBlock = new MaterialPropertyBlock();
+                s_ColorBlock.Clear();
+                s_ColorBlock.SetColor(s_ColorId, m_Color);
+                m_MeshRenderer.SetPropertyBlock(s_ColorBlock);
+            }
         }
     }
     #endregion
@@ -115,7 +123,8 @@ public class Site : MonoBehaviour
     private AnatomicalSite m_Plot = null; //Reference to the corresponding data element , either a Eeg_Plot or Intra_Plot
     private bool m_IsFrozen = false;
     private MeshRenderer m_MeshRenderer = null;
-    private Material m_Material = null;
+    private static MaterialPropertyBlock s_ColorBlock = null;
+    private static readonly int s_ColorId = Shader.PropertyToID("_Color");
     private Color m_Color = Color.white;
     private float m_Gain = 1;
 
@@ -123,17 +132,18 @@ public class Site : MonoBehaviour
     private BtvChannel m_Channel = null;
     private Frequency m_Frequency = null;
     private bool m_MessengerRegistered = false;
+    private Session m_PatientSession = null;
     #endregion
 
-    public void Init(AnatomicalSite site)
+    public void Init(Session patientSession, AnatomicalSite site)
     {
+        m_PatientSession = patientSession;
         m_Plot = site;
-        m_MasterTraceOption = TracesService.GetOptionsFor(0);
+        m_MasterTraceOption = TracesService.GetOptionsFor(m_PatientSession, 0);
 
         RegisterMessengerHandlers();
 
         m_MeshRenderer = gameObject.GetComponent<MeshRenderer>();
-        m_Material = m_MeshRenderer.material; // instanced once; reused by the Color setter
         UpdateElectrodeID(m_MasterTraceOption.FileHandle);
         IsFrozen = false;
     }
@@ -207,12 +217,14 @@ public class Site : MonoBehaviour
 
     private void OnBrainParametersMessage(UiToBrainMessage message)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         if (message.TaskToExecute == UiToBrainMessage.Task.UpdateGain) //=> gain update
             m_Gain = message.Gain;
     }
 
     private void OnVideoToModulesMessage(VideoToModulesMessage message)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         UpdateSize((int)message.TimeMilliseconds);
     }
 
@@ -234,4 +246,3 @@ public class Site : MonoBehaviour
         }
     }
 }
-

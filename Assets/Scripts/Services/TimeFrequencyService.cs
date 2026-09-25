@@ -5,26 +5,46 @@ using UnityEngine;
 
 public static class TimeFrequencyService
 {
-    public static BtvEvent BaselineEvent { get; set; } = null;
-    private static Dictionary<int, TfTraceOption> m_Options = new Dictionary<int, TfTraceOption>();
+    public static BtvEvent BaselineEvent
+    {
+        get { return BTV.Services.Session.Current.BaselineEvent; }
+        set { BTV.Services.Session.Current.BaselineEvent = value; }
+    }
+
+    public static BtvEvent GetBaselineEvent(BTV.Services.Session session)
+    {
+        return session.BaselineEvent;
+    }
+
+    public static void SetBaselineEvent(BTV.Services.Session session, BtvEvent baselineEvent)
+    {
+        session.BaselineEvent = baselineEvent;
+    }
+    private static Dictionary<int, TfTraceOption> Options { get { return BTV.Services.Session.Current.TfTraceOptions; } }
 
     public static void Reset()
     {
-        m_Options = new Dictionary<int, TfTraceOption>();
+        BaselineEvent = null;
+        BTV.Services.Session.Current.TfTraceOptions = new Dictionary<int, TfTraceOption>();
     }
 
     public static void InitTraces()
     {
-        m_Options.Add(0, new TfTraceOption(1f));
-        m_Options.Add(1, new TfTraceOption(1f));
+        Options.Add(0, new TfTraceOption(1f));
+        Options.Add(1, new TfTraceOption(1f));
     }
 
     public static TfTraceOption GetOptionsFor(int traceID)
     {
+        return GetOptionsFor(BTV.Services.Session.Current, traceID);
+    }
+
+    public static TfTraceOption GetOptionsFor(BTV.Services.Session session, int traceID)
+    {
         BtvLog.Log("Trace " + traceID);
-        if (m_Options.ContainsKey(traceID))
+        if (session.TfTraceOptions.ContainsKey(traceID))
         {
-            return m_Options[traceID];
+            return session.TfTraceOptions[traceID];
         }
         else
         {
@@ -34,7 +54,12 @@ public static class TimeFrequencyService
 
     public static int GetFrameSizeFor(int traceID)
     {
-        float Fs = TracesService.SamplingFrequency(traceID);
-        return Mathf.RoundToInt(m_Options[traceID].WindowInMilliseconds * Fs / 1000);
+        return GetFrameSizeFor(BTV.Services.Session.Current, traceID);
+    }
+
+    public static int GetFrameSizeFor(BTV.Services.Session session, int traceID)
+    {
+        float Fs = TracesService.SamplingFrequency(session, traceID);
+        return Mathf.RoundToInt(session.TfTraceOptions[traceID].WindowInMilliseconds * Fs / 1000);
     }
 }

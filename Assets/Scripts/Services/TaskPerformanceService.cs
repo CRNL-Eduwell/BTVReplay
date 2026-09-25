@@ -12,19 +12,42 @@ namespace BTV.Services.TaskPerformanceService
 {
     public static class TaskPerformanceService
     {
-        public static List<EegTrigger> ProcessedTriggers { get; private set; } = null;
-        public static List<Color> Colors { get; private set; } = null;
+        public static List<EegTrigger> ProcessedTriggers
+        {
+            get { return Session.Current.ProcessedTriggers; }
+            private set { Session.Current.ProcessedTriggers = value; }
+        }
+        public static List<Color> Colors
+        {
+            get { return Session.Current.TaskPerformanceColors; }
+            private set { Session.Current.TaskPerformanceColors = value; }
+        }
+
+        public static IReadOnlyList<EegTrigger> GetProcessedTriggers(Session session)
+        {
+            return session.ProcessedTriggers;
+        }
+
+        public static IReadOnlyList<Color> GetColors(Session session)
+        {
+            return session.TaskPerformanceColors;
+        }
 
         public static void Reset()
         {
-            ProcessedTriggers = null;
-            Colors = null;
+            ProcessedTriggers = new List<EegTrigger>();
+            Colors = new List<Color>();
         }
 
         //calculateReactionTime in old pos.cs
         public static void ProcessEventsForExperiment(Protocol protocol, int flagCode = 99, int DownsamplingFactor = 1)
         {
-            List<EegTrigger> Triggers = GetTriggerList(flagCode, DownsamplingFactor);
+            ProcessEventsForExperiment(Session.Current, protocol, flagCode, DownsamplingFactor);
+        }
+
+        public static void ProcessEventsForExperiment(Session session, Protocol protocol, int flagCode = 99, int DownsamplingFactor = 1)
+        {
+            List<EegTrigger> Triggers = GetTriggerList(session, flagCode, DownsamplingFactor);
             if (protocol.ChangeCodeFilePath != "")
             {
                 RenameTriggersForExperiment(protocol, ref Triggers);
@@ -33,25 +56,25 @@ namespace BTV.Services.TaskPerformanceService
             DeleteTriggerNotInExperiment(protocol, ref Triggers);
 
             //Define color in a hardcoded way, later will be done via conf file
-            Colors = DefineColorForTriggers(protocol, Triggers);
-            ProcessedTriggers = Triggers;
+            session.TaskPerformanceColors = DefineColorForTriggers(protocol, Triggers);
+            session.ProcessedTriggers = Triggers;
         }
 
         //==== Private
-        private static List<EegTrigger> GetTriggerList(int flagCode = 99, int DownsamplingFactor = 1)
+        private static List<EegTrigger> GetTriggerList(Session session, int flagCode = 99, int DownsamplingFactor = 1)
         {
             int beginvalue = 0;
             if (flagCode != -1)
-                beginvalue = FindFirstIndexAfter(flagCode);
+                beginvalue = FindFirstIndexAfter(session, flagCode);
 
-            int TriggerCount = EventsService.EventsService.Events.Count;
+            int TriggerCount = session.Events.Count;
             List<EegTrigger> triggers = new List<EegTrigger>();
             if (TriggerCount > 0)
             {
                 for (int i = beginvalue; i < TriggerCount; i++)
                 {
-                    int code = EventsService.EventsService.Events[i].Code;
-                    float time = EventsService.EventsService.Events[i].TimeInMilliSeconds;
+                    int code = session.Events[i].Code;
+                    float time = session.Events[i].TimeInMilliSeconds;
                     triggers.Add(new EegTrigger(new EegEvent(code, time)));
                 }
             }
@@ -60,10 +83,10 @@ namespace BTV.Services.TaskPerformanceService
 
         }
 
-        private static int FindFirstIndexAfter(int flagCode)
+        private static int FindFirstIndexAfter(Session session, int flagCode)
         {
             int beginValue = 0;
-            List<int> indexBegin = EventsService.EventsService.FindIndexes(flagCode);
+            List<int> indexBegin = EventsService.EventsService.FindIndexes(session, flagCode);
             if (indexBegin.Count > 0)
             { 
                 for (int i = 1; i < indexBegin.Count; i++)

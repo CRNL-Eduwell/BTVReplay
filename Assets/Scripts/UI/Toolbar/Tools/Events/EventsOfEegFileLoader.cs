@@ -20,7 +20,7 @@ namespace BTV.UI.Module3D.Tools
 
         private bool m_InitInteractableDone = false;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
 
@@ -35,7 +35,7 @@ namespace BTV.UI.Module3D.Tools
 
         private void OnLoaderMessage(LoaderMessage message)
         {
-            if (message.Task == LoaderMessage.LoaderTask.LoadBrain)
+            if (message.Task == LoaderMessage.LoaderTask.EegFilesReady && ReferenceEquals(PatientSession, message.PatientSession))
             {
                 if (!m_InitInteractableDone)
                 {
@@ -47,7 +47,7 @@ namespace BTV.UI.Module3D.Tools
 
         private void SetFileLabels()
         {
-            List<string> keys = SubjectInfoService.GetSubjectFileKeys();
+            List<string> keys = SubjectInfoService.GetSubjectFileKeys(PatientSession);
 
             m_EegFiles.options.Clear();
             foreach (var item in keys)
@@ -59,9 +59,9 @@ namespace BTV.UI.Module3D.Tools
         private void SetFileInteractability()
         {
             var dropDownList = GetComponentInChildren<DropDownController>(true);
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < BTV.Data.EegSlots.Count; i++)
             {
-                if (!EegFileService.IsFileIdValid(i))
+                if (!EegFileService.IsFileIdValid(PatientSession, i))
                 {
                     dropDownList.indexesToDisable.Add(i);
                 }
@@ -71,7 +71,7 @@ namespace BTV.UI.Module3D.Tools
 
         private void Load()
         {
-            Data.BtvProgram program = EegFileService.ChangeContainerHandle(null, m_EegFiles.value);
+            Data.BtvProgram program = EegFileService.ChangeContainerHandle(PatientSession, null, m_EegFiles.value);
             if (program != null)
             {
                 List<Data.BtvEvent> evs = new List<Data.BtvEvent>(program.Events);

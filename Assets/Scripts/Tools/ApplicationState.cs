@@ -11,6 +11,7 @@ using Tools.Unity;
 using BTV.Services.CodeMatchingService;
 using BTV.Services.AnatomicalDataService;
 using BTV.Services.SubjectInfoService;
+using BTV.Services.TaskPerformanceService;
 
 public static class ApplicationState
 {
@@ -28,13 +29,15 @@ public static class ApplicationState
         m_InputFieldWindowPrefabs = Resources.Load("Prefabs/UIElements/InputFieldWindow", typeof(GameObject)) as GameObject;
 
         if (coroutineManager == null)
-            coroutineManager = GameObject.Find("ringSelect").GetComponent<CoroutineManager>();
+            coroutineManager = Object.FindAnyObjectByType<CoroutineManager>();
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(3).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = FindMessageWindow();
     }
 
     public static void ResetAllServices()
     {
+        // Session isolation is established before the scene reload. These compatibility resets
+        // initialize the fresh state and publish the UI reset messages expected by the new scene.
         SubjectInfoService.Reset();
         AnatomicalDataService.Reset();
         EegFileService.Reset();
@@ -43,6 +46,14 @@ public static class ApplicationState
         VideoService.Reset();
         EventsService.Reset();
         CodeMatchingService.Reset();
+        TaskPerformanceService.Reset();
+    }
+
+    // By type, including inactive objects: this used to be GameObject.Find("Canvas") then
+    // GetChild(3).GetChild(0), so reordering the Canvas children broke every dialog.
+    private static MessageWindow FindMessageWindow()
+    {
+        return Object.FindAnyObjectByType<MessageWindow>(FindObjectsInactive.Include);
     }
 
     // Touches the UI, so call it on the main thread (async flows: after the await, never inside
@@ -50,7 +61,7 @@ public static class ApplicationState
     public static void displayMessage(string HeaderMessage, string TypeMessage, string DetailledMessage)
     {
         if (messageWindow == null)
-            messageWindow = GameObject.Find("Canvas").transform.GetChild(3).GetChild(0).GetComponent<MessageWindow>();
+            messageWindow = FindMessageWindow();
         messageWindow.display(HeaderMessage, TypeMessage, DetailledMessage);
     }
 
@@ -61,7 +72,7 @@ public static class ApplicationState
         messageWindow.displayConfirmation(HeaderMessage, DetailledMessage, yesAction, cancelAction);
     }
 
-    public static InputFieldWindow SpawnFrequencyChoiceWindow()
+    public static InputFieldWindow SpawnInputFieldWindow()
     {
         m_InputFieldWindowPrefabs = Resources.Load("Prefabs/UIElements/InputFieldWindow", typeof(GameObject)) as GameObject; //enlever d'ici quand le debug de la nouvelle db est finis
 

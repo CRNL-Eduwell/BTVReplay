@@ -9,7 +9,11 @@ namespace BTV.Services.EventsService
 {
     public static class EventsService
     {
-        public static List<BtvEvent> Events { get; set; } = new List<BtvEvent>();
+        public static List<BtvEvent> Events
+        {
+            get { return Session.Current.Events; }
+            set { Session.Current.Events = value ?? new List<BtvEvent>(); }
+        }
 
         public static void Reset()
         {
@@ -18,24 +22,36 @@ namespace BTV.Services.EventsService
 
         public static void Load(string filePath, int samplingFrequency = 0)
         {
+            Load(Session.Current, filePath, samplingFrequency);
+        }
+
+        /// <summary>
+        /// Replaces the session's events with the file's. Throws when the file cannot be read,
+        /// and in that case leaves the events already loaded untouched: the old version cleared
+        /// them first, so a corrupt file silently wiped the clinician's current markings.
+        /// </summary>
+        public static void Load(Session session, string filePath, int samplingFrequency = 0)
+        {
             if (File.Exists(filePath))
             {
                 IEventsContext file = EventsFactory.GetEventsContext(filePath, samplingFrequency);
 
-                Events = new List<BtvEvent>();
+                List<BtvEvent> loaded = new List<BtvEvent>(file.Events.Count);
                 for (int i = 0; i < file.Events.Count; i++)
                 {
-                    Events.Add(new BtvEvent(file.Events[i]));
+                    loaded.Add(new BtvEvent(file.Events[i]));
                 }
+                session.Events = loaded;
 
                 // Keep the service sorted by start time the same way AddEvent does. The window
                 // queries below binary-search on this order, and the trace GameObject lists are
                 // built index-parallel to Events, so an unsorted load would otherwise desync them
                 // the first time the user edits an event (AddEvent re-sorts the whole list).
-                SortBySample();
+                SortBySample(session);
             }
         }
 
+        /// <summary>Reads a file's events without touching the session; throws when it cannot be read.</summary>
         public static List<BtvEvent> LoadEventsFromFile(string filePath, int samplingFrequency = 0)
         {
             if (File.Exists(filePath))
@@ -48,15 +64,17 @@ namespace BTV.Services.EventsService
 
         public static void SaveEvents(string filePath, int samplingFrequency = 0)
         {
-            try
-            {
-                EventsFactory.SaveEvents(filePath, Events, samplingFrequency);
-            }
-            catch (Exception ex)
-            {
-                UnityEngine.Debug.LogError("Error while saving file events.");
-                UnityEngine.Debug.LogError(ex.Message);
-            }
+            SaveEvents(Session.Current, filePath, samplingFrequency);
+        }
+
+        /// <summary>
+        /// Throws when the file cannot be written, so the caller can tell the user. The writers
+        /// used to swallow their own errors, which made a failed save indistinguishable from a
+        /// successful one.
+        /// </summary>
+        public static void SaveEvents(Session session, string filePath, int samplingFrequency = 0)
+        {
+            EventsFactory.SaveEvents(filePath, session.Events, samplingFrequency);
         }
 
         /// <summary>
@@ -66,11 +84,16 @@ namespace BTV.Services.EventsService
         /// </summary>
         public static bool AddEvent(BtvEvent Event)
         {
+            return AddEvent(Session.Current, Event);
+        }
+
+        public static bool AddEvent(Session session, BtvEvent Event)
+        {
             BtvEvent EventToAdd = new BtvEvent(Event);
-            if (Events.Contains(EventToAdd))
+            if (session.Events.Contains(EventToAdd))
                 return false;
 
-            Events.Add(EventToAdd);
+            session.Events.Add(EventToAdd);
             return true;
         }
 
@@ -113,9 +136,14 @@ namespace BTV.Services.EventsService
         /// </summary>
         public static void ClearCorrelations()
         {
-            for (int i = 0; i < Events.Count; i++)
+            ClearCorrelations(Session.Current);
+        }
+
+        public static void ClearCorrelations(Session session)
+        {
+            for (int i = 0; i < session.Events.Count; i++)
             {
-                Events[i].Correlation = null;
+                session.Events[i].Correlation = null;
             }
         }
 
@@ -131,27 +159,62 @@ namespace BTV.Services.EventsService
 
         public static void RemoveEventAt(int ID)
         {
-            if (ID >= 0 && ID < Events.Count)
+            RemoveEventAt(Session.Current, ID);
+        }
+
+        public static void RemoveEventAt(Session session, int ID)
+        {
+            if (ID >= 0 && ID < session.Events.Count)
             {
-                Events.RemoveAt(ID);
+                session.Events.RemoveAt(ID);
                 BtvLog.Log("Event has been removed");
             }
         }
 
         public static int GetEventId(BtvEvent Event)
         {
+            return GetEventId(Session.Current, Event);
+        }
+
+        public static int GetEventId(Session session, BtvEvent Event)
+        {
             // Match the full event identity (BtvEvent.Equals), not just the timestamp: two events
             // at the same millisecond used to resolve to the wrong index. Returns -1 if absent
             // (the old .First() threw); callers guard on a negative result.
-            return Events.FindIndex(e => e.Equals(Event));
+            return session.Events.FindIndex(e => e.Equals(Event));
         }
 
         public static List<int> FindIndexes(int SearchValue)
         {
-            return Events.Select((item, index) => new { Item = item, Index = index })
+            return FindIndexes(Session.Current, SearchValue);
+        }
+
+        public static List<int> FindIndexes(Session session, int SearchValue)
+        {
+            return session.Events.Select((item, index) => new { Item = item, Index = index })
              .Where(x => x.Item.Code == SearchValue)
              .Select(x => x.Index)
              .ToList();
+        }
+
+        public static int GetEventCount(Session session)
+        {
+            return session.Events.Count;
+        }
+
+        public static IReadOnlyList<BtvEvent> GetEvents(Session session)
+        {
+            return session.Events;
+        }
+
+        public static BtvEvent GetEvent(Session session, int index)
+        {
+            return session.Events[index];
+        }
+
+        public static List<BtvEvent> FindEvents(Session session, Predicate<BtvEvent> predicate)
+        {
+            return session.Events.FindAll(predicate);
         }
 
         // First index whose event start time is >= ms. Relies on Events being sorted ascending by
@@ -161,12 +224,17 @@ namespace BTV.Services.EventsService
         // Precondition of the queries: left <= right (always true - the window is [ms - period, ms]).
         private static int LowerBoundByTime(float ms)
         {
+            return LowerBoundByTime(Events, ms);
+        }
+
+        private static int LowerBoundByTime(List<BtvEvent> events, float ms)
+        {
             int lo = 0;
-            int hi = Events.Count;
+            int hi = events.Count;
             while (lo < hi)
             {
                 int mid = lo + ((hi - lo) >> 1);
-                if (Events[mid].TimeInMilliSeconds < ms)
+                if (events[mid].TimeInMilliSeconds < ms)
                     lo = mid + 1;
                 else
                     hi = mid;
@@ -174,6 +242,9 @@ namespace BTV.Services.EventsService
             return lo;
         }
 
+        // The allocating single-category query methods remain as independent reference
+        // implementations for EventsServiceWindowQueryTests. Runtime tick paths should use
+        // CollectEventIdsForWindow with reusable buffers.
         /// <summary>
         ///
         /// [BeginEvent ---------------------------------------------- EndEvent]
@@ -290,15 +361,22 @@ namespace BTV.Services.EventsService
         public static void CollectEventIdsForWindow(int LeftBorderMilliSeconds, int RightBorderMilliSeconds,
             List<int> biggerThanWindow, List<int> enteringWindow, List<int> insideWindow, List<int> exitingWindow)
         {
+            CollectEventIdsForWindow(Session.Current, LeftBorderMilliSeconds, RightBorderMilliSeconds,
+                biggerThanWindow, enteringWindow, insideWindow, exitingWindow);
+        }
+
+        public static void CollectEventIdsForWindow(Session session, int LeftBorderMilliSeconds, int RightBorderMilliSeconds,
+            List<int> biggerThanWindow, List<int> enteringWindow, List<int> insideWindow, List<int> exitingWindow)
+        {
             biggerThanWindow.Clear();
             enteringWindow.Clear();
             insideWindow.Clear();
             exitingWindow.Clear();
 
-            int hi = LowerBoundByTime(RightBorderMilliSeconds);
+            int hi = LowerBoundByTime(session.Events, RightBorderMilliSeconds);
             for (int i = 0; i < hi; i++)
             {
-                BtvEvent e = Events[i];
+                BtvEvent e = session.Events[i];
                 float start = e.TimeInMilliSeconds;
                 float end = start + e.Duration;
 
@@ -315,7 +393,12 @@ namespace BTV.Services.EventsService
 
         public static void SortBySample()
         {
-            Events = Events.OrderBy(x => x.TimeInMilliSeconds).ToList();
+            SortBySample(Session.Current);
+        }
+
+        public static void SortBySample(Session session)
+        {
+            session.Events = session.Events.OrderBy(x => x.TimeInMilliSeconds).ToList();
         }
     }
 }

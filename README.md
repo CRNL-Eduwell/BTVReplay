@@ -113,6 +113,28 @@ Assets/
   `build:`, `perf:`, `chore:`).
 - Edit-mode tests live in `Assets/Scripts/Editor/Tests/` and run via the Unity Test Runner; please
   add or update tests with behavioural changes.
+- Line endings are normalized by `.gitattributes` (LF in the repository, native on checkout).
+  Reformat-only commits are listed in `.git-blame-ignore-revs`; to have local `git blame` skip
+  them: `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
+
+### Merging scenes and prefabs
+
+Scenes and prefabs are YAML, and git's text merge often conflicts on changes Unity's Smart Merge
+(`UnityYAMLMerge`, shipped with the editor) resolves on its own. Set it up once per clone as a
+git mergetool (macOS path shown; on Windows it is `Editor\Data\Tools\UnityYAMLMerge.exe` in the
+editor install):
+
+```bash
+git config merge.tool unityyamlmerge
+git config mergetool.unityyamlmerge.trustExitCode false
+git config mergetool.unityyamlmerge.cmd "'/Applications/Unity/Hub/Editor/6000.4.10f1/Unity.app/Contents/Helpers/UnityYAMLMerge' merge -p \"\$BASE\" \"\$REMOTE\" \"\$LOCAL\" \"\$MERGED\""
+```
+
+Then, when a merge stops on a scene or prefab conflict, run `git mergetool`. Conflicts Smart
+Merge cannot settle open in a fallback GUI tool (FileMerge on macOS, if installed); the list is in
+`mergespecfile.txt` next to the tool. It is set up as a mergetool rather than a `.gitattributes`
+merge driver on purpose: a driver is handed extension-less temp files, which `UnityYAMLMerge`
+does not recognise.
 
 ## Acknowledgements
 

@@ -41,8 +41,7 @@ public class WorkspaceFile : IWorkspaceContext
         }
         catch (Exception e)
         {
-            Console.WriteLine("The Workspace file could not be read:");
-            Console.WriteLine(e.Message);
+            Debug.LogError("WorkspaceFile => could not read " + FilePath + ": " + e.Message);
             Workspace = new Workspace();
             return -1;
         }
@@ -52,12 +51,10 @@ public class WorkspaceFile : IWorkspaceContext
     {
         try
         {
-            using (StreamWriter streamWriter = new StreamWriter(FilePath))
-            {
-                string json = JsonConvert.SerializeObject(workspace, Formatting.Indented, BtvJson.WriteSettings);
-                streamWriter.Write(json);
-                streamWriter.Close();
-            }
+            // Serialize before touching the file, then swap it in: a failure can no longer leave
+            // the previous workspace truncated to nothing.
+            string json = JsonConvert.SerializeObject(workspace, Formatting.Indented, BtvJson.WriteSettings);
+            BrainTV.Tools.AtomicFile.WriteAllText(FilePath, json);
         }
         catch (Exception e)
         {

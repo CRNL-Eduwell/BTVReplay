@@ -2,6 +2,8 @@ using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using BTV.Services;
+using BTV.Services.EegFileService;
 
 namespace BTV.UI.Module3D.Tools
 {
@@ -12,7 +14,7 @@ namespace BTV.UI.Module3D.Tools
         [SerializeField] Button m_RemoveSelectedMontageButton;
         [SerializeField] Button m_EditSelectedMontageButton;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             Messenger.Default.Register<MontageMessage>(this, OnMontageMessage, MessageContext.MontageMessage);
             m_AddMontageButton.onClick.AddListener(AddNewMontage);
@@ -29,10 +31,11 @@ namespace BTV.UI.Module3D.Tools
 
         private void OnMontageMessage(MontageMessage message)
         {
+            if (!Session.IsCurrent(PatientSession)) return;
             if (message.TaskToExecute == MontageMessage.Task.UpdateMontageList)
             {
                 m_SelectMontageDropdown.options.Clear();
-                foreach (var montage in Services.EegFileService.EegFileService.Montages)
+                foreach (var montage in EegFileService.GetMontages(PatientSession))
                 {
                     m_SelectMontageDropdown.options.Add(new Dropdown.OptionData(montage.Name));
                 }
@@ -47,31 +50,34 @@ namespace BTV.UI.Module3D.Tools
                 WindowName = "MontageWindow"
             };
             Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
+            GameObject.Find(message.WindowName).GetComponent<MontageWindow>().Initialize(PatientSession);
         }
 
         private void UpdateSelectedMontage(int value)
         {
-            Services.EegFileService.EegFileService.SelectedMontageID = value;
+            EegFileService.SetSelectedMontage(PatientSession, value);
         }
 
         private void RemoveSelectedMontage()
         {
-            if (Services.EegFileService.EegFileService.CurrentMontage.IsCustom)
+            if (EegFileService.GetCurrentMontage(PatientSession).IsCustom)
             {
-                Services.EegFileService.EegFileService.RemoveSelectedMontage();
+                EegFileService.RemoveSelectedMontage(PatientSession);
             }
         }
 
         private void EditSelectedMontage()
         {
-            if (Services.EegFileService.EegFileService.CurrentMontage.IsCustom)
+            if (EegFileService.GetCurrentMontage(PatientSession).IsCustom)
             {
                 ShowWindowMessage message = new ShowWindowMessage
                 {
                     WindowName = "MontageWindow"
                 };
                 Messenger.Default.Send(message, MessageContext.ShowWindowMessage);
-                GameObject.Find(message.WindowName).GetComponent<MontageWindow>().SetMontage(Services.EegFileService.EegFileService.CurrentMontage);
+                MontageWindow window = GameObject.Find(message.WindowName).GetComponent<MontageWindow>();
+                window.Initialize(PatientSession);
+                window.SetMontage(EegFileService.GetCurrentMontage(PatientSession));
             }
         }
 

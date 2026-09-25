@@ -21,16 +21,7 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
     /// In MilliSeconds
     /// </summary>
     public long ClockTime { get; set; } = 0;
-    /// <summary>
-    /// Time of the video, there is no possible offset due to user input 
-    /// In MilliSeconds
-    /// </summary>
-    public long Time { get; set; } = -1;
-    /// <summary>
-    /// Exact Time of the video
-    /// In MilliSeconds
-    /// </summary>
-    public long VideoTime { get; set; } = 0;
+    public bool SeeksInstantly => true;
     /// <summary>
     /// Total wanted Time of the video
     /// In MilliSeconds
@@ -61,8 +52,6 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
         }
     }
 
-    public byte[] TextureBytes => throw new System.NotImplementedException();
-
     #region private members
     private string m_VideoFilePath = "";
     private RawImage m_TextureForVideo = null;
@@ -92,14 +81,15 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
 
     public void Cleanup() { }
 
-    public void Update()
+    // No end-of-media handling here: the clock may run past TotalVideoTime, and
+    // CustomVideoPlayer stops playback when it does, exactly as for a real video. This used to
+    // wrap to 0 itself before that check could see it, so EEG-only sessions looped silently.
+    public void Tick()
     {
         if (m_internalTimer != null && m_internalTimer.IsRunning)
         {
             ClockTime = ClockTime + (m_internalTimer.ElapsedMilliseconds - m_internalLastTime);
             m_internalLastTime = m_internalTimer.ElapsedMilliseconds;
-            if (ClockTime > TotalVideoTime)
-                SetTime(0);
         }
     }
 
@@ -156,8 +146,6 @@ public class GhostVideoPlayer : MonoBehaviour, IVideoPlayer
     }
 
     public void SetVolume(float volume) { }
-
-    public void SetVideoOffset(float newOffset) { }
 
     private void ResizeTexture()
     {

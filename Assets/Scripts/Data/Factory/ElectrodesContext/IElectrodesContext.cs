@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts.Data.Factory
 {
     public interface IElectrodesContext
     {
-        void LoadElectrodesOnBrain(GameObject parent, List<AnatomicalSite> sites);
+        void LoadElectrodesOnBrain(GameObject parent, List<AnatomicalSite> sites,
+            Action<Site, AnatomicalSite> initializeSite);
     }
 }

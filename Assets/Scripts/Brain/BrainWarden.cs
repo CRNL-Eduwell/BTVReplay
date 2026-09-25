@@ -4,6 +4,8 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using System.Linq;
 using BTV.Services.EventsService;
+using BTV.Services;
+using BTV.Data;
 
 public class BrainWarden : MonoBehaviour, IPointerClickHandler
 {
@@ -26,6 +28,11 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     private RenderTexture m_ownedRt = null;
     private Site[] m_cachedSites = null;
     private Dictionary<string, Site> m_siteByName = null;
+    private Session m_PatientSession = null;
+    private readonly List<int> m_eventsBiggerThanWindow = new List<int>();
+    private readonly List<int> m_eventsEnteringWindow = new List<int>();
+    private readonly List<int> m_eventsInsideWindow = new List<int>();
+    private readonly List<int> m_eventsExitingWindow = new List<int>();
 
     private void Awake()
     {
@@ -35,6 +42,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         m_parentRectTransform = m_textureRectTransform.transform.parent.gameObject.GetComponent<RectTransform>();
 
         Messenger.Default.Register<VideoToModulesMessage>(this, OnVideoToModulesMessage, MessageContext.VideoToModulesMessage);
+        Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
     }
 
     private void Start()
@@ -48,6 +56,13 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
     private void OnDestroy()
     {
         Messenger.Default.Unregister(this, MessageContext.VideoToModulesMessage);
+        Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
+    }
+
+    private void OnLoaderMessage(LoaderMessage message)
+    {
+        if (message.Task == LoaderMessage.LoaderTask.MediaLoader && Session.IsCurrent(message.PatientSession))
+            m_PatientSession = message.PatientSession;
     }
 
     private void Update()
@@ -119,6 +134,7 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     private void OnVideoToModulesMessage(VideoToModulesMessage message)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         int timeInMilliseconds = (int)message.TimeMilliseconds;
         UpdateEventsOnBrain(timeInMilliseconds);
     }
@@ -196,45 +212,47 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
 
     private void UpdateEventsOnBrain(int milliSecToLook)
     {
-        int EventCount = EventsService.Events.Count;
+        int EventCount = EventsService.GetEventCount(m_PatientSession);
         if (EventCount > 0)
         {
-            TraceOption opt = TracesService.GetOptionsFor(0);
+            TraceOption opt = TracesService.GetOptionsFor(m_PatientSession, 0);
             int left = milliSecToLook  - (opt.WindowInSeconds * 1000);
             int right = milliSecToLook;
 
-            List<int> idOverFlow = EventsService.GetEventIdsBiggerThanWindow(left, right);
-            List<int> idRightEnter = EventsService.GetEventIdsEnteringWindow(left, right);
+            EventsService.CollectEventIdsForWindow(m_PatientSession, left, right,
+                m_eventsBiggerThanWindow, m_eventsEnteringWindow,
+                m_eventsInsideWindow, m_eventsExitingWindow);
             //Union joins and delete duplicates
-            List<int> indexes = idOverFlow.Union(idRightEnter).ToList();
+            IEnumerable<int> indexes = m_eventsBiggerThanWindow.Union(m_eventsEnteringWindow);
 
             ChangeElectrodesColor("", Color.white);
-            for (int i = 0; i < indexes.Count; i++)
+            foreach (int eventIndex in indexes)
             {
-                if (EventsService.Events[indexes[i]].Correlation2D != null)
+                BtvEvent currentEvent = EventsService.GetEvent(m_PatientSession, eventIndex);
+                if (currentEvent.Correlation2D != null)
                 {
                     int id = opt.ElectrodeID;
                     for (int j = 0; j < opt.FileHandle.NumberOfElectrodes; j++)
                     {
                         string ElectrodeName = opt.FileHandle.GetElectrodeNameFromElectrodeID(j);
-                        Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].Correlation2D[id][j]);
+                        Color NewColor = CorrelationColor.For(currentEvent.Correlation2D[id][j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
-                else if (EventsService.Events[indexes[i]].Correlation != null)
+                else if (currentEvent.Correlation != null)
                 {
                     for (int j = 0; j < opt.FileHandle.NumberOfElectrodes; j++)
                     {
                         string ElectrodeName = opt.FileHandle.GetElectrodeNameFromElectrodeID(j);
-                        Color NewColor = GetCorrelationColor(EventsService.Events[indexes[i]].Correlation[j]);
+                        Color NewColor = CorrelationColor.For(currentEvent.Correlation[j]);
                         ChangeElectrodesColor(ElectrodeName, NewColor);
                     }
                 }
                 else
                 {
-                    string FirstElectrodeName = EventsService.Events[indexes[i]].SiteOfInterest;
+                    string FirstElectrodeName = currentEvent.SiteOfInterest;
                     ChangeElectrodesColor(FirstElectrodeName, Color.red);
-                    string SecondElectrodeName = EventsService.Events[indexes[i]].SecondSiteOfInterest;
+                    string SecondElectrodeName = currentEvent.SecondSiteOfInterest;
                     ChangeElectrodesColor(SecondElectrodeName, Color.blue);
                 }
             }
@@ -278,29 +296,6 @@ public class BrainWarden : MonoBehaviour, IPointerClickHandler
         else if (m_siteByName.TryGetValue(Name.ToUpper(), out Site electrode) && electrode != null)
         {
             electrode.Color = NewColor;
-        }
-    }
-
-    private Color GetCorrelationColor(float value)
-    {
-        if (value > 0)
-        {
-            float r = Color.white.r * (1 - value) + Color.red.r * value;
-            float g = Color.white.g * (1 - value) + Color.red.g * value;
-            float b = Color.white.b * (1 - value) + Color.red.b * value;
-            return new Color(r, g, b, 1);
-        }
-        else if (value < 0)
-        {
-            float absVal = Mathf.Abs(value);
-            float r = Color.white.r * (1 - absVal) + Color.blue.r * absVal;
-            float g = Color.white.g * (1 - absVal) + Color.blue.g * absVal;
-            float b = Color.white.b * (1 - absVal) + Color.blue.b * absVal;
-            return new Color(r, g, b, 1);
-        }
-        else
-        {
-            return Color.green;
         }
     }
 }

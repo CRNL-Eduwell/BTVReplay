@@ -8,38 +8,48 @@ using UnityEngine;
 
 public static class TracesService
 {
-    private static Dictionary<int, TraceOption> m_Options = new Dictionary<int, TraceOption>();
-    private static AudioTraceOption m_AudioOption = null;
-    private static Color m_blue = new Color(0.6117f, 0.7058f, 0.7960f);
-    private static Color m_yellow = new Color(0.9058f, 0.8784f, 0.0f);
+    private static Dictionary<int, TraceOption> Options { get { return BTV.Services.Session.Current.TraceOptions; } }
+    private static AudioTraceOption AudioOption
+    {
+        get { return BTV.Services.Session.Current.AudioTraceOption; }
+        set { BTV.Services.Session.Current.AudioTraceOption = value; }
+    }
+    private static readonly Color m_blue = new Color(0.6117f, 0.7058f, 0.7960f);
+    private static readonly Color m_yellow = new Color(0.9058f, 0.8784f, 0.0f);
 
     public static void Reset()
     {
-        m_Options = new Dictionary<int, TraceOption>();
-        m_AudioOption = null;
+        BTV.Services.Session.Current.TraceOptions = new Dictionary<int, TraceOption>();
+        AudioOption = null;
 
         VideoService.AudioDataLoaded -= OnAudioDataLoaded;
     }
 
     public static void InitTraces()
     {
-        m_Options.Add(0, new TraceOption(EegFileService.ReturnFirstValidContainer(), m_blue));
-        m_Options.Add(1, new TraceOption(EegFileService.ReturnFirstValidContainer(), m_yellow));
-        m_AudioOption = new AudioTraceOption(null);
+        BTV.Services.Session session = BTV.Services.Session.Current;
+        Options.Add(0, new TraceOption(session, EegFileService.ReturnFirstValidContainer(session), m_blue));
+        Options.Add(1, new TraceOption(session, EegFileService.ReturnFirstValidContainer(session), m_yellow));
+        AudioOption = new AudioTraceOption(null);
 
         VideoService.AudioDataLoaded += OnAudioDataLoaded;
     }
 
     private static void OnAudioDataLoaded()
     {
-        m_AudioOption.FileHandle = VideoService.GetAudioContainer();
+        AudioOption.FileHandle = VideoService.GetAudioContainer();
     }
 
     public static TraceOption GetOptionsFor(int traceID)
     {
-        if (m_Options.ContainsKey(traceID))
+        return GetOptionsFor(BTV.Services.Session.Current, traceID);
+    }
+
+    public static TraceOption GetOptionsFor(BTV.Services.Session session, int traceID)
+    {
+        if (session.TraceOptions.ContainsKey(traceID))
         {
-            return m_Options[traceID];
+            return session.TraceOptions[traceID];
         }
         else
         {
@@ -49,9 +59,14 @@ public static class TracesService
 
     public static AudioTraceOption GetAudioOptions()
     {
-        if (m_AudioOption != null)
+        return GetAudioOptions(BTV.Services.Session.Current);
+    }
+
+    public static AudioTraceOption GetAudioOptions(BTV.Services.Session session)
+    {
+        if (session.AudioTraceOption != null)
         {
-            return m_AudioOption;
+            return session.AudioTraceOption;
         }
         else
         {
@@ -61,10 +76,15 @@ public static class TracesService
 
     public static string ElectrodeName(int traceID)
     {
-        if (m_Options.ContainsKey(traceID))
+        return ElectrodeName(BTV.Services.Session.Current, traceID);
+    }
+
+    public static string ElectrodeName(BTV.Services.Session session, int traceID)
+    {
+        if (session.TraceOptions.ContainsKey(traceID))
         {
-            int electrodeID = m_Options[traceID].ElectrodeID;
-            BtvProgram handle = m_Options[traceID].FileHandle;
+            int electrodeID = session.TraceOptions[traceID].ElectrodeID;
+            BtvProgram handle = session.TraceOptions[traceID].FileHandle;
             return handle.GetElectrodeNameFromElectrodeID(electrodeID);
         }
         else
@@ -75,25 +95,45 @@ public static class TracesService
 
     public static int WindowInSeconds(int traceID)
     {
-        return m_Options.ContainsKey(traceID) ? m_Options[traceID].WindowInSeconds : -1;
+        return WindowInSeconds(BTV.Services.Session.Current, traceID);
+    }
+
+    public static int WindowInSeconds(BTV.Services.Session session, int traceID)
+    {
+        return session.TraceOptions.ContainsKey(traceID) ? session.TraceOptions[traceID].WindowInSeconds : -1;
     }
 
     public static int SamplingFrequency(int traceID)
     {
-        return m_Options.ContainsKey(traceID) ? m_Options[traceID].SamplingFrequency : -1;
+        return SamplingFrequency(BTV.Services.Session.Current, traceID);
+    }
+
+    public static int SamplingFrequency(BTV.Services.Session session, int traceID)
+    {
+        return session.TraceOptions.ContainsKey(traceID) ? session.TraceOptions[traceID].SamplingFrequency : -1;
     }
 
     public static int ElectrodeCount(int traceID)
     {
-        return m_Options.ContainsKey(traceID) ? m_Options[traceID].FileHandle.NumberOfElectrodes : -1;
+        return ElectrodeCount(BTV.Services.Session.Current, traceID);
+    }
+
+    public static int ElectrodeCount(BTV.Services.Session session, int traceID)
+    {
+        return session.TraceOptions.ContainsKey(traceID) ? session.TraceOptions[traceID].FileHandle.NumberOfElectrodes : -1;
     }
 
     public static float[] ChannelData(int traceID, int electrodeID = -1)
     {
-        if (m_Options.ContainsKey(traceID))
+        return ChannelData(BTV.Services.Session.Current, traceID, electrodeID);
+    }
+
+    public static float[] ChannelData(BTV.Services.Session session, int traceID, int electrodeID = -1)
+    {
+        if (session.TraceOptions.ContainsKey(traceID))
         {
-            BtvProgram handle = m_Options[traceID].FileHandle;
-            if (electrodeID == -1) electrodeID = m_Options[traceID].ElectrodeID;
+            BtvProgram handle = session.TraceOptions[traceID].FileHandle;
+            if (electrodeID == -1) electrodeID = session.TraceOptions[traceID].ElectrodeID;
             if (electrodeID < handle.NumberOfElectrodes)
             {
                 return handle.Channels[electrodeID].Data;
@@ -111,9 +151,15 @@ public static class TracesService
 
     public static float[] AudioChannelData()
     {
-        if (m_AudioOption == null) return null;
-        if (m_AudioOption.FileID < 0) return null;
+        return AudioChannelData(BTV.Services.Session.Current);
+    }
 
-        return m_AudioOption.FileHandle.Channels[m_AudioOption.FileID].Data;
+    public static float[] AudioChannelData(BTV.Services.Session session)
+    {
+        AudioTraceOption option = session.AudioTraceOption;
+        if (option == null) return null;
+        if (option.FileID < 0) return null;
+
+        return option.FileHandle.Channels[option.FileID].Data;
     }
 }

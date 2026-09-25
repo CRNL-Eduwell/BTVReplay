@@ -29,7 +29,7 @@ namespace BTV.UI.Module3D.Tools
         //audiosource extention file : https://docs.unity3d.com/Manual/AudioFiles.html
         private string[] m_audioFileExtention = { ".mp3", ".ogg", ".wav", ".aiff", ".aif", ".mod", ".it", ".s3m", ".xm" };
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_SoundChoice.interactable = false;
             m_ToggleSonification.onValueChanged.AddListener(ToggleSound);

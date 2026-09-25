@@ -20,7 +20,7 @@ namespace BTV.UI.Module3D.Tools
         private Dropdown m_FileDropDown = null;
         private bool m_InitInteractableDone = false;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
         }
@@ -35,14 +35,14 @@ namespace BTV.UI.Module3D.Tools
         {
             int currentValue = m_FileDropDown.value;
             int nextValue = currentValue + direction;
-            if (EegFileService.IsFileIdValid(nextValue))
+            if (EegFileService.IsFileIdValid(PatientSession, nextValue))
             {
                 m_FileDropDown.value = nextValue;
             }
         }
         private void OnLoaderMessage(LoaderMessage message)
         {
-            if (message.Task == LoaderMessage.LoaderTask.LoadBrain)
+            if (message.Task == LoaderMessage.LoaderTask.EegFilesReady && ReferenceEquals(PatientSession, message.PatientSession))
             {
                 if (!m_InitInteractableDone)
                 {
@@ -55,7 +55,7 @@ namespace BTV.UI.Module3D.Tools
 
         private void SetFileLabels()
         {
-            List<string> keys = SubjectInfoService.GetSubjectFileKeys();
+            List<string> keys = SubjectInfoService.GetSubjectFileKeys(PatientSession);
 
             m_FileDropDown.options.Clear();
             foreach (var item in keys)
@@ -67,9 +67,9 @@ namespace BTV.UI.Module3D.Tools
         private void SetFileInteractability()
         {
             var dropDownList = GetComponentInChildren<DropDownController>(true);
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < BTV.Data.EegSlots.Count; i++)
             {
-                if (!EegFileService.IsFileIdValid(i))
+                if (!EegFileService.IsFileIdValid(PatientSession, i))
                 {
                     dropDownList.indexesToDisable.Add(i);
                 }

@@ -14,31 +14,51 @@ namespace BTV.Services.EegFileService
 {
     public static class EegFileService
     {
-        public static List<BtvMontage> Montages { get; private set; } = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
-        private static int m_SelectedMontageID = 0;
+        public static List<BtvMontage> Montages { get { return Session.Current.Montages; } }
         public static int SelectedMontageID
         {
             get
             {
-                return m_SelectedMontageID;
+                return Session.Current.SelectedMontageID;
             }
             set
             {
-                m_SelectedMontageID = value;
-                MontageMessage message = new MontageMessage
-                {
-                    TaskToExecute = MontageMessage.Task.SelectMontage,
-                    SelectedMontageID = value
-                };
-                Messenger.Default.Send(message, MessageContext.MontageMessage);
+                SetSelectedMontage(Session.Current, value);
             }
         }
-        public static BtvMontage CurrentMontage { get { return Montages[SelectedMontageID]; } }
-        public static BtvMontage DefaultMontage { get { return Montages[0]; } }
+        public static BtvMontage CurrentMontage { get { return GetCurrentMontage(Session.Current); } }
+        public static BtvMontage DefaultMontage { get { return GetDefaultMontage(Session.Current); } }
+
+        public static BtvMontage GetCurrentMontage(Session session)
+        {
+            return session.Montages[session.SelectedMontageID];
+        }
+
+        public static IReadOnlyList<BtvMontage> GetMontages(Session session)
+        {
+            return session.Montages;
+        }
+
+        public static BtvMontage GetDefaultMontage(Session session)
+        {
+            return session.Montages[0];
+        }
+
+        public static void SetSelectedMontage(Session session, int value)
+        {
+            session.SelectedMontageID = value;
+            MontageMessage message = new MontageMessage
+            {
+                TaskToExecute = MontageMessage.Task.SelectMontage,
+                SelectedMontageID = value
+            };
+            Messenger.Default.Send(message, MessageContext.MontageMessage);
+        }
 
         public static void Reset()
         {
-            Montages = new List<BtvMontage>() { new BtvMontage("Default", new BtvProgram[6] { null, null, null, null, null, null }) };
+            Session.Current.Montages = Session.CreateDefaultMontages();
+            Session.Current.SelectedMontageID = 0;
             MontageMessage message = new MontageMessage
             {
                 TaskToExecute = MontageMessage.Task.UpdateMontageList,
@@ -49,30 +69,51 @@ namespace BTV.Services.EegFileService
 
         public static async Task LoadAsync(IEegFileInfo fileInfo, int FileID, string description)
         {
-            if (FileID >= 6)
-                throw new ArgumentException("There is only 6 possible file to load, fileID argument is wrong => " + FileID);
+            if (FileID >= EegSlots.Count)
+                throw new ArgumentException("There are only " + EegSlots.Count + " EEG file slots, fileID argument is wrong => " + FileID);
 
             // The native EEG read + managed copy runs on a worker; the montage slot is assigned
             // after the await, back on the main thread (the old version mutated the static
             // montage from the worker thread).
+            Session session = Session.Current;
             BtvProgram eegFile = await Task.Run(() =>
             {
-                if (fileInfo.Files.Length > 0 && System.IO.File.Exists(fileInfo.Files[0]))
-                {
-                    IEegDataContainer container = new IEegDataContainer(fileInfo);
-                    return new BtvProgram(container, description);
-                }
-                return null;
+                if (fileInfo.Files.Length == 0)
+                    return null;
+                // A file that vanished after the loadability check used to leave its slot empty
+                // with no trace at all; throwing lets the loader report it.
+                if (!System.IO.File.Exists(fileInfo.Files[0]))
+                    throw new System.IO.FileNotFoundException("EEG file not found.", fileInfo.Files[0]);
+                IEegDataContainer container = new IEegDataContainer(fileInfo);
+                return new BtvProgram(container, description);
             });
 
-            Montages[0].SetEEGFile(eegFile, FileID);
+            TryPublishEegFile(session, eegFile, FileID);
+        }
+
+        private static bool TryPublishEegFile(Session session, BtvProgram eegFile, int fileID)
+        {
+            if (!Session.IsCurrent(session))
+            {
+                BtvLog.Log("Discarded an EEG file loaded for a previous patient session.");
+                return false;
+            }
+
+            session.Montages[0].SetEEGFile(eegFile, fileID);
+            return true;
         }
 
         public static int GetContainerSuffix(BtvProgram currentFile)
         {
-            for (int i = 0; i < CurrentMontage.EegFiles.Length; i++)
+            return GetContainerSuffix(Session.Current, currentFile);
+        }
+
+        public static int GetContainerSuffix(Session session, BtvProgram currentFile)
+        {
+            BtvProgram[] eegFiles = GetCurrentMontage(session).EegFiles;
+            for (int i = 0; i < eegFiles.Length; i++)
             {
-                if (CurrentMontage.EegFiles[i] == currentFile) 
+                if (eegFiles[i] == currentFile)
                     return i;
             }
             return -1;
@@ -80,15 +121,27 @@ namespace BTV.Services.EegFileService
 
         public static BtvProgram ChangeContainerHandle(BtvProgram currentFile, int newID)
         {
-            return CurrentMontage.EegFiles[newID] != null ? CurrentMontage.EegFiles[newID] : currentFile;
+            return ChangeContainerHandle(Session.Current, currentFile, newID);
+        }
+
+        public static BtvProgram ChangeContainerHandle(Session session, BtvProgram currentFile, int newID)
+        {
+            BtvProgram candidate = GetCurrentMontage(session).EegFiles[newID];
+            return candidate != null ? candidate : currentFile;
         }
 
         public static BtvProgram ReturnFirstValidContainer()
         {
-            for (int i = 0; i < CurrentMontage.EegFiles.Length; i++)
+            return ReturnFirstValidContainer(Session.Current);
+        }
+
+        public static BtvProgram ReturnFirstValidContainer(Session session)
+        {
+            BtvProgram[] eegFiles = GetCurrentMontage(session).EegFiles;
+            for (int i = 0; i < eegFiles.Length; i++)
             {
-                if (CurrentMontage.EegFiles[i] != null)
-                    return CurrentMontage.EegFiles[i];
+                if (eegFiles[i] != null)
+                    return eegFiles[i];
             }
 
             return null;
@@ -96,10 +149,15 @@ namespace BTV.Services.EegFileService
 
         public static bool IsFileIdValid(int FileID)
         {
-            if (FileID < 0) return false;
-            if (FileID >= 6) return false;
+            return IsFileIdValid(Session.Current, FileID);
+        }
 
-            return CurrentMontage.EegFiles[FileID] != null;
+        public static bool IsFileIdValid(Session session, int FileID)
+        {
+            if (FileID < 0) return false;
+            if (FileID >= EegSlots.Count) return false;
+
+            return GetCurrentMontage(session).EegFiles[FileID] != null;
         }
 
         public static void AddNewChannel(float[] Data, string Name, int SamplingFrequency, int ProgramID)
@@ -115,37 +173,44 @@ namespace BTV.Services.EegFileService
 
         public static void AddMontage(string name, List<ChannelCorrespondance> montageDescription, string fileName = "")
         {
+            AddMontage(Session.Current, name, montageDescription, fileName);
+        }
+
+        public static void AddMontage(Session session, string name, List<ChannelCorrespondance> montageDescription, string fileName = "")
+        {
+            List<BtvMontage> montages = session.Montages;
             // Generate unique name
-            if (Montages.Any(m => m.Name == name))
+            if (montages.Any(m => m.Name == name))
             {
                 int count = 1;
                 string newName = string.Format("{0}({1})", name, count);
-                while (Montages.Any(m => m.Name == newName))
+                while (montages.Any(m => m.Name == newName))
                 {
                     count++;
                     newName = string.Format("{0}({1})", name, count);
                 }
                 name = newName;
             }
-            BtvProgram[] baseFiles = DefaultMontage.EegFiles; // static state: snapshot the reference on the main thread
+            BtvProgram[] baseFiles = GetDefaultMontage(session).EegFiles;
             LoadingManager.Load(async progress =>
             {
-                BtvProgram[] eegFiles = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
+                (BtvProgram[] eegFiles, string errors) = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
 
-                Montages.Add(new BtvMontage(name, eegFiles, montageDescription));
-                MontageMessage message = new MontageMessage
-                {
-                    TaskToExecute = MontageMessage.Task.UpdateMontageList,
-                    SelectedMontageID = Montages.Count - 1
-                };
-                Messenger.Default.Send(message, MessageContext.MontageMessage);
+                if (TryPublishNewMontage(session, name, eegFiles, montageDescription))
+                    ReportMontageErrors(name, errors);
             });
         }
         public static void RemoveSelectedMontage()
         {
-            if (CurrentMontage.IsCustom)
+            RemoveSelectedMontage(Session.Current);
+        }
+
+        public static void RemoveSelectedMontage(Session session)
+        {
+            BtvMontage currentMontage = GetCurrentMontage(session);
+            if (currentMontage.IsCustom)
             {
-                Montages.Remove(CurrentMontage);
+                session.Montages.Remove(currentMontage);
                 MontageMessage message = new MontageMessage
                 {
                     TaskToExecute = MontageMessage.Task.UpdateMontageList,
@@ -156,33 +221,98 @@ namespace BTV.Services.EegFileService
         }
         public static void EditMontage(BtvMontage montage, string name, List<ChannelCorrespondance> montageDescription, string fileName = "")
         {
+            EditMontage(Session.Current, montage, name, montageDescription, fileName);
+        }
+
+        public static void EditMontage(Session session, BtvMontage montage, string name, List<ChannelCorrespondance> montageDescription, string fileName = "")
+        {
+            List<BtvMontage> montages = session.Montages;
             // Generate unique name
-            if (Montages.Any(m => m.Name == name && m != montage))
+            if (montages.Any(m => m.Name == name && m != montage))
             {
                 int count = 1;
                 string newName = string.Format("{0}({1})", name, count);
-                while (Montages.Any(m => m.Name == newName && m != montage))
+                while (montages.Any(m => m.Name == newName && m != montage))
                 {
                     count++;
                     newName = string.Format("{0}({1})", name, count);
                 }
                 name = newName;
             }
-            BtvProgram[] baseFiles = DefaultMontage.EegFiles; // static state: snapshot the reference on the main thread
+            BtvProgram[] baseFiles = GetDefaultMontage(session).EegFiles;
             LoadingManager.Load(async progress =>
             {
-                BtvProgram[] eegFiles = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
+                (BtvProgram[] eegFiles, string errors) = await Task.Run(() => GenerateMontage(baseFiles, montageDescription, fileName, progress));
 
-                montage.Load(name, eegFiles, montageDescription);
-                MontageMessage message = new MontageMessage
-                {
-                    TaskToExecute = MontageMessage.Task.UpdateMontageList,
-                    SelectedMontageID = Montages.IndexOf(montage)
-                };
-                Messenger.Default.Send(message, MessageContext.MontageMessage);
+                if (TryPublishEditedMontage(session, montage, name, eegFiles, montageDescription))
+                    ReportMontageErrors(name, errors);
             });
         }
+
+        private static bool TryPublishNewMontage(Session session, string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription)
+        {
+            if (!Session.IsCurrent(session))
+            {
+                BtvLog.Log("Discarded a montage built for a previous patient session.");
+                return false;
+            }
+
+            session.Montages.Add(new BtvMontage(name, eegFiles, montageDescription));
+            SendMontageListUpdate(session.Montages.Count - 1);
+            return true;
+        }
+
+        private static bool TryPublishEditedMontage(Session session, BtvMontage montage, string name, BtvProgram[] eegFiles, List<ChannelCorrespondance> montageDescription)
+        {
+            if (!Session.IsCurrent(session))
+            {
+                BtvLog.Log("Discarded a montage edit built for a previous patient session.");
+                return false;
+            }
+
+            if (!session.Montages.Contains(montage))
+            {
+                Debug.LogWarning("Discarded a completed montage edit because its target montage no longer exists.");
+                return false;
+            }
+
+            montage.Load(name, eegFiles, montageDescription);
+            SendMontageListUpdate(session.Montages.IndexOf(montage));
+            return true;
+        }
+
+        // Main thread only (after the await). Expression errors used to go to BtvLog, which is
+        // compiled out of release builds, so a montage with unparsable channels silently showed
+        // base values for them.
+        private static void ReportMontageErrors(string montageName, string errors)
+        {
+            if (string.IsNullOrEmpty(errors)) return;
+            Debug.LogWarning("Montage " + montageName + " built with errors:\n" + errors);
+            const int maxLines = 12;
+            string[] lines = errors.TrimEnd('\n').Split('\n');
+            string shown = string.Join("\n", lines.Take(maxLines));
+            if (lines.Length > maxLines)
+                shown += string.Format("\n... and {0} more.", lines.Length - maxLines);
+            ApplicationState.displayMessage("Montage built with errors", "NOK",
+                "Montage \"" + montageName + "\" was created, but some channel expressions could not be evaluated and keep their base values:\n\n" + shown);
+        }
+
+        private static void SendMontageListUpdate(int selectedMontageID)
+        {
+            MontageMessage message = new MontageMessage
+            {
+                TaskToExecute = MontageMessage.Task.UpdateMontageList,
+                SelectedMontageID = selectedMontageID
+            };
+            Messenger.Default.Send(message, MessageContext.MontageMessage);
+        }
+
         public static void LoadMontage(string path)
+        {
+            LoadMontage(Session.Current, path);
+        }
+
+        public static void LoadMontage(Session session, string path)
         {
             string name = "";
             List<ChannelCorrespondance> montageDescription = new List<ChannelCorrespondance>();
@@ -199,20 +329,20 @@ namespace BTV.Services.EegFileService
                     }
                 }
             }
-            AddMontage(name, montageDescription);
+            AddMontage(session, name, montageDescription);
         }
         /// <summary>
         /// Builds the montage files by evaluating each channel's correspondance expression.
         /// Runs on a worker thread (CPU-bound, only touches the snapshot it was given); progress
         /// reports are marshalled back to the main thread by the caller's Progress instance.
         /// </summary>
-        private static BtvProgram[] GenerateMontage(BtvProgram[] baseFiles, List<ChannelCorrespondance> montageDescription, string fileName, IProgress<(float progress, string message)> onChangeProgress)
+        private static (BtvProgram[] files, string errors) GenerateMontage(BtvProgram[] baseFiles, List<ChannelCorrespondance> montageDescription, string fileName, IProgress<(float progress, string message)> onChangeProgress)
         {
             int globalProgress = 0;
             int totalNumberOfValidFiles = string.IsNullOrEmpty(fileName) ? baseFiles.Count(f => f != null) : 1;
-            BtvProgram[] eegFiles = new BtvProgram[6];
+            BtvProgram[] eegFiles = new BtvProgram[EegSlots.Count];
             string errorList = "";
-            for (int i = 0; i < 6; ++i)
+            for (int i = 0; i < EegSlots.Count; ++i)
             {
                 BtvProgram baseEEGFile = baseFiles[i];
 
@@ -261,9 +391,8 @@ namespace BTV.Services.EegFileService
                 }
                 globalProgress++;
             }
-            if (!string.IsNullOrEmpty(errorList)) // TODO : make this visible for user maybe
-                BtvLog.Log(errorList);
-            return eegFiles;
+            // Reported to the user by the caller, back on the main thread.
+            return (eegFiles, errorList);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace BTV.UI.Module3D.Tools
 
         private int m_WindowSizeMemory = 10;
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_ShowTimeGrid.onValueChanged.AddListener((isOn)=> { gridToggled?.Invoke(isOn); });
             m_WindowSize.onEndEdit.AddListener(UpdateTimePeriod);

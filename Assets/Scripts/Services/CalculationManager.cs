@@ -74,8 +74,7 @@ public class CalculationManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError("Error while processing TF");
-            UnityEngine.Debug.LogException(ex);
+            BtvLog.Handled("Error while processing TF", ex);
             ApplicationState.displayMessage("Time-frequency computation failed", "NOK", ex.Message);
         }
     }
@@ -89,14 +88,14 @@ public class CalculationManager : MonoBehaviour
             float[] baselineData = SliceEventData(baseline, TraceIndex, fs);
             float[] eventData = SliceEventData(eventOfInterest, TraceIndex, fs);
 
-            TimeFrequencyDataStructure result = await Task.Run(() =>
+            (TimeFrequencyDataStructure result, int flatBins) = await Task.Run(() =>
             {
                 TimeFrequencyDataStructure tfBaseline = ComputeShortTermFourier(baselineData, frameSize, fs);
                 TimeFrequencyDataStructure tfEvent = ComputeShortTermFourier(eventData, frameSize, fs);
-                ApplyZscoreNormalization(tfBaseline, tfEvent);
+                int flat = TimeFrequencyNormalization.ApplyZscore(tfBaseline, tfEvent);
                 // The copy constructor pays the (expensive, cached) TopValue eagerly - on the
                 // worker, like the previous implementation did.
-                return new TimeFrequencyDataStructure(tfEvent);
+                return (new TimeFrequencyDataStructure(tfEvent), flat);
             });
 
             if (this == null) return; // scene was reloaded during the computation: drop the result
@@ -109,11 +108,15 @@ public class CalculationManager : MonoBehaviour
                 EventOfInterest = eventOfInterest
             };
             Messenger.Default.Send(message, MessageContext.TimeFrequencyResultMessage);
+
+            if (flatBins > 0)
+                ApplicationState.displayMessage("Flat baseline", "NOK", string.Format(
+                    "{0} of {1} frequency bins have a flat baseline (a disconnected or zero-filled contact?). A z-score is undefined there, so they are shown in grey.",
+                    flatBins, (int)result.FrequencyBinCount));
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError("Error while processing TF Normalization");
-            UnityEngine.Debug.LogException(ex);
+            BtvLog.Handled("Error while processing TF Normalization", ex);
             ApplicationState.displayMessage("Time-frequency normalization failed", "NOK", ex.Message);
         }
     }
@@ -154,23 +157,5 @@ public class CalculationManager : MonoBehaviour
             tfDataStruct.SetTf_Frame(i, output);
         }
         return tfDataStruct;
-    }
-
-    private static void ApplyZscoreNormalization(TimeFrequencyDataStructure tfBaseline, TimeFrequencyDataStructure tfEvent)
-    {
-        for (int i = 0; i < tfBaseline.FrequencyBinCount; i++)
-        {
-            float[] baselineData = tfBaseline.GetFrequencyBinData(i);
-            float baselineMean = CalculationService.Mean(baselineData, baselineData.Length);
-            float baselineStdDev = CalculationService.StandardDeviation(baselineData, baselineData.Length);
-
-            float[] eventData = tfEvent.GetFrequencyBinData(i);
-            for (int j = 0; j < eventData.Length; j++)
-            {
-                eventData[j] = (eventData[j] - baselineMean) / baselineStdDev;
-            }
-
-            tfEvent.SetFrequencyBinData(i, eventData);
-        }
     }
 }

@@ -3,6 +3,7 @@ using BTV.Services.EventsService;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using BTV.Services;
 
 public class TraceOption : ViewModelBase
 {
@@ -59,7 +60,7 @@ public class TraceOption : ViewModelBase
                 // dismisses the 1D correlation coloring on the brain: it was computed against a
                 // site the user is no longer inspecting.
                 if (m_currentElectrodeID != value)
-                    EventsService.ClearCorrelations();
+                    EventsService.ClearCorrelations(m_PatientSession);
 
                 m_currentElectrodeID = value;
                 RaisePropertyChanged();
@@ -163,8 +164,10 @@ public class TraceOption : ViewModelBase
     private Color m_Color = Color.white;
     private int m_LineWidth = 2;
     private bool m_IsGridOn = false;
-    public TraceOption(BtvProgram file, Color color, float gain = 1, float offset = 0, int windowInSec = 10)
+    private readonly Session m_PatientSession;
+    public TraceOption(Session patientSession, BtvProgram file, Color color, float gain = 1, float offset = 0, int windowInSec = 10)
     {
+        m_PatientSession = patientSession;
         m_FileHandle = file;
         m_Color = color;
         m_Gain = gain;

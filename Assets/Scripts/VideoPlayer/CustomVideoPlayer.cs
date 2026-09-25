@@ -1,4 +1,5 @@
 ﻿using System;
+using BTV.Services;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -46,6 +47,7 @@ public class CustomVideoPlayer : MonoBehaviour
     private long m_CurrentTime = 0;
     private bool m_WaitToSync = false;
     private bool m_VideoWasPlaying = false;
+    private Session m_Session = null;
     #endregion
 
     private void Awake()
@@ -77,11 +79,13 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void Update()
     {
+        if (m_Session != null && !Session.IsCurrent(m_Session)) return;
+
         if (m_Initialized)
         {
             if (!VideoInterface.IsStopped)
             {
-                VideoInterface.Update();
+                VideoInterface.Tick();
 
                 // While a seek is in flight, m_CurrentTime stays frozen on the requested
                 // target; OnSeekCompleted re-syncs it when the player reports the seek landed.
@@ -92,10 +96,13 @@ public class CustomVideoPlayer : MonoBehaviour
                     if (_LoopScrollbar.value >= 1)
                         SetTime(m_MinTimeClick, true);
 
+                // End of media, for both players. Stop() resets the readout and broadcasts the
+                // stopped state; refreshing the scrollbar after it used to re-send the stale
+                // past-the-end time as a live tick, undoing the stop for every module.
                 if (VideoInterface.ClockTime > VideoInterface.TotalVideoTime)
                     Stop();
-
-                UpdateScrollBarPosition();
+                else
+                    UpdateScrollBarPosition();
             }
 
             if (m_LoopMode)
@@ -110,14 +117,15 @@ public class CustomVideoPlayer : MonoBehaviour
 
     private void OnLoaderMessage(LoaderMessage message)
     {
-        if (message.Task == LoaderMessage.LoaderTask.LoadVideo)
+        if (message.Task == LoaderMessage.LoaderTask.LoadVideo && Session.IsCurrent(message.PatientSession))
         {
-            Init(message.VideoPath, message.totalFileDuration);
+            Init(message.PatientSession, message.VideoPath, message.totalFileDuration);
         }
     }
 
-    private void Init(string videoPath, int eegFileDurationInMillisec)
+    private void Init(Session session, string videoPath, int eegFileDurationInMillisec)
     {
+        m_Session = session;
         // Tear down a previous player + listeners before re-initialising, otherwise a second
         // LoadVideo stacks another VideoPlayer component and a duplicate set of button listeners
         // (every click would then fire twice).
@@ -215,6 +223,9 @@ public class CustomVideoPlayer : MonoBehaviour
     private void Stop()
     {
         VideoInterface.Stop();
+        // UpdateTimeText broadcasts m_CurrentTime; without this it would send the stale time
+        // (past the end, when stopping at end of media) just before the stopped message.
+        m_CurrentTime = 0;
         _TimeScrollbar.value = 0;
         UpdateTimeText(0);
 
@@ -233,12 +244,8 @@ public class CustomVideoPlayer : MonoBehaviour
         long time = (long)(value * VideoInterface.TotalVideoTime);
         if (m_LoopMode)
         {
-            if (time > m_MaxTimeClick)
-                SetTime(Math.Min(VideoInterface.TotalVideoTime, m_MaxTimeClick), true);
-            else if (time < m_MinTimeClick)
-                SetTime(Math.Max(0, m_MinTimeClick), true);
-            else
-                SetTime(time);
+            (long target, bool clamped) = LoopWindow.Clamp(time, m_MinTimeClick, m_MaxTimeClick, VideoInterface.TotalVideoTime);
+            SetTime(target, clamped);
         }
         else
         {
@@ -314,7 +321,7 @@ public class CustomVideoPlayer : MonoBehaviour
         // Arm the sync state BEFORE issuing the seek: the ghost player completes its seek
         // synchronously, so OnSeekCompleted may run inside the SetTime call below.
         m_WaitToSync = true;
-        if (!(VideoInterface is GhostVideoPlayer))
+        if (!VideoInterface.SeeksInstantly)
             _BufferingImage.Show();
         if (updateVideoTime)
             VideoInterface.SetTime(time);

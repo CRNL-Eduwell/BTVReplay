@@ -26,7 +26,7 @@ namespace BTV.UI.Module3D.Tools
 
        //private List<ProvFile> m_ProtocolList = new List<ProvFile>();
 
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_Protocols.options.Clear();
             int protocolCount = ProtocolService.ProtocolFiles.Count;

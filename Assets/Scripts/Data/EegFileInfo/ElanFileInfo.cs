@@ -83,9 +83,11 @@ public class ElanFileInfo : IEegFileInfo
         }
     }
 
+    // Must agree with Equals (value equality). It used to return the reference hash, so two
+    // equal instances could both sit in a HashSet or as separate dictionary keys.
     public override int GetHashCode()
     {
-        return base.GetHashCode();
+        return System.HashCode.Combine(Eeg, Ent, Pos, Notes);
     }
 
     public object Clone()

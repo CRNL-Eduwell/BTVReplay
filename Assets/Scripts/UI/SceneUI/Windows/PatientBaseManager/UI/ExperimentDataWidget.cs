@@ -14,7 +14,7 @@ public class ExperimentDataWidget : MonoBehaviour
     [SerializeField] private Transform _HeaderTabs = null;
     [SerializeField] private Button _AddTab = null;
     [SerializeField] private Button _RemoveTab = null;
-    [SerializeField] private EegInfoGUIManager[] _EegFiles = new EegInfoGUIManager[6] { null, null, null, null, null, null, };
+    [SerializeField] private EegInfoGUIManager[] _EegFiles = new EegInfoGUIManager[BTV.Data.EegSlots.Count] { null, null, null, null, null, null, };
     [SerializeField] private BrowseWidget _Video = null;
 
     private GameObject m_ButtonPrefab = null;
@@ -150,7 +150,7 @@ public class ExperimentDataWidget : MonoBehaviour
         addMe.OnSingleClick.AddListener(() => { SwitchTo(addMe); });
         addMe.OnDoubleClick.AddListener(() =>
         {
-            InputFieldWindow window = ApplicationState.SpawnFrequencyChoiceWindow();
+            InputFieldWindow window = ApplicationState.SpawnInputFieldWindow();
             window.Initialize("Label", "Choose a new label for you tab",
                 () =>
                 {

@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using BTV.Data;
 using BTV.Services.EventsService;
 using UnityEngine;
+using BTV.Services;
 
 public class NormalizeEventList : Tools.Unity.Lists.SelectableList<BtvEvent>
 {
-    private void Awake()
+    public void Initialize(Session patientSession)
     {
-        int EventCount = EventsService.Events.Count;
+        int EventCount = EventsService.GetEventCount(patientSession);
         for (int i = 0; i < EventCount; i++)
         {
-            AddEvent(EventsService.Events[i]);
+            AddEvent(EventsService.GetEvent(patientSession, i));
         }
     }
 

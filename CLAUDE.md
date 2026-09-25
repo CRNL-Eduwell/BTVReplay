@@ -20,10 +20,17 @@ correlations, all synchronized to a video clock.
   workspaces, events (`.pos`/`.btv`), protocols (`.prov`). EEG samples are read natively via
   the `EEGFormat` C++ library wrapped in `Data/Files/EEG/File.cs`, copied to managed dicts by
   `Data/IEegDataContainer.cs` then disposed.
-- `Assets/Scripts/Services/` — static classes with global state: `EegFileService` (6 EEG
-  slots, montage generation), `EventsService`, `TracesService`, `AnatomicalDataService`,
-  `CalculationManager` (FFT/STFT/correlation), `SubjectLoaderService` (load orchestrator),
-  `SubjectRepository` (DB load/save + `*BU` backup). Reset via `ApplicationState.ResetAllServices()`.
+- `Assets/Scripts/Services/` — `Session.Current` owns mutable state for the loaded patient;
+  existing static services are compatibility facades over it (`EegFileService` with 6 EEG
+  slots, `EventsService`, `TracesService`, `AnatomicalDataService`, `VideoService`, etc.).
+  `CalculationManager` handles FFT/STFT/correlation, `SubjectLoaderService` orchestrates loads,
+  and `SubjectRepository` owns DB load/save + `*BU` backup. A patient switch replaces and
+  disposes the Session in `SubjectLoaderService` before loading the replacement scene;
+  `ApplicationState.ResetAllServices()` then initializes state and publishes UI resets. Runtime
+  modules receive that same Session through toolbar initialization, the `BTV3DModule` composition
+  root, or `LoaderMessage.PatientSession`. Modules treat Session as an opaque lifetime identity:
+  use explicit-session service APIs rather than reading its internal patient-state properties.
+  Edit-mode source gates enforce both rules without runtime exceptions.
 - `Assets/Scripts/Messenger/` — typed pub/sub singleton. One handler per (recipient,
   MessageContext enum); messages carry typed `TaskToExecute` enum op-codes. Register in
   Awake/Start, Unregister in OnDestroy. Dispatch is registration-order, allocation-free,
@@ -60,8 +67,9 @@ correlations, all synchronized to a video clock.
   target `CultureInfo.InvariantCulture` for all new persistence code.
 - Threading: background work uses async/await — gather inputs on the main thread, compute in
   `Task.Run` returning a result, publish after the `await` (the continuation resumes on the
-  Unity main thread). Never mutate service/static state from inside a `Task.Run` worker;
-  report progress via `IProgress` (see `LoadingManager.Load`).
+  Unity main thread). Capture `Session.Current` before starting patient-specific work and
+  require `Session.IsCurrent(capturedSession)` before publishing. Never mutate session state
+  from inside a `Task.Run` worker; report progress via `IProgress` (see `LoadingManager.Load`).
 - Messenger: one handler per (recipient, context) — a duplicate registration is rejected and
   logged as an error; always pair Register/Unregister with the **same** context.
 - Many GameObject lookups are by scene-object name string (`GameObject.Find`) — renaming
@@ -71,10 +79,9 @@ correlations, all synchronized to a video clock.
 - **Logging**: use `BtvLog.Log(...)` for informational logs (it's `[Conditional]` — compiled
   out of release builds, kept in editor/dev). Keep `Debug.LogWarning/LogError/LogException`
   for things that must always be visible.
-- `EegSignal2`, `AudioSignal2`, `SignalDisp`, `DebugFlorian` look unused by a code-only search
-  but are **wired into the Trace prefabs / main scene** (verified by GUID). Do NOT delete them —
-  it would create missing-script references. Always GUID-check the scene + prefabs before
-  deleting a MonoBehaviour script.
+- Before deleting a MonoBehaviour script, GUID-check scenes and prefabs and remove its serialized
+  components in the same change; edit-mode coverage verifies retained legacy prefabs have no
+  missing scripts.
 
 ## Git & GitHub rules
 

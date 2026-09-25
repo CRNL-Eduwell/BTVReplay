@@ -1,6 +1,9 @@
-﻿using UnityEngine.Events;
+﻿using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
-namespace UnityEngine.UI
+// Was declared inside UnityEngine.UI; components bind by script GUID, so the move is safe.
+namespace BTV.UI
 {
     public class DropWindow : MonoBehaviour
     {

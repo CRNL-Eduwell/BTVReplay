@@ -9,14 +9,9 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
     public event Action SeekCompleted;
 
     public bool IsPrepared { get { return m_VideoPlayer != null ? m_VideoPlayer.isPrepared : false; } }
-    /// <summary>
-    /// Same as time, see if both are usefull ????
-    /// </summary>
     public long ClockTime { get { return (long)((m_VideoPlayer.clockTime * 1000) + m_OffsetVideoMilliSec); } }
 
-    public long Time { get { return (long)((m_VideoPlayer.time * 1000) + m_OffsetVideoMilliSec); } }
-
-    public long VideoTime { get { return ClockTime - m_OffsetVideoMilliSec; } }
+    public bool SeeksInstantly => false;
 
     // Deliberately cached at prepareCompleted instead of reading m_VideoPlayer.length live:
     // length could read 0 mid-seek while dragging the scrollbar (historical Unity issue), and
@@ -28,8 +23,6 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
     public bool IsPaused { get { return m_VideoPlayer.isPaused; } }
 
     public bool IsStopped { get { return !m_VideoPlayer.isPrepared; } }
-
-    public byte[] TextureBytes => throw new System.NotImplementedException();
 
     #region private members
     private string m_VideoFilePath = "";
@@ -84,7 +77,7 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
         TotalVideoTime = (long)(m_VideoPlayer.length * 1000);
     }
 
-    public void Update()
+    public void Tick()
     {
 
     }
@@ -179,8 +172,6 @@ public class UnityVideoPlayer : MonoBehaviour, IVideoPlayer
             Destroy(m_VideoPlayer);
         }
     }
-
-    public void SetVideoOffset(float newOffset) { }
 
     private void ResizeTexture()
     {

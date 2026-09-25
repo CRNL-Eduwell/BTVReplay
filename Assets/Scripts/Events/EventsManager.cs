@@ -7,6 +7,7 @@ using BTV.Data;
 using BTV.Services.CalculationService;
 using BTV.Services.EventsService;
 using BTV.Services.CodeMatchingService;
+using BTV.Services;
 using BTV.UI;
 using UnityEngine;
 
@@ -35,10 +36,12 @@ public class EventsManager : MonoBehaviour
     CustomVideoPlayer m_videoPlayer = null;
 
     private GameObject m_InputFieldWindowPrefabs = null;
+    private Session m_PatientSession = null;
 
     private void Awake()
     {
         m_InputFieldWindowPrefabs = Resources.Load("Prefabs/UIElements/InputFieldWindow", typeof(GameObject)) as GameObject;
+        Messenger.Default.Register<LoaderMessage>(this, OnLoaderMessage, MessageContext.LoaderMessage);
     }
 
     private void Start()
@@ -51,10 +54,18 @@ public class EventsManager : MonoBehaviour
     {
         Messenger.Default.Unregister(this, MessageContext.UiToEvents);
         Messenger.Default.Unregister(this, MessageContext.EventsModificationMessage);
+        Messenger.Default.Unregister(this, MessageContext.LoaderMessage);
+    }
+
+    private void OnLoaderMessage(LoaderMessage message)
+    {
+        if (message.Task == LoaderMessage.LoaderTask.MediaLoader && Session.IsCurrent(message.PatientSession))
+            m_PatientSession = message.PatientSession;
     }
 
     private void Update()
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.L))
             GoToPreviousEvent();
 
@@ -64,6 +75,7 @@ public class EventsManager : MonoBehaviour
 
     private void OnEventsParametersMessage(UiToEventsMessage message)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         switch (message.TaskToExecute)
         {
             case UiToEventsMessage.Task.LoadEventsFile:
@@ -87,12 +99,12 @@ public class EventsManager : MonoBehaviour
                     if (file.Extension == ".pos")
                     {
                         string path = message.FilePathToSave.Replace(".pos", "_btv.pos");
-                        InputFieldWindow window = SpawnFrequencyChoiceWindow();
-                        window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { EventsService.SaveEvents(path, window.IntValue); window.Close(); }, () => { window.Close(); });
+                        InputFieldWindow window = SpawnInputFieldWindow();
+                        window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { SaveEventsTo(path, window.IntValue); window.Close(); }, () => { window.Close(); });
                     }
                     else
                     {
-                        EventsService.SaveEvents(file.FullName);
+                        SaveEventsTo(file.FullName);
                     }
                     break;
                 }
@@ -127,9 +139,9 @@ public class EventsManager : MonoBehaviour
             case UiToEventsMessage.Task.LoadCodeMatchingFile:
                 {
                     BtvLog.Log("Load CodeMatching file");
-                    CodeMatchingService.Load(message.FilePathToLoad);
+                    CodeMatchingService.Load(m_PatientSession, message.FilePathToLoad);
                     m_EventsMatchList.DeleteAllEvents();
-                    m_EventsMatchList.LoadEvents(CodeMatchingService.GetCodesAndComment());
+                    m_EventsMatchList.LoadEvents(CodeMatchingService.GetCodesAndComment(m_PatientSession));
                     break;
                 }
         }
@@ -137,6 +149,7 @@ public class EventsManager : MonoBehaviour
 
     private void OnEventsModificationMessage(EventsModificationMessage message)
     {
+        if (!Session.IsCurrent(m_PatientSession)) return;
         switch (message.TaskToExecute)
         {
             case EventsModificationMessage.Task.AddEvent:
@@ -187,15 +200,16 @@ public class EventsManager : MonoBehaviour
 
     private void GoToPreviousEvent()
     {
-        if (EventsService.Events.Count > 0)
+        IReadOnlyList<BtvEvent> events = EventsService.GetEvents(m_PatientSession);
+        if (events.Count > 0)
         {
             long videoTimeInMs = m_videoPlayer.VideoInterface.ClockTime;
-            int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(videoTimeInMs);
+            int index = events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(videoTimeInMs);
             if (index < 0) index = ~index - 1;
 
             if (index - 1 >= 0)
             {
-                int eventTimeInMs = (int)EventsService.Events[index - 1].TimeInMilliSeconds;
+                int eventTimeInMs = (int)events[index - 1].TimeInMilliSeconds;
                 ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
                 {
                     UpdateClickPosition = true,
@@ -208,15 +222,16 @@ public class EventsManager : MonoBehaviour
 
     private void GoToNextEvent()
     {
-        if (EventsService.Events.Count > 0)
+        IReadOnlyList<BtvEvent> events = EventsService.GetEvents(m_PatientSession);
+        if (events.Count > 0)
         {
             long videoTimeInMs = m_videoPlayer.VideoInterface.ClockTime;
-            int index = EventsService.Events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(videoTimeInMs);
+            int index = events.Select(x => x.TimeInMilliSeconds).ToList().BinarySearch(videoTimeInMs);
             index = (index < 0) ? ~index : index + 1;
 
-            if (index + 1 <= EventsService.Events.Count)
+            if (index + 1 <= events.Count)
             {
-                int eventTimeInMs = (int)EventsService.Events[index].TimeInMilliSeconds;
+                int eventTimeInMs = (int)events[index].TimeInMilliSeconds;
                 ModulesToVideoMessage messageToVideo = new ModulesToVideoMessage
                 {
                     UpdateClickPosition = true,
@@ -227,7 +242,7 @@ public class EventsManager : MonoBehaviour
         }
     }
 
-    private InputFieldWindow SpawnFrequencyChoiceWindow()
+    private InputFieldWindow SpawnInputFieldWindow()
     {
         GameObject viewGameObject = GameObject.Find("Windows");
         GameObject inputField = Instantiate(m_InputFieldWindowPrefabs, viewGameObject.transform);
@@ -240,7 +255,7 @@ public class EventsManager : MonoBehaviour
         FileInfo file = new FileInfo(filePath);
         if (file.Extension.Equals(".pos"))
         {
-            InputFieldWindow window = SpawnFrequencyChoiceWindow();
+            InputFieldWindow window = SpawnInputFieldWindow();
             window.Initialize("File Sample Rate", "Sampling Frequency (in Hz) ?", () => { LoadEvents(file.FullName, window.IntValue, clearPreviousEvents); window.Close(); }, () => { window.Close(); });
         }
         else
@@ -262,23 +277,25 @@ public class EventsManager : MonoBehaviour
         {
             if (ClearPreviousEvents)
             {
-                EventsService.Load(filePath, SamplingFrequency);
+                if (!TryReadEvents(filePath, () => EventsService.Load(m_PatientSession, filePath, SamplingFrequency)))
+                    return;
+                List<BtvEvent> events = EventsService.GetEvents(m_PatientSession).ToList();
                 //load in UI List
                 m_EventsList.DeleteAllEvents();
-                m_EventsList.LoadEvents(EventsService.Events);
+                m_EventsList.LoadEvents(events);
                 //load in Scrollbar Texture
                 m_EventsTexture.RemoveAllEvents();
-                m_EventsTexture.AddEvents(EventsService.Events);
+                m_EventsTexture.AddEvents(events);
                 //load in TraceDisplayer Texture [TODO : might need to put some other messages or refactor existing one]
                 m_TracesDisplayer.RemoveAllEvents();
-                m_TracesDisplayer.AddEvents(EventsService.Events);
+                m_TracesDisplayer.AddEvents(events);
                 //send events to traces
-                for (int i = 0; i < EventsService.Events.Count; i++)
+                for (int i = 0; i < events.Count; i++)
                 {
                     EventsToTraceMessage message = new EventsToTraceMessage
                     {
                         TaskToExecute = EventsToTraceMessage.Task.AddEventToTrace,
-                        Event = EventsService.Events[i],
+                        Event = events[i],
                         EventIndex = i
                     };
                     Messenger.Default.Send(message, MessageContext.EventsToTraceMessage);
@@ -292,7 +309,9 @@ public class EventsManager : MonoBehaviour
             }
             else
             {
-                List<BtvEvent> list = EventsService.LoadEventsFromFile(filePath, SamplingFrequency);
+                List<BtvEvent> list = null;
+                if (!TryReadEvents(filePath, () => list = EventsService.LoadEventsFromFile(filePath, SamplingFrequency)))
+                    return;
                 foreach (BtvEvent btvEvent in list)
                 {
                     AddEvent(btvEvent);
@@ -301,9 +320,38 @@ public class EventsManager : MonoBehaviour
         }
     }
 
+    // Wraps only the file read, so a UI failure afterwards is not reported as an unreadable file.
+    private bool TryReadEvents(string filePath, System.Action read)
+    {
+        try
+        {
+            read();
+            return true;
+        }
+        catch (System.Exception e)
+        {
+            UnityEngine.Debug.LogError("EventsManager => could not read events from " + filePath + ": " + e);
+            ApplicationState.displayMessage("Events not loaded", "NOK", "The events could not be read from " + filePath + ":\n" + e.Message + "\n\nThe events already loaded were kept.");
+            return false;
+        }
+    }
+
+    private void SaveEventsTo(string filePath, int samplingFrequency = 0)
+    {
+        try
+        {
+            EventsService.SaveEvents(m_PatientSession, filePath, samplingFrequency);
+        }
+        catch (System.Exception e)
+        {
+            UnityEngine.Debug.LogError("EventsManager => could not save events to " + filePath + ": " + e);
+            ApplicationState.displayMessage("Events not saved", "NOK", "The events could not be saved to " + filePath + ":\n" + e.Message);
+        }
+    }
+
     private void AddEvent(BtvEvent Event)
     {
-        if (!EventsService.AddEvent(Event))
+        if (!EventsService.AddEvent(m_PatientSession, Event))
         {
             // The service skipped a duplicate: stop here, otherwise the UI lists and the
             // per-trace GameObject lists would each gain an entry the service does not have
@@ -311,8 +359,8 @@ public class EventsManager : MonoBehaviour
             UnityEngine.Debug.LogWarning("AddEvent: an identical event already exists, nothing added.");
             return;
         }
-        EventsService.SortBySample();
-        int id = EventsService.GetEventId(Event);
+        EventsService.SortBySample(m_PatientSession);
+        int id = EventsService.GetEventId(m_PatientSession, Event);
 
         m_EventsTexture.AddEvent(Event);
         m_EventsList.AddEvent(Event);
@@ -348,13 +396,13 @@ public class EventsManager : MonoBehaviour
 
     private void DeleteEvent(BtvEvent Event)
     {
-        int id = EventsService.GetEventId(Event);
+        int id = EventsService.GetEventId(m_PatientSession, Event);
         if (id < 0)
         {
             UnityEngine.Debug.LogWarning("DeleteEvent: event not found in the service, nothing to delete.");
             return;
         }
-        EventsService.RemoveEventAt(id);
+        EventsService.RemoveEventAt(m_PatientSession, id);
 
         m_EventsTexture.RemoveEvent(Event);
         m_EventsList.DeleteEvent(id);
@@ -370,7 +418,7 @@ public class EventsManager : MonoBehaviour
 
         EventsToTaskPerformanceMessage deletedMessage = new EventsToTaskPerformanceMessage
         {
-            TaskToExecute = EventsService.Events.Count == 0
+            TaskToExecute = EventsService.GetEventCount(m_PatientSession) == 0
                 ? EventsToTaskPerformanceMessage.Task.ResetAll
                 : EventsToTaskPerformanceMessage.Task.MarkOutOfDate
         };
@@ -389,9 +437,11 @@ public class EventsManager : MonoBehaviour
 
     private async void ProcessCorrelation(BtvEvent currentEvent)
     {
+        Session patientSession = m_PatientSession;
+        if (!Session.IsCurrent(patientSession)) return;
         try
         {
-            int eventIndex = EventsService.GetEventId(currentEvent);
+            int eventIndex = EventsService.GetEventId(patientSession, currentEvent);
             if (eventIndex < 0)
             {
                 UnityEngine.Debug.LogWarning("ProcessCorrelation: event not found in EventsService, nothing computed.");
@@ -399,19 +449,19 @@ public class EventsManager : MonoBehaviour
             }
 
             // Gather everything on the main thread; the worker only reads what was gathered.
-            BtvEvent eventToProcess = EventsService.Events[eventIndex];
-            int samplingFrequency = TracesService.SamplingFrequency(0);
-            int electrodeCount = TracesService.ElectrodeCount(0);
+            BtvEvent eventToProcess = EventsService.GetEvent(patientSession, eventIndex);
+            int samplingFrequency = TracesService.SamplingFrequency(patientSession, 0);
+            int electrodeCount = TracesService.ElectrodeCount(patientSession, 0);
             int beginTimeSample = (int)(eventToProcess.TimeInSeconds * samplingFrequency);
             int durationInSample = (eventToProcess.Duration / 1000) * samplingFrequency;
             int[] sizes = { beginTimeSample, durationInSample };
 
-            int indexBaseline = TracesService.GetOptionsFor(0).FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.SiteOfInterest);
+            int indexBaseline = TracesService.GetOptionsFor(patientSession, 0).FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.SiteOfInterest);
             float[] baseline = null;
             if (indexBaseline != -1)
-                baseline = TracesService.ChannelData(0, indexBaseline);
+                baseline = TracesService.ChannelData(patientSession, 0, indexBaseline);
             else if (currentEvent.SiteOfInterest.StartsWith("AUD")) //Run Correlation against Audio trace
-                baseline = TracesService.AudioChannelData();
+                baseline = TracesService.AudioChannelData(patientSession);
 
             float[] correlation;
             if (baseline == null)
@@ -423,31 +473,31 @@ public class EventsManager : MonoBehaviour
             {
                 float[][] channels = new float[electrodeCount][];
                 for (int i = 0; i < electrodeCount; i++)
-                    channels[i] = TracesService.ChannelData(0, i);
+                    channels[i] = TracesService.ChannelData(patientSession, 0, i);
 
                 // -1 when correlating against audio: every channel is processed.
                 int channelToSkip = indexBaseline;
                 correlation = await Task.Run(() => ComputeCorrelation(baseline, channels, sizes, channelToSkip));
             }
 
-            if (this == null) return; // scene was reloaded during the computation: drop the result
+            if (this == null || !Session.IsCurrent(patientSession)) return;
 
             // Publish on the main thread, re-resolving the event: it may have been deleted while
             // the computation was running. The old code wrote into the event from the worker
             // thread while BrainWarden was reading it on every video tick.
-            int targetIndex = EventsService.GetEventId(currentEvent);
+            int targetIndex = EventsService.GetEventId(patientSession, currentEvent);
             if (targetIndex < 0)
             {
                 BtvLog.Log("ProcessCorrelation: event removed during computation, result discarded.");
                 return;
             }
-            EventsService.Events[targetIndex].Correlation = correlation;
-            EventsService.Events[targetIndex].Correlation2D = null;
+            BtvEvent targetEvent = EventsService.GetEvent(patientSession, targetIndex);
+            targetEvent.Correlation = correlation;
+            targetEvent.Correlation2D = null;
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError("Error processing correlations");
-            UnityEngine.Debug.LogException(ex);
+            BtvLog.Handled("Error processing correlations", ex);
             ApplicationState.displayMessage("Error Processing Correlations", "NOK", ex.Message);
         }
     }
@@ -467,17 +517,19 @@ public class EventsManager : MonoBehaviour
 
     private async void Process2dCorrelation(BtvEvent currentEvent)
     {
+        Session patientSession = m_PatientSession;
+        if (!Session.IsCurrent(patientSession)) return;
         try
         {
-            int eventIndex = EventsService.GetEventId(currentEvent);
+            int eventIndex = EventsService.GetEventId(patientSession, currentEvent);
             if (eventIndex < 0)
             {
                 UnityEngine.Debug.LogWarning("Process2dCorrelation: event not found in EventsService, nothing computed.");
                 return;
             }
 
-            BtvProgram container1 = TracesService.GetOptionsFor(0).FileHandle;
-            BtvProgram container2 = TracesService.GetOptionsFor(1).FileHandle;
+            BtvProgram container1 = TracesService.GetOptionsFor(patientSession, 0).FileHandle;
+            BtvProgram container2 = TracesService.GetOptionsFor(patientSession, 1).FileHandle;
 
             bool sameDescription = container1.Description == container2.Description;
             bool sameElectrodeCount = container1.NumberOfElectrodes == container2.NumberOfElectrodes;
@@ -489,7 +541,7 @@ public class EventsManager : MonoBehaviour
             int samplingFrequency = container2.Frequency.Value;
             int electrodeCount = container2.NumberOfElectrodes;
 
-            BtvEvent eventToProcess = EventsService.Events[eventIndex];
+            BtvEvent eventToProcess = EventsService.GetEvent(patientSession, eventIndex);
             int beginTimeSample = (int)(eventToProcess.TimeInSeconds * samplingFrequency);
             int durationInSample = (eventToProcess.Duration / 1000) * samplingFrequency;
             int[] sizes = { beginTimeSample, durationInSample };
@@ -504,16 +556,17 @@ public class EventsManager : MonoBehaviour
 
             float[][] correlation2d = await Task.Run(() => ComputeCorrelation2d(channels1, channels2, sizes));
 
-            if (this == null) return; // scene was reloaded during the computation: drop the result
+            if (this == null || !Session.IsCurrent(patientSession)) return;
 
-            int targetIndex = EventsService.GetEventId(currentEvent);
+            int targetIndex = EventsService.GetEventId(patientSession, currentEvent);
             if (targetIndex < 0)
             {
                 BtvLog.Log("Process2dCorrelation: event removed during computation, result discarded.");
                 return;
             }
-            EventsService.Events[targetIndex].Correlation = null;
-            EventsService.Events[targetIndex].Correlation2D = correlation2d;
+            BtvEvent targetEvent = EventsService.GetEvent(patientSession, targetIndex);
+            targetEvent.Correlation = null;
+            targetEvent.Correlation2D = correlation2d;
 
             bool sameFile = container1 == container2;
             if (!sameFile)
@@ -524,8 +577,7 @@ public class EventsManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError("Error processing 2D correlations");
-            UnityEngine.Debug.LogException(ex);
+            BtvLog.Handled("Error processing 2D correlations", ex);
             ApplicationState.displayMessage("Error Processing Correlations", "NOK", ex.Message);
         }
     }

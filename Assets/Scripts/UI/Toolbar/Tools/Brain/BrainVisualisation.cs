@@ -16,7 +16,7 @@ namespace BTV.UI.Module3D.Tools
         private Toggle m_rightToggle = null;
 
         #region Public Methods
-        public override void Initialize()
+        protected override void OnInitialize()
         {
             m_leftToggle.onValueChanged.AddListener((isOn) => 
             {
