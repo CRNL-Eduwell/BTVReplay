@@ -1,0 +1,5 @@
+# Commits that only reformat, skipped by git blame (git config blame.ignoreRevsFile
+# .git-blame-ignore-revs) and by GitHub's blame view.
+
+# chore: add .gitattributes and normalize line endings
+d440f4fa383443d4f4c439500f470cce2815f3c6
