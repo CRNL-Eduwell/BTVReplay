@@ -161,6 +161,13 @@ public class BTVReplayBuilder : MonoBehaviour
                             Debug.LogWarning("BTVReplayBuilder: Contents/PlugIns/ARM64 not found; assuming arm64 plugins are already placed correctly. Verify the .app loads native libraries.");
                         }
                     }
+
+                    // Unity signs the .app (ad hoc) when it builds it, and the Config copy and the
+                    // plugin flatten above then change the sealed contents. A downloaded copy (which
+                    // macOS quarantines) used to be refused as "damaged" with no way to open it.
+                    // Re-signed, Gatekeeper shows its usual unverified-developer prompt instead.
+                    if (!ResignAdHoc(buildDirectory + executableName))
+                        return false;
 #endif
                 }
                 break;
@@ -168,6 +175,42 @@ public class BTVReplayBuilder : MonoBehaviour
 
         return true;
     }
+
+#if UNITY_EDITOR_OSX
+    // Ad-hoc signature ("-"): no Apple Developer ID is involved. Fails the build when signing or
+    // the strict verification fails, so a broken bundle never reaches a release.
+    private static bool ResignAdHoc(string appPath)
+    {
+        if (!RunCodesign(appPath, "--force --deep --sign -"))
+            return false;
+        return RunCodesign(appPath, "--verify --deep --strict");
+    }
+
+    private static bool RunCodesign(string appPath, string arguments)
+    {
+        var startInfo = new System.Diagnostics.ProcessStartInfo("/usr/bin/codesign", arguments + " \"" + appPath + "\"")
+        {
+            UseShellExecute = false,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+        };
+        using (var process = System.Diagnostics.Process.Start(startInfo))
+        {
+            // Read both streams concurrently so a full stderr pipe cannot block codesign.
+            var stderr = process.StandardError.ReadToEndAsync();
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+            output += stderr.Result;
+            if (process.ExitCode != 0)
+            {
+                Debug.LogError(string.Format("BTVReplayBuilder: codesign {0} failed ({1}): {2}", arguments, process.ExitCode, output));
+                return false;
+            }
+        }
+        BtvLog.Log("BTVReplayBuilder: codesign " + arguments + " OK for " + appPath);
+        return true;
+    }
+#endif
 
     private static string ResolveDefaultBuildsDirectory()
     {
