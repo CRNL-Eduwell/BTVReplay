@@ -24,6 +24,12 @@ public class SubjectLoaderService : MonoBehaviour
     private LoadingCircle loadingCircle = null;
     #endregion
 
+    // Serialized in _main.unity. These used to be GameObject.Find("CircleWindow") and
+    // GameObject.Find("HeaderDisplay").transform.GetChild(0), so renaming or reordering either
+    // object broke every patient load.
+    [SerializeField] private Transform m_LoadingCircleParent = null;
+    [SerializeField] private Text m_PatientNameHeader = null;
+
     private void Awake()
     {
         Messenger.Default.Register<LoadSubjectMessage>(this, OnLoadSubjectMessage, MessageContext.LoadSubjectMessage);    
@@ -74,21 +80,15 @@ public class SubjectLoaderService : MonoBehaviour
             PatientSession = session
         };
         Messenger.Default.Send(message, MessageContext.LoaderMessage);
-
-        //===============
-        yield return new WaitForSeconds(0.1f);
-
-        //kind of an ugly way to deactivate perf at launch time, see to do that by instantiating
-        //the window only when needed 
-        GameObject.Find("ButtonPerf").GetComponent<ExtendedToggle>().ForceStartValue(0);
+        // ToolbarSelector hides the performance window on LoadTrace. That used to happen here,
+        // through GameObject.Find("ButtonPerf"), after a 0.1 s wait that had been added for an
+        // event-loading loop since moved out of the loader; the trailing wait did nothing.
 
         //When everything is loaded we close the loading brain and media panel
         loadingCircle.Close();
         loaded = true;
-        Text PatientNameHeader = GameObject.Find("HeaderDisplay").transform.GetChild(0).GetComponent<Text>();
-        PatientNameHeader.text = subject.PatientName;
+        m_PatientNameHeader.text = subject.PatientName;
         ApplicationState.init();
-        yield return new WaitForSeconds(0.1f);
     }
 
     private IEnumerator c_LoadBrainAnatomy(Session session, Subject subject)
@@ -176,7 +176,7 @@ public class SubjectLoaderService : MonoBehaviour
 
     private IEnumerator c_loadEEGFile(List<KeyValuePair<string, IEegFileInfo>> eegfiles)
     {
-        loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, GameObject.Find("CircleWindow").transform) as GameObject).GetComponent<LoadingCircle>();
+        loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, m_LoadingCircleParent) as GameObject).GetComponent<LoadingCircle>();
         loadingCircle.transform.localPosition = new Vector3(0, 0, 0);
 
         loadingCircle.Set(0, "Finding files");
