@@ -40,8 +40,11 @@ a couple of simultaneous activations, so a separate account avoids knocking out 
 - **Automatic:** publish a GitHub Release (`VX.Y.Z`) — the end of the `/btv-release` flow. The
   builds attach to that release as assets when they finish. (A release with no assets for ~20 min
   is normal: the builds are still running.)
-- **Manual:** **Actions -> Build BTVReplay -> Run workflow** — produces workflow artifacts only
-  (no release to attach to).
+- **Manual:** **Actions -> Build BTVReplay -> Run workflow**. Left empty, it produces workflow
+  artifacts only. Given `release_tag` (e.g. `V4.3.0`), it checks out that tag, builds it and
+  attaches the archives to that existing release (replacing any with the same name): use it when a
+  release build failed and has been fixed. From the CLI:
+  `gh workflow run build.yml --ref develop -f release_tag=V4.3.0`.
 
 The first run per target is slow (no `Library` cache + a full Unity editor install); later runs
 reuse the cached `Library` and are much faster.
@@ -62,6 +65,10 @@ drop the `macos-latest` matrix entry and build the `.app` locally via Tools -> B
 - **First arm64 macOS build**: arm64 Unity builds occasionally surface native-plugin / signing
   quirks. Treat the first macOS run as provisional and verify the `.app` launches and loads the
   EEG plugins before trusting the artifact.
+- **Linux Hub pin**: the Linux entry pins Unity Hub `3.19.5` (`hubVersion`). Hub 3.20+ installs to
+  `/usr/lib/unityhub`, and `unity-setup` v2.6.0 still looks only in `/opt/unityhub`, so an unpinned
+  Linux job fails in "Install Unity" with `ENOENT ... /opt/unityhub/unityhub`. Drop the pin once
+  `unity-setup` bundles `unity-cli` 3.0.2 or later.
 - **Editor path**: the build step invokes `"$UNITY_EDITOR_PATH"` (exported by `unity-setup`). If
   the first run can't find the editor, check that step's output and adjust.
 - **Artifact layout**: `BTVReplayBuilder` writes `build/BTVReplay.<version>.<os>/`; the whole
