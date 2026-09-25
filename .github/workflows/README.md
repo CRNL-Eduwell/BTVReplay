@@ -69,6 +69,11 @@ drop the `macos-latest` matrix entry and build the `.app` locally via Tools -> B
   `/usr/lib/unityhub`, and `unity-setup` v2.6.0 still looks only in `/opt/unityhub`, so an unpinned
   Linux job fails in "Install Unity" with `ENOENT ... /opt/unityhub/unityhub`. Drop the pin once
   `unity-setup` bundles `unity-cli` 3.0.2 or later.
+- **Install retry**: "Install Unity" runs a second time if the first attempt fails. Unity Hub's
+  editor download occasionally times out (`The operation timed out`; seen on Windows for 4.3.0),
+  and a retry on the same runner goes through. After a failed attempt, `unity-setup`'s post-step
+  re-runs the whole setup at the end of the job (an upstream bug: it only records "setup done"
+  once setup succeeds), so a job with a failed attempt takes noticeably longer.
 - **Editor path**: the build step invokes `"$UNITY_EDITOR_PATH"` (exported by `unity-setup`). If
   the first run can't find the editor, check that step's output and adjust.
 - **Artifact layout**: `BTVReplayBuilder` writes `build/BTVReplay.<version>.<os>/`; the whole

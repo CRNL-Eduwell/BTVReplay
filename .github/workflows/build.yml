@@ -76,13 +76,27 @@ jobs:
             Library-${{ matrix.module }}-
             Library-
 
+      # The editor download through Unity Hub times out now and then: the 4.3.0 Windows job got
+      # "Failed to execute Unity Hub ... The operation timed out" after ~8 min, and the same
+      # install went through when retried on the same runner. So one attempt may fail and a
+      # second one runs; the job only fails if both do. (Known upstream wart: after a failed
+      # attempt, unity-setup's post-step re-runs the whole setup at the end of the job.)
       - name: Install Unity
         id: unity-setup
+        continue-on-error: true
         uses: RageAgainstThePixel/unity-setup@v2
         with:
           unity-version: 6000.4.10f1   # keep in sync with ProjectSettings; re-pin on editor upgrade
           build-targets: ${{ matrix.module }}
           hub-version: ${{ matrix.hubVersion || '' }}   # empty = latest Hub (see the Linux entry)
+
+      - name: Install Unity (retry)
+        if: steps.unity-setup.outcome == 'failure'
+        uses: RageAgainstThePixel/unity-setup@v2
+        with:
+          unity-version: 6000.4.10f1   # same inputs as above
+          build-targets: ${{ matrix.module }}
+          hub-version: ${{ matrix.hubVersion || '' }}
 
       # Activates a free Personal licence straight from the account credentials. This replaces
       # the dead manual .alf -> .ulf web flow (Unity removed Personal from that page). The
