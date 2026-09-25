@@ -1,0 +1,23 @@
+# Line endings: git detects text files, stores them with LF and checks them out with the
+# platform's native endings. Unity reads either. Without this, CRLF and mixed files built up.
+* text=auto
+
+# Binaries shipped in the repo (git would detect most of these; being explicit is cheaper
+# than a corrupted plugin).
+*.png    binary
+*.PNG    binary
+*.Png    binary
+*.jpg    binary
+*.wav    binary
+*.mp4    binary
+*.dll    binary
+*.so     binary
+*.dylib  binary
+**/*.bundle/** binary
+
+# Unity YAML (scenes, prefabs, assets) is merged with Unity's Smart Merge as a git mergetool,
+# not as a merge driver: a driver gets extension-less temp files, which UnityYAMLMerge does not
+# recognise. See README, "Merging scenes and prefabs".
+
+# The one Unity asset Unity still writes in binary despite Force Text.
+ProjectSettings/NetworkManager.asset binary
