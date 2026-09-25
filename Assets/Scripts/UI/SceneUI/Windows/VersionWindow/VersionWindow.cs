@@ -13,8 +13,10 @@ public class VersionWindow : MonoBehaviour
     [SerializeField] Button m_Submit = null;
     [SerializeField] Button m_Cancel = null;
 
-    private const string k_RepoUrl = "https://github.com/floriansipp/BTVReplay";
-    private const string k_LatestReleaseApi = "https://api.github.com/repos/floriansipp/BTVReplay/releases/latest";
+    // The repository moved to the CRNL-Eduwell organisation. While it is private the API
+    // answers 404 without credentials, so the check shows "Unknown" and the button opens the repo.
+    private const string k_RepoUrl = "https://github.com/CRNL-Eduwell/BTVReplay";
+    private const string k_LatestReleaseApi = "https://api.github.com/repos/CRNL-Eduwell/BTVReplay/releases/latest";
 
     private void Start()
     {
