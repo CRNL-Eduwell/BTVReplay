@@ -31,7 +31,8 @@ Releasing is a fixed multi-step ritual that's easy to fumble (tag casing, merge-
    gh release create VX.Y.Z --target master --title "BTVReplay X.Y.Z" --notes-file <notes.md>
    ```
    Write the notes to a temp file and use `--notes-file` to preserve formatting.
-6. Report the release URL. Switch back to develop afterward.
+6. **Check the archives before announcing.** Publishing the release starts the CI build that attaches one archive per platform. When they are attached, run step 3 of the `verify-btv` skill: download the macOS archive, verify its signature, and open it from Finder as a user would. A "damaged and can't be opened" dialog means the release is broken; fix it before announcing (this is what happened to 4.3.0).
+7. Report the release URL and which platform archives were opened. Switch back to develop afterward.
 
 ## Release notes shape
 
