@@ -118,4 +118,4 @@ Quit any player or editor process this run started, by the PID you launched, not
 
 ---
 
-Built on the method of the create-verification-skill skill of pstack (https://github.com/cursor/plugins/tree/main/pstack), MIT licence, (c) 2026 Lauren Tan.
+Built on the method of the create-verification-skill skill of pstack (https://github.com/cursor/plugins/tree/main/pstack), MIT licence, (c) 2026 Lauren Tan. Licence text: `THIRD-PARTY-NOTICES.md` at the repository root.
