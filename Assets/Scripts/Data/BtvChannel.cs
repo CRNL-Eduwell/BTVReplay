@@ -37,9 +37,21 @@ namespace BTV.Data
             m_Max = Data.Max();
             MaxValue = Math.Max(Math.Abs(m_Min), Math.Abs(m_Max));
         }
-        public BtvChannel(BtvChannel copy) : this(copy.Label, copy.ID, copy.Frequency.RawValue, copy.Data.ToArray())
+        /// <summary>
+        /// Another channel's samples under a new label and position (a montage renaming a
+        /// channel): shares its array and statistics instead of copying them. Safe because
+        /// nothing writes into a channel's Data once it is built.
+        /// </summary>
+        public BtvChannel(BtvChannel source, string Name, int Position)
         {
-
+            Label = Name;
+            ID = Position;
+            Frequency = new Frequency(source.Frequency.RawValue);
+            Data = source.Data;
+            m_Median = source.m_Median;
+            m_Min = source.m_Min;
+            m_Max = source.m_Max;
+            MaxValue = source.MaxValue;
         }
 
         public float GetSample(int index, bool centered = false)
