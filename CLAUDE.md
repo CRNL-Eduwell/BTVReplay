@@ -8,9 +8,9 @@ correlations, all synchronized to a video clock.
 - Unity **6.4 (6000.4.10f1)**, C#, uGUI 2.0 (no UI Toolkit, no TMP usage). Upgraded from
   2021.3.16f1 in June 2026.
 - Single scene: `Assets/_main.unity`, YAML (Force Text serialization since June 2026).
-- No asmdefs. Edit-mode tests live in `Assets/Scripts/Editor/Tests/` (~80 cases, run via
-  Unity Test Runner); with no asmdefs they compile into the predefined `Assembly-CSharp-Editor`.
-  There is no CI gate and no play-mode coverage.
+- No asmdefs. Edit-mode tests live in `Assets/Scripts/Editor/Tests/` (167 cases, run via the
+  Unity Test Runner or headless with the `verify-btv` skill); with no asmdefs they compile into
+  the predefined `Assembly-CSharp-Editor`. There is no CI gate and no play-mode coverage.
 - Comments and commit messages are a French/English mix; UI strings English.
 
 ## Layout
@@ -63,6 +63,10 @@ correlations, all synchronized to a video clock.
   `SubjectRepository`. Never "fix" a load failure by saving over the input file.
 - DB JSON uses Json.NET `TypeNameHandling.Auto` — class/namespace renames in
   `Data/EegFileInfo/` **break existing .dbtv2 files** (they embed `Assembly-CSharp` type names).
+- Any change to serialization settings, converters or persisted types needs a round-trip test on a
+  file written by the previous version before merging: load it, save it, reload it, compare. The
+  June 2026 JSON hardening dropped the Unity struct converters, and old workspaces silently
+  loaded as defaults until the September fix, because no such test existed.
 - Number parsing/writing is culture-sensitive in places (fr locale bugs historically);
   target `CultureInfo.InvariantCulture` for all new persistence code.
 - Threading: background work uses async/await — gather inputs on the main thread, compute in

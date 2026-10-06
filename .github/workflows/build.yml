@@ -8,6 +8,11 @@ on:
   release:
     types: [ published ]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing release tag (e.g. V4.3.0) to build and attach the archives to. Leave empty for artifacts only.'
+        required: false
+        default: ''
 
 permissions:
   contents: write   # the "Attach to release" step uploads assets to the release
@@ -37,6 +42,10 @@ jobs:
             module: StandaloneLinux64     # unity-setup build-target / module to install
             cliTarget: Linux64            # Unity's own -buildTarget switch value
             artifact: BTVReplay-Linux
+            # Hub 3.20+ installs to /usr/lib/unityhub, but unity-setup v2.6.0 (unity-cli 2.0.0)
+            # only looks in /opt/unityhub and fails with ENOENT (first seen on the 4.3.0 release).
+            # unity-cli 3.0.2 knows both paths; drop this pin once unity-setup ships it.
+            hubVersion: 3.19.5
           - name: Windows
             os: windows-latest
             module: StandaloneWindows64
@@ -51,6 +60,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # A manual run for an existing release builds exactly that tag.
+          ref: ${{ github.event.inputs.release_tag || github.ref }}
 
       # The Library import cache is the big time saver; the first run per target is a full
       # asset import (~slow), later runs reuse it. Keyed on the assets so it invalidates
@@ -64,12 +76,27 @@ jobs:
             Library-${{ matrix.module }}-
             Library-
 
+      # The editor download through Unity Hub times out now and then: the 4.3.0 Windows job got
+      # "Failed to execute Unity Hub ... The operation timed out" after ~8 min, and the same
+      # install went through when retried on the same runner. So one attempt may fail and a
+      # second one runs; the job only fails if both do. (Known upstream wart: after a failed
+      # attempt, unity-setup's post-step re-runs the whole setup at the end of the job.)
       - name: Install Unity
         id: unity-setup
+        continue-on-error: true
         uses: RageAgainstThePixel/unity-setup@v2
         with:
           unity-version: 6000.4.10f1   # keep in sync with ProjectSettings; re-pin on editor upgrade
           build-targets: ${{ matrix.module }}
+          hub-version: ${{ matrix.hubVersion || '' }}   # empty = latest Hub (see the Linux entry)
+
+      - name: Install Unity (retry)
+        if: steps.unity-setup.outcome == 'failure'
+        uses: RageAgainstThePixel/unity-setup@v2
+        with:
+          unity-version: 6000.4.10f1   # same inputs as above
+          build-targets: ${{ matrix.module }}
+          hub-version: ${{ matrix.hubVersion || '' }}
 
       # Activates a free Personal licence straight from the account credentials. This replaces
       # the dead manual .alf -> .ulf web flow (Unity removed Personal from that page). The
@@ -121,10 +148,11 @@ jobs:
           path: ${{ steps.package.outputs.zip }}
           if-no-files-found: error
 
-      # On a published release, attach the archive to it (--clobber so re-runs replace the asset).
-      # Skipped for workflow_dispatch and the bring-up push, which have no release to upload to.
+      # On a published release, or a manual run given release_tag, attach the archive to that
+      # release (--clobber so re-runs replace the asset). A plain manual run only uploads artifacts.
       - name: Attach to release
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' || github.event.inputs.release_tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" "${{ steps.package.outputs.zip }}" --clobber
+          TAG: ${{ github.event.release.tag_name || github.event.inputs.release_tag }}
+        run: gh release upload "$TAG" "${{ steps.package.outputs.zip }}" --clobber

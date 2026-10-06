@@ -63,10 +63,14 @@ namespace BTV.Data
             int removedCount = Events.RemoveAll(x => x.TimeInMilliSeconds > TotalDurationInMilliseconds);
         }
 
-        public BtvProgram(BtvProgram copy)
+        /// <summary>
+        /// Same file with other channels (a montage). The channels are taken as given, so they
+        /// can be shared with the base file - channels are never written to - while the events
+        /// are copied, each montage editing its own.
+        /// </summary>
+        public BtvProgram(BtvProgram copy, List<BtvChannel> channels)
         {
-            foreach (var channel in copy.Channels)
-                Channels.Add(new BtvChannel(channel));
+            Channels = new List<BtvChannel>(channels);
             foreach (var ev in copy.Events)
                 Events.Add(new BtvEvent(ev));
             Frequency = new Frequency(copy.Frequency.RawValue);
