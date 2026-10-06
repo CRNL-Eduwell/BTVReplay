@@ -5,7 +5,7 @@ description: Cut a BTVReplay release. Bumps bundleVersion in ProjectSettings.ass
 
 # btv-release — cut a BTVReplay version
 
-Releasing is a fixed multi-step ritual that's easy to fumble (tag casing, merge-subject wording, notes written for the wrong audience). See **CLAUDE.md → Release Template / Release body style** — it is the source of truth; re-read it if it changed. This skill encodes the mechanics + the gotchas observed across 4.0.0 → 4.2.0.
+Releasing is a fixed multi-step ritual that's easy to fumble (tag casing, merge-subject wording, notes written for the wrong audience). See **CLAUDE.md → Release Template / Release body style** — it is the source of truth; re-read it if it changed. This skill encodes the mechanics + the gotchas observed across 4.0.0 → 4.4.0.
 
 ## Hard rules
 
@@ -17,15 +17,18 @@ Releasing is a fixed multi-step ritual that's easy to fumble (tag casing, merge-
 ## Steps
 
 1. **Pick the version** X.Y.Z. Confirm with the user if not given.
-2. **Bump on develop.** On `develop`, change `bundleVersion: <old>` → `bundleVersion: X.Y.Z` in `ProjectSettings/ProjectSettings.asset`. Commit `chore: bump version to X.Y.Z`. (Historically done via a `chore/bump-version-X.Y.Z` branch → PR to develop, e.g. #29/#9 — use `/btv-pr` if you want the PR; a direct commit on develop is also in the history.) Ensure develop is pushed/up to date.
+2. **Bump through a PR to develop.** `develop` and `master` only take PRs (org ruleset, PR + one review; the admin bypass is PR-only since 2026-10-02, so a direct push is rejected). On a branch off develop, change `bundleVersion: <old>` → `bundleVersion: X.Y.Z` in `ProjectSettings/ProjectSettings.asset` and commit `chore: bump version to X.Y.Z`. Ride it on the last feature PR of the release if one is open (4.4.0 did, #71), otherwise open a `chore/bump-version-X.Y.Z` PR with `/btv-pr`. The user merges: `gh pr merge <n> --merge --admin --delete-branch` (the auto-mode classifier blocks Claude from admin-merging). Pull develop afterwards.
 3. **Gather the changelog material.** List what shipped since the last release:
    `gh pr list --state merged --base develop --json number,title --search "merged:>=<date of last release>"`, or `git log V<previous>..develop --oneline` (the merge commits name the PRs). Group these into a few **user-facing themes**.
-4. **Merge develop → master.**
+4. **Merge develop → master through a release PR.** Open it from develop itself, with an empty body (the notes go on the GitHub release, not here):
    ```
-   git switch master && git pull
-   git merge --no-ff develop -m "Merge develop into master: VX.Y.Z"
-   git push origin master
+   gh pr create --base master --head develop --title "Merge develop into master: VX.Y.Z" --body ""
    ```
+   The user merges it with the subject set to the same words and **no** `--delete-branch` (the head is develop):
+   ```
+   gh pr merge <n> --merge --admin --subject "Merge develop into master: VX.Y.Z" --body ""
+   ```
+   Then `git fetch origin` and check `git log -1 --format=%s origin/master` reads `Merge develop into master: VX.Y.Z`.
 5. **Create the GitHub release** (tag on master):
    ```
    gh release create VX.Y.Z --target master --title "BTVReplay X.Y.Z" --notes-file <notes.md>
