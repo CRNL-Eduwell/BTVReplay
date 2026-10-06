@@ -1,0 +1,155 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using BTV.Data;
+using BTV.Services.EegFileService;
+using NUnit.Framework;
+
+/// <summary>
+/// Edit-mode tests for montage generation. A montage used to deep-copy every loaded file and
+/// overwrite the copy, so each montage cost the full size of the recordings (3.9 GiB for a 6 h,
+/// 183-channel TRC) even for one changed channel, and the evaluated channels kept the base
+/// channel's median/min/max. These pin the sharing of unchanged data and the statistics of
+/// evaluated channels.
+/// </summary>
+public class MontageGenerationTests
+{
+    private sealed class SyncProgress : IProgress<(float progress, string message)>
+    {
+        public void Report((float progress, string message) value) { }
+    }
+
+    private static BtvProgram Program(string description, params (string label, float[] data)[] channels)
+    {
+        DataContainer container = new DataContainer("/fixtures/" + description + ".TRC");
+        foreach (var channel in channels)
+            container.ValuesByChannel.Add(channel.label, channel.data);
+        container.Frequency = new Tools.CSharp.EEG.Frequency(512);
+        return new BtvProgram(container, description);
+    }
+
+    private static (BtvProgram[] files, string errors) Generate(BtvProgram[] baseFiles, string fileName, params (string from, string to)[] description)
+    {
+        List<ChannelCorrespondance> montage = description.Select(d => new ChannelCorrespondance(d.from, d.to)).ToList();
+        return EegFileService.GenerateMontage(baseFiles, montage, fileName, new SyncProgress());
+    }
+
+    private static BtvProgram[] Slots(params BtvProgram[] files)
+    {
+        BtvProgram[] slots = new BtvProgram[EegSlots.Count];
+        Array.Copy(files, slots, files.Length);
+        return slots;
+    }
+
+    [Test]
+    public void UnmappedChannels_AreSharedWithTheBaseFile()
+    {
+        BtvProgram baseFile = Program("rec", ("A1", new float[] { 1, 2, 3 }), ("A2", new float[] { 4, 5, 6 }));
+
+        var (files, errors) = Generate(Slots(baseFile), "", ("A1", "A1 - A2"));
+
+        Assert.AreEqual("", errors);
+        Assert.AreSame(baseFile.Channels[1], files[0].Channels[1], "A2 is unmapped: no copy");
+        Assert.AreNotSame(baseFile.Channels[0].Data, files[0].Channels[0].Data, "A1 is evaluated into its own array");
+    }
+
+    [Test]
+    public void EvaluatedChannel_HasMontageValuesAndLeavesTheBaseUntouched()
+    {
+        BtvProgram baseFile = Program("rec", ("A1", new float[] { 10, 20, 30, 40 }), ("A2", new float[] { 1, 2, 3, 4 }));
+
+        var (files, _) = Generate(Slots(baseFile), "", ("A1", "A1 - A2"));
+
+        CollectionAssert.AreEqual(new float[] { 9, 18, 27, 36 }, files[0].Channels[0].Data);
+        CollectionAssert.AreEqual(new float[] { 10, 20, 30, 40 }, baseFile.Channels[0].Data);
+        Assert.AreEqual("A1", files[0].Channels[0].Label);
+        Assert.AreEqual(0, files[0].Channels[0].ID);
+    }
+
+    [Test]
+    public void EvaluatedChannel_StatisticsComeFromTheMontageValues()
+    {
+        // The base channel's statistics (max |x| = 1000) used to be kept for the bipolar result
+        // (max |x| = 4), so its trace was scaled as if it were 250 times larger.
+        BtvProgram baseFile = Program("rec", ("A1", new float[] { 1000, 1001, 1002, 1004 }), ("A2", new float[] { 1000, 1000, 1000, 1000 }));
+
+        var (files, _) = Generate(Slots(baseFile), "", ("A1", "A1 - A2"));
+
+        Assert.AreEqual(4f, files[0].Channels[0].MaxValue);
+        Assert.AreEqual(1004f, baseFile.Channels[0].MaxValue);
+    }
+
+    [Test]
+    public void RenamedChannel_SharesTheSourceSamplesUnderItsOwnLabel()
+    {
+        BtvProgram baseFile = Program("rec", ("A1", new float[] { 1, 2, 3 }), ("A2", new float[] { 7, 8, 9 }));
+
+        var (files, _) = Generate(Slots(baseFile), "", ("A1", "A2"));
+
+        BtvChannel renamed = files[0].Channels[0];
+        Assert.AreSame(baseFile.Channels[1].Data, renamed.Data);
+        Assert.AreEqual("A1", renamed.Label);
+        Assert.AreEqual(0, renamed.ID);
+        Assert.AreEqual(baseFile.Channels[1].MaxValue, renamed.MaxValue);
+    }
+
+    [Test]
+    public void ChannelMappedToItself_IsTheBaseChannel()
+    {
+        BtvProgram baseFile = Program("rec", ("A'1", new float[] { 1, 2, 3 }));
+
+        var (files, _) = Generate(Slots(baseFile), "", ("A'1", "A'1"));
+
+        Assert.AreSame(baseFile.Channels[0], files[0].Channels[0]);
+    }
+
+    [Test]
+    public void OtherFiles_AreSharedWhenTheMontageTargetsOneFile()
+    {
+        BtvProgram target = Program("seizure", ("A1", new float[] { 1, 2 }), ("A2", new float[] { 1, 1 }));
+        BtvProgram other = Program("baseline", ("A1", new float[] { 5, 6 }), ("A2", new float[] { 1, 1 }));
+
+        var (files, _) = Generate(Slots(target, other), "seizure", ("A1", "A1 - A2"));
+
+        CollectionAssert.AreEqual(new float[] { 0, 1 }, files[0].Channels[0].Data);
+        Assert.AreNotSame(other, files[1]);
+        Assert.AreSame(other.Channels[0], files[1].Channels[0]);
+        Assert.AreSame(other.Channels[1], files[1].Channels[1]);
+    }
+
+    [Test]
+    public void BadExpression_KeepsTheBaseChannelAndReportsIt()
+    {
+        BtvProgram baseFile = Program("rec", ("A1", new float[] { 1, 2 }), ("A2", new float[] { 3, 4 }));
+
+        var (files, errors) = Generate(Slots(baseFile), "", ("A1", "A1 - Z9"));
+
+        Assert.AreSame(baseFile.Channels[0], files[0].Channels[0]);
+        StringAssert.Contains("Z9", errors);
+    }
+
+    [Test]
+    public void LabelTheParserRejects_NoLongerAbortsTheMontage()
+    {
+        // The fallback used to re-parse the channel's own label; "1A" starts with a digit and
+        // threw out of GenerateMontage.
+        BtvProgram baseFile = Program("rec", ("1A", new float[] { 1, 2 }), ("A2", new float[] { 3, 4 }));
+
+        var (files, errors) = Generate(Slots(baseFile), "", ("1A", "1A - A2"), ("A2", "A2 * 2"));
+
+        Assert.AreSame(baseFile.Channels[0], files[0].Channels[0]);
+        CollectionAssert.AreEqual(new float[] { 6, 8 }, files[0].Channels[1].Data);
+        StringAssert.Contains("1A", errors);
+    }
+
+    [Test]
+    public void Montage_CopiesTheEventsSoEachMontageEditsItsOwn()
+    {
+        BtvProgram baseFile = Program("rec", ("A1", new float[] { 1, 2 }));
+
+        var (files, _) = Generate(Slots(baseFile), "", ("A1", "A1 * 2"));
+
+        Assert.AreNotSame(baseFile.Events, files[0].Events);
+        Assert.AreNotSame(baseFile.Channels, files[0].Channels);
+    }
+}

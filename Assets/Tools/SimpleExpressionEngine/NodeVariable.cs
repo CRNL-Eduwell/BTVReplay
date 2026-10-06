@@ -16,6 +16,8 @@ namespace SimpleExpressionEngine
 
         string _variableName;
 
+        public string VariableName => _variableName;
+
         public override double Eval(IContext ctx)
         {
             return ctx.ResolveVariable(_variableName);

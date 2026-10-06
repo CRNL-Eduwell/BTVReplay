@@ -32,8 +32,9 @@ namespace Tools.CSharp.EEG
         }
         /// <summary>
         /// List of electrodes of this file. WARNING: every access re-reads and re-marshals ALL
-        /// samples from the native file - read it once into a local (as IEegDataContainer
-        /// does), never inside a loop.
+        /// samples from the native file - read it once into a local, never inside a loop. It
+        /// also doubles the memory of the samples while both copies exist: IEegDataContainer
+        /// moves them one electrode at a time instead.
         /// </summary>
         public List<Electrode> Electrodes
         {
@@ -126,6 +127,23 @@ namespace Tools.CSharp.EEG
         public void FixElectrodeName()
         {
             FixElectrodeName(_handle);
+        }
+        /// <summary>
+        /// Electrode at this index, without copying its samples (Data is null). Its Label and Unit
+        /// are read live from native memory: read them before deleting this electrode.
+        /// </summary>
+        public Electrode GetElectrodeWithoutData(int index)
+        {
+            return new Electrode(GetElectrode(_handle, index), null);
+        }
+        /// <summary>
+        /// Copy of the samples of one electrode (numberOfSamples must be NumberOfSamples)
+        /// </summary>
+        public float[] ReadElectrodeData(int index, int numberOfSamples)
+        {
+            float[] data = new float[numberOfSamples];
+            GetElectrodeData(_handle, index, 0, data, data.Length);
+            return data;
         }
         /// <summary>
         /// Delete some electrodes and their data

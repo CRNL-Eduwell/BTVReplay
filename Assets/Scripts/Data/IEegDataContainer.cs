@@ -15,13 +15,17 @@ namespace BTV.Data
             // any managed failure (duplicate labels, for instance).
             try
             {
-                List<Electrode> channels = file.Electrodes;
-                Validate(channels.Select(c => c.Label).ToList(), file.NumberOfSamples, fileInfo.Files[0]);
-                foreach (var channel in channels)
+                int channelCount = file.ElectrodeCount;
+                int numberOfSamples = file.NumberOfSamples;
+                List<string> labels = new List<string>(channelCount);
+                List<string> units = new List<string>(channelCount);
+                for (int i = 0; i < channelCount; i++)
                 {
-                    ValuesByChannel.Add(channel.Label, channel.Data);
-                    UnitByChannel.Add(channel.Label, channel.Unit);
+                    Electrode electrode = file.GetElectrodeWithoutData(i);
+                    labels.Add(electrode.Label);
+                    units.Add(electrode.Unit);
                 }
+                Validate(labels, numberOfSamples, fileInfo.Files[0]);
                 Frequency = file.SamplingFrequency;
 
                 List<Trigger> events = file.Triggers;
@@ -38,6 +42,25 @@ namespace BTV.Data
                     string description = _note.Description;
                     int time = (int)((float)_note.Sample / Frequency.Value * 1000);
                     Events.Add(new BtvEvent(-1, time, 0, "", "", description));
+                }
+
+                // The samples used to be copied all at once (File.Electrodes), so the native and
+                // managed copies coexisted: twice the file's float size at the peak. Moving one
+                // electrode at a time - copy it, then free it natively - keeps the peak at one
+                // copy plus one channel. The last electrode goes first so the indices of the
+                // remaining ones never shift.
+                float[][] data = new float[channelCount][];
+                for (int i = channelCount - 1; i >= 0; i--)
+                {
+                    data[i] = file.ReadElectrodeData(i, numberOfSamples);
+                    file.DeleteElectrodesAndData(new[] { i });
+                    if (file.ElectrodeCount != i)
+                        throw new System.InvalidOperationException("The EEG reader did not release channel " + labels[i] + " of " + fileInfo.Files[0]);
+                }
+                for (int i = 0; i < channelCount; i++)
+                {
+                    ValuesByChannel.Add(labels[i], data[i]);
+                    UnitByChannel.Add(labels[i], units[i]);
                 }
 
                 Events = Events.OrderBy(x => x.TimeInMilliSeconds).ToList();

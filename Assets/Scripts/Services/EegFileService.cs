@@ -335,8 +335,14 @@ namespace BTV.Services.EegFileService
         /// Builds the montage files by evaluating each channel's correspondance expression.
         /// Runs on a worker thread (CPU-bound, only touches the snapshot it was given); progress
         /// reports are marshalled back to the main thread by the caller's Progress instance.
+        ///
+        /// A montage used to start from a deep copy of every loaded file, then overwrite the
+        /// copy sample by sample: each montage cost the full size of the recordings (3.9 GiB for
+        /// a 6 h, 183-channel TRC) even when it changed a single channel, and files outside
+        /// fileName were copied only to be left unchanged. Unchanged channels and files are now
+        /// shared with the base files; only evaluated expressions allocate.
         /// </summary>
-        private static (BtvProgram[] files, string errors) GenerateMontage(BtvProgram[] baseFiles, List<ChannelCorrespondance> montageDescription, string fileName, IProgress<(float progress, string message)> onChangeProgress)
+        public static (BtvProgram[] files, string errors) GenerateMontage(BtvProgram[] baseFiles, List<ChannelCorrespondance> montageDescription, string fileName, IProgress<(float progress, string message)> onChangeProgress)
         {
             int globalProgress = 0;
             int totalNumberOfValidFiles = string.IsNullOrEmpty(fileName) ? baseFiles.Count(f => f != null) : 1;
@@ -350,49 +356,73 @@ namespace BTV.Services.EegFileService
                     continue;
 
                 onChangeProgress.Report(((float)globalProgress / totalNumberOfValidFiles, string.Format("Preparing file {0}", baseEEGFile.Description)));
-                eegFiles[i] = new BtvProgram(baseEEGFile);
 
                 if (!string.IsNullOrEmpty(fileName) && baseEEGFile.Description != fileName)
+                {
+                    eegFiles[i] = new BtvProgram(baseEEGFile, baseEEGFile.Channels);
                     continue;
+                }
 
                 ChannelContext context = new ChannelContext(baseEEGFile.Channels);
+                List<BtvChannel> channels = new List<BtvChannel>(baseEEGFile.Channels.Count);
 
                 float localProgress = 0;
-                float localProgressStep = 1f / eegFiles[i].Channels.Count;
-                foreach (var channel in eegFiles[i].Channels)
+                float localProgressStep = 1f / baseEEGFile.Channels.Count;
+                foreach (BtvChannel baseChannel in baseEEGFile.Channels)
                 {
-                    onChangeProgress.Report(((float)(globalProgress + localProgress) / totalNumberOfValidFiles, string.Format("File {0} (channel {1})", baseEEGFile.Description, channel.Label)));
+                    onChangeProgress.Report(((float)(globalProgress + localProgress) / totalNumberOfValidFiles, string.Format("File {0} (channel {1})", baseEEGFile.Description, baseChannel.Label)));
 
-                    ChannelCorrespondance correspondance = montageDescription.FirstOrDefault(c => c.BaseLabel == channel.Label);
-                    if (correspondance == null) correspondance = new ChannelCorrespondance(channel.Label, channel.Label);
-
+                    ChannelCorrespondance correspondance = montageDescription.FirstOrDefault(c => c.BaseLabel == baseChannel.Label);
                     try
                     {
-                        Node descriptionNode = Parser.Parse(correspondance.CorrespondingLabel);
-                        for (int j = 0; j < channel.Data.Length; ++j)
-                        {
-                            context.Index = j;
-                            channel.Data[j] = (float)descriptionNode.Eval(context);
-                        }
-                        context.Reset();
+                        channels.Add(correspondance == null ? baseChannel : BuildMontageChannel(baseChannel, baseEEGFile.Channels, Parser.Parse(correspondance.CorrespondingLabel), context));
                     }
                     catch (Exception e)
                     {
+                        // The base values used to be restored by re-parsing the channel's own label,
+                        // which threw again for a label the parser rejects (a leading digit, a
+                        // space) and aborted the whole montage.
                         errorList += string.Format("Could not parse correspondance {0} of channel {1} in file {2}. Keeping base values. Reason: {3}\n", correspondance.CorrespondingLabel, correspondance.BaseLabel, baseEEGFile.Description, e.Message);
-                        Node descriptionNode = Parser.Parse(correspondance.BaseLabel);
-                        for (int j = 0; j < channel.Data.Length; ++j)
-                        {
-                            context.Index = j;
-                            channel.Data[j] = (float)descriptionNode.Eval(context);
-                        }
+                        channels.Add(baseChannel);
+                    }
+                    finally
+                    {
                         context.Reset();
                     }
                     localProgress += localProgressStep;
                 }
+                eegFiles[i] = new BtvProgram(baseEEGFile, channels);
                 globalProgress++;
             }
             // Reported to the user by the caller, back on the main thread.
             return (eegFiles, errorList);
+        }
+
+        /// <summary>
+        /// One montage channel. A bare channel name shares that channel's samples: the channel
+        /// itself when it maps to its own label, a renamed view otherwise. Any other expression is
+        /// evaluated into a new array, and its median/min/max come from the montage values - they
+        /// used to stay those of the base channel, so a bipolar trace was centred and scaled with
+        /// the referential signal's statistics.
+        /// </summary>
+        public static BtvChannel BuildMontageChannel(BtvChannel baseChannel, List<BtvChannel> baseChannels, Node expression, ChannelContext context)
+        {
+            if (expression is NodeVariable variable)
+            {
+                BtvChannel source = baseChannels.FirstOrDefault(c => c.Label == variable.VariableName);
+                if (source == baseChannel)
+                    return baseChannel;
+                if (source != null)
+                    return new BtvChannel(source, baseChannel.Label, baseChannel.ID);
+            }
+
+            float[] data = new float[baseChannel.NumberOfSample];
+            for (int j = 0; j < data.Length; ++j)
+            {
+                context.Index = j;
+                data[j] = (float)expression.Eval(context);
+            }
+            return new BtvChannel(baseChannel.Label, baseChannel.ID, baseChannel.Frequency.RawValue, data);
         }
     }
 }
