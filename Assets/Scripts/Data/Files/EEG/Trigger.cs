@@ -26,7 +26,7 @@ namespace Tools.CSharp.EEG
         {
             get
             {
-                return GetTriggerSample(_handle);
+                return DLL.NativeCLong.Is32Bit ? GetTriggerSample32(_handle) : GetTriggerSample64(_handle);
             }
         }
         #endregion
@@ -55,8 +55,12 @@ namespace Tools.CSharp.EEG
         #region DLLImport
         [DllImport("EEGFormat", EntryPoint = "GetTriggerCode", CallingConvention = CallingConvention.Cdecl)]
         static private extern int GetTriggerCode(HandleRef electrode);
+        // Native signature: long GetTriggerSample(ITrigger*). C long is 32 bits on Windows and 64 bits
+        // on macOS/Linux, so one extern per width; Sample picks the one matching NativeCLong.
         [DllImport("EEGFormat", EntryPoint = "GetTriggerSample", CallingConvention = CallingConvention.Cdecl)]
-        static private extern long GetTriggerSample(HandleRef electrode);
+        static private extern int GetTriggerSample32(HandleRef electrode);
+        [DllImport("EEGFormat", EntryPoint = "GetTriggerSample", CallingConvention = CallingConvention.Cdecl)]
+        static private extern long GetTriggerSample64(HandleRef electrode);
         #endregion
     }
 }
