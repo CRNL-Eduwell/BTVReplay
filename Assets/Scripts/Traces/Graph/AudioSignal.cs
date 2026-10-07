@@ -9,6 +9,7 @@ public class AudioSignal : MonoBehaviour
 
     private RectTransform m_ParentRectTransform = null;
     private Vector3[] m_dataArray;
+    private float[] m_Window;
     private float m_WidthOfGameObject = 0.0f;
     private float m_HorizontalScale = 0.0f;
     private float m_LimitValue = 0.0f;
@@ -120,11 +121,15 @@ public class AudioSignal : MonoBehaviour
         int PositionInArray = SamplePosition - m_Option.NumberOfPoint;
         float limitVal = (m_ParentRectTransform.rect.height - 6.5f) / 2;
 
+        // One read for the whole window.
+        if (m_Window == null || m_Window.Length != m_dataArray.Length)
+            m_Window = new float[m_dataArray.Length];
+        m_Channel.ReadWindow(PositionInArray, m_dataArray.Length, m_Window);
         for (int i = 0; i < m_dataArray.Length; i++)
         {
             if ((i + PositionInArray >= 0) && (i + PositionInArray < m_Channel.NumberOfSample))
             {
-                float value = m_Option.Gain * m_Channel.GetSample(i + PositionInArray);
+                float value = m_Option.Gain * m_Window[i];
                 if (value >= -limitVal && value <= limitVal)
                 {
                     m_dataArray[i].y = value;

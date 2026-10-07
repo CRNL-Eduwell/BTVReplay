@@ -34,6 +34,13 @@ public class MontageGenerationTests
         return EegFileService.GenerateMontage(baseFiles, montage, fileName, new SyncProgress());
     }
 
+    private static float[] Samples(BtvChannel channel)
+    {
+        float[] samples = new float[channel.NumberOfSample];
+        channel.ReadWindow(0, samples.Length, samples);
+        return samples;
+    }
+
     private static BtvProgram[] Slots(params BtvProgram[] files)
     {
         BtvProgram[] slots = new BtvProgram[EegSlots.Count];
@@ -50,7 +57,7 @@ public class MontageGenerationTests
 
         Assert.AreEqual("", errors);
         Assert.AreSame(baseFile.Channels[1], files[0].Channels[1], "A2 is unmapped: no copy");
-        Assert.AreNotSame(baseFile.Channels[0].Data, files[0].Channels[0].Data, "A1 is evaluated into its own array");
+        Assert.AreNotSame(baseFile.Channels[0].Source, files[0].Channels[0].Source, "A1 is evaluated into its own source");
     }
 
     [Test]
@@ -60,8 +67,8 @@ public class MontageGenerationTests
 
         var (files, _) = Generate(Slots(baseFile), "", ("A1", "A1 - A2"));
 
-        CollectionAssert.AreEqual(new float[] { 9, 18, 27, 36 }, files[0].Channels[0].Data);
-        CollectionAssert.AreEqual(new float[] { 10, 20, 30, 40 }, baseFile.Channels[0].Data);
+        CollectionAssert.AreEqual(new float[] { 9, 18, 27, 36 }, Samples(files[0].Channels[0]));
+        CollectionAssert.AreEqual(new float[] { 10, 20, 30, 40 }, Samples(baseFile.Channels[0]));
         Assert.AreEqual("A1", files[0].Channels[0].Label);
         Assert.AreEqual(0, files[0].Channels[0].ID);
     }
@@ -87,7 +94,9 @@ public class MontageGenerationTests
         var (files, _) = Generate(Slots(baseFile), "", ("A1", "A2"));
 
         BtvChannel renamed = files[0].Channels[0];
-        Assert.AreSame(baseFile.Channels[1].Data, renamed.Data);
+        Assert.AreSame(baseFile.Channels[1].Source, renamed.Source);
+        Assert.AreEqual(baseFile.Channels[1].SourceChannel, renamed.SourceChannel);
+        Assert.AreSame(baseFile.Channels[1].Stats, renamed.Stats);
         Assert.AreEqual("A1", renamed.Label);
         Assert.AreEqual(0, renamed.ID);
         Assert.AreEqual(baseFile.Channels[1].MaxValue, renamed.MaxValue);
@@ -111,7 +120,7 @@ public class MontageGenerationTests
 
         var (files, _) = Generate(Slots(target, other), "seizure", ("A1", "A1 - A2"));
 
-        CollectionAssert.AreEqual(new float[] { 0, 1 }, files[0].Channels[0].Data);
+        CollectionAssert.AreEqual(new float[] { 0, 1 }, Samples(files[0].Channels[0]));
         Assert.AreNotSame(other, files[1]);
         Assert.AreSame(other.Channels[0], files[1].Channels[0]);
         Assert.AreSame(other.Channels[1], files[1].Channels[1]);
@@ -138,8 +147,28 @@ public class MontageGenerationTests
         var (files, errors) = Generate(Slots(baseFile), "", ("1A", "1A - A2"), ("A2", "A2 * 2"));
 
         Assert.AreSame(baseFile.Channels[0], files[0].Channels[0]);
-        CollectionAssert.AreEqual(new float[] { 6, 8 }, files[0].Channels[1].Data);
+        CollectionAssert.AreEqual(new float[] { 6, 8 }, Samples(files[0].Channels[1]));
         StringAssert.Contains("1A", errors);
+    }
+
+    [Test]
+    public void EvaluatedChannel_IsExactAcrossEvaluationBlocks()
+    {
+        // The expression is evaluated block by block (ChannelContext.BlockSize samples); a
+        // recording longer than two blocks and not a multiple of one checks every boundary.
+        int length = 2 * SimpleExpressionEngine.ChannelContext.BlockSize + 123;
+        System.Random random = new System.Random(7);
+        float[] a1 = Enumerable.Range(0, length).Select(_ => (float)random.NextDouble() * 200 - 100).ToArray();
+        float[] a2 = Enumerable.Range(0, length).Select(_ => (float)random.NextDouble() * 200 - 100).ToArray();
+        BtvProgram baseFile = Program("rec", ("A1", a1), ("A2", a2));
+
+        var (files, errors) = Generate(Slots(baseFile), "", ("A1", "A1 - A2 * 2"));
+
+        Assert.AreEqual("", errors);
+        float[] expected = Enumerable.Range(0, length).Select(i => (float)(a1[i] - a2[i] * 2.0)).ToArray();
+        CollectionAssert.AreEqual(expected, Samples(files[0].Channels[0]));
+        Assert.AreEqual(expected.Max(), files[0].Channels[0].Stats.Max);
+        Assert.AreEqual(expected.Min(), files[0].Channels[0].Stats.Min);
     }
 
     [Test]

@@ -12,6 +12,7 @@ public class EegSignal : MonoBehaviour
     
     private RectTransform m_ParentRectTransform = null;
     private Vector3[] m_dataArray;
+    private float[] m_Window;
     private float m_WidthOfGameObject = 0.0f;
     private float m_HorizontalScale = 0.0f;
     private float m_LimitValue = 0.0f;
@@ -119,11 +120,15 @@ public class EegSignal : MonoBehaviour
         int posInArray = TraceGeometry.WindowStartSample(milliSecToLook, m_Option.SamplingFrequency, m_Option.NumberOfPoint);
         
         m_LimitValue = TraceGeometry.ClampLimit(m_ParentRectTransform.rect.height);
+        // One read for the whole window (0 past the end of the recording, as GetSample was).
+        if (m_Window == null || m_Window.Length != m_Option.NumberOfPoint)
+            m_Window = new float[m_Option.NumberOfPoint];
+        m_Channel.ReadWindow(posInArray, m_Option.NumberOfPoint, m_Window, true);
         for (int i = 0; i < m_Option.NumberOfPoint; i++)
         {
             if (i + posInArray >= 0)
             {
-                float eegValue = m_Channel.GetSample(i + posInArray, true);
+                float eegValue = m_Window[i];
                 m_dataArray[i].y = TraceGeometry.ScaleAndClamp(eegValue, m_Option.Gain, m_m_offsetCoefficient, m_LimitValue);
             }
             else
