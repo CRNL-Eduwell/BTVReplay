@@ -46,11 +46,13 @@ namespace BTV.Data
 
         public BtvProgram(DataContainer container, string description = "")
         {
-            int count = 0;
-            foreach (KeyValuePair<string, float[]> pair in container.ValuesByChannel)
+            // The container's arrays become the channels of one source, in insertion order.
+            List<KeyValuePair<string, float[]>> pairs = container.ValuesByChannel.ToList();
+            ISampleSource source = new InMemorySampleSource(pairs.Select(p => p.Value).ToArray(), new Frequency(container.Frequency.RawValue));
+            ChannelStats[] stats = ChannelStats.Compute(source, Enumerable.Range(0, pairs.Count).ToArray());
+            for (int i = 0; i < pairs.Count; i++)
             {
-                Channels.Add(new BtvChannel(pair.Key, count, container.Frequency.RawValue, pair.Value));
-                count++;
+                Channels.Add(new BtvChannel(pairs[i].Key, i, source, i, stats[i]));
             }
             Events = new List<BtvEvent>(container.Events);
 
@@ -89,11 +91,6 @@ namespace BTV.Data
         public string GetElectrodeNameFromElectrodeID(int ID)
         {
             return ((ID >= 0) && (ID < Channels.Count)) ? Channels[ID].Label : "";
-        }
-
-        public void AddData(float[] Data, string Name)
-        {
-            Channels.Add(new BtvChannel(Name, Channels.Count, Frequency.Value, Data));
         }
     }
 }

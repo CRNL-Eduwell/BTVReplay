@@ -160,17 +160,6 @@ namespace BTV.Services.EegFileService
             return GetCurrentMontage(session).EegFiles[FileID] != null;
         }
 
-        public static void AddNewChannel(float[] Data, string Name, int SamplingFrequency, int ProgramID)
-        {
-            if (CurrentMontage.EegFiles[ProgramID] == null)
-                throw new Exception("Error : Attempting to add data to an empty program");
-
-            if (CurrentMontage.EegFiles[ProgramID].Frequency.Value != SamplingFrequency)
-                throw new Exception("Error : Sampling Frequency from new data is different from the program");
-
-            CurrentMontage.EegFiles[ProgramID].AddData(Data, Name);
-        }
-
         public static void AddMontage(string name, List<ChannelCorrespondance> montageDescription, string fileName = "")
         {
             AddMontage(Session.Current, name, montageDescription, fileName);
@@ -403,7 +392,8 @@ namespace BTV.Services.EegFileService
         /// itself when it maps to its own label, a renamed view otherwise. Any other expression is
         /// evaluated into a new array, and its median/min/max come from the montage values - they
         /// used to stay those of the base channel, so a bipolar trace was centred and scaled with
-        /// the referential signal's statistics.
+        /// the referential signal's statistics. The base samples are read block by block through
+        /// their source (the expressions are point-wise, so a block needs only its own samples).
         /// </summary>
         public static BtvChannel BuildMontageChannel(BtvChannel baseChannel, List<BtvChannel> baseChannels, Node expression, ChannelContext context)
         {
@@ -417,12 +407,18 @@ namespace BTV.Services.EegFileService
             }
 
             float[] data = new float[baseChannel.NumberOfSample];
-            for (int j = 0; j < data.Length; ++j)
+            for (long first = 0; first < data.Length; first += ChannelContext.BlockSize)
             {
-                context.Index = j;
-                data[j] = (float)expression.Eval(context);
+                int count = (int)Math.Min(ChannelContext.BlockSize, data.Length - first);
+                context.BeginBlock(first, count);
+                for (int j = 0; j < count; ++j)
+                {
+                    context.Index = j;
+                    data[first + j] = (float)expression.Eval(context);
+                }
             }
-            return new BtvChannel(baseChannel.Label, baseChannel.ID, baseChannel.Frequency.RawValue, data);
+            ISampleSource montageSource = new InMemorySampleSource(new[] { data }, baseChannel.Frequency);
+            return new BtvChannel(baseChannel.Label, baseChannel.ID, montageSource, 0, ChannelStats.Compute(montageSource, new[] { 0 })[0]);
         }
     }
 }

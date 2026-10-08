@@ -123,12 +123,16 @@ public static class TracesService
         return session.TraceOptions.ContainsKey(traceID) ? session.TraceOptions[traceID].FileHandle.NumberOfElectrodes : -1;
     }
 
-    public static float[] ChannelData(int traceID, int electrodeID = -1)
+    /// <summary>
+    /// The channel shown by a trace (its own electrode by default). Its samples are read by
+    /// range (BtvChannel.ReadWindow); the whole-channel arrays this used to return are gone.
+    /// </summary>
+    public static BtvChannel Channel(int traceID, int electrodeID = -1)
     {
-        return ChannelData(BTV.Services.Session.Current, traceID, electrodeID);
+        return Channel(BTV.Services.Session.Current, traceID, electrodeID);
     }
 
-    public static float[] ChannelData(BTV.Services.Session session, int traceID, int electrodeID = -1)
+    public static BtvChannel Channel(BTV.Services.Session session, int traceID, int electrodeID = -1)
     {
         if (session.TraceOptions.ContainsKey(traceID))
         {
@@ -136,7 +140,7 @@ public static class TracesService
             if (electrodeID == -1) electrodeID = session.TraceOptions[traceID].ElectrodeID;
             if (electrodeID < handle.NumberOfElectrodes)
             {
-                return handle.Channels[electrodeID].Data;
+                return handle.Channels[electrodeID];
             }
             else
             {
@@ -149,17 +153,17 @@ public static class TracesService
         }
     }
 
-    public static float[] AudioChannelData()
+    public static BtvChannel AudioChannel()
     {
-        return AudioChannelData(BTV.Services.Session.Current);
+        return AudioChannel(BTV.Services.Session.Current);
     }
 
-    public static float[] AudioChannelData(BTV.Services.Session session)
+    public static BtvChannel AudioChannel(BTV.Services.Session session)
     {
         AudioTraceOption option = session.AudioTraceOption;
         if (option == null) return null;
         if (option.FileID < 0) return null;
 
-        return option.FileHandle.Channels[option.FileID].Data;
+        return option.FileHandle.Channels[option.FileID];
     }
 }
