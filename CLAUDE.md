@@ -88,8 +88,8 @@ correlations, all synchronized to a video clock.
 - Sample reads: on the main thread, read samples only through `BtvChannel.TryReadWindow` /
   `TryGetSample` (the block cache; false while a block is loading, so keep the previous frame).
   `ReadWindow`, `MinMax` and `ISampleSource.ReadRange` block on disk I/O, which can take seconds on
-  a network share; call them inside `Task.Run`. The overview strip's baseline normalisation is the
-  known exception (review L-5).
+  a network share; call them inside `Task.Run` (`OverviewBaseline` is the pattern for a value the
+  UI waits on: start the read, keep drawing, redraw when it lands).
 - Messenger: one handler per (recipient, context) — a duplicate registration is rejected and
   logged as an error; always pair Register/Unregister with the **same** context.
 - Many GameObject lookups are by scene-object name string (`GameObject.Find`) — renaming
