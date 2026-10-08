@@ -23,12 +23,29 @@ namespace BTV.Services.ProtocolService
         public static void LoadAllProtocols()
         {
             string[] protocolPaths = Directory.GetFiles(Application.dataPath + @"/Config/Prov/", "*.prov");
+            ProtocolFiles = LoadProtocols(protocolPaths);
+        }
 
-            ProtocolFiles = new List<Protocol>();
-            for (int i = 0; i < protocolPaths.Count(); i++)
+        /// <summary>
+        /// The protocols that load, in path order. A file that cannot be read is logged as an error
+        /// naming it and left out of the list (the Protocol events dropdown is built from it), rather
+        /// than offered half-read.
+        /// </summary>
+        public static List<Protocol> LoadProtocols(IEnumerable<string> protocolPaths)
+        {
+            List<Protocol> protocols = new List<Protocol>();
+            foreach (string path in protocolPaths)
             {
-                ProtocolFiles.Add(new Protocol(protocolPaths[i]));
+                try
+                {
+                    protocols.Add(new Protocol(path));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e.Message);
+                }
             }
+            return protocols;
         }
     }
 }
