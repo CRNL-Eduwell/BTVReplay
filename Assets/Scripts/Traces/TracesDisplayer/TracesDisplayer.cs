@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -56,6 +57,9 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     private bool m_Normalized = false;
     private float m_BeginSampleNormalize = -1;
     private float m_EndSampleNormalize = -1;
+    private OverviewBaseline m_Baseline = new OverviewBaseline();
+    // The baseline read the strip is waiting for; an older one finishing late is ignored.
+    private Task<(float min, float max)> m_PendingBaseline = null;
 
     private void Awake()
     {
@@ -168,6 +172,8 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
     private void Init(Session session)
     {
         m_Session = session;
+        m_Baseline = new OverviewBaseline();
+        m_PendingBaseline = null;
         m_NormalizeData.onClick.AddListener(OnNormalizeButtonClick);
 
         FileHandle = EegFileService.ReturnFirstValidContainer(m_Session);
@@ -328,17 +334,47 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
 
     private void GetDataToDisplay()
     {
+        m_PendingBaseline = null;
         if (m_Normalized)
         {
-            // The baseline's extremes are read from the file range; the strip's points are the
-            // stored samples. The whole channel used to be normalized into a new array.
-            (float min, float max) = Channel.MinMax((int)m_BeginSampleNormalize, (int)m_EndSampleNormalize);
-            OverviewSampling.BaselineNormalized(Channel.Stats, min, max, m_downsamplingFactor, m_dataProcessed);
+            // The baseline's extremes are read from the file range, off the main thread (they used
+            // to be read here, synchronously, on every normalise, electrode or file switch); the
+            // strip's points are the stored samples. Until the read completes the strip stays
+            // centred, and RedrawWhenBaselineRead normalises it.
+            Task<(float min, float max)> baseline = m_Baseline.Get(Channel, (long)m_BeginSampleNormalize, (long)m_EndSampleNormalize);
+            if (baseline.Status == TaskStatus.RanToCompletion)
+            {
+                OverviewSampling.BaselineNormalized(Channel.Stats, baseline.Result.min, baseline.Result.max, m_downsamplingFactor, m_dataProcessed);
+                return;
+            }
+            m_PendingBaseline = baseline;
+            RedrawWhenBaselineRead(baseline);
         }
-        else
+        OverviewSampling.Centred(Channel.Stats, m_downsamplingFactor, m_dataProcessed);
+    }
+
+    private async void RedrawWhenBaselineRead(Task<(float min, float max)> baseline)
+    {
+        Session session = m_Session;
+        try
         {
-            OverviewSampling.Centred(Channel.Stats, m_downsamplingFactor, m_dataProcessed);
+            await baseline;
         }
+        catch (Exception e)
+        {
+            if (this == null || !Session.IsCurrent(session) || baseline != m_PendingBaseline) return;
+            BtvLog.Handled("Overview strip: the normalisation baseline could not be read", e);
+            ApplicationState.displayMessage("Can not normalize data", "NOK", "The baseline could not be read from the file: " + e.Message);
+            m_Normalized = false;
+            m_PendingBaseline = null;
+            m_NormalizeData.transform.GetChild(0).GetComponent<Text>().color = Color.white;
+            return;
+        }
+        // The strip may have moved on (another electrode, file or baseline, or no normalisation)
+        // while this one was read: only the read it is still waiting for redraws it.
+        if (this == null || !Session.IsCurrent(session) || baseline != m_PendingBaseline) return;
+        GetDataToDisplay();
+        UpdateDraw(m_ParentLayoutElement.minHeight);
     }
 
     private void UpdateState(bool isBig)
