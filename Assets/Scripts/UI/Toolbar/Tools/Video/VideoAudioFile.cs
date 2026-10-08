@@ -34,6 +34,10 @@ namespace BTV.UI.Module3D.Tools
             {
                 StartLoadingFilteredAudio(VideoService.GetFilteredAudioPath(PatientSession));
             }
+            else if (VideoService.LegacyFilteredAudioFileExists(PatientSession))
+            {
+                ApplicationState.displayMessage("Audio has not been loaded", "NOK", "The filtered audio file was computed by an older version of BTVReplay, whose filter was inaccurate on recordings longer than about one hour. Use the Filter button to compute it again (the old file is kept).");
+            }
             else
             {
                 ApplicationState.displayMessage("Audio has not been loaded", "NOK", "Audio File could not be loaded correctly, check for the presence of the file.");
