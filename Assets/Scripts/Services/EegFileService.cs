@@ -418,7 +418,7 @@ namespace BTV.Services.EegFileService
                 }
             }
             ISampleSource montageSource = new InMemorySampleSource(new[] { data }, baseChannel.Frequency);
-            return new BtvChannel(baseChannel.Label, baseChannel.ID, montageSource, 0, ChannelStats.Compute(montageSource, new[] { 0 })[0]);
+            return new BtvChannel(baseChannel.Label, baseChannel.ID, montageSource, 0, ChannelStats.Compute(montageSource, new[] { 0 })[0], new BlockCache(montageSource));
         }
     }
 }
