@@ -47,7 +47,9 @@ correlations, all synchronized to a video clock.
   components), windows spawned by name via `Tools/WindowsManager.cs`, dock/drag system in
   `Assets/Scripts/Tools/Window/`. Parts vendored from HiBoP (virtualized list, handlers).
 - `Assets/Plugins/` — per-platform natives: in-house `EEGFormat`, `BTVReplayLibraryC++`,
-  `AudioFormat`, `Framework` (+ FFTW3/MSVC runtime on Windows). Layout is honest:
+  `AudioFormat`, `Framework` (FFTW and, on macOS, libomp linked in statically; built by the
+  Framework repo's `native.yml`; ships `libgomp.so` on Linux), plus the MSVC runtime and `vcomp140`
+  on Windows. Layout is honest:
   `Windows-x86_64/`, `Linux-x86_64/`, `macOS-arm64/` (no Intel-Mac libs exist), `Managed/`
   (Json.NET). Each native's .meta enables only its own platform + matching editor OS.
 - `Assets/Config/` — atlases, MNI meshes, sounds, `.prov` protocols, and test patient bases in
