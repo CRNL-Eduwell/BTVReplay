@@ -16,7 +16,10 @@ namespace Tools.CSharp.EEG
         {
             get
             {
-                return Marshal.PtrToStringAnsi(GetNoteDescription(_handle));
+                // The wrapper converts every description to UTF-8 (Utility::toUTF8), whatever the
+                // file format. PtrToStringAnsi only decodes UTF-8 on macOS/Linux; on Windows it can
+                // use the ANSI code page and garble accented text.
+                return Marshal.PtrToStringUTF8(GetNoteDescription(_handle));
             }
         }
         /// <summary>
@@ -26,7 +29,7 @@ namespace Tools.CSharp.EEG
         {
             get
             {
-                return GetNoteSample(_handle);
+                return DLL.NativeCLong.Is32Bit ? GetNoteSample32(_handle) : GetNoteSample64(_handle);
             }
         }
         #endregion
@@ -55,8 +58,12 @@ namespace Tools.CSharp.EEG
         #region DLLImport
         [DllImport("EEGFormat", EntryPoint = "GetNoteDescription", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr GetNoteDescription(HandleRef electrode);
+        // Native signature: long GetNoteSample(INote*). C long is 32 bits on Windows and 64 bits on
+        // macOS/Linux, so one extern per width; Sample picks the one matching NativeCLong.
         [DllImport("EEGFormat", EntryPoint = "GetNoteSample", CallingConvention = CallingConvention.Cdecl)]
-        static private extern long GetNoteSample(HandleRef electrode);
+        static private extern int GetNoteSample32(HandleRef electrode);
+        [DllImport("EEGFormat", EntryPoint = "GetNoteSample", CallingConvention = CallingConvention.Cdecl)]
+        static private extern long GetNoteSample64(HandleRef electrode);
         #endregion
     }
 }

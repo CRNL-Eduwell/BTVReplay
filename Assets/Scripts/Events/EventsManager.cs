@@ -457,11 +457,11 @@ public class EventsManager : MonoBehaviour
             int[] sizes = { beginTimeSample, durationInSample };
 
             int indexBaseline = TracesService.GetOptionsFor(patientSession, 0).FileHandle.GetElectrodeIDFromElectrodeName(currentEvent.SiteOfInterest);
-            float[] baseline = null;
+            BtvChannel baseline = null;
             if (indexBaseline != -1)
-                baseline = TracesService.ChannelData(patientSession, 0, indexBaseline);
+                baseline = TracesService.Channel(patientSession, 0, indexBaseline);
             else if (currentEvent.SiteOfInterest.StartsWith("AUD")) //Run Correlation against Audio trace
-                baseline = TracesService.AudioChannelData(patientSession);
+                baseline = TracesService.AudioChannel(patientSession);
 
             float[] correlation;
             if (baseline == null)
@@ -471,9 +471,9 @@ public class EventsManager : MonoBehaviour
             }
             else
             {
-                float[][] channels = new float[electrodeCount][];
+                BtvChannel[] channels = new BtvChannel[electrodeCount];
                 for (int i = 0; i < electrodeCount; i++)
-                    channels[i] = TracesService.ChannelData(patientSession, 0, i);
+                    channels[i] = TracesService.Channel(patientSession, 0, i);
 
                 // -1 when correlating against audio: every channel is processed.
                 int channelToSkip = indexBaseline;
@@ -502,17 +502,34 @@ public class EventsManager : MonoBehaviour
         }
     }
 
-    private static float[] ComputeCorrelation(float[] baseline, float[][] channels, int[] sizes, int channelToSkip)
+    /// <summary>
+    /// Pearson coefficient of each channel against the baseline over the event, sizes = {begin,
+    /// duration} in samples. Only the event's slices are read; the native call used to get the
+    /// whole channels with the offset, and read past them for an event running beyond the end
+    /// of the recording, where the slices are now zero-filled.
+    /// </summary>
+    private static float[] ComputeCorrelation(BtvChannel baseline, BtvChannel[] channels, int[] sizes, int channelToSkip)
     {
+        int[] sliceSizes = { 0, sizes[1] };
+        float[] baselineSlice = EventSlice(baseline, sizes);
+        float[] channelSlice = new float[baselineSlice.Length];
         float[] correlation = new float[channels.Length];
         for (int i = 0; i < channels.Length; i++)
         {
             if (i == channelToSkip)
                 continue;
 
-            correlation[i] = CalculationService.PearsonCorrelationCoefficients(baseline, channels[i], sizes);
+            channels[i].ReadWindow(sizes[0], channelSlice.Length, channelSlice);
+            correlation[i] = CalculationService.PearsonCorrelationCoefficients(baselineSlice, channelSlice, sliceSizes);
         }
         return correlation;
+    }
+
+    private static float[] EventSlice(BtvChannel channel, int[] sizes)
+    {
+        float[] slice = new float[Math.Max(0, sizes[1])];
+        channel.ReadWindow(sizes[0], slice.Length, slice);
+        return slice;
     }
 
     private async void Process2dCorrelation(BtvEvent currentEvent)
@@ -546,12 +563,12 @@ public class EventsManager : MonoBehaviour
             int durationInSample = (eventToProcess.Duration / 1000) * samplingFrequency;
             int[] sizes = { beginTimeSample, durationInSample };
 
-            float[][] channels1 = new float[electrodeCount][];
-            float[][] channels2 = new float[electrodeCount][];
+            BtvChannel[] channels1 = new BtvChannel[electrodeCount];
+            BtvChannel[] channels2 = new BtvChannel[electrodeCount];
             for (int i = 0; i < electrodeCount; i++)
             {
-                channels1[i] = container1.Channels[i].Data;
-                channels2[i] = container2.Channels[i].Data;
+                channels1[i] = container1.Channels[i];
+                channels2[i] = container2.Channels[i];
             }
 
             float[][] correlation2d = await Task.Run(() => ComputeCorrelation2d(channels1, channels2, sizes));
@@ -582,20 +599,24 @@ public class EventsManager : MonoBehaviour
         }
     }
 
-    private static float[][] ComputeCorrelation2d(float[][] channels1, float[][] channels2, int[] sizes)
+    private static float[][] ComputeCorrelation2d(BtvChannel[] channels1, BtvChannel[] channels2, int[] sizes)
     {
         int electrodeCount = channels1.Length;
         float[][] correlation2d = new float[electrodeCount][];
         for (int i = 0; i < electrodeCount; i++)
             correlation2d[i] = new float[electrodeCount];
 
+        // Each channel's event slice is read once: every pair uses it.
+        int[] sliceSizes = { 0, sizes[1] };
+        float[][] slices1 = channels1.Select(c => EventSlice(c, sizes)).ToArray();
+        float[][] slices2 = channels2.SequenceEqual(channels1) ? slices1 : channels2.Select(c => EventSlice(c, sizes)).ToArray();
         for (int i = 0; i < electrodeCount; i++)
         {
             for (int j = 0; j < electrodeCount; j++)
             {
                 if (i == j)
                     continue;
-                correlation2d[i][j] = CalculationService.PearsonCorrelationCoefficients(channels1[i], channels2[j], sizes);
+                correlation2d[i][j] = CalculationService.PearsonCorrelationCoefficients(slices1[i], slices2[j], sliceSizes);
             }
         }
         return correlation2d;

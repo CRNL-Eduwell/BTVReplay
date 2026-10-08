@@ -174,8 +174,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         m_currentElectrodeID = 0;
         Channel = FileHandle.Channels[m_currentElectrodeID];
         //==
-        m_downsamplingFactor = Mathf.Max(1, Mathf.CeilToInt(m_NumberOfPixelsByPoint * (float)Channel.NumberOfSample / (m_rectTransform.rect.width)));
-        //m_downsamplingFactor = 1; => to force full resolution , warning it's very slow on midlong files
+        m_downsamplingFactor = OverviewFactor();
         //==
         m_dataArray = new Vector3[Channel.NumberOfSample / m_downsamplingFactor];
         m_LineRenderer.positionCount = m_dataArray.Length;
@@ -317,22 +316,28 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    /// <summary>
+    /// About m_NumberOfPixelsByPoint pixels per point, on the channel's stored samples (the
+    /// strip no longer reads the whole channel).
+    /// </summary>
+    private int OverviewFactor()
+    {
+        int wanted = Mathf.CeilToInt(m_NumberOfPixelsByPoint * (float)Channel.NumberOfSample / (m_rectTransform.rect.width));
+        return OverviewSampling.Factor(wanted, Channel.Stats.Stride);
+    }
+
     private void GetDataToDisplay()
     {
         if (m_Normalized)
         {
-            float[] normData = Channel.GetBaselineNormalizedValues((int)m_BeginSampleNormalize, (int)m_EndSampleNormalize);
-            for (int i = 0; i < m_dataProcessed.Length; i++)
-            {
-                m_dataProcessed[i] = (normData[i * m_downsamplingFactor] - 0.5f) * 2;
-            }
+            // The baseline's extremes are read from the file range; the strip's points are the
+            // stored samples. The whole channel used to be normalized into a new array.
+            (float min, float max) = Channel.MinMax((int)m_BeginSampleNormalize, (int)m_EndSampleNormalize);
+            OverviewSampling.BaselineNormalized(Channel.Stats, min, max, m_downsamplingFactor, m_dataProcessed);
         }
         else
         {
-            for (int i = 0; i < m_dataProcessed.Length; i++)
-            {
-                m_dataProcessed[i] = Channel.GetNormalizedSample(i * m_downsamplingFactor, true);
-            }
+            OverviewSampling.Centred(Channel.Stats, m_downsamplingFactor, m_dataProcessed);
         }
     }
 
@@ -444,7 +449,7 @@ public class TracesDisplayer : MonoBehaviour, IPointerClickHandler
         FileHandle = EegFileService.ChangeContainerHandle(m_Session, FileHandle, m_ContainerId);
         Channel = FileHandle.Channels[m_currentElectrodeID];
 
-        m_downsamplingFactor = Mathf.Max(1, Mathf.CeilToInt(m_NumberOfPixelsByPoint * (float)Channel.NumberOfSample / (m_rectTransform.rect.width)));
+        m_downsamplingFactor = OverviewFactor();
         m_dataArray = new Vector3[Channel.NumberOfSample / m_downsamplingFactor];
         m_dataProcessed = new float[m_dataArray.Length];
         m_LineRenderer.positionCount = m_dataArray.Length;

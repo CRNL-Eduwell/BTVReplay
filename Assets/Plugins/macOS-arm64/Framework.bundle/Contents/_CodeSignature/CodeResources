@@ -5,35 +5,7 @@
 	<key>files</key>
 	<dict/>
 	<key>files2</key>
-	<dict>
-		<key>MacOS/libfftw3f.3.dylib</key>
-		<dict>
-			<key>cdhash</key>
-			<data>
-			6vqTjzXOmAak01731A+XHoJPgvk=
-			</data>
-			<key>requirement</key>
-			<string>cdhash H"eafa938f35ce9806a4d35ef7d40f971e824f82f9"</string>
-		</dict>
-		<key>MacOS/libfftw3f_threads.3.dylib</key>
-		<dict>
-			<key>cdhash</key>
-			<data>
-			oE4fpbGhwXl6Pcr6+tb5EzWyHi0=
-			</data>
-			<key>requirement</key>
-			<string>cdhash H"a04e1fa5b1a1c1797a3dcafafad6f91335b21e2d"</string>
-		</dict>
-		<key>MacOS/libomp.dylib</key>
-		<dict>
-			<key>cdhash</key>
-			<data>
-			miswgNRp95LQNtB8ptE3Qkc8mxc=
-			</data>
-			<key>requirement</key>
-			<string>cdhash H"9a2b3080d469f792d036d07ca6d13742473c9b17"</string>
-		</dict>
-	</dict>
+	<dict/>
 	<key>rules</key>
 	<dict>
 		<key>^Resources/</key>

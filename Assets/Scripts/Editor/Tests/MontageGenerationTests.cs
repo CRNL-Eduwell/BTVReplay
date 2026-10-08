@@ -34,6 +34,13 @@ public class MontageGenerationTests
         return EegFileService.GenerateMontage(baseFiles, montage, fileName, new SyncProgress());
     }
 
+    private static float[] Samples(BtvChannel channel)
+    {
+        float[] samples = new float[channel.NumberOfSample];
+        channel.ReadWindow(0, samples.Length, samples);
+        return samples;
+    }
+
     private static BtvProgram[] Slots(params BtvProgram[] files)
     {
         BtvProgram[] slots = new BtvProgram[EegSlots.Count];
@@ -50,7 +57,7 @@ public class MontageGenerationTests
 
         Assert.AreEqual("", errors);
         Assert.AreSame(baseFile.Channels[1], files[0].Channels[1], "A2 is unmapped: no copy");
-        Assert.AreNotSame(baseFile.Channels[0].Data, files[0].Channels[0].Data, "A1 is evaluated into its own array");
+        Assert.AreNotSame(baseFile.Channels[0].Source, files[0].Channels[0].Source, "A1 is evaluated into its own source");
     }
 
     [Test]
@@ -60,8 +67,8 @@ public class MontageGenerationTests
 
         var (files, _) = Generate(Slots(baseFile), "", ("A1", "A1 - A2"));
 
-        CollectionAssert.AreEqual(new float[] { 9, 18, 27, 36 }, files[0].Channels[0].Data);
-        CollectionAssert.AreEqual(new float[] { 10, 20, 30, 40 }, baseFile.Channels[0].Data);
+        CollectionAssert.AreEqual(new float[] { 9, 18, 27, 36 }, Samples(files[0].Channels[0]));
+        CollectionAssert.AreEqual(new float[] { 10, 20, 30, 40 }, Samples(baseFile.Channels[0]));
         Assert.AreEqual("A1", files[0].Channels[0].Label);
         Assert.AreEqual(0, files[0].Channels[0].ID);
     }
@@ -87,7 +94,9 @@ public class MontageGenerationTests
         var (files, _) = Generate(Slots(baseFile), "", ("A1", "A2"));
 
         BtvChannel renamed = files[0].Channels[0];
-        Assert.AreSame(baseFile.Channels[1].Data, renamed.Data);
+        Assert.AreSame(baseFile.Channels[1].Source, renamed.Source);
+        Assert.AreEqual(baseFile.Channels[1].SourceChannel, renamed.SourceChannel);
+        Assert.AreSame(baseFile.Channels[1].Stats, renamed.Stats);
         Assert.AreEqual("A1", renamed.Label);
         Assert.AreEqual(0, renamed.ID);
         Assert.AreEqual(baseFile.Channels[1].MaxValue, renamed.MaxValue);
@@ -111,7 +120,7 @@ public class MontageGenerationTests
 
         var (files, _) = Generate(Slots(target, other), "seizure", ("A1", "A1 - A2"));
 
-        CollectionAssert.AreEqual(new float[] { 0, 1 }, files[0].Channels[0].Data);
+        CollectionAssert.AreEqual(new float[] { 0, 1 }, Samples(files[0].Channels[0]));
         Assert.AreNotSame(other, files[1]);
         Assert.AreSame(other.Channels[0], files[1].Channels[0]);
         Assert.AreSame(other.Channels[1], files[1].Channels[1]);
@@ -138,8 +147,77 @@ public class MontageGenerationTests
         var (files, errors) = Generate(Slots(baseFile), "", ("1A", "1A - A2"), ("A2", "A2 * 2"));
 
         Assert.AreSame(baseFile.Channels[0], files[0].Channels[0]);
-        CollectionAssert.AreEqual(new float[] { 6, 8 }, files[0].Channels[1].Data);
+        CollectionAssert.AreEqual(new float[] { 6, 8 }, Samples(files[0].Channels[1]));
         StringAssert.Contains("1A", errors);
+    }
+
+    [Test]
+    public void EvaluatedChannel_ReadInBlocksEqualsTheWholeEvaluation()
+    {
+        // A montage channel is evaluated on the range being read. Read block by block, as the
+        // window cache does (the last block partial), it must equal the expression evaluated
+        // over the whole recording, which is what montages used to store.
+        int length = 3 * BlockCache.BlockSize + 123;
+        System.Random random = new System.Random(7);
+        float[] a1 = Enumerable.Range(0, length).Select(_ => (float)random.NextDouble() * 200 - 100).ToArray();
+        float[] a2 = Enumerable.Range(0, length).Select(_ => (float)random.NextDouble() * 200 - 100).ToArray();
+        BtvProgram baseFile = Program("rec", ("A1", a1), ("A2", a2));
+
+        var (files, errors) = Generate(Slots(baseFile), "", ("A1", "A1 - A2 * 2"));
+
+        Assert.AreEqual("", errors);
+        BtvChannel montage = files[0].Channels[0];
+        Assert.IsInstanceOf<DerivedSampleSource>(montage.Source, "evaluated lazily, not stored");
+        float[] expected = Enumerable.Range(0, length).Select(i => (float)(a1[i] - a2[i] * 2.0)).ToArray();
+        CollectionAssert.AreEqual(expected, Samples(montage), "one read of the whole recording");
+        float[] blockwise = new float[length];
+        float[] block = new float[BlockCache.BlockSize];
+        for (int first = 0; first < length; first += block.Length)
+        {
+            int count = Math.Min(block.Length, length - first);
+            montage.ReadWindow(first, count, block);
+            Array.Copy(block, 0, blockwise, first, count);
+        }
+        CollectionAssert.AreEqual(expected, blockwise, "block by block");
+    }
+
+    [Test]
+    public void EvaluatedChannel_StatisticsComeFromTheStoredSamples()
+    {
+        // No pass over the recording when a montage is built: the expression is evaluated on the
+        // base channels' 8192 stored samples. The median uses them as for any channel; min and max
+        // are estimated from them (they can miss a short spike between two stored samples).
+        int length = 100000;
+        System.Random random = new System.Random(11);
+        float[] a1 = Enumerable.Range(0, length).Select(_ => (float)random.NextDouble() * 200 - 100).ToArray();
+        float[] a2 = Enumerable.Range(0, length).Select(_ => (float)random.NextDouble() * 200 - 100).ToArray();
+        BtvProgram baseFile = Program("rec", ("A1", a1), ("A2", a2));
+
+        var (files, _) = Generate(Slots(baseFile), "", ("A1", "A1 - A2"));
+
+        ChannelStats stats = files[0].Channels[0].Stats;
+        int stride = ChannelStats.StrideFor(length);
+        float[] stored = Enumerable.Range(0, (length + stride - 1) / stride).Select(k => (float)(a1[k * stride] - (double)a2[k * stride])).ToArray();
+        Assert.AreEqual(stride, stats.Stride);
+        CollectionAssert.AreEqual(stored, stats.StoredSamples);
+        Assert.AreEqual(stored.Min(), stats.Min);
+        Assert.AreEqual(stored.Max(), stats.Max);
+        Assert.AreEqual(BTV.Services.CalculationService.CalculationService.Median(stored, stored.Length), stats.Median);
+    }
+
+    [Test]
+    public void MontageExpressions_ShareOneSourcePerFile()
+    {
+        BtvProgram baseFile = Program("rec", ("A1", new float[] { 1, 2 }), ("A2", new float[] { 3, 4 }), ("A3", new float[] { 5, 7 }));
+
+        var (files, _) = Generate(Slots(baseFile), "", ("A1", "A1 - A2"), ("A3", "A3 - A2"));
+
+        BtvChannel a1 = files[0].Channels[0], a3 = files[0].Channels[2];
+        Assert.AreSame(a1.Source, a3.Source, "one multiplexed source per montage file");
+        Assert.AreSame(a1.Cache, a3.Cache);
+        Assert.AreEqual(new[] { 0, 1 }, new[] { a1.SourceChannel, a3.SourceChannel });
+        CollectionAssert.AreEqual(new float[] { 2, 3 }, Samples(a3));
+        Assert.AreSame(baseFile.Channels[1], files[0].Channels[1], "A2 is unmapped: still the base channel");
     }
 
     [Test]

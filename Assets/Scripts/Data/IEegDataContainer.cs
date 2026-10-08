@@ -6,26 +6,31 @@ using UnityEngine;
 
 namespace BTV.Data
 {
+    /// <summary>
+    /// An EEG file's metadata (labels, units, rate, triggers, notes) and its samples, which stay
+    /// on disk behind <see cref="Source"/> and are read by range. The samples used to be copied
+    /// into ValuesByChannel channel by channel; for an EEG file that dictionary now stays empty.
+    /// </summary>
     public class IEegDataContainer : DataContainer
     {
+        /// <summary>The file's samples, read by range. Owned by the BtvProgram built from it.</summary>
+        public ISampleSource Source { get; }
+        /// <summary>Channel labels, in the file's order (the source's channel order).</summary>
+        public List<string> Labels { get; } = new List<string>();
+
         public IEegDataContainer(IEegFileInfo fileInfo) : base(fileInfo.Files[0])
         {
-            File file = new File(fileInfo.FileType, true, fileInfo.Files);
-            // The native file is released even when the copy below throws; it used to leak on
-            // any managed failure (duplicate labels, for instance).
+            // Metadata from a header-only open, released at once; the source keeps its own handle.
+            File file = new File(fileInfo.FileType, false, fileInfo.Files);
             try
             {
                 int channelCount = file.ElectrodeCount;
-                int numberOfSamples = file.NumberOfSamples;
-                List<string> labels = new List<string>(channelCount);
-                List<string> units = new List<string>(channelCount);
                 for (int i = 0; i < channelCount; i++)
                 {
                     Electrode electrode = file.GetElectrodeWithoutData(i);
-                    labels.Add(electrode.Label);
-                    units.Add(electrode.Unit);
+                    Labels.Add(electrode.Label);
+                    UnitByChannel[electrode.Label] = electrode.Unit;
                 }
-                Validate(labels, numberOfSamples, fileInfo.Files[0]);
                 Frequency = file.SamplingFrequency;
 
                 List<Trigger> events = file.Triggers;
@@ -43,31 +48,24 @@ namespace BTV.Data
                     int time = (int)((float)_note.Sample / Frequency.Value * 1000);
                     Events.Add(new BtvEvent(-1, time, 0, "", "", description));
                 }
-
-                // The samples used to be copied all at once (File.Electrodes), so the native and
-                // managed copies coexisted: twice the file's float size at the peak. Moving one
-                // electrode at a time - copy it, then free it natively - keeps the peak at one
-                // copy plus one channel. The last electrode goes first so the indices of the
-                // remaining ones never shift.
-                float[][] data = new float[channelCount][];
-                for (int i = channelCount - 1; i >= 0; i--)
-                {
-                    data[i] = file.ReadElectrodeData(i, numberOfSamples);
-                    file.DeleteElectrodesAndData(new[] { i });
-                    if (file.ElectrodeCount != i)
-                        throw new System.InvalidOperationException("The EEG reader did not release channel " + labels[i] + " of " + fileInfo.Files[0]);
-                }
-                for (int i = 0; i < channelCount; i++)
-                {
-                    ValuesByChannel.Add(labels[i], data[i]);
-                    UnitByChannel.Add(labels[i], units[i]);
-                }
-
                 Events = Events.OrderBy(x => x.TimeInMilliSeconds).ToList();
             }
             finally
             {
                 file.Dispose();
+            }
+
+            Source = new NativeRangeSampleSource(fileInfo.FileType, fileInfo.Files);
+            try
+            {
+                Validate(Labels, Source.SampleCount, fileInfo.Files[0]);
+                if (Source.ChannelCount != Labels.Count)
+                    throw new System.IO.InvalidDataException("The EEG reader reports " + Source.ChannelCount + " channels for " + Labels.Count + " labels: " + fileInfo.Files[0]);
+            }
+            catch
+            {
+                Source.Dispose();
+                throw;
             }
         }
 
@@ -77,7 +75,7 @@ namespace BTV.Data
         /// and duplicate labels failed on Dictionary.Add with "An item with the same key has
         /// already been added".
         /// </summary>
-        public static void Validate(IList<string> channelLabels, int numberOfSamples, string path)
+        public static void Validate(IList<string> channelLabels, long numberOfSamples, string path)
         {
             if (channelLabels.Count == 0)
                 throw new System.IO.InvalidDataException("The EEG file has no channels: " + path);

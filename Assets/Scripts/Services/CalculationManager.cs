@@ -122,16 +122,19 @@ public class CalculationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Copies the event's slice of the channel into a buffer owned by the computation, so the
+    /// Reads the event's slice of the channel into a buffer owned by the computation, so the
     /// worker never reads TracesService state.
     /// </summary>
     private static float[] SliceEventData(BTV.Data.BtvEvent btvEvent, int TraceIndex, float fs)
     {
         int beginSample = Mathf.RoundToInt(btvEvent.TimeInSeconds * fs);
         int endSample = Mathf.RoundToInt(beginSample + ((float)(btvEvent.Duration / 1000) * fs));
-        float[] rawData = TracesService.ChannelData(TraceIndex);
+        BTV.Data.BtvChannel channel = TracesService.Channel(TraceIndex);
+        // Reported as an error, as the whole-array copy did, rather than zero-filled.
+        if (beginSample < 0 || endSample > channel.NumberOfSample)
+            throw new ArgumentOutOfRangeException(nameof(btvEvent), "The event runs outside the recording.");
         float[] dataToProcess = new float[endSample - beginSample];
-        Array.Copy(rawData, beginSample, dataToProcess, 0, dataToProcess.Length);
+        channel.ReadWindow(beginSample, dataToProcess.Length, dataToProcess);
         return dataToProcess;
     }
 
