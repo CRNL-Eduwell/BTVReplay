@@ -1,4 +1,5 @@
-﻿namespace UnityEngine.Events
+﻿// Adapted from HiBoP (https://github.com/hbp-HiBoP/HiBoP), BSD-3-Clause. Licence and copyright: THIRD-PARTY-NOTICES.md.
+namespace UnityEngine.Events
 {
     public class GenericEvent<T1> : UnityEvent<T1> { };
     public class GenericEvent<T1, T2> : UnityEvent<T1, T2> { };

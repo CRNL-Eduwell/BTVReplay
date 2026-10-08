@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿// Adapted from Unity UI Extensions (https://github.com/Unity-UI-Extensions/com.unity.uiextensions) via HiBoP, BSD-3-Clause. Licence and copyright: THIRD-PARTY-NOTICES.md.
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEditor;

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿// Adapted from HiBoP (https://github.com/hbp-HiBoP/HiBoP), BSD-3-Clause. Licence and copyright: THIRD-PARTY-NOTICES.md.
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 

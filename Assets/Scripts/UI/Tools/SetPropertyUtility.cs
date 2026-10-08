@@ -1,3 +1,4 @@
+// Adapted from Unity UI Extensions (https://github.com/Unity-UI-Extensions/com.unity.uiextensions) via HiBoP, BSD-3-Clause. Licence and copyright: THIRD-PARTY-NOTICES.md.
 /// <summary>
 /// Tool script taken from the UI source as it's set to Internal for some reason. So to use in the extensions project it is needed here also.
 /// </summary>

@@ -157,6 +157,10 @@ does not recognise.
 
 Signal processing uses [FFTW](https://www.fftw.org/).
 JSON via [Json.NET](https://www.newtonsoft.com/json).
+List, tooltip and grid widgets are adapted from [HiBoP](https://github.com/hbp-HiBoP/HiBoP); file
+dialogs come from [UnityStandaloneFileBrowser](https://github.com/gkngkc/UnityStandaloneFileBrowser).
+Every third-party component and its licence is listed in
+[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
 <div align="center">
 
@@ -173,4 +177,5 @@ Released under the **GNU General Public License v3.0** — see [`LICENSE`](LICEN
 BTVReplay links FFTW3, which is GPL-licensed; GPLv3 keeps the application compatible with it. The
 bundled Json.NET is MIT-licensed. The Framework plugin also links the LLVM OpenMP runtime on macOS
 (Apache-2.0 with LLVM exception) and ships GCC's `libgomp` on Linux (GPL with the GCC Runtime
-Library Exception).
+Library Exception). The full list, with each licence text, is in
+[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
