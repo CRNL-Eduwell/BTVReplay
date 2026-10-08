@@ -72,6 +72,23 @@ Native plugins ship per-platform under `Assets/Plugins/` (`Windows-x86_64/`, `Li
 Grab the build for your platform from the [latest release](https://github.com/CRNL-Eduwell/BTVReplay/releases),
 unzip, and launch. The `Config` folder ships next to the executable.
 
+### Opening on macOS
+
+The macOS build is signed but not notarized (there is no Apple Developer ID), so a copy downloaded
+with a browser is blocked the first time: macOS says Apple could not verify that "BTVReplay" is free
+of malware. Allow it once per copy, in either of two ways:
+
+- Click **Done**, then open **System Settings → Privacy & Security**, and in the **Security**
+  section click **Open Anyway**, authenticate, and confirm **Open**.
+- Or clear the download's quarantine flag from a terminal (adjust the path to where you put the app):
+
+  ```bash
+  xattr -dr com.apple.quarantine /Applications/BTVReplay.app
+  ```
+
+A dialog saying the app is **damaged** is a different problem: the build itself is broken. Report it
+rather than working around it.
+
 ### Build from source
 
 ```bash

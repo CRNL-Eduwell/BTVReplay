@@ -57,8 +57,6 @@ namespace BTV.UI.Module3D.Tools
         {
             try
             {
-                await VideoService.LoadRawAudioFromFileAsync(PatientSession, VideoService.GetAudioFromVideoPath(PatientSession));
-                if (this == null || !Session.IsCurrent(PatientSession)) return;
                 await VideoService.FilterAudioFromVideoAsync(PatientSession, FrequencyBands, FinalFrequency);
                 if (this == null || !Session.IsCurrent(PatientSession)) return;
                 ApplicationState.displayMessage("Audio Filtering", "OK", "Audio has been correctly filtered.");
