@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿// SimpleExpressionEngine by Topten Software (https://github.com/toptensoftware/SimpleExpressionEngine), CC0-1.0. See THIRD-PARTY-NOTICES.md.
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 

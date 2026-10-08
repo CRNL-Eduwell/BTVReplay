@@ -17,10 +17,9 @@ public class Protocol
         string[] splitPath = FilePath.Split(new char[] { '/', '.' });
         ShortName = splitPath[splitPath.Length - 2];
 
-        if (File.Exists(FilePath))
-            Load(FilePath);
-        else
-            UnityEngine.Debug.LogError("Protocol => Filepath : " + FilePath + " does not exist ");
+        if (!File.Exists(FilePath))
+            throw new FileNotFoundException("The protocol file does not exist: " + FilePath, FilePath);
+        Load(FilePath);
     }
 
     private void Load(string FilePath)
@@ -141,10 +140,11 @@ public class Protocol
                 }
             }
         }
+        // Throws on failure. The error used to go to Console.WriteLine (invisible in Unity) and the
+        // half-read protocol was still offered, with the blocs parsed before the bad line.
         catch (Exception e)
         {
-            Console.WriteLine("The prov file could not be read:");
-            Console.WriteLine(e.Message);
+            throw new InvalidDataException("The protocol file could not be read: " + FilePath + " (" + e.Message + ")", e);
         }
     }
 }

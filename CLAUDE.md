@@ -8,8 +8,8 @@ correlations, all synchronized to a video clock.
 - Unity **6.4 (6000.4.10f1)**, C#, uGUI 2.0 (no UI Toolkit, no TMP usage). Upgraded from
   2021.3.16f1 in June 2026.
 - Single scene: `Assets/_main.unity`, YAML (Force Text serialization since June 2026).
-- No asmdefs. Edit-mode tests live in `Assets/Scripts/Editor/Tests/` (167 cases, run via the
-  Unity Test Runner or headless with the `verify-btv` skill); with no asmdefs they compile into
+- No asmdefs. Edit-mode tests live in `Assets/Scripts/Editor/Tests/` (run via the Unity Test
+  Runner or headless with the `verify-btv` skill); with no asmdefs they compile into
   the predefined `Assembly-CSharp-Editor`. There is no CI gate and no play-mode coverage.
 - Comments and commit messages are a French/English mix; UI strings English.
 
@@ -17,9 +17,13 @@ correlations, all synchronized to a video clock.
 
 - `Assets/Scripts/Data/` — persistence: subject DBs (`.txt`→`.dbtv`→`.dbtv2` JSON, migration
   chain in `Data/Factory/SubjectsFactory.cs`), EEG file infos (Elan/Micromed/BrainVision/EDF),
-  workspaces, events (`.pos`/`.btv`), protocols (`.prov`). EEG samples are read natively via
-  the `EEGFormat` C++ library wrapped in `Data/Files/EEG/File.cs`, copied to managed dicts by
-  `Data/IEegDataContainer.cs` then disposed.
+  workspaces, events (`.pos`/`.btv`), protocols (`.prov`). EEG samples stay on disk:
+  `Data/IEegDataContainer.cs` reads a file's header, events and notes through `EEGFormat`
+  (`Data/Files/EEG/File.cs`), then hands a `NativeRangeSampleSource` (range reads over a
+  `SafeHandle`) to the `BtvProgram` that owns it. Every consumer reads through `ISampleSource`:
+  montages are `DerivedSampleSource`s over their base file's channels, audio is an
+  `InMemorySampleSource`, and each file and montage has a `BlockCache` filled on a worker.
+  `Session.Dispose` closes the sources.
 - `Assets/Scripts/Services/` — `Session.Current` owns mutable state for the loaded patient;
   existing static services are compatibility facades over it (`EegFileService` with 6 EEG
   slots, `EventsService`, `TracesService`, `AnatomicalDataService`, `VideoService`, etc.).
@@ -37,7 +41,8 @@ correlations, all synchronized to a video clock.
   per-handler exception-isolated; duplicate registrations are rejected with a console error.
 - `Assets/Scripts/Brain/` — runtime meshes from `.tri`/`.gii`, electrode spheres (`Site`),
   rendered by a dedicated camera at x=-10000 into a RenderTexture shown via `BrainWarden`.
-- `Assets/Scripts/Traces/` — LineRenderer-based EEG traces, full redraw on every video tick.
+- `Assets/Scripts/Traces/` — LineRenderer-based EEG traces, full redraw on every video tick from
+  the block cache; a window still loading keeps the previous frame, dimmed.
 - `Assets/Scripts/VideoPlayer/` — `IVideoPlayer`: `UnityVideoPlayer` (default),
   `GhostVideoPlayer` (fake clock when no video). **The video clock is the master**:
   `CustomVideoPlayer.Update` broadcasts time every frame; all modules redraw from it.
@@ -45,7 +50,9 @@ correlations, all synchronized to a video clock.
   extraction/recording — an external-tool dependency, not a bundled library.)
 - `Assets/Scripts/UI/` — toolbar system (`ToolbarSelector` → `Toolbar` subclasses → `Tool`
   components), windows spawned by name via `Tools/WindowsManager.cs`, dock/drag system in
-  `Assets/Scripts/Tools/Window/`. Parts vendored from HiBoP (virtualized list, handlers).
+  `Assets/Scripts/Tools/Window/`. Parts vendored from HiBoP (virtualized list, tooltips,
+  resizable-grid handlers) and Unity UI Extensions (`RangeSlider`), credited in
+  `THIRD-PARTY-NOTICES.md`.
 - `Assets/Plugins/` — per-platform natives: in-house `EEGFormat`, `BTVReplayLibraryC++`,
   `AudioFormat`, `Framework` (FFTW and, on macOS, libomp linked in statically; built by the
   Framework repo's `native.yml`; ships `libgomp.so` on Linux), plus the MSVC runtime and `vcomp140`
@@ -59,10 +66,12 @@ correlations, all synchronized to a video clock.
 
 ## Gotchas
 
-- **Data safety**: the DB migration chain and backup logic have known data-destroying bugs;
-  saves are not atomic; loaders swallow exceptions and substitute empty data. See
-  `Docs/code-review-2026-06.md` §1.2–1.3, §2 before touching anything in `Data/` or
-  `SubjectRepository`. Never "fix" a load failure by saving over the input file.
+- **Data safety**: the patient base, events, preferences, workspaces and montages are written
+  through `AtomicFile`, the base's `*BU` backup is taken before the write, readers throw instead
+  of substituting empty data, and a file that failed to load refuses to be saved
+  (`DataSafetyTests`, `DataFileSafetyTests`). Keep it that way: never "fix" a load failure by
+  saving over the input file. Nothing guards against two machines writing one shared base. The
+  history is in `Docs/code-review-2026-06.md` §1.2–1.3, §2.
 - DB JSON uses Json.NET `TypeNameHandling.Auto` — class/namespace renames in
   `Data/EegFileInfo/` **break existing .dbtv2 files** (they embed `Assembly-CSharp` type names).
 - Any change to serialization settings, converters or persisted types needs a round-trip test on a
@@ -76,6 +85,11 @@ correlations, all synchronized to a video clock.
   Unity main thread). Capture `Session.Current` before starting patient-specific work and
   require `Session.IsCurrent(capturedSession)` before publishing. Never mutate session state
   from inside a `Task.Run` worker; report progress via `IProgress` (see `LoadingManager.Load`).
+- Sample reads: on the main thread, read samples only through `BtvChannel.TryReadWindow` /
+  `TryGetSample` (the block cache; false while a block is loading, so keep the previous frame).
+  `ReadWindow`, `MinMax` and `ISampleSource.ReadRange` block on disk I/O, which can take seconds on
+  a network share; call them inside `Task.Run`. The overview strip's baseline normalisation is the
+  known exception (review L-5).
 - Messenger: one handler per (recipient, context) — a duplicate registration is rejected and
   logged as an error; always pair Register/Unregister with the **same** context.
 - Many GameObject lookups are by scene-object name string (`GameObject.Find`) — renaming
@@ -84,7 +98,12 @@ correlations, all synchronized to a video clock.
   it breaks standalone player builds (a whole batch of these was removed in phase 0).
 - **Logging**: use `BtvLog.Log(...)` for informational logs (it's `[Conditional]` — compiled
   out of release builds, kept in editor/dev). Keep `Debug.LogWarning/LogError/LogException`
-  for things that must always be visible.
+  for things that must always be visible. A caught exception the user has already been shown
+  goes through `BtvLog.Handled`: `LogException` opens the bug reporter.
+- Vendored code: anything copied from another project gets an entry in `THIRD-PARTY-NOTICES.md`
+  (origin, licence, text) and a credit line at the top of each adapted file. `ThirdPartyNoticesTests`
+  fails when a listed file is missing or uncredited, or when a folder under `Assets/Tools/` or a
+  plugin binary is not named there.
 - Before deleting a MonoBehaviour script, GUID-check scenes and prefabs and remove its serialized
   components in the same change; edit-mode coverage verifies retained legacy prefabs have no
   missing scripts.
