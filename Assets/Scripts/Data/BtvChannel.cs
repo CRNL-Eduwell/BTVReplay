@@ -25,6 +25,11 @@ namespace BTV.Data
         /// <summary>Index of this channel in <see cref="Source"/>.</summary>
         public int SourceChannel { get; }
         public ChannelStats Stats { get; }
+        /// <summary>
+        /// The window cache over <see cref="Source"/>, shared by every channel of that source:
+        /// what the per-frame readers (traces, sites) go through.
+        /// </summary>
+        public BlockCache Cache { get; }
         //==
         // { SourceChannel }, the channel list ReadRange takes: never written, so shared safely.
         private readonly int[] m_SourceChannels;
@@ -33,13 +38,14 @@ namespace BTV.Data
         [ThreadStatic] private static float[][] t_Destination;
         [ThreadStatic] private static float[] t_Sample;
 
-        public BtvChannel(string Name, int Position, ISampleSource source, int sourceChannel, ChannelStats stats)
+        public BtvChannel(string Name, int Position, ISampleSource source, int sourceChannel, ChannelStats stats, BlockCache cache)
         {
             Label = Name;
             ID = Position;
             Source = source;
             SourceChannel = sourceChannel;
             Stats = stats;
+            Cache = cache;
             Frequency = source.Frequency;
             MaxValue = Math.Max(Math.Abs(stats.Min), Math.Abs(stats.Max));
             m_SourceChannels = new[] { sourceChannel };
@@ -49,7 +55,7 @@ namespace BTV.Data
         /// channel): shares its source channel and statistics instead of copying them.
         /// </summary>
         public BtvChannel(BtvChannel source, string Name, int Position)
-            : this(Name, Position, source.Source, source.SourceChannel, source.Stats)
+            : this(Name, Position, source.Source, source.SourceChannel, source.Stats, source.Cache)
         {
         }
 
@@ -90,6 +96,35 @@ namespace BTV.Data
             Array.Clear(dst, 0, Math.Min(offset, count));
             if (offset + read < count)
                 Array.Clear(dst, offset + read, count - offset - read);
+        }
+
+        /// <summary>
+        /// <see cref="ReadWindow"/> through the window cache, for readers on the main thread that
+        /// must not wait for a read: false, with dst untouched, while the window is still loading.
+        /// </summary>
+        public bool TryReadWindow(long first, int count, float[] dst, bool centered = false)
+        {
+            if (!Cache.TryReadWindow(SourceChannel, first, count, dst))
+                return false;
+            if (centered)
+            {
+                long start = Math.Max(first, 0);
+                long end = Math.Min(first + count, Source.SampleCount);
+                for (long i = start; i < end; i++)
+                    dst[i - first] -= Stats.Median;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// <see cref="GetSample"/> through the window cache: false while that sample is loading.
+        /// </summary>
+        public bool TryGetSample(int index, out float value)
+        {
+            if (t_Sample == null) t_Sample = new float[1];
+            bool loaded = TryReadWindow(index, 1, t_Sample);
+            value = t_Sample[0];
+            return loaded;
         }
 
         /// <summary>

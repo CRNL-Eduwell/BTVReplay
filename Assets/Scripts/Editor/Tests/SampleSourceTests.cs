@@ -26,7 +26,7 @@ public class SampleSourceTests
     private static BtvChannel Channel(float[] data)
     {
         ISampleSource source = new InMemorySampleSource(new[] { data }, new Frequency(512));
-        return new BtvChannel("A1", 0, source, 0, ChannelStats.Compute(source, new[] { 0 })[0]);
+        return new BtvChannel("A1", 0, source, 0, ChannelStats.Compute(source, new[] { 0 })[0], new BlockCache(source));
     }
 
     // --- InMemorySampleSource ----------------------------------------------------------------

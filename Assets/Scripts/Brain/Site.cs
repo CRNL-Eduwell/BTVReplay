@@ -234,7 +234,10 @@ public class Site : MonoBehaviour
         if (!IsFrozen)
         {
             int MostRecentSample = m_Frequency.ConvertToRoundedNumberOfSamples(milliSecToLook);
-            EegValue = m_Channel.GetSample(MostRecentSample) / 100;
+            // From the window cache: while the sample is loading (after a seek), keep the last scale.
+            if (!m_Channel.TryGetSample(MostRecentSample, out float sample))
+                return;
+            EegValue = sample / 100;
             float currentValue = 2 + (m_Gain * EegValue);
 
             if (currentValue >= 7)

@@ -50,9 +50,10 @@ namespace BTV.Data
             List<KeyValuePair<string, float[]>> pairs = container.ValuesByChannel.ToList();
             ISampleSource source = new InMemorySampleSource(pairs.Select(p => p.Value).ToArray(), new Frequency(container.Frequency.RawValue));
             ChannelStats[] stats = ChannelStats.Compute(source, Enumerable.Range(0, pairs.Count).ToArray());
+            BlockCache cache = new BlockCache(source);
             for (int i = 0; i < pairs.Count; i++)
             {
-                Channels.Add(new BtvChannel(pairs[i].Key, i, source, i, stats[i]));
+                Channels.Add(new BtvChannel(pairs[i].Key, i, source, i, stats[i], cache));
             }
             Events = new List<BtvEvent>(container.Events);
 

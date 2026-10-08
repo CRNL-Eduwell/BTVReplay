@@ -13,6 +13,9 @@ public class EegSignal : MonoBehaviour
     private RectTransform m_ParentRectTransform = null;
     private Vector3[] m_dataArray;
     private float[] m_Window;
+    // Shown while the window is loading: the last frame, at this fraction of its opacity.
+    private const float FrozenAlpha = 0.4f;
+    private bool m_Frozen = false;
     private float m_WidthOfGameObject = 0.0f;
     private float m_HorizontalScale = 0.0f;
     private float m_LimitValue = 0.0f;
@@ -93,12 +96,28 @@ public class EegSignal : MonoBehaviour
                 }
             case "Color":
                 {
-                    _LineRenderer.startColor = m_Option.Color;
-                    _LineRenderer.endColor = m_Option.Color;
+                    ApplyColor();
                     break;
                 }
 
         }
+    }
+
+    private void SetFrozen(bool frozen)
+    {
+        if (frozen == m_Frozen)
+            return;
+        m_Frozen = frozen;
+        ApplyColor();
+    }
+
+    private void ApplyColor()
+    {
+        Color color = m_Option.Color;
+        if (m_Frozen)
+            color.a *= FrozenAlpha;
+        _LineRenderer.startColor = color;
+        _LineRenderer.endColor = color;
     }
 
     public void UpdateHorizontalScale()
@@ -115,15 +134,24 @@ public class EegSignal : MonoBehaviour
 
     public void UpdateDraw(int milliSecToLook)
     {
-        MostRecentTimeInMilliSecs = milliSecToLook;
         //int mostRecentSample = (int)(milliSecToLook * ((float)m_Option.SamplingFrequency / 1000));
         int posInArray = TraceGeometry.WindowStartSample(milliSecToLook, m_Option.SamplingFrequency, m_Option.NumberOfPoint);
-        
-        m_LimitValue = TraceGeometry.ClampLimit(m_ParentRectTransform.rect.height);
-        // One read for the whole window (0 past the end of the recording, as GetSample was).
+
+        // One read for the whole window, from the window cache (0 past the end of the recording,
+        // as GetSample was). While the window is still loading - after a seek - the last frame
+        // stays on screen, dimmed: never zeros, never NaN.
         if (m_Window == null || m_Window.Length != m_Option.NumberOfPoint)
             m_Window = new float[m_Option.NumberOfPoint];
-        m_Channel.ReadWindow(posInArray, m_Option.NumberOfPoint, m_Window, true);
+        if (!m_Channel.TryReadWindow(posInArray, m_Option.NumberOfPoint, m_Window, true))
+        {
+            SetFrozen(true);
+            return;
+        }
+        SetFrozen(false);
+        // The time of what is on screen: Trace maps a click on the trace back to a time with it.
+        MostRecentTimeInMilliSecs = milliSecToLook;
+
+        m_LimitValue = TraceGeometry.ClampLimit(m_ParentRectTransform.rect.height);
         for (int i = 0; i < m_Option.NumberOfPoint; i++)
         {
             if (i + posInArray >= 0)
