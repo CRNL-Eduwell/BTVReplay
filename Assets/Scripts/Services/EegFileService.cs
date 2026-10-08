@@ -84,8 +84,18 @@ namespace BTV.Services.EegFileService
                 // with no trace at all; throwing lets the loader report it.
                 if (!System.IO.File.Exists(fileInfo.Files[0]))
                     throw new System.IO.FileNotFoundException("EEG file not found.", fileInfo.Files[0]);
+                // Header only: the samples stay on disk and are read by range. The statistics
+                // pass below reads the file once, block by block, as the whole load used to.
                 IEegDataContainer container = new IEegDataContainer(fileInfo);
-                return new BtvProgram(container, description);
+                try
+                {
+                    return new BtvProgram(container.Source, container.Labels, container, description);
+                }
+                catch
+                {
+                    container.Source.Dispose();
+                    throw;
+                }
             });
 
             TryPublishEegFile(session, eegFile, FileID);
@@ -96,6 +106,7 @@ namespace BTV.Services.EegFileService
             if (!Session.IsCurrent(session))
             {
                 BtvLog.Log("Discarded an EEG file loaded for a previous patient session.");
+                eegFile?.OwnedSource?.Dispose();
                 return false;
             }
 

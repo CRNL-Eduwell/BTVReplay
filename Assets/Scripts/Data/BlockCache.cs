@@ -187,6 +187,10 @@ namespace BTV.Data
                 if (Session.IsCurrent(session))
                     m_Blocks[block] = new Block { Samples = samples, Count = read };
             }
+            catch (ObjectDisposedException)
+            {
+                // The file was closed under the read: its patient session ended. Nothing to report.
+            }
             catch (Exception e)
             {
                 // The frame stays frozen and the block is asked for again on the next tick.

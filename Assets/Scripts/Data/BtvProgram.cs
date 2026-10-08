@@ -43,23 +43,40 @@ namespace BTV.Data
             }
         }
         private readonly string m_FilePath = "";
+        /// <summary>
+        /// The source this program opened and must close (an EEG file read from disk); null for
+        /// a montage, which shares its base file's source. Disposed by Session.Dispose, or when
+        /// another file replaces this one in its slot.
+        /// </summary>
+        public ISampleSource OwnedSource { get; private set; }
 
+        /// <summary>Channels held in the container's arrays (audio, in-memory test data).</summary>
         public BtvProgram(DataContainer container, string description = "")
+            : this(new InMemorySampleSource(container.ValuesByChannel.Values.ToArray(), new Frequency(container.Frequency.RawValue)),
+                  container.ValuesByChannel.Keys.ToList(), container, description)
         {
-            // The container's arrays become the channels of one source, in insertion order.
-            List<KeyValuePair<string, float[]>> pairs = container.ValuesByChannel.ToList();
-            ISampleSource source = new InMemorySampleSource(pairs.Select(p => p.Value).ToArray(), new Frequency(container.Frequency.RawValue));
-            ChannelStats[] stats = ChannelStats.Compute(source, Enumerable.Range(0, pairs.Count).ToArray());
-            BlockCache cache = new BlockCache(source);
-            for (int i = 0; i < pairs.Count; i++)
-            {
-                Channels.Add(new BtvChannel(pairs[i].Key, i, source, i, stats[i], cache));
-            }
-            Events = new List<BtvEvent>(container.Events);
+            OwnedSource = null;
+        }
 
-            Frequency = container.Frequency;
-            m_FilePath = container.FilePath;
+        /// <summary>
+        /// Channels read from <paramref name="source"/>, labelled in its channel order, with the
+        /// container's events, rate and path. The program owns the source. Statistics come from one
+        /// pass over the source, block by block: run it off the main thread.
+        /// </summary>
+        public BtvProgram(ISampleSource source, IList<string> labels, DataContainer metadata, string description = "")
+        {
+            ChannelStats[] stats = ChannelStats.Compute(source, Enumerable.Range(0, labels.Count).ToArray());
+            BlockCache cache = new BlockCache(source);
+            for (int i = 0; i < labels.Count; i++)
+            {
+                Channels.Add(new BtvChannel(labels[i], i, source, i, stats[i], cache));
+            }
+            Events = new List<BtvEvent>(metadata.Events);
+
+            Frequency = metadata.Frequency;
+            m_FilePath = metadata.FilePath;
             Description = description;
+            OwnedSource = source;
 
             //Little hack due to micromed seemingly finishing a recording but keep events after said end
             //See at some point if it's not better to expand end of file time and add zero's to data (or not)
