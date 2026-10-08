@@ -78,9 +78,35 @@ namespace BTV.Services.VideoService
             return Path.ChangeExtension(GetOriginalVideoPath(session), ".wav");
         }
 
+        /// <summary>
+        /// Suffix of the filtered-audio cache written next to the extracted .wav. It carries the
+        /// version of the ToHilbert output: bump it whenever the Framework filter's output changes,
+        /// so caches written by older plugins are recomputed once instead of being loaded.
+        /// v2 = Framework c466993 (block-wise ToHilbert). Every older plugin computed the fir2 phase
+        /// in float32, which corrupts the envelope of recordings longer than about 1 h.
+        /// </summary>
+        public const string FilteredAudioSuffix = "_audio_v2.csv";
+
+        /// <summary>
+        /// Suffix written by BTVReplay up to 4.5.0. Such files are only detected to explain why
+        /// they are not loaded; they are never read, deleted or overwritten.
+        /// </summary>
+        public const string LegacyFilteredAudioSuffix = "_audio.csv";
+
         public static string GetFilteredAudioPath(Session session)
         {
-            return GetAudioFromVideoPath(session).Replace(".wav", "_audio.csv");
+            return GetFilteredAudioPathFromAudioPath(GetAudioFromVideoPath(session), FilteredAudioSuffix);
+        }
+
+        public static string GetLegacyFilteredAudioPath(Session session)
+        {
+            return GetFilteredAudioPathFromAudioPath(GetAudioFromVideoPath(session), LegacyFilteredAudioSuffix);
+        }
+
+        public static string GetFilteredAudioPathFromAudioPath(string audioPath, string suffix)
+        {
+            // Same Replace as the pre-versioning code, so the legacy path is exactly the one it wrote.
+            return audioPath.Replace(".wav", suffix);
         }
 
         public static bool VideoFileExists(Session session)
@@ -98,6 +124,12 @@ namespace BTV.Services.VideoService
         public static bool FilteredAudioFileExists(Session session)
         {
             string path = GetFilteredAudioPath(session);
+            return path != "" && new FileInfo(path).Exists;
+        }
+
+        public static bool LegacyFilteredAudioFileExists(Session session)
+        {
+            string path = GetLegacyFilteredAudioPath(session);
             return path != "" && new FileInfo(path).Exists;
         }
         /// <summary>
