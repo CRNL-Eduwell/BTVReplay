@@ -329,7 +329,8 @@ namespace BTV.Services.EegFileService
         /// copy sample by sample: each montage cost the full size of the recordings (3.9 GiB for
         /// a 6 h, 183-channel TRC) even when it changed a single channel, and files outside
         /// fileName were copied only to be left unchanged. Unchanged channels and files are now
-        /// shared with the base files; only evaluated expressions allocate.
+        /// shared with the base files, and expressions are evaluated as their samples are read
+        /// (DerivedSampleSource): building a montage reads nothing but the stored samples.
         /// </summary>
         public static (BtvProgram[] files, string errors) GenerateMontage(BtvProgram[] baseFiles, List<ChannelCorrespondance> montageDescription, string fileName, IProgress<(float progress, string message)> onChangeProgress)
         {
@@ -352,8 +353,12 @@ namespace BTV.Services.EegFileService
                     continue;
                 }
 
-                ChannelContext context = new ChannelContext(baseEEGFile.Channels);
                 List<BtvChannel> channels = new List<BtvChannel>(baseEEGFile.Channels.Count);
+                long sampleCount = baseEEGFile.Channels.Count > 0 ? baseEEGFile.Channels[0].Source.SampleCount : 0;
+                // Expression channels, evaluated lazily by one source per file: their slots in
+                // `channels` are filled once every expression of the file is known.
+                List<DerivedSampleSource.Expression> expressions = new List<DerivedSampleSource.Expression>();
+                List<int> expressionSlots = new List<int>();
 
                 float localProgress = 0;
                 float localProgressStep = 1f / baseEEGFile.Channels.Count;
@@ -364,7 +369,23 @@ namespace BTV.Services.EegFileService
                     ChannelCorrespondance correspondance = montageDescription.FirstOrDefault(c => c.BaseLabel == baseChannel.Label);
                     try
                     {
-                        channels.Add(correspondance == null ? baseChannel : BuildMontageChannel(baseChannel, baseEEGFile.Channels, Parser.Parse(correspondance.CorrespondingLabel), context));
+                        if (correspondance == null)
+                        {
+                            channels.Add(baseChannel);
+                        }
+                        else
+                        {
+                            Node expression = Parser.Parse(correspondance.CorrespondingLabel);
+                            BtvChannel shared = SharedMontageChannel(baseChannel, baseEEGFile.Channels, expression);
+                            if (shared == null)
+                            {
+                                // Checked and evaluated on the stored samples here, so a bad
+                                // expression is reported and the base channel kept, as before.
+                                expressions.Add(DerivedSampleSource.Expression.Prepare(expression, baseEEGFile.Channels, sampleCount));
+                                expressionSlots.Add(channels.Count);
+                            }
+                            channels.Add(shared);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -374,11 +395,19 @@ namespace BTV.Services.EegFileService
                         errorList += string.Format("Could not parse correspondance {0} of channel {1} in file {2}. Keeping base values. Reason: {3}\n", correspondance.CorrespondingLabel, correspondance.BaseLabel, baseEEGFile.Description, e.Message);
                         channels.Add(baseChannel);
                     }
-                    finally
-                    {
-                        context.Reset();
-                    }
                     localProgress += localProgressStep;
+                }
+
+                if (expressions.Count > 0)
+                {
+                    BtvChannel first = baseEEGFile.Channels[0];
+                    DerivedSampleSource derived = new DerivedSampleSource(expressions, first.Frequency, sampleCount);
+                    BlockCache cache = new BlockCache(derived);
+                    for (int k = 0; k < expressions.Count; k++)
+                    {
+                        BtvChannel baseChannel = baseEEGFile.Channels[expressionSlots[k]];
+                        channels[expressionSlots[k]] = new BtvChannel(baseChannel.Label, baseChannel.ID, derived, k, expressions[k].Stats, cache);
+                    }
                 }
                 eegFiles[i] = new BtvProgram(baseEEGFile, channels);
                 globalProgress++;
@@ -388,14 +417,15 @@ namespace BTV.Services.EegFileService
         }
 
         /// <summary>
-        /// One montage channel. A bare channel name shares that channel's samples: the channel
-        /// itself when it maps to its own label, a renamed view otherwise. Any other expression is
-        /// evaluated into a new array, and its median/min/max come from the montage values - they
-        /// used to stay those of the base channel, so a bipolar trace was centred and scaled with
-        /// the referential signal's statistics. The base samples are read block by block through
-        /// their source (the expressions are point-wise, so a block needs only its own samples).
+        /// A montage channel that is a bare channel name shares that channel's samples: the
+        /// channel itself when it maps to its own label, a renamed view otherwise. Null for any
+        /// other expression, which a DerivedSampleSource evaluates on the samples being read.
+        /// Its median/min/max come from the montage values (the base channel's used to be kept, so
+        /// a bipolar trace was centred and scaled with the referential signal's statistics), and
+        /// it no longer allocates the whole recording: a bipolar montage of a 6 h, 183-channel
+        /// TRC used to cost 3.9 GiB.
         /// </summary>
-        public static BtvChannel BuildMontageChannel(BtvChannel baseChannel, List<BtvChannel> baseChannels, Node expression, ChannelContext context)
+        public static BtvChannel SharedMontageChannel(BtvChannel baseChannel, List<BtvChannel> baseChannels, Node expression)
         {
             if (expression is NodeVariable variable)
             {
@@ -405,20 +435,7 @@ namespace BTV.Services.EegFileService
                 if (source != null)
                     return new BtvChannel(source, baseChannel.Label, baseChannel.ID);
             }
-
-            float[] data = new float[baseChannel.NumberOfSample];
-            for (long first = 0; first < data.Length; first += ChannelContext.BlockSize)
-            {
-                int count = (int)Math.Min(ChannelContext.BlockSize, data.Length - first);
-                context.BeginBlock(first, count);
-                for (int j = 0; j < count; ++j)
-                {
-                    context.Index = j;
-                    data[first + j] = (float)expression.Eval(context);
-                }
-            }
-            ISampleSource montageSource = new InMemorySampleSource(new[] { data }, baseChannel.Frequency);
-            return new BtvChannel(baseChannel.Label, baseChannel.ID, montageSource, 0, ChannelStats.Compute(montageSource, new[] { 0 })[0], new BlockCache(montageSource));
+            return null;
         }
     }
 }

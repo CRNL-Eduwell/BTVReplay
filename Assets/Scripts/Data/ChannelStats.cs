@@ -34,6 +34,27 @@ namespace BTV.Data
         }
 
         /// <summary>
+        /// Statistics of a channel known only through its stored samples (a montage expression
+        /// evaluated on its base channels' stored samples): the median as usual, and min/max
+        /// estimated from those samples, which can miss a short spike between two of them.
+        /// </summary>
+        public static ChannelStats FromStoredSamples(float[] storedSamples, int stride)
+        {
+            float min = 0, max = 0;
+            if (storedSamples.Length > 0)
+            {
+                min = float.PositiveInfinity;
+                max = float.NegativeInfinity;
+                foreach (float value in storedSamples)
+                {
+                    if (value < min) min = value;
+                    if (value > max) max = value;
+                }
+            }
+            return new ChannelStats(min, max, stride, storedSamples);
+        }
+
+        /// <summary>
         /// Distance between stored samples for a channel of <paramref name="sampleCount"/>
         /// samples: 1 up to 8192 samples, then the smallest that keeps at most 8192.
         /// </summary>
