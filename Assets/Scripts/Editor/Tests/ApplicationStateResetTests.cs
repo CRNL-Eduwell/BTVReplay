@@ -331,7 +331,6 @@ public class ApplicationStateResetTests
         ApplicationState.ResetAllServices();
 
         Assert.IsFalse(InvokePrivateBool(typeof(EegFileService), "TryPublishEegFile", previousSession, null, 0));
-        Assert.IsFalse(InvokePrivateBool(typeof(BTV.Services.VideoService.VideoService), "TryPublishRawAudio", previousSession, null));
         Assert.IsFalse(InvokePrivateBool(typeof(BTV.Services.VideoService.VideoService), "TryPublishProcessedAudio", previousSession, null, "loaded"));
         Assert.IsNull(EegFileService.DefaultMontage.EegFiles[0]);
         Assert.IsFalse(BTV.Services.VideoService.VideoService.FilteredDataLoaded);
@@ -374,6 +373,32 @@ public class ApplicationStateResetTests
 
         Assert.IsTrue(published);
         Assert.IsTrue(audioLoaded, "the replacement scene's pre-Update subscriber must survive reset broadcasts");
+    }
+
+    // The decoded WAV (4 bytes per sample at 11025 Hz: ~94 MB for 35 min, ~0.95 GB for 6 h) is
+    // read inside the filtering worker and dropped with it. It used to sit in
+    // Session.RawAudioData for the whole patient session although only the filtering step read it.
+    [Test]
+    public void RawAudioTrack_IsWorkerLocalNotSessionState()
+    {
+        const BindingFlags AnyInstance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        string[] sessionMembers = typeof(Session).GetProperties(AnyInstance)
+            .Where(property => property.PropertyType == typeof(AudioDataContainer))
+            .Select(property => property.Name)
+            .Concat(typeof(Session).GetFields(AnyInstance)
+                .Where(field => field.FieldType == typeof(AudioDataContainer))
+                .Select(field => field.Name))
+            .ToArray();
+        CollectionAssert.IsEmpty(sessionMembers, "the session must not hold a decoded audio track");
+
+        const BindingFlags AnyStatic = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+        Type videoService = typeof(BTV.Services.VideoService.VideoService);
+        Assert.IsFalse(videoService.GetProperties(AnyStatic).Any(property => property.PropertyType == typeof(AudioDataContainer)),
+            "VideoService must not expose a cached raw audio container");
+        Assert.IsFalse(videoService.GetFields(AnyStatic).Any(field => field.FieldType == typeof(AudioDataContainer)),
+            "VideoService must not cache a raw audio container");
+        Assert.IsNull(videoService.GetMethod("LoadRawAudioFromFileAsync", AnyStatic),
+            "filtering reads the WAV itself; a separate load step would bring the session copy back");
     }
 
     private static void SetTaskPerformanceProperty(string propertyName, object value)

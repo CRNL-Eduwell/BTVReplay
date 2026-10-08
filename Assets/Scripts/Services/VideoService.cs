@@ -126,11 +126,6 @@ namespace BTV.Services.VideoService
             get { return Session.Current.ProcessedAudio; }
             set { Session.Current.ProcessedAudio = value; }
         }
-        private static AudioDataContainer RawAudioData
-        {
-            get { return Session.Current.RawAudioData; }
-            set { Session.Current.RawAudioData = value; }
-        }
         private static string m_VlcPath
         {
             get
@@ -158,7 +153,6 @@ namespace BTV.Services.VideoService
         public static void Reset()
         {
             ProcessedAudio = null;
-            RawAudioData = null;
             FilteredDataLoaded = false;
         }
 
@@ -231,29 +225,6 @@ namespace BTV.Services.VideoService
             });
         }
 
-        public static async Task LoadRawAudioFromFileAsync(string RawAudioFromVideoPath)
-        {
-            await LoadRawAudioFromFileAsync(Session.Current, RawAudioFromVideoPath);
-        }
-
-        public static async Task LoadRawAudioFromFileAsync(Session session, string RawAudioFromVideoPath)
-        {
-            AudioDataContainer rawAudioData = await Task.Run(() => new AudioDataContainer(RawAudioFromVideoPath, AudioFile.AudioFileType.Wav));
-            TryPublishRawAudio(session, rawAudioData);
-        }
-
-        private static bool TryPublishRawAudio(Session session, AudioDataContainer rawAudioData)
-        {
-            if (!Session.IsCurrent(session))
-            {
-                BtvLog.Log("Discarded raw audio loaded for a previous patient session.");
-                return false;
-            }
-
-            session.RawAudioData = rawAudioData;
-            return true;
-        }
-
         public static async Task FilterAudioFromVideoAsync(string FrequencyBands, int DownsampFreq)
         {
             await FilterAudioFromVideoAsync(Session.Current, FrequencyBands, DownsampFreq);
@@ -261,13 +232,17 @@ namespace BTV.Services.VideoService
 
         public static async Task FilterAudioFromVideoAsync(Session session, string FrequencyBands, int DownsampFreq)
         {
-            AudioDataContainer rawAudioData = session.RawAudioData;
             // Resolves SubjectInfoService-backed patient state on the main thread; do not move
-            // this lookup into the Task.Run worker below.
+            // these lookups into the Task.Run worker below.
+            string rawAudioPath = GetAudioFromVideoPath(session);
             string filteredAudioPath = GetFilteredAudioPath(session);
 
             BtvProgram processedAudio = await Task.Run(() =>
             {
+                // The decoded track (4 bytes per sample at 11025 Hz: ~94 MB for 35 min, ~0.95 GB
+                // for 6 h) is only needed here, so it is read inside the worker and dropped with it.
+                // It used to be kept in the session until a reset or patient switch.
+                AudioDataContainer rawAudioData = new AudioDataContainer(rawAudioPath, AudioFile.AudioFileType.Wav);
                 Frequency DownsampledFrequency = new Frequency(DownsampFreq);
 
                 float[] RawAudio = rawAudioData.ValuesByChannel.Values.ElementAt(0);
