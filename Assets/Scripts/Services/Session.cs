@@ -71,6 +71,21 @@ namespace BTV.Services
             IsDisposed = true;
             AudioDataLoadedHandlers = null;
             Subject = null;
+            // The EEG files are read from disk on demand: close them. A read in flight on a
+            // worker keeps its file open until it returns (SafeHandle); montages share their
+            // base file's source without owning it.
+            if (Montages != null)
+            {
+                HashSet<ISampleSource> closed = new HashSet<ISampleSource>();
+                foreach (BtvMontage montage in Montages)
+                {
+                    foreach (BtvProgram file in montage.EegFiles)
+                    {
+                        if (file?.OwnedSource != null && closed.Add(file.OwnedSource))
+                            file.OwnedSource.Dispose();
+                    }
+                }
+            }
             Montages?.Clear();
             Events?.Clear();
             TraceOptions?.Clear();
