@@ -154,4 +154,6 @@ JSON via [Json.NET](https://www.newtonsoft.com/json).
 Released under the **GNU General Public License v3.0** — see [`LICENSE`](LICENSE).
 
 BTVReplay links FFTW3, which is GPL-licensed; GPLv3 keeps the application compatible with it. The
-bundled Json.NET is MIT-licensed.
+bundled Json.NET is MIT-licensed. The Framework plugin also links the LLVM OpenMP runtime on macOS
+(Apache-2.0 with LLVM exception) and ships GCC's `libgomp` on Linux (GPL with the GCC Runtime
+Library Exception).
