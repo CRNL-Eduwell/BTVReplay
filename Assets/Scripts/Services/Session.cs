@@ -39,7 +39,6 @@ namespace BTV.Services
         internal MarsAtlas Atlas { get; set; }
 
         internal BtvProgram ProcessedAudio { get; set; }
-        internal AudioDataContainer RawAudioData { get; set; }
         internal bool FilteredDataLoaded { get; set; }
         internal AudioDataLoaded AudioDataLoadedHandlers { get; set; }
 
@@ -96,7 +95,6 @@ namespace BTV.Services
             Atlas?.Dispose();
             Atlas = null;
             ProcessedAudio = null;
-            RawAudioData = null;
             ProcessedTriggers?.Clear();
             TaskPerformanceColors?.Clear();
             CodeComments?.Clear();
