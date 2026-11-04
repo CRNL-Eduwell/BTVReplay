@@ -5,6 +5,14 @@ epilepsy monitoring review (CHUV). Loads patient databases, draws EEG traces, re
 brain (MNI or patient meshes) with electrode activity, computes time-frequency maps and
 correlations, all synchronized to a video clock.
 
+This file covers **how to work in this repo**. Product documentation (what BTVReplay and its live
+sibling BrainTV are, what they must do and why, specs and open work) lives in the maintainers'
+knowledge hub, `BTV-knowledge-hub`, a private repository. In the maintainers' workspace this repo
+sits next to it, so the hub is at `../BTV-knowledge-hub/`; start from its `AGENTS.md`. Without
+access to the hub, this file and `README.md` are enough to build, test and change the code.
+Because this repository is public and the hub is not, nothing from the hub that is internal, and
+nothing patient-identifying, goes into this repo's commits, PRs, docs or fixtures.
+
 - Unity **6.4 (6000.4.10f1)**, C#, uGUI 2.0 (no UI Toolkit, no TMP usage). Upgraded from
   2021.3.16f1 in June 2026.
 - Single scene: `Assets/_main.unity`, YAML (Force Text serialization since June 2026).
