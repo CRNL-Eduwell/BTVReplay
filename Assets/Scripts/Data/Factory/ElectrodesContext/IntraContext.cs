@@ -54,7 +54,10 @@ namespace Assets.Scripts.Data.Factory
         private List<KeyValuePair<string, List<AnatomicalSite>>> GetIntraElectrodes(List<AnatomicalSite> sites)
         {
             List<KeyValuePair<string, List<AnatomicalSite>>> IntraElectrodes = new List<KeyValuePair<string, List<AnatomicalSite>>>();
-            string currentElectrodeName = "";
+            // null = no electrode yet. It used to start at "", which is also the name
+            // GetIntraPlotInformation gives a label it cannot split: a first site of that kind
+            // was taken for one more plot of the current electrode and indexed the empty list.
+            string currentElectrodeName = null;
             for (int i = 0; i < sites.Count; i++)
             {
                 string correctedName = CorrectPlotName(sites[i].Label);
