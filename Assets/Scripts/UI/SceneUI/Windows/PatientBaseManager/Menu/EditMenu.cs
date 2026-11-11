@@ -123,24 +123,24 @@ namespace BTV.UI.PatientBaseManager
             Close();
         }
 
-        private void MoveSubjectsToDatabase(string databaseName)
+        private void MoveSubjectsToDatabase(SubjectRepository database)
         {
             EditMenuMessage message = new EditMenuMessage
             {
                 TaskToExecute = EditMenuMessage.Task.MoveSubjects,
-                DestinationDatabase = databaseName
+                DestinationDatabase = database
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             m_MoveSubjectsSubMenu.Show = false;
             Close();
         }
 
-        private void CopySubjectsToDatabase(string databaseName)
+        private void CopySubjectsToDatabase(SubjectRepository database)
         {
             EditMenuMessage message = new EditMenuMessage
             {
                 TaskToExecute = EditMenuMessage.Task.CopySubjects,
-                DestinationDatabase = databaseName
+                DestinationDatabase = database
             };
             Messenger.Default.Send(message, MessageContext.EditMenuMessage);
             m_CopySubjectsSubMenu.Show = false;

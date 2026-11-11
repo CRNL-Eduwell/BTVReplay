@@ -122,6 +122,105 @@ public class DatabaseServiceTests
     }
     #endregion
 
+    #region OpenDatabase result
+    // Every refusal used to be a console line and a silent return: the manager looked as if
+    // the click had done nothing. The result is what the window turns into a dialog.
+    [Test]
+    public void OpenDatabase_SaysWhyNothingWasOpened()
+    {
+        LogAssert.ignoreFailingMessages = true;
+
+        string good = Path.Combine(m_TestDir, "base.dbtv2");
+        Assert.IsTrue(DBFile3.Save(good, new System.Collections.Generic.List<Subject> { new Subject("A") }));
+        string corrupt = Path.Combine(m_TestDir, "corrupt.dbtv2");
+        File.WriteAllText(corrupt, "{ this is not json");
+        string missing = Path.Combine(m_TestDir, "missing.dbtv2");
+
+        Assert.AreEqual(OpenDatabaseResult.NoPath, DatabaseService.OpenDatabase(""), "a cancelled file dialog");
+        Assert.AreEqual(OpenDatabaseResult.NoPath, DatabaseService.OpenDatabase(null));
+        Assert.AreEqual(OpenDatabaseResult.FileNotFound, DatabaseService.OpenDatabase(missing));
+        Assert.AreEqual(OpenDatabaseResult.LoadFailed, DatabaseService.OpenDatabase(corrupt, out string loadError));
+        Assert.IsFalse(string.IsNullOrEmpty(loadError), "a failed load carries the reader's message for the dialog");
+        Assert.AreEqual(OpenDatabaseResult.Opened, DatabaseService.OpenDatabase(good, out loadError));
+        Assert.IsNull(loadError);
+        Assert.AreEqual(OpenDatabaseResult.AlreadyOpen, DatabaseService.OpenDatabase(good));
+
+        Assert.AreEqual(1, DatabaseService.Databases.Count, "only the good base is registered");
+        Assert.AreEqual("{ this is not json", File.ReadAllText(corrupt), "a base that failed to load is left untouched");
+    }
+
+    [Test]
+    public void OpenDatabase_ACorruptBase_IsReportedWithoutOpeningTheBugReporter()
+    {
+        // The user gets a dialog for this, so the exception must be logged as a handled error:
+        // an Exception log entry opens the bug reporter on top of the dialog.
+        string corrupt = Path.Combine(m_TestDir, "corrupt.dbtv2");
+        File.WriteAllText(corrupt, "{ this is not json");
+        LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex("Failed to load subject database"));
+        int exceptionEntries = 0;
+        UnityEngine.Application.LogCallback count = (condition, stackTrace, type) => { if (type == UnityEngine.LogType.Exception) exceptionEntries++; };
+        UnityEngine.Application.logMessageReceived += count;
+        try
+        {
+            Assert.AreEqual(OpenDatabaseResult.LoadFailed, DatabaseService.OpenDatabase(corrupt));
+        }
+        finally
+        {
+            UnityEngine.Application.logMessageReceived -= count;
+        }
+
+        Assert.AreEqual(0, exceptionEntries, "no Exception log entry: that is what opens the bug reporter");
+    }
+
+    [Test]
+    public void DescribeOpenFailure_HasADialogTextForEveryRefusal_AndNoneOtherwise()
+    {
+        const string path = "/some/folder/base.dbtv2";
+
+        Assert.IsNull(DatabaseService.DescribeOpenFailure(OpenDatabaseResult.Opened, path));
+        Assert.IsNull(DatabaseService.DescribeOpenFailure(OpenDatabaseResult.NoPath, ""), "cancelling the file dialog is not an error");
+        StringAssert.Contains(path, DatabaseService.DescribeOpenFailure(OpenDatabaseResult.FileNotFound, path));
+        StringAssert.Contains(path, DatabaseService.DescribeOpenFailure(OpenDatabaseResult.AlreadyOpen, path));
+        string loadFailed = DatabaseService.DescribeOpenFailure(OpenDatabaseResult.LoadFailed, path, "bad token at line 1");
+        StringAssert.Contains(path, loadFailed);
+        StringAssert.Contains("bad token at line 1", loadFailed);
+    }
+    #endregion
+
+    #region DisplayName
+    [Test]
+    public void DisplayName_AddsTheFolder_OnlyWhileTwoOpenDatabasesShareAName()
+    {
+        string dirA = Path.Combine(m_TestDir, "a"), dirB = Path.Combine(m_TestDir, "b");
+        Directory.CreateDirectory(dirA);
+        Directory.CreateDirectory(dirB);
+        Assert.IsTrue(DatabaseService.CreateNewDatabase(Path.Combine(dirA, "base.dbtv2")));
+        SubjectRepository first = DatabaseService.Databases[0];
+        Assert.AreEqual("base", DatabaseService.DisplayName(first));
+
+        Assert.IsTrue(DatabaseService.CreateNewDatabase(Path.Combine(dirB, "base.dbtv2")));
+        SubjectRepository second = DatabaseService.Databases[1];
+        Assert.AreEqual("base (a)", DatabaseService.DisplayName(first));
+        Assert.AreEqual("base (b)", DatabaseService.DisplayName(second));
+
+        DatabaseService.DeleteDatabase(second);
+        Assert.AreEqual("base", DatabaseService.DisplayName(first), "closing the other one frees the name");
+    }
+
+    [Test]
+    public void DisplayName_FallsBackToTheFullFolder_WhenTheFolderNamesAreAlikeToo()
+    {
+        string dirA = Path.Combine(m_TestDir, "x", "bases"), dirB = Path.Combine(m_TestDir, "y", "bases");
+        Directory.CreateDirectory(dirA);
+        Directory.CreateDirectory(dirB);
+        Assert.IsTrue(DatabaseService.CreateNewDatabase(Path.Combine(dirA, "base.dbtv2")));
+        Assert.IsTrue(DatabaseService.CreateNewDatabase(Path.Combine(dirB, "base.dbtv2")));
+
+        Assert.AreEqual("base (" + dirA + ")", DatabaseService.DisplayName(DatabaseService.Databases[0]));
+        Assert.AreEqual("base (" + dirB + ")", DatabaseService.DisplayName(DatabaseService.Databases[1]));
+    }
+    #endregion
+
     #region UpdateDatabaseName
     [Test]
     public void UpdateDatabaseName_RenamesFilesOnDisk()

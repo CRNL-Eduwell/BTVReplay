@@ -7,7 +7,10 @@ using System.Collections.Generic;
 
 public class DbSubMenu : MonoBehaviour
 {
-    public GenericEvent<string> ItemClicked = new GenericEvent<string>();
+    // Carries the database itself. It used to carry the button's name, and the window looked the
+    // destination up by that name: with two open databases called alike (same file name in two
+    // folders), every pick landed on the first one.
+    public GenericEvent<SubjectRepository> ItemClicked = new GenericEvent<SubjectRepository>();
 
     public bool Show
     {
@@ -30,9 +33,23 @@ public class DbSubMenu : MonoBehaviour
 
     public void AddSubMenuItem(SubjectRepository item)
     {
-        GameObject itemObject = AddSubMenuItem(item.ShortName);
+        GameObject itemObject = Instantiate(m_MenuSubItemPrefabs, _ItemContainer.transform);
+        itemObject.GetComponent<Button>().onClick.AddListener(() => { ItemClicked.Invoke(item); });
         item.PropertyChanged += DatabaseInformationUpdated;
         m_ChildElements.Add(item, itemObject);
+        RefreshLabels();
+    }
+
+    // Every label, not only the one that changed: opening, closing or renaming a database can
+    // create or resolve a name shared with another entry (DatabaseService.DisplayName).
+    private void RefreshLabels()
+    {
+        foreach (KeyValuePair<SubjectRepository, GameObject> element in m_ChildElements)
+        {
+            string label = DatabaseService.DisplayName(element.Key);
+            element.Value.name = label;
+            element.Value.transform.GetChild(0).GetComponent<Text>().text = label;
+        }
     }
 
     private void DatabaseInformationUpdated(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -40,25 +57,8 @@ public class DbSubMenu : MonoBehaviour
         if (e.PropertyName == "ShortName")
         {
             BtvLog.Log("DBSubmenu : Database Name updated");
-            SubjectRepository item = sender as SubjectRepository;
-            if (m_ChildElements.ContainsKey(item))
-            {
-                GameObject itemObject = m_ChildElements[item];
-                // ItemClicked sends Button.name: keep it in sync or copy/move to a renamed
-                // database keeps targeting the old name and fails.
-                itemObject.name = item.ShortName;
-                itemObject.transform.GetChild(0).GetComponent<Text>().text = item.ShortName;
-            }
+            RefreshLabels();
         }
-    }
-
-    private GameObject AddSubMenuItem(string ItemName)
-    {
-        GameObject newMenu = Instantiate(m_MenuSubItemPrefabs, _ItemContainer.transform);
-        newMenu.name = ItemName;
-        newMenu.transform.GetChild(0).GetComponent<Text>().text = ItemName;
-        newMenu.GetComponent<Button>().onClick.AddListener(()=> { ItemClicked.Invoke(newMenu.GetComponent<Button>().name); });
-        return newMenu;
     }
 
     public void RemoveSubMenuItem(SubjectRepository item)
@@ -69,6 +69,7 @@ public class DbSubMenu : MonoBehaviour
             GameObject itemObject = m_ChildElements[item];
             m_ChildElements.Remove(item);
             Destroy(itemObject);
+            RefreshLabels();
         }
     }
 

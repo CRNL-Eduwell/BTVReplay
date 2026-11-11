@@ -40,6 +40,8 @@ namespace BTV.Services.DatabaseService
             }
         }
         public ReadOnlyObservableCollection<Subject> Subjects { get; private set; } = null;
+        /// <summary>Why the load failed, when <see cref="Subjects"/> is null after loading from a file; null otherwise.</summary>
+        public string LoadError { get; private set; } = null;
 
         private string m_FilePath = "";
         private string m_ShortName = "";
@@ -71,8 +73,10 @@ namespace BTV.Services.DatabaseService
             {
                 // Leave the repository unloaded (Subjects == null): a failed load must never
                 // be mistaken for an empty database, or a later Save would wipe the file.
-                Debug.LogError("Failed to load subject database " + FilePath + " - the file was left untouched.");
-                Debug.LogException(e);
+                // BtvLog.Handled, not LogException: the caller shows the user a dialog with
+                // LoadError, and LogException would open the bug reporter on top of it.
+                LoadError = e.Message;
+                BtvLog.Handled("Failed to load subject database " + FilePath + " - the file was left untouched.", e);
             }
         }
 
