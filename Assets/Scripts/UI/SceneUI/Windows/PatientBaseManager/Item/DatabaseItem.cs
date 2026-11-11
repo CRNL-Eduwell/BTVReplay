@@ -34,7 +34,8 @@ public class DatabaseItem : Tools.Unity.Lists.SelectableItem<SubjectRepository>
 
     private void SetLabelValue()
     {
-        m_Label.text = base.Object.ShortName;
+        // Same label as the move/copy submenus, so two databases called alike can be told apart.
+        m_Label.text = DatabaseService.DisplayName(base.Object);
     }
 
     private void RepositoryInformationUpdated(object sender, System.ComponentModel.PropertyChangedEventArgs e)

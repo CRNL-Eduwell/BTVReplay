@@ -103,7 +103,10 @@ public class SubjectDatabaseWindow : MonoBehaviour
                 }
             case FileMenuMessage.Task.OpenDatabase:
                 {
-                    DatabaseService.OpenDatabase(message.FilePath);
+                    OpenDatabaseResult result = DatabaseService.OpenDatabase(message.FilePath, out string loadError);
+                    string failure = DatabaseService.DescribeOpenFailure(result, message.FilePath, loadError);
+                    if (failure != null)
+                        ApplicationState.displayMessage("Database not opened", result == OpenDatabaseResult.AlreadyOpen ? "INFO" : "NOK", failure);
                     break;
                 }
             case FileMenuMessage.Task.Save:
@@ -292,12 +295,14 @@ public class SubjectDatabaseWindow : MonoBehaviour
         }
     }
 
-    private SubjectRepository FindOpenDatabase(string shortName)
+    // The destination arrives as the repository the user picked. It may have been closed since
+    // the menu was built, so it still has to be one of the open databases.
+    private bool IsOpen(SubjectRepository database)
     {
-        return _DatabaseList.Objects.FirstOrDefault(x => x.ShortName == shortName);
+        return database != null && _DatabaseList.Objects.Any(x => ReferenceEquals(x, database));
     }
 
-    private void MoveSubjectsToDatabase(string database)
+    private void MoveSubjectsToDatabase(SubjectRepository destinationDb)
     {
         SubjectRepository[] SelectedDB = _DatabaseList.ObjectsSelected;
         if (SelectedDB.Length > 0)
@@ -305,10 +310,9 @@ public class SubjectDatabaseWindow : MonoBehaviour
             Subject[] SelectedSubjects = _SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                SubjectRepository destinationDb = FindOpenDatabase(database);
-                if (destinationDb == null)
+                if (!IsOpen(destinationDb))
                 {
-                    Debug.LogError("MoveSubjectsToDatabase : no open database named " + database);
+                    Debug.LogError("MoveSubjectsToDatabase : the destination database is not open");
                     return;
                 }
                 if (ReferenceEquals(destinationDb, SelectedDB[0])) return; // moving onto itself is a no-op
@@ -328,7 +332,7 @@ public class SubjectDatabaseWindow : MonoBehaviour
         }
     }
 
-    private void CopySubjectsToDatabase(string database)
+    private void CopySubjectsToDatabase(SubjectRepository destinationDb)
     {
         SubjectRepository[] SelectedDB = _DatabaseList.ObjectsSelected;
         if (SelectedDB.Length > 0)
@@ -336,10 +340,9 @@ public class SubjectDatabaseWindow : MonoBehaviour
             Subject[] SelectedSubjects = _SubjectList.ObjectsSelected;
             if (SelectedSubjects.Length > 0)
             {
-                SubjectRepository destinationDb = FindOpenDatabase(database);
-                if (destinationDb == null)
+                if (!IsOpen(destinationDb))
                 {
-                    Debug.LogError("CopySubjectsToDatabase : no open database named " + database);
+                    Debug.LogError("CopySubjectsToDatabase : the destination database is not open");
                     return;
                 }
                 foreach (var subject in SelectedSubjects)
