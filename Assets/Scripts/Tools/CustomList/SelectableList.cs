@@ -272,7 +272,7 @@ namespace Tools.Unity.Lists
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
             int itemsLength = items.Length;
-            for (int i = m_FirstIndexDisplayed, j = 0; i <= m_LastIndexDisplayed && j < itemsLength; i++, j++)
+            for (int i = m_FirstIndexDisplayed, j = 0; i < m_LastIndexDisplayed && j < itemsLength; i++, j++)
             {
                 SelectableItem<T> item = items[j] as SelectableItem<T>;
                 T obj = m_DisplayedObjects[i];
