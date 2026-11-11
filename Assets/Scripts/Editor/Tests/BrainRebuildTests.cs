@@ -76,6 +76,31 @@ public class BrainRebuildTests
         AssertPlacedInBrainSpace(electrodes, sites, placed);
     }
 
+    // GetIntraPlotInformation returns an empty electrode name for a label it cannot split (a
+    // multi-letter electrode such as "HA1", or a label with no contact number). Grouping started
+    // from "" as its "no electrode yet" value, so a first site of that kind looked like "one more
+    // contact of the current electrode" and indexed an empty list: ArgumentOutOfRangeException,
+    // and the brain came up with no electrodes at all.
+    [TestCase("HA1", "HA2", "B1")]
+    [TestCase("ECG", "A1", "A2")]
+    [TestCase("HA1", "A1", "HB1")]
+    public void IntraContext_PlacesEveryContact_WhenTheFirstLabelHasNoSingleLetterElectrode(string first, string second, string third)
+    {
+        GameObject electrodes = Electrodes();
+        List<AnatomicalSite> sites = new List<AnatomicalSite>
+        {
+            new AnatomicalSite(first, new Vector3(10, 20, 30)),
+            new AnatomicalSite(second, new Vector3(11, 21, 31)),
+            new AnatomicalSite(third, new Vector3(-5, 0, 2)),
+        };
+        List<Site> placed = new List<Site>();
+
+        new IntraContext().LoadElectrodesOnBrain(electrodes, sites, (site, anatomicalSite) => placed.Add(site));
+
+        AssertPlacedInBrainSpace(electrodes, sites, placed);
+        Assert.AreEqual(3, electrodes.GetComponentsInChildren<Site>(true).Length, "three contacts under the electrodes root");
+    }
+
     [Test]
     public void ScalpContext_PlacesContactsInBrainSpace_AndToleratesAMissingProjector()
     {
