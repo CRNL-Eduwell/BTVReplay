@@ -52,26 +52,7 @@ namespace BTV.Services.AnatomicalDataService
                     {
                         case EegTechnology.Intra:
                             {
-                                List<AnatomicalSite> electrodes = new List<AnatomicalSite>();
-
-                                string memPlot = "";
-                                int nbIntraElec = 0, nbIntraPlot = 0;
-                                foreach (Data.BtvChannel channel in container.Channels)
-                                {
-                                    Tuple<string, int> NameAndId = IntraContext.GetIntraPlotInformation(channel.Label);
-                                    if (memPlot != NameAndId.Item1)
-                                    {
-                                        nbIntraElec += 5;
-                                        nbIntraPlot = -5;
-                                        memPlot = NameAndId.Item1;
-                                    }
-                                    else if (memPlot == NameAndId.Item1)
-                                    {
-                                        nbIntraPlot -= 5;
-                                    }
-
-                                    electrodes.Add(new AnatomicalSite(channel.Label, new Vector3(nbIntraElec, 0, nbIntraPlot)));
-                                }
+                                List<AnatomicalSite> electrodes = DefaultIntraLayout(container.Channels.Select(channel => channel.Label));
 
                                 string referentialLabel = "ELEC_" + i;
                                 SitesPerReferential.Add(referentialLabel, new List<AnatomicalSite>(electrodes));
@@ -105,6 +86,37 @@ namespace BTV.Services.AnatomicalDataService
                 }
             }            
             yield return null;
+        }
+
+        /// <summary>
+        /// The layout shown when no electrode coordinates are loaded: one column per electrode,
+        /// in label order. A label starts a new column when its electrode name
+        /// (IntraContext.GetIntraPlotInformation) differs from the previous label's.
+        /// </summary>
+        public static List<AnatomicalSite> DefaultIntraLayout(IEnumerable<string> labels)
+        {
+            List<AnatomicalSite> electrodes = new List<AnatomicalSite>();
+
+            string memPlot = "";
+            int nbIntraElec = 0, nbIntraPlot = 0;
+            foreach (string label in labels)
+            {
+                Tuple<string, int> NameAndId = IntraContext.GetIntraPlotInformation(label);
+                if (memPlot != NameAndId.Item1)
+                {
+                    nbIntraElec += 5;
+                    nbIntraPlot = -5;
+                    memPlot = NameAndId.Item1;
+                }
+                else
+                {
+                    nbIntraPlot -= 5;
+                }
+
+                electrodes.Add(new AnatomicalSite(label, new Vector3(nbIntraElec, 0, nbIntraPlot)));
+            }
+
+            return electrodes;
         }
 
         //TODO : link atlas information in visualisation , right now atlas data is loaded but that's all
