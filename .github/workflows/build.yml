@@ -13,6 +13,10 @@ on:
         description: 'Existing release tag (e.g. V4.3.0) to build and attach the archives to. Leave empty for artifacts only.'
         required: false
         default: ''
+      targets:
+        description: 'Platforms to build: all, or a comma-separated list of linux, windows, macos (e.g. "linux,windows" skips the macOS job).'
+        required: false
+        default: 'all'
 
 permissions:
   contents: write   # the "Attach to release" step uploads assets to the release
@@ -26,36 +30,55 @@ defaults:
     shell: bash   # one build script works on all three runners (bash ships on windows-latest)
 
 jobs:
+  # Turns the `targets` input into the build matrix, so a manual run can leave a platform out
+  # (macOS minutes cost the most). A release event has no inputs and builds all three.
+  targets:
+    name: Pick targets
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+    steps:
+      - name: Pick targets
+        id: pick
+        env:
+          TARGETS: ${{ github.event.inputs.targets || 'all' }}
+        # Each target builds on its OWN native runner. Building all three from one host
+        # (as DefaultBuild does locally) needs cross-platform IL2CPP toolchains that aren't
+        # available, so we fan out instead. macos-latest is Apple Silicon, so its .app is a
+        # real arm64 build and this project's arm64-only native plugins load correctly.
+        #   module    = unity-setup build-target / module to install
+        #   cliTarget = Unity's own -buildTarget switch value
+        run: |
+          set -euo pipefail
+          all='[
+            {"key":"linux",   "name":"Linux",         "os":"ubuntu-latest",  "module":"StandaloneLinux64",   "cliTarget":"Linux64",      "artifact":"BTVReplay-Linux"},
+            {"key":"windows", "name":"Windows",       "os":"windows-latest", "module":"StandaloneWindows64", "cliTarget":"Win64",        "artifact":"BTVReplay-Windows"},
+            {"key":"macos",   "name":"macOS (arm64)", "os":"macos-latest",   "module":"StandaloneOSX",       "cliTarget":"OSXUniversal", "artifact":"BTVReplay-macOS-arm64"}
+          ]'
+          wanted=$(printf '%s' "$TARGETS" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+          if [ "$wanted" = "all" ]; then
+            matrix=$(jq -c . <<<"$all")
+          else
+            # An unknown name or an empty list fails the run here, before any runner is spent.
+            matrix=$(jq -c --arg wanted "$wanted" '
+              ($wanted | split(",") | map(select(. != ""))) as $w
+              | ($w - map(.key)) as $unknown
+              | if ($unknown | length) > 0 then error("unknown target: " + ($unknown | join(", ")) + " (use all, or a list of linux, windows, macos)")
+                elif ($w | length) == 0 then error("no target given (use all, or a list of linux, windows, macos)")
+                else map(select(.key as $k | $w | index($k)))
+                end' <<<"$all")
+          fi
+          echo "Building: $(jq -r 'map(.name) | join(", ")' <<<"$matrix")"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build ${{ matrix.name }}
+    needs: targets
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false   # one target failing must not cancel the others
       matrix:
-        include:
-          # Each target builds on its OWN native runner. Building all three from one host
-          # (as DefaultBuild does locally) needs cross-platform IL2CPP toolchains that aren't
-          # available, so we fan out instead. macos-latest is Apple Silicon, so its .app is a
-          # real arm64 build and this project's arm64-only native plugins load correctly.
-          - name: Linux
-            os: ubuntu-latest
-            module: StandaloneLinux64     # unity-setup build-target / module to install
-            cliTarget: Linux64            # Unity's own -buildTarget switch value
-            artifact: BTVReplay-Linux
-            # Hub 3.20+ installs to /usr/lib/unityhub, but unity-setup v2.6.0 (unity-cli 2.0.0)
-            # only looks in /opt/unityhub and fails with ENOENT (first seen on the 4.3.0 release).
-            # unity-cli 3.0.2 knows both paths; drop this pin once unity-setup ships it.
-            hubVersion: 3.19.5
-          - name: Windows
-            os: windows-latest
-            module: StandaloneWindows64
-            cliTarget: Win64
-            artifact: BTVReplay-Windows
-          - name: macOS (arm64)
-            os: macos-latest
-            module: StandaloneOSX
-            cliTarget: OSXUniversal
-            artifact: BTVReplay-macOS-arm64
+        include: ${{ fromJSON(needs.targets.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -76,33 +99,36 @@ jobs:
             Library-${{ matrix.module }}-
             Library-
 
-      # The editor download through Unity Hub times out now and then: the 4.3.0 Windows job got
-      # "Failed to execute Unity Hub ... The operation timed out" after ~8 min, and the same
-      # install went through when retried on the same runner. So one attempt may fail and a
-      # second one runs; the job only fails if both do. (Known upstream wart: after a failed
-      # attempt, unity-setup's post-step re-runs the whole setup at the end of the job.)
+      # unity-setup v3 installs the editor with Unity's official CLI; no Unity Hub is installed
+      # (v2 drove the Hub, and the Linux job had to pin Hub 3.19.5 to be found). The editor
+      # download can still fail for a passing reason: under v2 the 4.3.0 Windows job timed out
+      # after ~8 min and the same install went through when retried on the same runner. So one
+      # attempt may fail and a second one runs; the job only fails if both do. (Known upstream
+      # wart, still in v3: after a failed attempt, unity-setup's post-step re-runs the whole
+      # setup at the end of the job.)
       - name: Install Unity
         id: unity-setup
         continue-on-error: true
-        uses: RageAgainstThePixel/unity-setup@v2
+        uses: RageAgainstThePixel/unity-setup@v3
         with:
           unity-version: 6000.4.10f1   # keep in sync with ProjectSettings; re-pin on editor upgrade
           build-targets: ${{ matrix.module }}
-          hub-version: ${{ matrix.hubVersion || '' }}   # empty = latest Hub (see the Linux entry)
 
       - name: Install Unity (retry)
         if: steps.unity-setup.outcome == 'failure'
-        uses: RageAgainstThePixel/unity-setup@v2
+        uses: RageAgainstThePixel/unity-setup@v3
         with:
           unity-version: 6000.4.10f1   # same inputs as above
           build-targets: ${{ matrix.module }}
-          hub-version: ${{ matrix.hubVersion || '' }}
 
       # Activates a free Personal licence straight from the account credentials. This replaces
-      # the dead manual .alf -> .ulf web flow (Unity removed Personal from that page). The
-      # action's post-step returns the licence at the end of the job.
+      # the dead manual .alf -> .ulf web flow (Unity removed Personal from that page). v3 goes
+      # with unity-setup v3: v2 looked for the licensing client inside a Unity Hub install,
+      # which is no longer there. Its post-step returns the licence at the end of the Windows
+      # job only: GitHub's Linux and macOS runners each share one machine identity with Unity,
+      # so a return there would revoke the licence of every other job on that identity.
       - name: Activate Unity licence (Personal)
-        uses: RageAgainstThePixel/activate-unity-license@v2
+        uses: RageAgainstThePixel/activate-unity-license@v3
         with:
           license: Personal
           username: ${{ secrets.UNITY_USERNAME }}
