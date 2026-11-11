@@ -101,11 +101,18 @@ namespace Assets.Scripts.Data.Factory
             return string.Join(" ", tempPlot);
         }
 
-        /// <summary>Splits an intracranial contact label into electrode name and contact number: "A12" -> (A, 12), "B'3" -> (B', 3); (empty, -1) otherwise.</summary>
+        /// <summary>
+        /// Splits an intracranial contact label into electrode name and contact number:
+        /// "A12" -> (A, 12), "B'3" -> (B', 3), "HA1" -> (HA, 1), "HA'2" -> (HA', 2); (empty, -1)
+        /// otherwise. A one-letter electrode is found anywhere in the label ("A1-A2" -> (A, 1)).
+        /// A longer name is accepted only when the label is nothing but the name and the number,
+        /// so a bipolar label such as "HA1-HA2" and a label with no number stay (empty, -1).
+        /// </summary>
         public static Tuple<string, int> GetIntraPlotInformation(string rawName)
         {
             Regex ReLeft = new Regex(@"([a-zA-Z]+)(\d+)");
             Regex ReRight = new Regex(@"([a-zA-Z]+)(\')(\d+)");
+            Regex ReWhole = new Regex(@"^\s*([a-zA-Z]+\'?)(\d+)\s*$");
 
             Match resultLeft = ReLeft.Match(rawName);
             Match resultRight = ReRight.Match(rawName);
@@ -122,6 +129,18 @@ namespace Assets.Scripts.Data.Factory
             {
                 plotName = resultRight.Groups[1].Value + resultRight.Groups[2].Value;
                 plotID = int.Parse(resultRight.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                // Electrode names of several letters ("HA1"). They used to get the empty name,
+                // so neighbouring electrodes of that kind were grouped as one.
+                Match resultWhole = ReWhole.Match(rawName);
+                if (resultWhole.Success && int.TryParse(resultWhole.Groups[2].Value, System.Globalization.NumberStyles.None,
+                        System.Globalization.CultureInfo.InvariantCulture, out int wholeID))
+                {
+                    plotName = resultWhole.Groups[1].Value;
+                    plotID = wholeID;
+                }
             }
 
             return new Tuple<string, int>(plotName, plotID);

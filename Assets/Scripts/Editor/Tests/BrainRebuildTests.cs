@@ -77,11 +77,13 @@ public class BrainRebuildTests
     }
 
     // GetIntraPlotInformation returns an empty electrode name for a label it cannot split (a
-    // multi-letter electrode such as "HA1", or a label with no contact number). Grouping started
+    // label with no contact number, a bipolar label of multi-letter electrodes; until they were
+    // supported, any multi-letter electrode such as "HA1"). Grouping started
     // from "" as its "no electrode yet" value, so a first site of that kind looked like "one more
     // contact of the current electrode" and indexed an empty list: ArgumentOutOfRangeException,
     // and the brain came up with no electrodes at all.
     [TestCase("HA1", "HA2", "B1")]
+    [TestCase("HA1-HA2", "HA2-HA3", "B1")]
     [TestCase("ECG", "A1", "A2")]
     [TestCase("HA1", "A1", "HB1")]
     public void IntraContext_PlacesEveryContact_WhenTheFirstLabelHasNoSingleLetterElectrode(string first, string second, string third)
@@ -99,6 +101,33 @@ public class BrainRebuildTests
 
         AssertPlacedInBrainSpace(electrodes, sites, placed);
         Assert.AreEqual(3, electrodes.GetComponentsInChildren<Site>(true).Length, "three contacts under the electrodes root");
+    }
+
+    // Multi-letter electrodes all parsed to the empty name, so neighbouring ones were grouped
+    // under one unnamed electrode object.
+    [Test]
+    public void IntraContext_GroupsContactsUnderTheirMultiLetterElectrode()
+    {
+        GameObject electrodes = Electrodes();
+        List<AnatomicalSite> sites = new List<AnatomicalSite>
+        {
+            new AnatomicalSite("ha1", new Vector3(10, 20, 30)),
+            new AnatomicalSite("ha2", new Vector3(11, 21, 31)),
+            new AnatomicalSite("hb1", new Vector3(-5, 0, 2)),
+            new AnatomicalSite("a1", new Vector3(-6, 0, 2)),
+        };
+        List<Site> placed = new List<Site>();
+
+        new IntraContext().LoadElectrodesOnBrain(electrodes, sites, (site, anatomicalSite) => placed.Add(site));
+
+        AssertPlacedInBrainSpace(electrodes, sites, placed);
+        Assert.AreEqual(3, electrodes.transform.childCount, "one object per electrode");
+        Assert.AreEqual("ha", electrodes.transform.GetChild(0).name);
+        Assert.AreEqual(2, electrodes.transform.GetChild(0).childCount);
+        Assert.AreEqual("ha1", electrodes.transform.GetChild(0).GetChild(0).name);
+        Assert.AreEqual("hb", electrodes.transform.GetChild(1).name);
+        Assert.AreEqual(1, electrodes.transform.GetChild(1).childCount);
+        Assert.AreEqual("a", electrodes.transform.GetChild(2).name);
     }
 
     [Test]
