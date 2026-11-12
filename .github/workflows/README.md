@@ -45,6 +45,11 @@ a couple of simultaneous activations, so a separate account avoids knocking out 
   attaches the archives to that existing release (replacing any with the same name): use it when a
   release build failed and has been fixed. From the CLI:
   `gh workflow run build.yml --ref develop -f release_tag=V4.3.0`.
+- **Fewer platforms:** a manual run builds all three by default. Its `targets` field takes `all`
+  or a comma-separated list of `linux`, `windows`, `macos`, and builds only those: for example
+  `gh workflow run build.yml --ref develop -f targets=linux,windows` skips the macOS job. An
+  unknown name fails the run in its first job ("Pick targets"), before any build starts. A
+  published release always builds all three.
 
 The first run per target is slow (no `Library` cache + a full Unity editor install); later runs
 reuse the cached `Library` and are much faster.
@@ -61,19 +66,26 @@ drop the `macos-latest` matrix entry and build the `.app` locally via Tools -> B
 
 - **Editor version**: `unity-version` in `build.yml` is pinned to `6000.4.10f1` and must match
   `ProjectSettings`. Re-pin it on an editor upgrade. `RageAgainstThePixel/unity-setup` must be
-  able to resolve that version via Unity Hub.
+  able to resolve that version through Unity's official CLI.
 - **First arm64 macOS build**: arm64 Unity builds occasionally surface native-plugin / signing
   quirks. Treat the first macOS run as provisional and verify the `.app` launches and loads the
   EEG plugins before trusting the artifact.
-- **Linux Hub pin**: the Linux entry pins Unity Hub `3.19.5` (`hubVersion`). Hub 3.20+ installs to
-  `/usr/lib/unityhub`, and `unity-setup` v2.6.0 still looks only in `/opt/unityhub`, so an unpinned
-  Linux job fails in "Install Unity" with `ENOENT ... /opt/unityhub/unityhub`. Drop the pin once
-  `unity-setup` bundles `unity-cli` 3.0.2 or later.
-- **Install retry**: "Install Unity" runs a second time if the first attempt fails. Unity Hub's
-  editor download occasionally times out (`The operation timed out`; seen on Windows for 4.3.0),
-  and a retry on the same runner goes through. After a failed attempt, `unity-setup`'s post-step
-  re-runs the whole setup at the end of the job (an upstream bug: it only records "setup done"
-  once setup succeeds), so a job with a failed attempt takes noticeably longer.
+- **No Unity Hub**: `unity-setup` v3 and `activate-unity-license` v3 install the editor and
+  activate the licence with Unity's official CLI; no Unity Hub is installed on the runner. The two
+  move together: `activate-unity-license` v2 looks for the licensing client inside a Hub install
+  and fails without one. (Under v2 the Linux entry pinned Hub `3.19.5`, because Hub 3.20+ installs
+  to `/usr/lib/unityhub` and `unity-setup` v2.6.0 only looked in `/opt/unityhub`. v3 has no
+  `hub-version` input, and the pin is gone.)
+- **Licence return**: the Personal licence is returned at the end of the Windows job only. GitHub's
+  Linux runners share one machine identity with Unity, and so do its macOS runners, so
+  `activate-unity-license` v3 keeps the licence there by default (`return-license: auto`): a return
+  would revoke it for every other job on that identity.
+- **Install retry**: "Install Unity" runs a second time if the first attempt fails. The editor
+  download occasionally times out (`The operation timed out`; seen on Windows for 4.3.0, under
+  `unity-setup` v2), and a retry on the same runner goes through. After a failed attempt,
+  `unity-setup`'s post-step re-runs the whole setup at the end of the job (an upstream bug, still
+  in v3: it only records "setup done" once setup succeeds), so a job with a failed attempt takes
+  noticeably longer.
 - **Editor path**: the build step invokes `"$UNITY_EDITOR_PATH"` (exported by `unity-setup`). If
   the first run can't find the editor, check that step's output and adjust.
 - **Artifact layout**: `BTVReplayBuilder` writes `build/BTVReplay.<version>.<os>/`; the whole
